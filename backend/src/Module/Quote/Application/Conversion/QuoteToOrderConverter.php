@@ -39,7 +39,6 @@ final readonly class QuoteToOrderConverter
             }
 
             $quote->convertToOrder($order->getId(), $order->getNumber());
-            $this->persistence->flush();
 
             return $order;
         });

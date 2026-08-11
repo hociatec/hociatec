@@ -12,7 +12,6 @@ use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
 use App\Module\Order\Application\Workflow\OrderEventLogger;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderEvent;
-use App\Module\Order\Infrastructure\Persistence\OrderEventPersistence;
 use App\Module\Rating\Application\Writer\ProductReviewStatsUpdater;
 use App\Module\Rating\Infrastructure\Repository\ProductRatingRepository;
 use App\Module\Training\Application\Mapper\TrainingSlotValidator;
@@ -71,7 +70,7 @@ final class AdditionalSmallServicesTest extends TestCase
         $logEntityManager = $this->createMock(EntityManagerInterface::class);
         $logEntityManager->expects(self::once())->method('persist')->with(self::callback(static fn (object $event): bool => $event instanceof OrderEvent && 'Ada Lovelace' === $event->getActorName()));
         $logEntityManager->expects(self::once())->method('flush');
-        $logger = new OrderEventLogger(new OrderEventPersistence($logEntityManager));
+        $logger = new OrderEventLogger(new DoctrineUnitOfWork($logEntityManager));
         $logger->log($order, $user, 'created', 'ok');
     }
 

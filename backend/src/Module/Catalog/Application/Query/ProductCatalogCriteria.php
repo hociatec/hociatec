@@ -37,11 +37,28 @@ final readonly class ProductCatalogCriteria
      *   sort:?string,
      *   limit:?int,
      *   offset:?int
-     * } $payload
+     * }|null $payload
      */
     public function __construct(?array $payload = null)
     {
-        $payload = array_replace([
+        /** @var array{
+         *   categorySlug:?string,
+         *   search:?string,
+         *   onlyFeatured:?bool,
+         *   sellingType:?string,
+         *   brand:?string,
+         *   storageCapacity:?string,
+         *   memoryRam:?string,
+         *   color:?string,
+         *   minPriceCents:?int,
+         *   maxPriceCents:?int,
+         *   inStockOnly:?bool,
+         *   sort:?string,
+         *   limit:?int,
+         *   offset:?int
+         * } $data
+         */
+        $data = array_replace([
             'categorySlug' => null,
             'search' => null,
             'onlyFeatured' => null,
@@ -57,20 +74,20 @@ final readonly class ProductCatalogCriteria
             'limit' => null,
             'offset' => null,
         ], $payload ?? []);
-        $this->categorySlug = $payload['categorySlug'];
-        $this->search = $payload['search'];
-        $this->onlyFeatured = $payload['onlyFeatured'];
-        $this->sellingType = $payload['sellingType'];
-        $this->brand = $payload['brand'];
-        $this->storageCapacity = $payload['storageCapacity'];
-        $this->memoryRam = $payload['memoryRam'];
-        $this->color = $payload['color'];
-        $this->minPriceCents = $payload['minPriceCents'];
-        $this->maxPriceCents = $payload['maxPriceCents'];
-        $this->inStockOnly = $payload['inStockOnly'];
-        $this->sort = $payload['sort'];
-        $this->limit = $payload['limit'];
-        $this->offset = $payload['offset'];
+        $this->categorySlug = $data['categorySlug'];
+        $this->search = $data['search'];
+        $this->onlyFeatured = $data['onlyFeatured'];
+        $this->sellingType = $data['sellingType'];
+        $this->brand = $data['brand'];
+        $this->storageCapacity = $data['storageCapacity'];
+        $this->memoryRam = $data['memoryRam'];
+        $this->color = $data['color'];
+        $this->minPriceCents = $data['minPriceCents'];
+        $this->maxPriceCents = $data['maxPriceCents'];
+        $this->inStockOnly = $data['inStockOnly'];
+        $this->sort = $data['sort'];
+        $this->limit = $data['limit'];
+        $this->offset = $data['offset'];
     }
 
     public static function fromCatalogQuery(ProductCatalogQuery $query): self
@@ -110,6 +127,9 @@ final readonly class ProductCatalogCriteria
                 'minPriceCents' => $this->minPriceCents,
                 'maxPriceCents' => $this->maxPriceCents,
                 'inStockOnly' => $this->inStockOnly,
+                'sort' => null,
+                'limit' => null,
+                'offset' => null,
             ],
         );
     }
@@ -130,6 +150,8 @@ final readonly class ProductCatalogCriteria
                 'maxPriceCents' => $this->maxPriceCents,
                 'inStockOnly' => $this->inStockOnly,
                 'sort' => $this->sort,
+                'limit' => null,
+                'offset' => null,
             ],
         );
     }
@@ -154,5 +176,4 @@ final readonly class ProductCatalogCriteria
             'offset' => $this->offset,
         ];
     }
-
 }

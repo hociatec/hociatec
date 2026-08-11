@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Notification\Application\Notification;
 
-use App\Shared\Infrastructure\Mail\EmailHeaderSanitizer;
+use App\Shared\Application\Mail\EmailHeaderSanitizer;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 

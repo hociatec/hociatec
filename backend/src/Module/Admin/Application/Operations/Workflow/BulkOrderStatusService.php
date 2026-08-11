@@ -26,6 +26,9 @@ final readonly class BulkOrderStatusService
             throw new \InvalidArgumentException('Sélection ou statut invalide.');
         }
 
+        $orderIds = array_values(array_unique(array_map('intval', $orderIds)));
+        sort($orderIds);
+
         $updated = 0;
         foreach ($orderIds as $orderId) {
             $order = $this->orders->findForUpdate($orderId);

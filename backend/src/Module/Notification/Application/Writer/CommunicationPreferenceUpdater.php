@@ -6,12 +6,12 @@ namespace App\Module\Notification\Application\Writer;
 
 use App\Module\Notification\Application\Workflow\CommunicationPreferences;
 use App\Module\Notification\Domain\Exception\NotificationOperationException;
-use App\Module\User\Application\Port\UserPersistencePort;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Application\UnitOfWork;
 
 final readonly class CommunicationPreferenceUpdater
 {
-    public function __construct(private UserPersistencePort $persistence)
+    public function __construct(private UnitOfWork $persistence)
     {
     }
 

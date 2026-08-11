@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Module\Voucher\Infrastructure\Repository;
 
-use App\Module\Voucher\Application\Port\VoucherLookupPort;
 use App\Module\Voucher\Application\Port\VoucherRepositoryPort;
 use App\Module\Voucher\Domain\Entity\Voucher;
 use App\Shared\Application\LockMode as ApplicationLockMode;
@@ -16,7 +15,7 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<Voucher>
  */
-final class VoucherRepository extends ServiceEntityRepository implements VoucherRepositoryPort, VoucherLookupPort
+final class VoucherRepository extends ServiceEntityRepository implements VoucherRepositoryPort
 {
     public function __construct(ManagerRegistry $registry)
     {

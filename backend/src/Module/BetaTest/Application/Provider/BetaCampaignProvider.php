@@ -7,8 +7,8 @@ namespace App\Module\BetaTest\Application\Provider;
 use App\Module\BetaTest\Application\Port\BetaCampaignRepositoryPort;
 use App\Module\BetaTest\Domain\Entity\BetaCampaign;
 use App\Module\BetaTest\Domain\Enum\BetaCampaignStatus;
-use Psr\Clock\ClockInterface;
 use App\Shared\Application\UnitOfWork;
+use Psr\Clock\ClockInterface;
 
 final readonly class BetaCampaignProvider
 {

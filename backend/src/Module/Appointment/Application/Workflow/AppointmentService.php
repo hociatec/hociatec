@@ -12,9 +12,9 @@ use App\Module\Appointment\Application\Port\WorkingDayConfigurationRepositoryPor
 use App\Module\Appointment\Domain\Entity\Appointment;
 use App\Module\Appointment\Domain\Entity\Prestation;
 use App\Module\User\Domain\Entity\User;
-use Psr\Clock\ClockInterface;
 use App\Shared\Application\TransactionManager;
 use App\Shared\Application\UnitOfWork;
+use Psr\Clock\ClockInterface;
 
 final class AppointmentService
 {

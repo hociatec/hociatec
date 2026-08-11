@@ -8,6 +8,7 @@ use App\Module\Outbox\Application\OutboxEventHandler;
 use App\Module\Outbox\Domain\Entity\OutboxEvent;
 use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\User\Application\Workflow\AccountActivationEmailService;
+use App\Module\User\Application\Workflow\VerificationTokenHasher;
 use App\Module\User\Domain\Entity\User;
 
 final readonly class SendActivationEmailHandler implements OutboxEventHandler
@@ -34,6 +35,20 @@ final readonly class SendActivationEmailHandler implements OutboxEventHandler
 
         $user = $this->users->find($userId);
         if (!$user instanceof User || $user->isVerified()) {
+            return;
+        }
+
+        $storedToken = $user->getVerificationToken();
+        $expiresAt = $user->getVerificationTokenExpiresAt();
+        if (!is_string($storedToken) || '' === $storedToken || null === $expiresAt || $expiresAt < new \DateTimeImmutable()) {
+            return;
+        }
+
+        if (!hash_equals($storedToken, VerificationTokenHasher::hash($token))) {
+            return;
+        }
+
+        if ($event->getKey() !== 'user.activation.'.$userId.'.'.$storedToken) {
             return;
         }
 

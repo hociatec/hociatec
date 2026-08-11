@@ -6,12 +6,12 @@ namespace App\Module\Notification\Application\Workflow;
 
 use App\Module\Notification\Application\DTO\NotificationReadStateInput;
 use App\Module\Notification\Domain\Exception\NotificationOperationException;
-use App\Module\User\Application\Port\UserPersistencePort;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Application\UnitOfWork;
 
 final readonly class AccountNotificationReadStateService
 {
-    public function __construct(private UserPersistencePort $persistence)
+    public function __construct(private UnitOfWork $persistence)
     {
     }
 
@@ -31,7 +31,7 @@ final readonly class AccountNotificationReadStateService
         $dismissedKey = $input->dismissedKey;
         $dismissedKeys = $input->dismissedKeys;
 
-        if (is_array($seenKeys)) {
+        if (null !== $seenKeys) {
             $state['seenKeys'] = $this->merge($state['seenKeys'], $seenKeys);
         }
 
@@ -40,7 +40,7 @@ final readonly class AccountNotificationReadStateService
             $state['seenKeys'] = $this->merge($state['seenKeys'], [$dismissedKey]);
         }
 
-        if (is_array($dismissedKeys)) {
+        if (null !== $dismissedKeys) {
             $state['dismissedKeys'] = $this->merge($state['dismissedKeys'], $dismissedKeys);
             $state['seenKeys'] = $this->merge($state['seenKeys'], $dismissedKeys);
         }
@@ -111,7 +111,11 @@ final readonly class AccountNotificationReadStateService
     /**
      * @return list<string>
      */
-    /** @param iterable<mixed>|string|null $keys */
+    /**
+     * @param iterable<mixed>|string|null $keys
+     *
+     * @return list<string>
+     */
     private function normalize(iterable|string|null $keys): array
     {
         if (is_string($keys) || null === $keys) {
@@ -137,10 +141,10 @@ final readonly class AccountNotificationReadStateService
 
     /**
      * @param list<string> $existingKeys
+     * @param list<string> $newKeys
      *
      * @return list<string>
      */
-    /** @param list<string> $newKeys */
     private function merge(array $existingKeys, array $newKeys): array
     {
         return $this->normalize([...$existingKeys, ...$this->normalize($newKeys)]);

@@ -7,7 +7,7 @@ namespace App\Tests\Unit\Module\Notification\Service;
 use App\Module\Notification\Application\DTO\NotificationReadStateInput;
 use App\Module\Notification\Application\Workflow\AccountNotificationReadStateService;
 use App\Module\User\Domain\Entity\User;
-use App\Module\User\Infrastructure\Persistence\UserPersistence;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 
@@ -15,7 +15,7 @@ final class AccountNotificationReadStateServiceTest extends TestCase
 {
     public function testReadHandlesJsonScalarAndInvalidPayloads(): void
     {
-        $service = new AccountNotificationReadStateService(new UserPersistence($this->createMock(EntityManagerInterface::class)));
+        $service = new AccountNotificationReadStateService(new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class)));
         $user = $this->user();
 
         self::assertSame(['seenKeys' => [], 'dismissedKeys' => [], 'seenSignature' => ''], $service->read($user));
@@ -47,7 +47,7 @@ final class AccountNotificationReadStateServiceTest extends TestCase
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::exactly(3))->method('flush');
 
-        $service = new AccountNotificationReadStateService(new UserPersistence($entityManager));
+        $service = new AccountNotificationReadStateService(new DoctrineUnitOfWork($entityManager));
         $user = $this->user();
         $user->setAccountNotificationsSeenSignature(json_encode([
             'seenKeys' => ['seen-1'],
@@ -73,7 +73,7 @@ final class AccountNotificationReadStateServiceTest extends TestCase
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::once())->method('flush');
 
-        $service = new AccountNotificationReadStateService(new UserPersistence($entityManager));
+        $service = new AccountNotificationReadStateService(new DoctrineUnitOfWork($entityManager));
         $user = $this->user();
         $user->setAccountNotificationsSeenSignature(" alpha \n\n beta \n alpha \n");
 

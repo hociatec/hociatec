@@ -5,16 +5,16 @@ declare(strict_types=1);
 namespace App\Module\Favorite\Application\Workflow;
 
 use App\Module\Catalog\Domain\Entity\Product;
-use App\Module\Favorite\Application\Port\FavoritePersistencePort;
 use App\Module\Favorite\Application\Port\FavoriteRepositoryPort;
 use App\Module\Favorite\Domain\Entity\Favorite;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Application\UnitOfWork;
 
 class FavoriteService
 {
     public function __construct(
         private readonly FavoriteRepositoryPort $favorites,
-        private readonly FavoritePersistencePort $persistence,
+        private readonly UnitOfWork $persistence,
     ) {
     }
 
@@ -45,7 +45,7 @@ class FavoriteService
         }
 
         $favorite = new Favorite($user, $product);
-        $this->persistence->save($favorite);
+        $this->persistence->persist($favorite);
         $this->persistence->flush();
 
         return [
@@ -61,7 +61,7 @@ class FavoriteService
             return;
         }
 
-        $this->persistence->delete($favorite);
+        $this->persistence->remove($favorite);
         $this->persistence->flush();
     }
 

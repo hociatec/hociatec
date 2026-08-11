@@ -36,6 +36,19 @@ class ShowCategoryController extends AbstractController
 
         $products = $this->productService->listPublished(new ProductCatalogCriteria([
             'categorySlug' => $slug,
+            'search' => null,
+            'onlyFeatured' => null,
+            'sellingType' => null,
+            'brand' => null,
+            'storageCapacity' => null,
+            'memoryRam' => null,
+            'color' => null,
+            'minPriceCents' => null,
+            'maxPriceCents' => null,
+            'inStockOnly' => null,
+            'sort' => null,
+            'limit' => null,
+            'offset' => null,
         ]));
 
         return ApiResponse::success([

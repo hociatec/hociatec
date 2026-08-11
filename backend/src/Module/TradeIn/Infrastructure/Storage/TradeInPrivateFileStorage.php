@@ -97,7 +97,7 @@ final readonly class TradeInPrivateFileStorage implements TradeInPrivateFileStor
         }
     }
 
-    private function resolvePrivateDocumentPath(string $relativePath, bool $mustExist = true): ?string
+    private function resolvePrivateDocumentPath(string $relativePath, bool $mustExist = true): string
     {
         $root = realpath($this->projectDir.'/var/private/trade-ins');
         $absolute = $this->projectDir.'/'.$relativePath;

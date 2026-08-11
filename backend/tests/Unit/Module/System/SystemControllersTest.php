@@ -69,9 +69,11 @@ final class SystemControllersTest extends TestCase
         self::assertStringContainsString('hociatec_http_responses_total{status_class="4xx"} 0', (string) $local->getContent());
         self::assertStringContainsString('hociatec_http_responses_total{status_class="5xx"} 0', (string) $local->getContent());
         self::assertStringContainsString('hociatec_payment_failed_total 0', (string) $local->getContent());
+        self::assertStringContainsString('hociatec_webhook_failures_total 0', (string) $local->getContent());
         self::assertStringContainsString('hociatec_pdf_generation_duration_seconds_count 0', (string) $local->getContent());
         self::assertStringContainsString('hociatec_email_failures_total 0', (string) $local->getContent());
         self::assertStringContainsString('hociatec_sql_slow_queries_total 0', (string) $local->getContent());
+        self::assertStringContainsString('hociatec_backup_failed_total 0', (string) $local->getContent());
         self::assertStringContainsString('hociatec_admin_sensitive_actions_total 0', (string) $local->getContent());
         self::assertStringContainsString('hociatec_outbox_pending_events 3', (string) $local->getContent());
         self::assertStringContainsString('hociatec_outbox_oldest_pending_age_seconds 42', (string) $local->getContent());

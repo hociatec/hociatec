@@ -155,7 +155,9 @@ final class QuoteAdditionalServicesTest extends TestCase
         $quote = $this->quote('DEV-OUTBOX-1', 'Ada', 'ada@example.test');
         $this->setEntityId($quote, 700);
         $quotes = $this->getMockBuilder(QuoteRepository::class)->disableOriginalConstructor()->onlyMethods(['find'])->getMock();
-        $quotes->expects(self::once())->method('find')->with(700)->willReturn($quote);
+        $quotes->expects(self::exactly(2))->method('find')->with(700)->willReturn($quote);
+        $persistence = $this->createMock(\App\Module\Quote\Application\Port\QuotePersistencePort::class);
+        $persistence->expects(self::once())->method('flush');
 
         $mailer = $this->createMock(EmailSender::class);
         $mailer->expects(self::once())->method('send')->with(self::callback(static function (\Symfony\Component\Mime\Email $email): bool {
@@ -168,10 +170,37 @@ final class QuoteAdditionalServicesTest extends TestCase
             $this->createMock(LoggerInterface::class),
             'contact@example.test',
         );
-        $handler = new SendQuoteCreatedEmailHandler($quotes, $this->contentProvider(), $delivery);
-        $event = new OutboxEvent('quote-email-700', 'quote.created_email_requested', ['quoteId' => 700, 'recipient' => 'ada@example.test']);
+        $handler = new SendQuoteCreatedEmailHandler($quotes, $persistence, $this->contentProvider(), $delivery);
+        $event = new OutboxEvent('quote-email-700', 'quote.created_email_requested', ['quoteId' => 700, 'recipient' => 'ada@example.test', 'force' => false]);
+        $staleRetry = new OutboxEvent('quote-email-700-retry', 'quote.created_email_requested', ['quoteId' => 700, 'recipient' => 'ada@example.test', 'force' => false]);
 
         self::assertTrue($handler->supports($event));
+        $handler->handle($event);
+        $handler->handle($staleRetry);
+    }
+
+    public function testQuoteCreatedEmailOutboxHandlerAllowsExplicitForcedResend(): void
+    {
+        $quote = $this->quote('DEV-OUTBOX-2', 'Ada', 'ada@example.test');
+        $quote->setCreatedEmailSentAt(new \DateTimeImmutable('2026-08-10T10:00:00+00:00'));
+        $this->setEntityId($quote, 701);
+        $quotes = $this->getMockBuilder(QuoteRepository::class)->disableOriginalConstructor()->onlyMethods(['find'])->getMock();
+        $quotes->expects(self::once())->method('find')->with(701)->willReturn($quote);
+        $persistence = $this->createMock(\App\Module\Quote\Application\Port\QuotePersistencePort::class);
+        $persistence->expects(self::never())->method('flush');
+
+        $mailer = $this->createMock(EmailSender::class);
+        $mailer->expects(self::once())->method('send');
+        $delivery = new QuoteEmailDeliveryService(
+            new QuoteCalculator(),
+            $this->pdfService('%PDF-1.4'),
+            $mailer,
+            $this->createMock(LoggerInterface::class),
+            'contact@example.test',
+        );
+        $handler = new SendQuoteCreatedEmailHandler($quotes, $persistence, $this->contentProvider(), $delivery);
+        $event = new OutboxEvent('quote-email-701-force', 'quote.created_email_requested', ['quoteId' => 701, 'recipient' => 'ada@example.test', 'force' => true]);
+
         $handler->handle($event);
     }
 

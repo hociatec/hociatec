@@ -68,5 +68,4 @@ final readonly class QuoteServiceFormData
         $this->updatesBillingMode = (bool) $data['updatesBillingMode'];
         $this->updatesDuration = (bool) $data['updatesDuration'];
     }
-
 }

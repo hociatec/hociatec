@@ -29,22 +29,22 @@ final class ProductSearchRequestMapper
             $perPage = 48;
         }
 
-        return new ProductSearchCriteria(
-            $page,
-            $perPage,
-            $this->string($query->get('category')),
-            $this->string($query->get('q')),
-            $query->has('homepage') && $this->boolean($query->get('homepage')) ? true : null,
-            $this->choice($query->get('sellingType'), ['sale', 'rental']),
-            $this->string($query->get('brand')),
-            $this->string($query->get('storageCapacity')),
-            $this->string($query->get('memoryRam')),
-            $this->string($query->get('color')),
-            $this->price($query->get('minPrice')),
-            $this->price($query->get('maxPrice')),
-            $query->has('inStock') ? $this->boolean($query->get('inStock')) : null,
-            $this->choice($query->get('sort'), self::SORTS),
-        );
+        return new ProductSearchCriteria([
+            'page' => $page,
+            'perPage' => $perPage,
+            'categorySlug' => $this->string($query->get('category')),
+            'search' => $this->string($query->get('q')),
+            'onlyFeatured' => $query->has('homepage') && $this->boolean($query->get('homepage')) ? true : null,
+            'sellingType' => $this->choice($query->get('sellingType'), ['sale', 'rental']),
+            'brand' => $this->string($query->get('brand')),
+            'storageCapacity' => $this->string($query->get('storageCapacity')),
+            'memoryRam' => $this->string($query->get('memoryRam')),
+            'color' => $this->string($query->get('color')),
+            'minPriceCents' => $this->price($query->get('minPrice')),
+            'maxPriceCents' => $this->price($query->get('maxPrice')),
+            'inStockOnly' => $query->has('inStock') ? $this->boolean($query->get('inStock')) : null,
+            'sort' => $this->choice($query->get('sort'), self::SORTS),
+        ]);
     }
 
     private function boolean(mixed $value): bool

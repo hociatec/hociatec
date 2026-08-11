@@ -197,7 +197,7 @@ final class ProductCatalogFacetCollector
         $current = $counts[$normalized] ?? null;
         $counts[$normalized] = new ProductCatalogFacetItem(
             $value,
-            ($current?->count ?? 0) + 1,
+            ($current->count ?? 0) + 1,
             $extra,
         );
     }

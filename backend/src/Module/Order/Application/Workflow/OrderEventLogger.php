@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Application\Workflow;
 
-use App\Module\Order\Application\Port\OrderEventPersistencePort;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderEvent;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Application\UnitOfWork;
 
 final class OrderEventLogger
 {
-    public function __construct(private readonly OrderEventPersistencePort $persistence)
+    public function __construct(private readonly UnitOfWork $unitOfWork)
     {
     }
 
@@ -25,7 +25,7 @@ final class OrderEventLogger
             $actor?->getFullName() ?? $actor?->getEmail(),
         );
 
-        $this->persistence->save($event);
-        $this->persistence->flush();
+        $this->unitOfWork->persist($event);
+        $this->unitOfWork->flush();
     }
 }

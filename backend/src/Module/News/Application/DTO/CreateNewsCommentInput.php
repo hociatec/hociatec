@@ -12,8 +12,7 @@ final readonly class CreateNewsCommentInput
         #[Assert\NotBlank]
         #[Assert\Length(min: 3, max: 2000)]
         public string $content,
-    )
-    {
+    ) {
     }
 
     /** @param array<string,mixed> $payload */

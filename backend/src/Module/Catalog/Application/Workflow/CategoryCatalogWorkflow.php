@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Application\Workflow;
 
-use App\Module\Catalog\Application\Port\CatalogPersistencePort;
 use App\Module\Catalog\Application\Port\CategoryRepositoryPort;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Exception\CatalogOperationException;
+use App\Shared\Application\UnitOfWork;
 use App\Shared\Application\Text\Slugifier;
 
 readonly class CategoryCatalogWorkflow
@@ -16,7 +16,7 @@ readonly class CategoryCatalogWorkflow
 
     public function __construct(
         private CategoryRepositoryPort $categoryRepository,
-        private CatalogPersistencePort $persistence,
+        private UnitOfWork $persistence,
     ) {
     }
 
@@ -62,7 +62,7 @@ readonly class CategoryCatalogWorkflow
             ->setIsVisible($isVisible);
 
         try {
-            $this->persistence->save($category);
+            $this->persistence->persist($category);
             $this->persistence->flush();
         } catch (\RuntimeException $exception) {
             throw CatalogOperationException::failed('Impossible de créer la catégorie.', $exception);
@@ -103,7 +103,7 @@ readonly class CategoryCatalogWorkflow
         }
 
         try {
-            $this->persistence->delete($category);
+            $this->persistence->remove($category);
             $this->persistence->flush();
         } catch (\RuntimeException $exception) {
             throw CatalogOperationException::failed('Impossible de supprimer la catégorie.', $exception);

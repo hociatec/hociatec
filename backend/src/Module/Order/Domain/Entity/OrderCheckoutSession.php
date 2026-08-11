@@ -9,6 +9,10 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'order_checkout_sessions')]
+#[ORM\Index(name: 'idx_checkout_user_cart_status', columns: ['user_id', 'cart_token', 'status'])]
+#[ORM\Index(name: 'idx_checkout_user_order_status', columns: ['user_id', 'order_id', 'status'])]
+#[ORM\Index(name: 'idx_checkout_status_created', columns: ['status', 'created_at'])]
+#[ORM\Index(name: 'idx_checkout_customer_email', columns: ['customer_email'])]
 #[ORM\HasLifecycleCallbacks]
 class OrderCheckoutSession
 {

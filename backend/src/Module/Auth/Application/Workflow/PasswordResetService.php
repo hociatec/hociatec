@@ -72,7 +72,6 @@ class PasswordResetService
         $this->transactions->transactional(function () use ($user): void {
             $this->users->save($user);
             $this->refreshTokenRevocations->revokeAllForUser($user);
-            $this->unitOfWork->flush();
         });
     }
 }

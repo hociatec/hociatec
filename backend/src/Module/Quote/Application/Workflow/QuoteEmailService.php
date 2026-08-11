@@ -24,7 +24,7 @@ final readonly class QuoteEmailService
     /** @return array{to: string, attachmentIncluded: bool, transport: string} */
     public function send(Quote $quote, ?string $overrideRecipient = null): array
     {
-        return $this->sendCreated($quote, $overrideRecipient);
+        return $this->sendCreated($quote, $overrideRecipient, true);
     }
 
     public function sendCreatedIfNeeded(Quote $quote): bool
@@ -33,7 +33,7 @@ final readonly class QuoteEmailService
             return false;
         }
 
-        $result = $this->sendCreated($quote);
+        $result = $this->sendCreated($quote, null, false);
         if ('notification_only' === $result['transport']) {
             return false;
         }
@@ -45,7 +45,7 @@ final readonly class QuoteEmailService
     }
 
     /** @return array{to: string, attachmentIncluded: bool, transport: string} */
-    public function sendCreated(Quote $quote, ?string $overrideRecipient = null): array
+    public function sendCreated(Quote $quote, ?string $overrideRecipient = null, bool $force = false): array
     {
         $recipient = trim((string) ($overrideRecipient ?? $quote->getCustomerEmail()));
         if ('' === $recipient || false === filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
@@ -79,6 +79,7 @@ final readonly class QuoteEmailService
         $this->outbox->record('quote.email.created.'.$quoteId.'.'.hash('sha256', $recipient).'.'.bin2hex(random_bytes(8)), 'quote.created_email_requested', [
             'quoteId' => $quoteId,
             'recipient' => $recipient,
+            'force' => $force,
         ]);
 
         return ['to' => $recipient, 'attachmentIncluded' => true, 'transport' => 'outbox'];

@@ -8,8 +8,8 @@ use App\Module\BetaTest\Application\Port\BetaAttachmentStoragePort;
 use App\Module\BetaTest\Application\Port\BugReportCommentRepositoryPort;
 use App\Module\BetaTest\Application\Port\BugReportRepositoryPort;
 use App\Module\BetaTest\Application\Writer\BugReportCommentWriter;
-use App\Module\BetaTest\Domain\Entity\BugReportComment;
 use App\Module\BetaTest\Domain\Entity\BugReport;
+use App\Module\BetaTest\Domain\Entity\BugReportComment;
 use App\Module\BetaTest\Domain\Exception\BetaTestOperationException;
 use App\Module\BetaTest\Domain\Security\BugReportAccessPolicy;
 use App\Module\User\Domain\Entity\User;
@@ -25,9 +25,7 @@ final readonly class CustomerBugReportPortalService
     ) {
     }
 
-    /**
-     * @return array{items:list<array<string,mixed>>, total:int}
-     */
+    /** @return array{items:list<BugReport>, total:int} */
     public function listForUser(User $user, int $limit, int $offset): array
     {
         /** @var list<BugReport> $reports */

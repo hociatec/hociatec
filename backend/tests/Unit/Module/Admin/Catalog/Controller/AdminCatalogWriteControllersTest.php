@@ -18,6 +18,7 @@ use App\Module\Catalog\Infrastructure\Persistence\CatalogPersistence;
 use App\Module\Catalog\Infrastructure\Repository\BrandRepository;
 use App\Module\Catalog\Infrastructure\Repository\CategoryRepository;
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
+use App\Shared\Application\UnitOfWork;
 use App\Shared\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Doctrine\ORM\EntityManagerInterface;
@@ -54,10 +55,12 @@ final class AdminCatalogWriteControllersTest extends TestCase
         self::assertSame(200, $updated->getStatusCode());
         self::assertSame('Updated', $this->payload($updated)['data']['name']);
 
-        $failingPersistence = new class implements CatalogPersistencePort {
+        $failingPersistence = new class implements CatalogPersistencePort, UnitOfWork {
             public function save(object $entity): void {}
+            public function persist(object $entity): void {}
             public function flush(): void { throw new \RuntimeException('db down'); }
             public function delete(object $entity): void {}
+            public function remove(object $entity): void {}
         };
         $failingService = new BrandService($repository, $this->createMock(ProductRepository::class), $failingPersistence);
         self::assertSame(500, (new CreateBrandController($failingService, $validator, $catalogFormatter))($this->jsonRequest(['name' => 'Failure']))->getStatusCode());
@@ -114,10 +117,12 @@ final class AdminCatalogWriteControllersTest extends TestCase
         self::assertSame(200, $updated->getStatusCode());
         self::assertSame('updated-category', $this->payload($updated)['data']['slug']);
 
-        $failingPersistence = new class implements CatalogPersistencePort {
+        $failingPersistence = new class implements CatalogPersistencePort, UnitOfWork {
             public function save(object $entity): void {}
+            public function persist(object $entity): void {}
             public function flush(): void { throw new \RuntimeException('db down'); }
             public function delete(object $entity): void {}
+            public function remove(object $entity): void {}
         };
         $failingService = new CategoryCatalogWorkflow($repository, $failingPersistence);
         self::assertSame(500, (new CreateCategoryController($failingService, $validator, $catalogFormatter))($this->jsonRequest(['name' => 'Failure']))->getStatusCode());

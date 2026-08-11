@@ -9,14 +9,14 @@ use App\Module\News\Application\Port\NewsArticleRepositoryPort;
 use App\Module\News\Application\Workflow\NewsArticleShareEmailService;
 use App\Shared\Application\Exception\MailDeliveryException;
 use App\Shared\Infrastructure\Http\ApiResponse;
-use App\Shared\Infrastructure\Http\RateLimitKeyFactory;
 use App\Shared\Infrastructure\Http\RateLimited;
+use App\Shared\Infrastructure\Http\RateLimitKeyFactory;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
+use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api/public/news/{slug}/share', name: 'api_public_news_share', methods: ['POST'])]
 #[RateLimited('content_share_public')]

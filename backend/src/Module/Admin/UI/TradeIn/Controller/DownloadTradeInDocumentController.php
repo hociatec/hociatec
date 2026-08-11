@@ -6,8 +6,8 @@ namespace App\Module\Admin\UI\TradeIn\Controller;
 
 use App\Module\TradeIn\Application\Port\TradeInPrivateFileStoragePort;
 use App\Module\TradeIn\Application\Port\TradeInRequestRepositoryPort;
-use Psr\Log\LoggerInterface;
 use App\Shared\Infrastructure\Http\AttachmentResponseFactory;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;

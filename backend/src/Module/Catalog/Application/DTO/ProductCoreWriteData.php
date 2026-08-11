@@ -42,6 +42,22 @@ final readonly class ProductCoreWriteData
      */
     public function __construct(?array $payload = null)
     {
+        /** @var array{
+         *   name: string,
+         *   sku: string,
+         *   slug: ?string,
+         *   description: string,
+         *   shortDescription: ?string,
+         *   priceCents: int,
+         *   stock: int,
+         *   isPublished: bool,
+         *   isFeaturedHome: bool,
+         *   category: ?Category,
+         *   imageAlt: ?string,
+         *   sellingType: string,
+         *   brand: ?Brand
+         * } $data
+         */
         $data = array_replace([
             'name' => '',
             'sku' => '',
@@ -67,6 +83,9 @@ final readonly class ProductCoreWriteData
         $this->stock = (int) $data['stock'];
         $this->isPublished = (bool) $data['isPublished'];
         $this->isFeaturedHome = (bool) $data['isFeaturedHome'];
+        if (!$data['category'] instanceof Category) {
+            throw new \InvalidArgumentException('La catégorie du produit est obligatoire.');
+        }
         $this->category = $data['category'];
         $this->imageAlt = $data['imageAlt'];
         $this->sellingType = (string) $data['sellingType'];

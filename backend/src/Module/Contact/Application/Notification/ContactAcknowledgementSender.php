@@ -6,8 +6,8 @@ namespace App\Module\Contact\Application\Notification;
 
 use App\Module\Contact\Application\DTO\ContactInput;
 use App\Module\Marketing\Application\Notification\EmailTemplateRenderer;
+use App\Shared\Application\Mail\EmailHeaderSanitizer;
 use App\Shared\Application\Mail\EmailSender;
-use App\Shared\Infrastructure\Mail\EmailHeaderSanitizer;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 

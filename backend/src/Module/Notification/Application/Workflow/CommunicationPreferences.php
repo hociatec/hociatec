@@ -17,8 +17,11 @@ final class CommunicationPreferences
         return [self::NOTIFICATION, self::EMAIL, self::NEWS_EMAIL, self::PHONE];
     }
 
-    /** @return list<string> */
-    /** @param iterable<string>|string|null $value */
+    /**
+     * @param iterable<string>|string|null $value
+     *
+     * @return list<string>
+     */
     public static function normalize(iterable|string|null $value): array
     {
         if (is_string($value) || null === $value) {

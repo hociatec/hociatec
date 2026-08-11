@@ -10,9 +10,10 @@ use App\Module\Cart\Application\Workflow\CartVoucherService;
 use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\User\Domain\Entity\User;
 use App\Module\Voucher\Application\Calculator\VoucherEngine;
-use App\Module\Voucher\Application\Port\VoucherLookupPort;
+use App\Module\Voucher\Application\Port\VoucherRepositoryPort;
 use App\Module\Voucher\Application\Projection\VoucherFormatter;
 use App\Module\Voucher\Domain\Entity\Voucher;
+use App\Shared\Application\LockMode;
 use App\Shared\Application\UnitOfWork;
 
 /**
@@ -73,7 +74,7 @@ $cartSessionRepository = new class implements CartSessionRepositoryPort {
 };
 
 $unitOfWork = new class implements UnitOfWork {
-    public bool $committed = false;
+    public bool $flushed = false;
 
     public function persist(object $entity): void
     {
@@ -83,17 +84,51 @@ $unitOfWork = new class implements UnitOfWork {
     {
     }
 
-    public function commit(): void
+    public function flush(): void
     {
-        $this->committed = true;
+        $this->flushed = true;
     }
 };
 
 $voucherEngine = new VoucherEngine(
-    new class implements VoucherLookupPort {
+    new class implements VoucherRepositoryPort {
+        public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?Voucher
+        {
+            return null;
+        }
+
+        public function findBy(array $criteria, ?array $orderBy = null, ?int $limit = null, ?int $offset = null): array
+        {
+            return [];
+        }
+
+        public function count(array $criteria): int
+        {
+            return 0;
+        }
+
+        public function findActiveForDate(\DateTimeImmutable $now): array
+        {
+            return [];
+        }
+
         public function findOneByCode(?string $code): ?Voucher
         {
             return null;
+        }
+
+        public function save(Voucher $voucher): void
+        {
+        }
+
+        public function findByRecipientUserId(int $userId, int $limit = 20, int $offset = 0): array
+        {
+            return [];
+        }
+
+        public function countByRecipientUserId(int $userId): int
+        {
+            return 0;
         }
     },
     new VoucherFormatter(),
@@ -117,8 +152,8 @@ if (null !== $result->getVoucherCode()) {
     exit(1);
 }
 
-if (!$unitOfWork->committed) {
-    fwrite(STDERR, "Smoke test failed: unit of work was not committed\n");
+if (!$unitOfWork->flushed) {
+    fwrite(STDERR, "Smoke test failed: unit of work was not flushed\n");
     exit(1);
 }
 

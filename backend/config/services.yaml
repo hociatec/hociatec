@@ -148,9 +148,6 @@ services:
     App\Module\User\Application\Port\ShippingAddressRepositoryPort:
         alias: App\Module\User\Infrastructure\Repository\ShippingAddressRepository
 
-    App\Module\User\Application\Port\UserPersistencePort:
-        alias: App\Module\User\Infrastructure\Persistence\UserPersistence
-
     App\Module\Order\Application\Port\OrderRepositoryPort:
         alias: App\Module\Order\Infrastructure\Repository\OrderRepository
 
@@ -172,12 +169,6 @@ services:
     App\Module\Order\Application\Port\OrderPersistencePort:
         alias: App\Module\Order\Infrastructure\Persistence\OrderPersistence
 
-    App\Module\Order\Application\Port\OrderEventPersistencePort:
-        alias: App\Module\Order\Infrastructure\Persistence\OrderEventPersistence
-
-    App\Module\Order\Application\Port\StripeWebhookEventPersistencePort:
-        alias: App\Module\Order\Infrastructure\Persistence\StripeWebhookEventPersistence
-
     App\Module\Quote\Application\Port\QuoteRepositoryPort:
         alias: App\Module\Quote\Infrastructure\Repository\QuoteRepository
 
@@ -190,14 +181,8 @@ services:
     App\Module\Voucher\Application\Port\VoucherRepositoryPort:
         alias: App\Module\Voucher\Infrastructure\Repository\VoucherRepository
 
-    App\Module\Voucher\Application\Port\VoucherLookupPort:
-        alias: App\Module\Voucher\Infrastructure\Repository\VoucherRepository
-
     App\Module\Rating\Application\Port\ProductRatingRepositoryPort:
         alias: App\Module\Rating\Infrastructure\Repository\ProductRatingRepository
-
-    App\Module\Rating\Application\Port\RatingPersistencePort:
-        alias: App\Module\Rating\Infrastructure\Persistence\RatingPersistence
 
     App\Module\TradeIn\Application\Port\TradeInRequestRepositoryPort:
         alias: App\Module\TradeIn\Infrastructure\Repository\TradeInRequestRepository
@@ -231,9 +216,6 @@ services:
 
     App\Module\Audit\Application\Port\AuditRequestRepositoryPort:
         alias: App\Module\Audit\Infrastructure\Repository\AuditRequestRepository
-
-    App\Module\Audit\Application\Port\AuditPersistencePort:
-        alias: App\Module\Audit\Infrastructure\Persistence\AuditPersistence
 
     App\Module\BetaTest\Application\Port\BetaCampaignRepositoryPort:
         alias: App\Module\BetaTest\Infrastructure\Repository\BetaCampaignRepository
@@ -273,9 +255,6 @@ services:
 
     App\Module\Catalog\Application\Port\CatalogPersistencePort:
         alias: App\Module\Catalog\Infrastructure\Persistence\CatalogPersistence
-
-    App\Module\Favorite\Application\Port\FavoritePersistencePort:
-        alias: App\Module\Favorite\Infrastructure\Persistence\FavoritePersistence
 
     App\Module\Promotion\Application\Port\PromotionRepositoryPort:
         alias: App\Module\Promotion\Infrastructure\Repository\PromotionRepository

@@ -15,9 +15,9 @@ use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
 use App\Module\Notification\UI\Controller\AccountNotificationsReadStateController;
 use App\Module\Notification\UI\Controller\CommunicationPreferencesController;
 use App\Module\Notification\UI\Controller\ListAccountNotificationsController;
-use App\Module\User\Application\Port\UserPersistencePort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\LockMode;
+use App\Shared\Application\UnitOfWork;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,9 +31,9 @@ final class NotificationControllersTest extends TestCase
     public function testCommunicationPreferencesControllerCoversShowValidationSuccessAndPersistenceFailure(): void
     {
         $user = $this->user();
-        $controller = new CommunicationPreferencesController(new CommunicationPreferenceUpdater(new class implements UserPersistencePort {
-            public function save(User $user): void {}
-            public function remove(User $user): void {}
+        $controller = new CommunicationPreferencesController(new CommunicationPreferenceUpdater(new class implements UnitOfWork {
+            public function persist(object $entity): void {}
+            public function remove(object $entity): void {}
             public function flush(): void {}
         }));
         $controller->setContainer($this->controllerContainer($user));
@@ -58,9 +58,9 @@ final class NotificationControllersTest extends TestCase
             $updated['data']['preferences'],
         );
 
-        $failingController = new CommunicationPreferencesController(new CommunicationPreferenceUpdater(new class implements UserPersistencePort {
-            public function save(User $user): void {}
-            public function remove(User $user): void {}
+        $failingController = new CommunicationPreferencesController(new CommunicationPreferenceUpdater(new class implements UnitOfWork {
+            public function persist(object $entity): void {}
+            public function remove(object $entity): void {}
             public function flush(): void { throw new \RuntimeException('db down'); }
         }));
         $failingController->setContainer($this->controllerContainer($this->user()));
@@ -75,9 +75,9 @@ final class NotificationControllersTest extends TestCase
         $user = $this->user();
         $user->setAccountNotificationsSeenSignature("first\nsecond");
 
-        $controller = new AccountNotificationsReadStateController(new AccountNotificationReadStateService(new class implements UserPersistencePort {
-            public function save(User $user): void {}
-            public function remove(User $user): void {}
+        $controller = new AccountNotificationsReadStateController(new AccountNotificationReadStateService(new class implements UnitOfWork {
+            public function persist(object $entity): void {}
+            public function remove(object $entity): void {}
             public function flush(): void {}
         }));
         $controller->setContainer($this->controllerContainer($user));
@@ -97,9 +97,9 @@ final class NotificationControllersTest extends TestCase
         self::assertContains('promo-1', $updated['data']['readState']['seenKeys']);
         self::assertContains('promo-2', $updated['data']['readState']['dismissedKeys']);
 
-        $failingController = new AccountNotificationsReadStateController(new AccountNotificationReadStateService(new class implements UserPersistencePort {
-            public function save(User $user): void {}
-            public function remove(User $user): void {}
+        $failingController = new AccountNotificationsReadStateController(new AccountNotificationReadStateService(new class implements UnitOfWork {
+            public function persist(object $entity): void {}
+            public function remove(object $entity): void {}
             public function flush(): void { throw new \RuntimeException('db down'); }
         }));
         $failingController->setContainer($this->controllerContainer($this->user()));

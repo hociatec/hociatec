@@ -11,6 +11,9 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'orders')]
+#[ORM\Index(name: 'idx_orders_status_created', columns: ['status', 'created_at'])]
+#[ORM\Index(name: 'idx_orders_user_created', columns: ['user_id', 'created_at'])]
+#[ORM\Index(name: 'idx_orders_invoiced_at', columns: ['invoiced_at'])]
 #[ORM\HasLifecycleCallbacks]
 class Order
 {

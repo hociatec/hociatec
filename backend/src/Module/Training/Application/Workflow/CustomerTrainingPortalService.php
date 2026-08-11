@@ -23,9 +23,19 @@ final readonly class CustomerTrainingPortalService
     public function listEnrollmentsForUser(User $user, int $limit, int $offset): array
     {
         $items = $this->enrollments->findForUser($user, $limit, $offset);
+        $sessionCounts = $this->enrollments->countActiveForSessions(array_map(
+            static fn (TrainingEnrollment $enrollment) => $enrollment->getSession(),
+            $items,
+        ));
 
         return [
-            'items' => array_map(fn (TrainingEnrollment $enrollment): array => $this->formatter->formatEnrollment($enrollment), $items),
+            'items' => array_map(
+                fn (TrainingEnrollment $enrollment): array => $this->formatter->formatEnrollment(
+                    $enrollment,
+                    $sessionCounts[$enrollment->getSession()->getId() ?? 0] ?? null,
+                ),
+                $items,
+            ),
             'total' => $this->enrollments->countForUser($user),
         ];
     }

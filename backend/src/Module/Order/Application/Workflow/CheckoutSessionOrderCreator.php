@@ -40,7 +40,7 @@ final readonly class CheckoutSessionOrderCreator
                 }
 
                 $order = $this->createOrder($checkout);
-                foreach ($checkout->getItemsPayload() as $rawItem) {
+                foreach ($this->sortedItemsPayload($checkout->getItemsPayload()) as $rawItem) {
                     $this->addItem($order, $rawItem);
                 }
 
@@ -135,5 +135,17 @@ final readonly class CheckoutSessionOrderCreator
             $this->persistence->persist($cart);
             $this->persistence->flush();
         }
+    }
+
+    /**
+     * @param list<array<string, mixed>> $items
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function sortedItemsPayload(array $items): array
+    {
+        usort($items, static fn (array $left, array $right): int => ((int) ($left['productId'] ?? 0)) <=> ((int) ($right['productId'] ?? 0)));
+
+        return $items;
     }
 }

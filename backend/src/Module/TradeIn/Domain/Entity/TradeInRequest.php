@@ -13,6 +13,10 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'trade_in_requests')]
+#[ORM\Index(name: 'idx_trade_in_status_created', columns: ['status', 'created_at'])]
+#[ORM\Index(name: 'idx_trade_in_requester_created', columns: ['requester_user_id', 'created_at'])]
+#[ORM\Index(name: 'idx_trade_in_email', columns: ['email'])]
+#[ORM\Index(name: 'idx_trade_in_closed_at', columns: ['closed_at'])]
 #[ORM\HasLifecycleCallbacks]
 /**
  * Settlement accessors compose TradeInClosure and TradeInPrivateDocument value objects.

@@ -9,17 +9,17 @@ use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Application\Workflow\QuoteService as QuoteDomainService;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Exception\QuoteOperationException;
-use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\ApiProblemResponse;
-use App\Shared\Infrastructure\Http\RateLimitKeyFactory;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
+use App\Shared\Infrastructure\Http\RateLimitKeyFactory;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
+use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api/public/quotes', name: 'api_public_quotes_create', methods: ['POST'])]
 #[RateLimited('public_api')]

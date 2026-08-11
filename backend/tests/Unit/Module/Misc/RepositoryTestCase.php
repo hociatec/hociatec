@@ -7,13 +7,21 @@ namespace App\Tests\Unit\Module\Misc;
 use App\Module\Auth\Domain\Entity\RefreshToken;
 use App\Module\Cart\Domain\Entity\CartItem;
 use App\Module\Cart\Domain\Entity\CartSession;
+use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\News\Domain\Entity\NewsArticle;
 use App\Module\News\Domain\Entity\NewsArticleView;
+use App\Module\News\Domain\Entity\NewsComment;
+use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
+use App\Module\Outbox\Domain\Entity\OutboxEvent;
 use App\Module\Order\Domain\Entity\Order;
+use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Module\Order\Domain\Entity\RefundRequest;
 use App\Module\Order\Domain\Entity\StripeWebhookEvent;
+use App\Module\Training\Domain\Entity\Training;
+use App\Module\Training\Domain\Entity\TrainingEnrollment;
+use App\Module\Training\Domain\Entity\TrainingSession;
 use App\Module\TradeIn\Domain\Entity\TradeInRequest;
 use App\Module\User\Domain\Entity\User;
 use App\Tests\Support\TradeInRequestFactory;
@@ -125,6 +133,35 @@ abstract class RepositoryTestCase extends TestCase
             $entityManager->getClassMetadata(Order::class),
             $entityManager->getClassMetadata(RefundRequest::class),
             $entityManager->getClassMetadata(StripeWebhookEvent::class),
+        ]);
+
+        return $entityManager;
+    }
+
+    protected function integrityEntityManager(): EntityManager
+    {
+        $config = ORMSetup::createAttributeMetadataConfiguration([__DIR__.'/../../../../src'], true);
+        $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true], $config);
+        $entityManager = new EntityManager($connection, $config);
+        $entityManager->getConnection()->executeStatement('PRAGMA foreign_keys = ON');
+
+        $tool = new SchemaTool($entityManager);
+        $tool->createSchema([
+            $entityManager->getClassMetadata(User::class),
+            $entityManager->getClassMetadata(RefreshToken::class),
+            $entityManager->getClassMetadata(Brand::class),
+            $entityManager->getClassMetadata(Category::class),
+            $entityManager->getClassMetadata(Product::class),
+            $entityManager->getClassMetadata(AccountNotificationEvent::class),
+            $entityManager->getClassMetadata(NewsArticle::class),
+            $entityManager->getClassMetadata(NewsComment::class),
+            $entityManager->getClassMetadata(OutboxEvent::class),
+            $entityManager->getClassMetadata(Order::class),
+            $entityManager->getClassMetadata(OrderCheckoutSession::class),
+            $entityManager->getClassMetadata(Training::class),
+            $entityManager->getClassMetadata(TrainingSession::class),
+            $entityManager->getClassMetadata(TrainingEnrollment::class),
+            $entityManager->getClassMetadata(TradeInRequest::class),
         ]);
 
         return $entityManager;

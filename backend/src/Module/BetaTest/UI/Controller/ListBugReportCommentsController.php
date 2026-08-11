@@ -23,8 +23,7 @@ final class ListBugReportCommentsController extends AbstractController
     public function __construct(
         private readonly CustomerBugReportPortalService $portal,
         private readonly BugReportCommentFormatter $formatter,
-    )
-    {
+    ) {
     }
 
     public function __invoke(int $id, Request $request): JsonResponse

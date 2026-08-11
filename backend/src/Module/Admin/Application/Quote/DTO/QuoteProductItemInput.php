@@ -85,5 +85,4 @@ final readonly class QuoteProductItemInput
     {
         return array_filter(['name' => $this->name, 'description' => $this->description, 'unit' => $this->unit, 'quantity' => $this->quantity, 'unitPriceCents' => $this->unitPriceCents, 'discountCents' => $this->discountCents, 'vatRate' => $this->vatRate, 'vatRateBps' => $this->vatRateBps], static fn (mixed $value): bool => null !== $value);
     }
-
 }

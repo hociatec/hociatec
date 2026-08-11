@@ -166,6 +166,26 @@ final class FileRefreshTokenRepository implements RefreshTokenRepositoryPort
         $this->write($tokens);
     }
 
+    public function revokeAllActive(): int
+    {
+        $tokens = $this->load();
+        $revoked = 0;
+
+        foreach ($tokens as $selector => $token) {
+            if ($token->isRevoked() || $token->isExpired()) {
+                continue;
+            }
+
+            $token->revoke();
+            $tokens[$selector] = $token;
+            ++$revoked;
+        }
+
+        $this->write($tokens);
+
+        return $revoked;
+    }
+
     public function revokeActiveTokensOverLimit(User $user, int $limit): int
     {
         $tokens = array_filter(

@@ -12,11 +12,11 @@ use App\Module\Audit\Domain\Entity\AuditEvent;
 use App\Module\Audit\Domain\Entity\AuditRequest;
 use App\Module\Audit\Domain\Entity\AuditType;
 use App\Module\Audit\Infrastructure\Pdf\AuditPdfService;
-use App\Module\Audit\Infrastructure\Persistence\AuditPersistence;
 use App\Module\Audit\UI\Controller\Client\CreateAuditController;
 use App\Module\Audit\UI\Controller\Client\GeneratePdfController;
 use App\Module\Audit\UI\Controller\Client\ListMyAuditsController;
 use App\Module\Audit\UI\Controller\Client\ShowMyAuditController;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 final class ClientAuditControllersTest extends AuditIntegrationTestCase
 {
@@ -45,7 +45,7 @@ final class ClientAuditControllersTest extends AuditIntegrationTestCase
         $show->setContainer($this->container($other));
         self::assertSame(404, $show((int) $audit->getId())->getStatusCode());
 
-        $createService = new CreateAuditRequestService(new AuditPersistence($this->entityManager()), new AuditTemplateProvider());
+        $createService = new CreateAuditRequestService(new DoctrineUnitOfWork($this->entityManager()), new AuditTemplateProvider());
         $create = new CreateAuditController($createService, $this->eventLogger(), $this->validator());
         $create->setContainer($this->container($user));
         self::assertSame(400, $create($this->jsonRequest(['type' => 'unknown', 'url' => 'https://site.test']))->getStatusCode());

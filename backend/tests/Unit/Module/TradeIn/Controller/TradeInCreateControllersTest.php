@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Module\TradeIn\Controller;
 
 use App\Module\Catalog\Infrastructure\Repository\ProductRepository;
 use App\Module\Notification\Application\Workflow\CommunicationPreferences;
+use App\Module\TradeIn\UI\Http\PublicTradeInRateLimiter;
 use App\Module\TradeIn\UI\Controller\CreateMyTradeInController;
 use App\Module\TradeIn\UI\Controller\CreatePublicTradeInController;
 use App\Tests\Unit\Module\TradeIn\TradeInIntegrationTestCase;
@@ -32,12 +33,12 @@ final class TradeInCreateControllersTest extends TradeInIntegrationTestCase
         self::assertSame(Response::HTTP_NOT_FOUND, $my(Request::create('/', 'POST', $this->payload(['catalogProductId' => 9]), [], ['rib' => $this->pdfUpload()]))->getStatusCode());
         self::assertSame(Response::HTTP_CREATED, $my(Request::create('/', 'POST', $this->payload(['catalogProductId' => 10]), [], ['rib' => $this->pdfUpload()]))->getStatusCode());
 
-        $public = new CreatePublicTradeInController($service, $this->validator(1), $products, $tradeInFormatter, new RateLimitKeyFactory(), $this->limiter(10));
+        $public = new CreatePublicTradeInController($service, $this->validator(1), $products, $tradeInFormatter, new PublicTradeInRateLimiter(new RateLimitKeyFactory(), $this->limiter(10)));
         $public->setContainer($this->controllerContainer(null));
         self::assertSame(Response::HTTP_UNPROCESSABLE_ENTITY, $public(Request::create('/', 'POST', $this->payload()))->getStatusCode());
         self::assertSame(Response::HTTP_CREATED, $public(Request::create('/', 'POST', $this->payload(), [], ['rib' => $this->pdfUpload()]))->getStatusCode());
 
-        $publicForUser = new CreatePublicTradeInController($service, $this->validator(1), $products, $tradeInFormatter, new RateLimitKeyFactory(), $this->limiter(10));
+        $publicForUser = new CreatePublicTradeInController($service, $this->validator(1), $products, $tradeInFormatter, new PublicTradeInRateLimiter(new RateLimitKeyFactory(), $this->limiter(10)));
         $publicForUser->setContainer($this->controllerContainer($user));
         self::assertSame(Response::HTTP_CREATED, $publicForUser(Request::create('/', 'POST', $this->payload(), [], ['rib' => $this->pdfUpload()]))->getStatusCode());
     }

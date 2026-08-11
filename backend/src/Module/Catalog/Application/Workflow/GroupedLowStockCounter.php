@@ -23,6 +23,14 @@ final readonly class GroupedLowStockCounter
 
         do {
             $page = $this->products->findAllForAdmin(new ProductAdminCriteria([
+                'categorySlug' => null,
+                'search' => null,
+                'onlyFeatured' => null,
+                'sellingType' => null,
+                'minPriceCents' => null,
+                'maxPriceCents' => null,
+                'lowStockOnly' => null,
+                'sort' => null,
                 'limit' => self::BATCH_SIZE,
                 'offset' => $offset,
             ]));

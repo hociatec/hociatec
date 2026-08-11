@@ -20,7 +20,16 @@ final readonly class CartOrderLineConverter
 
     public function addLines(Order $order, CartSession $cart): void
     {
-        foreach ($cart->getItems() as $cartItem) {
+        $items = $cart->getItems()->toArray();
+        usort($items, static function (object $left, object $right): int {
+            if (!$left instanceof \App\Module\Cart\Domain\Entity\CartItem || !$right instanceof \App\Module\Cart\Domain\Entity\CartItem) {
+                return 0;
+            }
+
+            return ($left->getProduct()->getId() ?? 0) <=> ($right->getProduct()->getId() ?? 0);
+        });
+
+        foreach ($items as $cartItem) {
             $productId = $cartItem->getProduct()->getId();
             if (null === $productId) {
                 throw new \InvalidArgumentException('Produit invalide.');

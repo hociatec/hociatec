@@ -8,9 +8,9 @@ use App\Module\Order\Application\Handler\OrderStripeWebhookHandler;
 use App\Module\Order\Application\Handler\RefundStripeWebhookHandler;
 use App\Module\Order\Application\Handler\TrainingStripeWebhookHandler;
 use App\Module\Order\Application\Mapper\StripeWebhookVerifier;
-use App\Module\Order\Application\Port\StripeWebhookEventPersistencePort;
 use App\Module\Order\Application\Port\StripeWebhookEventRepositoryPort;
 use App\Module\Order\Domain\Entity\StripeWebhookEvent;
+use App\Shared\Application\UnitOfWork;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 
 final class StripeWebhookService
@@ -21,7 +21,7 @@ final class StripeWebhookService
         private readonly TrainingStripeWebhookHandler $training,
         private readonly RefundStripeWebhookHandler $refunds,
         private readonly StripeWebhookEventRepositoryPort $events,
-        private readonly StripeWebhookEventPersistencePort $persistence,
+        private readonly UnitOfWork $unitOfWork,
     ) {
     }
 
@@ -44,8 +44,8 @@ final class StripeWebhookService
         if (null === $received) {
             $received = new StripeWebhookEvent($eventId, $type);
             try {
-                $this->persistence->save($received);
-                $this->persistence->flush();
+                $this->unitOfWork->persist($received);
+                $this->unitOfWork->flush();
             } catch (UniqueConstraintViolationException) {
                 $received = $this->events->findOneByStripeEventId($eventId);
                 if ($received?->isProcessed()) {
@@ -75,12 +75,12 @@ final class StripeWebhookService
                 ],
             };
             $received?->markProcessed();
-            $this->persistence->flush();
+            $this->unitOfWork->flush();
 
             return ['eventId' => $eventId] + $result;
         } catch (\RuntimeException $exception) {
             $received?->markFailed($exception->getMessage());
-            $this->persistence->flush();
+            $this->unitOfWork->flush();
             throw $exception;
         }
     }

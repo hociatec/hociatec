@@ -20,7 +20,6 @@ use App\Module\Rating\Application\Provider\PendingReviewResolver;
 use App\Module\Rating\Application\Workflow\ProductRatingService;
 use App\Module\Rating\Application\Writer\ProductReviewStatsUpdater;
 use App\Module\Rating\Domain\Entity\ProductRating;
-use App\Module\Rating\Infrastructure\Persistence\RatingPersistence;
 use App\Module\Rating\Infrastructure\Repository\ProductRatingRepository;
 use App\Module\Rating\UI\Controller\CreateProductReviewController;
 use App\Module\Rating\UI\Controller\ListProductReviewsController;
@@ -28,6 +27,7 @@ use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Mapping\UnderscoreNamingStrategy;
 use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ManagerRegistry;
@@ -186,7 +186,7 @@ final class RatingServicesAndControllersTest extends TestCase
         return new ProductRatingService(
             $ratingRepository,
             new ProductReviewStatsUpdater($ratingRepository, new DoctrineUnitOfWork($entityManager)),
-            new RatingPersistence($entityManager),
+            new DoctrineUnitOfWork($entityManager),
         );
     }
 
@@ -237,6 +237,7 @@ final class RatingServicesAndControllersTest extends TestCase
         }
 
         $config = ORMSetup::createAttributeMetadataConfiguration([__DIR__.'/../../../../../src'], true);
+        $config->setNamingStrategy(new UnderscoreNamingStrategy());
         $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true], $config);
         $entityManager = new EntityManager($connection, $config);
         (new SchemaTool($entityManager))->createSchema([

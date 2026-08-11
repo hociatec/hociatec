@@ -9,6 +9,9 @@ use Vich\UploaderBundle\Mapping\Attribute as Vich;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'catalog_products')]
+#[ORM\Index(name: 'idx_catalog_products_publication', columns: ['is_published', 'is_featured_home', 'created_at'])]
+#[ORM\Index(name: 'idx_catalog_products_category_publication', columns: ['category_id', 'is_published', 'created_at'])]
+#[ORM\Index(name: 'idx_catalog_products_price_publication', columns: ['is_published', 'price_cents'])]
 #[ORM\HasLifecycleCallbacks]
 #[Vich\Uploadable]
 class Product

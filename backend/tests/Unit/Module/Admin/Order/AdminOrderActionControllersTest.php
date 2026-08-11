@@ -13,7 +13,6 @@ use App\Module\Order\Application\Writer\OrderStatusUpdater;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderEvent;
 use App\Module\Order\Domain\Entity\OrderItem;
-use App\Module\Order\Infrastructure\Persistence\OrderEventPersistence;
 use App\Module\Order\Infrastructure\Repository\OrderRepository;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
@@ -107,7 +106,7 @@ final class AdminOrderActionControllersTest extends TestCase
 
     private function eventLogger(): OrderEventLogger
     {
-        return new OrderEventLogger(new OrderEventPersistence($this->entityManager()));
+        return new OrderEventLogger(new DoctrineUnitOfWork($this->entityManager()));
     }
 
     private function validator(): DtoValidator

@@ -147,6 +147,28 @@ final class HttpInfrastructureTest extends TestCase
         self::assertSame('ip:127.0.0.1', $factory->forClient('127.0.0.1', '   '));
     }
 
+    public function testRateLimitKeyFactoryUsesTrustedProxyClientIpAndIdentityHash(): void
+    {
+        $factory = new RateLimitKeyFactory();
+        $previousTrustedProxies = Request::getTrustedProxies();
+        $previousTrustedHeaderSet = Request::getTrustedHeaderSet();
+
+        try {
+            Request::setTrustedProxies(['192.0.2.10'], Request::HEADER_X_FORWARDED_FOR);
+            $request = Request::create('/api/auth/register', 'POST', server: [
+                'REMOTE_ADDR' => '192.0.2.10',
+                'HTTP_X_FORWARDED_FOR' => '198.51.100.24',
+            ]);
+
+            $key = $factory->forRequest($request, 'customer@example.com');
+
+            self::assertStringStartsWith('ip:198.51.100.24:identity:', $key);
+            self::assertStringNotContainsString('192.0.2.10', $key);
+        } finally {
+            Request::setTrustedProxies($previousTrustedProxies, $previousTrustedHeaderSet);
+        }
+    }
+
     public function testSecurityHeadersSubscriberAppliesHeadersOnlyToSecureApiResponses(): void
     {
         $kernel = $this->createMock(HttpKernelInterface::class);

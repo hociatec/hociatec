@@ -9,9 +9,9 @@ use App\Module\News\Application\Message\NewsArticlePublishedEmailMessage;
 use App\Module\News\Domain\Entity\NewsArticle;
 use App\Module\News\Domain\Exception\NewsOperationException;
 use App\Module\User\Application\Port\UserRepositoryPort;
-use Psr\Clock\ClockInterface;
 use App\Shared\Application\Messaging\AsyncMessageDispatcher;
 use App\Shared\Application\UnitOfWork;
+use Psr\Clock\ClockInterface;
 
 final readonly class NewsArticleWriter
 {

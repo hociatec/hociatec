@@ -6,7 +6,7 @@ namespace App\Module\Voucher\Application\Calculator;
 
 use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\User\Domain\Entity\User;
-use App\Module\Voucher\Application\Port\VoucherLookupPort;
+use App\Module\Voucher\Application\Port\VoucherRepositoryPort;
 use App\Module\Voucher\Application\Projection\VoucherFormatter;
 use App\Module\Voucher\Domain\Entity\Voucher;
 use Psr\Clock\ClockInterface;
@@ -14,7 +14,7 @@ use Psr\Clock\ClockInterface;
 final class VoucherEngine
 {
     public function __construct(
-        private readonly VoucherLookupPort $vouchers,
+        private readonly VoucherRepositoryPort $vouchers,
         private readonly VoucherFormatter $formatter,
         private readonly ?ClockInterface $clock = null,
     ) {

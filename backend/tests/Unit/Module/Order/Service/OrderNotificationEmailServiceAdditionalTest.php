@@ -13,7 +13,6 @@ use App\Module\Order\Application\Provider\OrderNotificationContentProvider;
 use App\Module\Order\Application\Workflow\OrderEventLogger;
 use App\Module\Order\Application\Workflow\OrderNotificationEmailService;
 use App\Module\Order\Domain\Entity\Order;
-use App\Module\Order\Infrastructure\Persistence\OrderEventPersistence;
 use App\Module\Order\Infrastructure\Persistence\OrderPersistence;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
 use App\Module\User\Domain\Entity\User;
@@ -128,7 +127,7 @@ final class OrderNotificationEmailServiceAdditionalTest extends TestCase
                 new \App\Module\Order\Application\Provider\OrderNotificationTemplateRenderer(),
             ),
             $mailer,
-            new OrderEventLogger(new OrderEventPersistence($eventEntityManager)),
+            new OrderEventLogger(new DoctrineUnitOfWork($eventEntityManager)),
             $this->notifier(),
             'noreply@example.test',
         );

@@ -101,17 +101,17 @@ class BetaTesterProfile
             throw new \InvalidArgumentException('Le profil bêta doit être associé à un utilisateur.');
         }
         $this->user = $data['user'];
-        $this->availability = is_array($data['availability']) ? array_values(array_filter($data['availability'], 'is_string')) : [];
+        $this->availability = array_values(array_filter($data['availability'], 'is_string'));
         $this->motivation = (string) $data['motivation'];
         $this->testingExperience = (string) $data['testingExperience'];
         $this->bugDescriptionAbility = (string) $data['bugDescriptionAbility'];
         $this->technicalKnowledge = null !== $data['technicalKnowledge'] ? (string) $data['technicalKnowledge'] : null;
         $this->accessibilityNeed = (string) $data['accessibilityNeed'];
-        $this->assistiveTools = is_array($data['assistiveTools']) ? array_values(array_filter($data['assistiveTools'], 'is_string')) : [];
-        $this->devices = is_array($data['devices']) ? array_values(array_filter($data['devices'], 'is_string')) : [];
-        $this->browsers = is_array($data['browsers']) ? array_values(array_filter($data['browsers'], 'is_string')) : [];
-        $this->testingTypes = is_array($data['testingTypes']) ? array_values(array_filter($data['testingTypes'], 'is_string')) : [];
-        $this->consentAt = $data['consentAt'] instanceof \DateTimeImmutable ? $data['consentAt'] : new \DateTimeImmutable();
+        $this->assistiveTools = array_values(array_filter($data['assistiveTools'], 'is_string'));
+        $this->devices = array_values(array_filter($data['devices'], 'is_string'));
+        $this->browsers = array_values(array_filter($data['browsers'], 'is_string'));
+        $this->testingTypes = array_values(array_filter($data['testingTypes'], 'is_string'));
+        $this->consentAt = $data['consentAt'];
         $this->privacyNoticeVersion = (string) $data['privacyNoticeVersion'];
         $this->createdAt = $this->consentAt;
         $this->updatedAt = $this->consentAt;

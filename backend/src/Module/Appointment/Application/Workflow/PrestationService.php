@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace App\Module\Appointment\Application\Workflow;
 
 use App\Module\Appointment\Application\Exception\AppointmentOperationException;
-use App\Module\Appointment\Application\Port\PrestationPersistencePort;
 use App\Module\Appointment\Application\Port\PrestationRepositoryPort;
 use App\Module\Appointment\Domain\Entity\Prestation;
+use App\Shared\Application\UnitOfWork;
 
 final class PrestationService
 {
     public function __construct(
         private readonly PrestationRepositoryPort $prestationRepository,
-        private readonly PrestationPersistencePort $persistence,
+        private readonly UnitOfWork $persistence,
     ) {
     }
 
@@ -37,7 +37,7 @@ final class PrestationService
         $prestation = new Prestation($name, $durationMinutes, $priceCents);
 
         try {
-            $this->persistence->save($prestation);
+            $this->persistence->persist($prestation);
             $this->persistence->flush();
         } catch (\RuntimeException $exception) {
             throw AppointmentOperationException::failed('Impossible d\'enregistrer la prestation.', $exception);
@@ -67,7 +67,7 @@ final class PrestationService
     public function delete(Prestation $prestation): void
     {
         try {
-            $this->persistence->delete($prestation);
+            $this->persistence->remove($prestation);
             $this->persistence->flush();
         } catch (\RuntimeException $exception) {
             throw AppointmentOperationException::failed('Impossible de supprimer la prestation.', $exception);

@@ -91,7 +91,7 @@ final class RefundOperationsController extends AbstractController
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }
 
-        return ApiResponse::success($result);
+        return ApiResponse::successItem('result', $result->toArray());
     }
 
     private function currentAdmin(): ?User

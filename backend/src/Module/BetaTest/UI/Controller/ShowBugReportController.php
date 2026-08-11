@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\BetaTest\UI\Controller;
 
-use App\Module\BetaTest\Application\Workflow\CustomerBugReportPortalService;
 use App\Module\BetaTest\Application\Projection\BugReportResponseFormatter;
+use App\Module\BetaTest\Application\Workflow\CustomerBugReportPortalService;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -20,8 +20,7 @@ final class ShowBugReportController extends AbstractController
     public function __construct(
         private readonly CustomerBugReportPortalService $portal,
         private readonly BugReportResponseFormatter $formatter,
-    )
-    {
+    ) {
     }
 
     public function __invoke(int $id): JsonResponse

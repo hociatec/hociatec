@@ -80,5 +80,4 @@ final readonly class ProductAdminListQuery
             'offset' => $this->offset(),
         ]);
     }
-
 }

@@ -35,7 +35,6 @@ use App\Module\User\Application\Workflow\UpdatePersonalInformationService;
 use App\Module\User\Application\Workflow\UpdateProfileService;
 use App\Module\User\Domain\Entity\ShippingAddress;
 use App\Module\User\Domain\Entity\User;
-use App\Module\User\Infrastructure\Persistence\UserPersistence;
 use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
 use App\Module\User\Infrastructure\Repository\UserRepository;
 use App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager;
@@ -355,11 +354,14 @@ final class UserRemainingServicesTest extends TestCase
     public function testSendActivationEmailHandlerProcessesOutboxEvent(): void
     {
         $user = $this->user('activation-handler@example.com');
+        $user
+            ->setVerificationToken(\App\Module\User\Application\Workflow\VerificationTokenHasher::hash('raw-token'))
+            ->setVerificationTokenExpiresAt(new \DateTimeImmutable('+1 hour'));
         $repository = $this->getMockBuilder(UserRepository::class)->disableOriginalConstructor()->onlyMethods(['find'])->getMock();
-        $repository->expects(self::once())->method('find')->with(42)->willReturn($user);
+        $repository->expects(self::exactly(2))->method('find')->with(42)->willReturn($user);
         $mailer = $this->createMock(EmailSender::class);
         $mailer->expects(self::once())->method('send')->with(self::callback(static function (Email $email): bool {
-            return 'activation-42' === $email->getHeaders()->get('X-Hociatec-Idempotency-Key')?->getBodyAsString();
+            return 'user.activation.42.'.hash('sha256', 'raw-token') === $email->getHeaders()->get('X-Hociatec-Idempotency-Key')?->getBodyAsString();
         }));
         $emails = new AccountActivationEmailService(
             new EmailTemplateRenderer($this->createMock(EmailTemplateRepository::class)),
@@ -370,10 +372,12 @@ final class UserRemainingServicesTest extends TestCase
         );
 
         $handler = new SendActivationEmailHandler($repository, $emails);
-        $event = new OutboxEvent('activation-42', 'user.activation_email_requested', ['userId' => 42, 'token' => 'raw-token']);
+        $event = new OutboxEvent('user.activation.42.'.hash('sha256', 'raw-token'), 'user.activation_email_requested', ['userId' => 42, 'token' => 'raw-token']);
+        $staleEvent = new OutboxEvent('user.activation.42.'.hash('sha256', 'stale-token'), 'user.activation_email_requested', ['userId' => 42, 'token' => 'stale-token']);
 
         self::assertTrue($handler->supports($event));
         $handler->handle($event);
+        $handler->handle($staleEvent);
     }
 
     public function testRegisterUserServiceCoversFailuresSuccessAndBetaProfileBranch(): void
@@ -385,7 +389,7 @@ final class UserRemainingServicesTest extends TestCase
         $entityManager = $this->createMock(\Doctrine\ORM\EntityManagerInterface::class);
         $entityManager->method('wrapInTransaction')->willReturnCallback(static fn (callable $callback): mixed => $callback());
         $entityManager->expects(self::atLeast(1))->method('persist');
-        $persistence = new UserPersistence($entityManager);
+        $persistence = new DoctrineUnitOfWork($entityManager);
         $betaProfiles = new BetaTesterProfileService(new DoctrineUnitOfWork($entityManager), new MockClock('2026-07-26'));
 
         $service = new RegisterUserService($userRepository, $hasher, new \App\Module\Outbox\Application\Outbox(new DoctrineUnitOfWork($entityManager)), $persistence, new DoctrineTransactionManager($entityManager), $betaProfiles);
@@ -477,7 +481,7 @@ final class UserRemainingServicesTest extends TestCase
             $userRepository,
             $hasher,
             new \App\Module\Outbox\Application\Outbox(new DoctrineUnitOfWork($entityManager2)),
-            new UserPersistence($entityManager2),
+            new DoctrineUnitOfWork($entityManager2),
             new DoctrineTransactionManager($entityManager2),
             new BetaTesterProfileService(new DoctrineUnitOfWork($entityManager2), new MockClock('2026-07-26')),
         );
@@ -505,7 +509,7 @@ final class UserRemainingServicesTest extends TestCase
             $userRepository,
             $hasher,
             new \App\Module\Outbox\Application\Outbox(new DoctrineUnitOfWork($entityManager3)),
-            new UserPersistence($entityManager3),
+            new DoctrineUnitOfWork($entityManager3),
             new DoctrineTransactionManager($entityManager3),
             new BetaTesterProfileService(new DoctrineUnitOfWork($entityManager3), new MockClock('2026-07-26')),
         );

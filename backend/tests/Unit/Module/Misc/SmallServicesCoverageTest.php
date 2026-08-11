@@ -8,7 +8,6 @@ use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Favorite\Application\Workflow\FavoriteService;
 use App\Module\Favorite\Domain\Entity\Favorite;
-use App\Module\Favorite\Infrastructure\Persistence\FavoritePersistence;
 use App\Module\Favorite\Infrastructure\Repository\FavoriteRepository;
 use App\Module\Quote\Application\DTO\QuoteItemAddition;
 use App\Module\Quote\Application\Mapper\QuoteStatusTranslator;
@@ -24,6 +23,7 @@ use App\Module\Training\Domain\Entity\TrainingCategory;
 use App\Module\Training\Infrastructure\Repository\TrainingCategoryRepository;
 use App\Module\User\Domain\Entity\User;
 use App\Tests\Support\TradeInRequestFactory;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 
@@ -33,7 +33,7 @@ final class SmallServicesCoverageTest extends TestCase
     {
         $repository = $this->createMock(FavoriteRepository::class);
         $entityManager = $this->createMock(EntityManagerInterface::class);
-        $persistence = new FavoritePersistence($entityManager);
+        $persistence = new DoctrineUnitOfWork($entityManager);
         $service = new FavoriteService($repository, $persistence);
         $user = $this->user();
         $product = $this->product();
@@ -51,7 +51,7 @@ final class SmallServicesCoverageTest extends TestCase
         $entityManager2 = $this->createMock(EntityManagerInterface::class);
         $entityManager2->expects(self::once())->method('persist');
         $entityManager2->expects(self::once())->method('flush');
-        $service2 = new FavoriteService($repository2, new FavoritePersistence($entityManager2));
+        $service2 = new FavoriteService($repository2, new DoctrineUnitOfWork($entityManager2));
         $repository2->method('findOneByUserAndProduct')->willReturn(null);
 
         $created = $service2->addProduct($user, $product);
@@ -64,7 +64,7 @@ final class SmallServicesCoverageTest extends TestCase
         $entityManager3->expects(self::once())->method('flush');
         $repository3->expects(self::exactly(2))->method('findOneByUserAndProduct')->with($user, $product)->willReturnOnConsecutiveCalls($existing, null);
         $repository3->expects(self::once())->method('existsForUserAndProduct')->with($user, $product)->willReturn(true);
-        $service3 = new FavoriteService($repository3, new FavoritePersistence($entityManager3));
+        $service3 = new FavoriteService($repository3, new DoctrineUnitOfWork($entityManager3));
         $service3->removeProduct($user, $product);
         $service3->removeProduct($user, $product);
         self::assertTrue($service3->isFavorite($user, $product));

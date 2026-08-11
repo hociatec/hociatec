@@ -4,6 +4,8 @@ Use `UnitOfWork::flush()` only for a simple use case that performs one coherent 
 
 Use `TransactionManager::transactional()` when a use case combines several writes, writes plus file side effects, cache invalidation scheduling, outbox recording, payment state transitions, or any workflow that must be committed as one business operation.
 
+Inside a transaction, prefer one final `flush()` after all in-memory state changes. Add an intermediate `flush()` only when the next step needs a database-generated identifier or an already-materialized SQL side effect before the transaction ends.
+
 When a transaction also needs file cleanup or any other compensating effect, register it through `TransactionSideEffectRegistry::afterCommit()` or `TransactionSideEffectRegistry::afterRollback()` instead of performing the external action directly in the middle of the SQL transaction.
 
 When asynchronous work must follow a persisted business change, record an outbox event in the same transaction as the state change. A worker may then publish to Messenger or perform the external effect after the database commit.

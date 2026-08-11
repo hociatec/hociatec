@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Module\Audit\Application\Workflow;
 
-use App\Module\Audit\Application\Port\AuditPersistencePort;
 use App\Module\Audit\Application\Provider\AuditTemplateProvider;
 use App\Module\Audit\Domain\Entity\AuditChecklistItem;
 use App\Module\Audit\Domain\Entity\AuditRequest;
 use App\Module\Audit\Domain\Entity\AuditType;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Application\UnitOfWork;
 
 class CreateAuditRequestService
 {
     public function __construct(
-        private readonly AuditPersistencePort $persistence,
+        private readonly UnitOfWork $persistence,
         private readonly AuditTemplateProvider $templates,
     ) {
     }
@@ -44,7 +44,7 @@ class CreateAuditRequestService
             }
         }
 
-        $this->persistence->save($audit);
+        $this->persistence->persist($audit);
         $this->persistence->flush();
 
         return $audit;

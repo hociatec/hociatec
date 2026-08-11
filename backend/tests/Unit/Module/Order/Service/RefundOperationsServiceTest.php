@@ -22,7 +22,6 @@ use App\Module\Order\Application\Workflow\RefundStripeProcessor;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Module\Order\Domain\Entity\RefundRequest;
-use App\Module\Order\Infrastructure\Persistence\OrderEventPersistence;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\LockMode;
 use App\Shared\Application\TransactionManager;
@@ -621,7 +620,7 @@ final class RefundOperationsServiceTest extends TestCase
             ),
             new RefundRequestService($unitOfWork),
             new RefundStripeProcessor($refunds, $payments, $stripe, $unitOfWork, $transactions),
-            new OrderEventLogger(new OrderEventPersistence($entityManager)),
+            new OrderEventLogger(new DoctrineUnitOfWork($entityManager)),
             new AdminOperationsFormatter(
                 new AdminOperationsEmailLogFormatter($orders, $this->unusedOrderEvents()),
                 \App\Tests\Support\OrderFormatterFactory::create(),

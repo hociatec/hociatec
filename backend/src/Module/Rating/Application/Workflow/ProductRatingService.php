@@ -9,17 +9,17 @@ use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderItem;
 use App\Module\Rating\Application\Exception\ProductReviewException;
 use App\Module\Rating\Application\Port\ProductRatingRepositoryPort;
-use App\Module\Rating\Application\Port\RatingPersistencePort;
 use App\Module\Rating\Application\Writer\ProductReviewStatsUpdater;
 use App\Module\Rating\Domain\Entity\ProductRating;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Application\UnitOfWork;
 
 class ProductRatingService
 {
     public function __construct(
         private readonly ProductRatingRepositoryPort $ratings,
         private readonly ProductReviewStatsUpdater $statsUpdater,
-        private readonly RatingPersistencePort $persistence,
+        private readonly UnitOfWork $persistence,
     ) {
     }
 

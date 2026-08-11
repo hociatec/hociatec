@@ -35,6 +35,19 @@ final readonly class ProductVariantCopyData
      */
     public function __construct(?array $payload = null)
     {
+        /** @var array{
+         *   template: ?Product,
+         *   baseName: string,
+         *   baseSku: string,
+         *   baseSlug: ?string,
+         *   variantGroup: string,
+         *   color: ?string,
+         *   storageCapacity: ?string,
+         *   stock: int,
+         *   priceCents: ?int,
+         *   position: int
+         * } $data
+         */
         $data = array_replace([
             'template' => null,
             'baseName' => '',
@@ -48,6 +61,9 @@ final readonly class ProductVariantCopyData
             'position' => 1,
         ], $payload ?? []);
 
+        if (!$data['template'] instanceof Product) {
+            throw new \InvalidArgumentException('Le produit modèle est obligatoire.');
+        }
         $this->template = $data['template'];
         $this->baseName = (string) $data['baseName'];
         $this->baseSku = (string) $data['baseSku'];

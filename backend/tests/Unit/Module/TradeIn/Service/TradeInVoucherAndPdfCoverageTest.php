@@ -36,7 +36,7 @@ final class TradeInVoucherAndPdfCoverageTest extends TestCase
 
         $unitOfWork = $this->createMock(UnitOfWork::class);
         $unitOfWork->expects(self::exactly(2))->method('persist')->with(self::isInstanceOf(Voucher::class));
-        $unitOfWork->expects(self::exactly(2))->method('commit');
+        $unitOfWork->expects(self::exactly(2))->method('flush');
 
         $issuer = new TradeInStoreCreditVoucherIssuer(
             new CreateVoucherHandler($unitOfWork, new VoucherPayload($this->voucherRepository())),
@@ -79,7 +79,7 @@ final class TradeInVoucherAndPdfCoverageTest extends TestCase
         };
         $unitOfWork = $this->createMock(UnitOfWork::class);
         $unitOfWork->expects(self::once())->method('persist')->with($voucher);
-        $unitOfWork->expects(self::once())->method('commit');
+        $unitOfWork->expects(self::once())->method('flush');
 
         $issuer = new TradeInStoreCreditVoucherIssuer(
             new CreateVoucherHandler($this->createMock(UnitOfWork::class), new VoucherPayload($this->voucherRepository())),

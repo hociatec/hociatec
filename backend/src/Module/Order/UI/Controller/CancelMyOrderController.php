@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Order\UI\Controller;
 
 use App\Module\Order\Application\Workflow\CustomerOrderPortalService;
-use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\ApiProblemResponse;
+use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

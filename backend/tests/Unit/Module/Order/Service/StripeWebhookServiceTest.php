@@ -8,7 +8,6 @@ use App\Module\Order\Application\Handler\OrderStripeWebhookHandler;
 use App\Module\Order\Application\Handler\RefundStripeWebhookHandler;
 use App\Module\Order\Application\Handler\TrainingStripeWebhookHandler;
 use App\Module\Order\Application\Mapper\StripeWebhookVerifier;
-use App\Module\Order\Application\Port\StripeWebhookEventPersistencePort;
 use App\Module\Order\Application\Port\StripeWebhookEventRepositoryPort;
 use App\Module\Order\Application\Workflow\StripeWebhookService;
 use App\Module\Order\Domain\Entity\Order;
@@ -81,10 +80,15 @@ final class StripeWebhookServiceTest extends TestCase
                     return 'evt_duplicate' === $eventId ? $this->event : null;
                 }
             },
-            new class implements StripeWebhookEventPersistencePort {
-                public function save(StripeWebhookEvent $event): void
+            new class implements UnitOfWork {
+                public function persist(object $entity): void
                 {
-                    throw new \LogicException('save() should not be called for an already processed duplicate.');
+                    throw new \LogicException('persist() should not be called for an already processed duplicate.');
+                }
+
+                public function remove(object $entity): void
+                {
+                    throw new \LogicException('remove() should not be called for an already processed duplicate.');
                 }
 
                 public function flush(): void
@@ -293,7 +297,7 @@ final class InMemoryStripeWebhookEventRepository implements StripeWebhookEventRe
     }
 }
 
-final class InMemoryStripeWebhookEventPersistence implements StripeWebhookEventPersistencePort
+final class InMemoryStripeWebhookEventPersistence implements UnitOfWork
 {
     public int $flushes = 0;
 
@@ -301,9 +305,14 @@ final class InMemoryStripeWebhookEventPersistence implements StripeWebhookEventP
     {
     }
 
-    public function save(StripeWebhookEvent $event): void
+    public function persist(object $entity): void
     {
-        $this->repository->store($event);
+        \assert($entity instanceof StripeWebhookEvent);
+        $this->repository->store($entity);
+    }
+
+    public function remove(object $entity): void
+    {
     }
 
     public function flush(): void

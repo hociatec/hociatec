@@ -7,8 +7,8 @@ namespace App\Module\User\Application\Workflow;
 use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\Quote\Application\Port\QuoteRepositoryPort;
 use App\Module\TradeIn\Application\Port\TradeInRequestRepositoryPort;
-use App\Module\User\Application\Port\UserPersistencePort;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Application\UnitOfWork;
 
 final readonly class UserPersonalDataAnonymizer
 {
@@ -16,7 +16,7 @@ final readonly class UserPersonalDataAnonymizer
         private OrderRepositoryPort $orders,
         private TradeInRequestRepositoryPort $tradeIns,
         private QuoteRepositoryPort $quotes,
-        private UserPersistencePort $persistence,
+        private UnitOfWork $persistence,
     ) {
     }
 
@@ -42,7 +42,7 @@ final readonly class UserPersonalDataAnonymizer
         }
 
         $user->anonymize($this->anonymizedEmail($user));
-        $this->persistence->save($user);
+        $this->persistence->persist($user);
     }
 
     private function anonymizedEmail(User $user): string

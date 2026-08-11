@@ -8,32 +8,31 @@ use App\Module\Catalog\Application\Port\ProductRepositoryPort;
 use App\Module\TradeIn\Application\DTO\TradeInInput;
 use App\Module\TradeIn\Application\Projection\TradeInFormatter;
 use App\Module\TradeIn\Application\Workflow\TradeInRequestWorkflow;
+use App\Module\TradeIn\UI\Http\PublicTradeInRateLimiter;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
-use App\Shared\Infrastructure\Http\RateLimitKeyFactory;
+use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
 use App\Shared\Infrastructure\Http\RateLimited;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\RateLimiter\RateLimiterFactory;
 
 #[Route('/api/public/trade-ins', name: 'api_public_trade_ins_create', methods: ['POST'])]
 #[RateLimited('public_api')]
 final class CreatePublicTradeInController extends AbstractController
 {
+    use AuthenticatedDomainUserTrait;
+
     public function __construct(
         private readonly TradeInRequestWorkflow $service,
         private readonly DtoValidator $validator,
         private readonly ProductRepositoryPort $products,
         private readonly TradeInFormatter $formatter,
-        private readonly RateLimitKeyFactory $rateLimitKeys,
-        #[Autowire(service: 'limiter.public_api')]
-        private readonly RateLimiterFactory $limiter,
+        private readonly PublicTradeInRateLimiter $rateLimiter,
     ) {
     }
 
@@ -45,14 +44,12 @@ final class CreatePublicTradeInController extends AbstractController
         if (!$rib instanceof UploadedFile) {
             return ApiResponse::error('Le RIB du demandeur doit être fourni au format PDF.', Response::HTTP_UNPROCESSABLE_ENTITY);
         }
-        /** @var User|null $user */
-        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser()) instanceof User ? \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser()) : null;
+        $user = $this->getUser() instanceof \Symfony\Component\Security\Core\User\UserInterface ? $this->currentUserOrNull() : null;
         if (null !== $user) {
             $input = $input->withContact($user->getFirstName(), $user->getLastName(), $user->getEmail(), $user->getPhoneNumber());
         }
         $this->validator->validate($input, message: 'Formulaire de reprise invalide.');
-        $limit = $this->limiter->create($this->rateLimitKeys->forRequest($request, $input->email))->consume(1);
-        if (!$limit->isAccepted()) {
+        if (!$this->rateLimiter->isAccepted($request, $input->email)) {
             return ApiResponse::error('Trop de demandes de reprise. Veuillez réessayer plus tard.', JsonResponse::HTTP_TOO_MANY_REQUESTS);
         }
         $product = null !== $input->catalogProductId ? $this->products->find($input->catalogProductId) : null;
@@ -63,5 +60,14 @@ final class CreatePublicTradeInController extends AbstractController
         $tradeIn = $this->service->create($input, $user, $product, $rib);
 
         return ApiResponse::created($this->formatter->format($tradeIn), 'Votre demande de reprise a bien été enregistrée.');
+    }
+
+    private function currentUserOrNull(): ?User
+    {
+        try {
+            return $this->currentUser();
+        } catch (\Symfony\Component\Security\Core\Exception\AccessDeniedException) {
+            return null;
+        }
     }
 }

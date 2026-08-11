@@ -6,9 +6,9 @@ namespace App\Module\Appointment\Application\Workflow;
 
 use App\Module\Appointment\Application\DTO\WorkingDayData;
 use App\Module\Appointment\Application\Exception\AppointmentOperationException;
-use App\Module\Appointment\Application\Port\WorkingDayConfigurationPersistencePort;
 use App\Module\Appointment\Application\Port\WorkingDayConfigurationRepositoryPort;
 use App\Module\Appointment\Domain\Entity\WorkingDayConfiguration;
+use App\Shared\Application\UnitOfWork;
 use App\Shared\Domain\DateTime\DateTimeParser;
 
 final class WorkingDayConfigurationService
@@ -28,7 +28,7 @@ final class WorkingDayConfigurationService
 
     public function __construct(
         private readonly WorkingDayConfigurationRepositoryPort $repository,
-        private readonly WorkingDayConfigurationPersistencePort $persistence,
+        private readonly UnitOfWork $persistence,
     ) {
     }
 
@@ -61,7 +61,7 @@ final class WorkingDayConfigurationService
 
             if (null === $configuration) {
                 $configuration = new WorkingDayConfiguration($day, false);
-                $this->persistence->save($configuration);
+                $this->persistence->persist($configuration);
             }
 
             $isWorkingDay = $item->isWorkingDay;
@@ -123,7 +123,7 @@ final class WorkingDayConfigurationService
                 $configuration = new WorkingDayConfiguration($dayOfWeek, false);
             }
 
-            $this->persistence->save($configuration);
+            $this->persistence->persist($configuration);
             $defaults[] = $configuration;
         }
 

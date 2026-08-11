@@ -7,8 +7,8 @@ namespace App\Module\Admin\Application\Operations\Projection;
 use App\Module\Admin\Application\Operations\DTO\FulfillmentOrderOutput;
 use App\Module\Admin\Application\Operations\DTO\LowStockProductOutput;
 use App\Module\Admin\Application\Operations\DTO\RefundOutput;
-use App\Module\Admin\Application\Operations\DTO\SupportRequestOutput;
 use App\Module\Admin\Application\Operations\DTO\StockMovementOutput;
+use App\Module\Admin\Application\Operations\DTO\SupportRequestOutput;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Domain\Entity\StockMovement;
 use App\Module\Order\Application\Projection\OrderFormatter;
@@ -99,6 +99,12 @@ final readonly class AdminOperationsFormatter
 
     public function fulfillmentOrder(Order $order): FulfillmentOrderOutput
     {
+        $items = array_values(array_map(static fn (OrderItem $item): array => [
+            'name' => $item->getProductName(),
+            'sku' => $item->getProductSku(),
+            'quantity' => $item->getQuantity(),
+        ], $order->getItems()->toArray()));
+
         return new FulfillmentOrderOutput([
             'id' => $order->getId(),
             'number' => $order->getNumber(),
@@ -123,11 +129,7 @@ final readonly class AdminOperationsFormatter
                 'trackingNumber' => $order->getDeliveryTrackingNumber(),
                 'trackingUrl' => $order->getDeliveryTrackingUrl(),
             ],
-            'items' => array_map(static fn (OrderItem $item): array => [
-                'name' => $item->getProductName(),
-                'sku' => $item->getProductSku(),
-                'quantity' => $item->getQuantity(),
-            ], $order->getItems()->toArray()),
+            'items' => $items,
             'createdAt' => $order->getCreatedAt()->format(DATE_ATOM),
         ]);
     }

@@ -12,8 +12,6 @@ use App\Module\Auth\Domain\Entity\RefreshToken;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\StripeWebhookEvent;
 use App\Module\Order\Infrastructure\Persistence\OrderPersistence;
-use App\Module\Order\Infrastructure\Persistence\StripeWebhookEventPersistence;
-use App\Module\Rating\Infrastructure\Persistence\RatingPersistence;
 use App\Module\TradeIn\Infrastructure\Persistence\TradeInPersistence;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
@@ -35,8 +33,8 @@ final class PersistenceHelpersTest extends RepositoryTestCase
         (new WorkingDayConfigurationPersistence($entityManager))->flush();
         $unitOfWork->persist(new RefreshToken($user, 'selector', 'hashed', new \DateTimeImmutable('+1 day')));
         $unitOfWork->flush();
-        (new RatingPersistence($entityManager))->persist(new \stdClass());
-        (new RatingPersistence($entityManager))->flush();
+        $unitOfWork->persist(new \stdClass());
+        $unitOfWork->flush();
         (new TradeInPersistence($entityManager))->save($this->tradeInRequest($user));
         (new TradeInPersistence($entityManager))->remove($this->tradeInRequest($user));
         (new OrderPersistence($entityManager))->flush();
@@ -44,8 +42,8 @@ final class PersistenceHelpersTest extends RepositoryTestCase
         (new PrestationPersistence($entityManager))->save(new Prestation('Diag', 30, 1000));
         (new PrestationPersistence($entityManager))->flush();
         (new PrestationPersistence($entityManager))->delete(new Prestation('Diag', 30, 1000));
-        (new StripeWebhookEventPersistence($entityManager))->save(new StripeWebhookEvent('evt_1', 'checkout.session.completed', '{}'));
-        (new StripeWebhookEventPersistence($entityManager))->flush();
+        $unitOfWork->persist(new StripeWebhookEvent('evt_1', 'checkout.session.completed', '{}'));
+        $unitOfWork->flush();
         (new \App\Module\Admin\Infrastructure\Operations\Persistence\DoctrineOperationsPersistence($entityManager))->persist(new \stdClass());
         (new \App\Module\Admin\Infrastructure\Operations\Persistence\DoctrineOperationsPersistence($entityManager))->flush();
     }

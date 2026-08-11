@@ -98,6 +98,7 @@ final class RefreshTokenService
             }
 
             $storedToken->revoke();
+            $this->unitOfWork->flush();
         });
     }
 

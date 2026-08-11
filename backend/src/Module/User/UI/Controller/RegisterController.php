@@ -8,7 +8,6 @@ use App\Module\User\Application\DTO\RegisterUserInput;
 use App\Module\User\Application\Exception\ActivationEmailDeliveryException;
 use App\Module\User\Application\Exception\InvalidBirthDateException;
 use App\Module\User\Application\Exception\UserAlreadyExistsException;
-use App\Module\User\Application\Projection\UserProfileFormatter;
 use App\Module\User\Application\Workflow\RegisterUserService;
 use App\Module\User\UI\Http\RegistrationRateLimiter;
 use App\Shared\Infrastructure\Http\ApiResponse;
@@ -28,7 +27,6 @@ class RegisterController extends AbstractController
         private readonly RegisterUserService $registerUser,
         private readonly DtoValidator $dtoValidator,
         private readonly LoggerInterface $logger,
-        private readonly UserProfileFormatter $profiles,
         private readonly RegistrationRateLimiter $rateLimiter,
     ) {
     }

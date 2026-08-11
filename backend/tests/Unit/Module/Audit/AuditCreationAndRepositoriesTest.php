@@ -9,14 +9,14 @@ use App\Module\Audit\Application\Workflow\CreateAuditRequestService;
 use App\Module\Audit\Domain\Entity\AuditChecklistItem;
 use App\Module\Audit\Domain\Entity\AuditEvent;
 use App\Module\Audit\Domain\Entity\AuditType;
-use App\Module\Audit\Infrastructure\Persistence\AuditPersistence;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 
 final class AuditCreationAndRepositoriesTest extends AuditIntegrationTestCase
 {
     public function testCreateServicePersistsTemplatedAuditAndRepositoriesQueryIt(): void
     {
         $user = $this->persistUser('audit-owner@example.test');
-        $service = new CreateAuditRequestService(new AuditPersistence($this->entityManager()), new AuditTemplateProvider());
+        $service = new CreateAuditRequestService(new DoctrineUnitOfWork($this->entityManager()), new AuditTemplateProvider());
 
         $audit = $service->create($user, AuditType::ACCESSIBILITY, 'https://example.test', "Line 1\nLine 2");
         $event = new AuditEvent($audit, 'created', 'Created', $user->getId(), 'Ada Lovelace');

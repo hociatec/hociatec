@@ -58,8 +58,7 @@ final class SecurityConfigurationTest extends TestCase
             'src/Module/Order/UI/Controller/CancelMyOrderController.php' => ['CustomerOrderPortalService', 'currentUser()'],
             'src/Module/Order/Application/Workflow/ExistingOrderCheckoutService.php' => ['OrderAccessPolicy', 'findOneForUser($addressId, $user)'],
             'src/Module/Order/UI/Controller/CheckoutSessionStatusController.php' => ['CustomerOrderPortalService', 'currentUser()'],
-            'src/Module/Order/UI/Controller/DownloadMyOrderInvoicePdfController.php' => ['OrderAccessPolicy'],
-            'src/Module/Order/UI/Controller/DownloadMyOrderInvoiceXmlController.php' => ['OrderAccessPolicy'],
+            'src/Module/Order/UI/Http/MyOrderInvoiceAccessService.php' => ['OrderAccessPolicy', 'canDownloadInvoice($user, $order)'],
             'src/Module/Order/UI/Controller/ListMyOrdersController.php' => ['CustomerOrderPortalService', 'listForUser($this->currentUser(),'],
             'src/Module/Order/UI/Controller/ShowOrderController.php' => ['CustomerOrderPortalService', 'showForUser($this->currentUser(),'],
             'src/Module/Quote/UI/Controller/Client/AcceptMyQuoteController.php' => ['CustomerQuotePortalService', 'currentUser()'],
@@ -368,6 +367,16 @@ final class SecurityConfigurationTest extends TestCase
         self::assertStringContainsString('outbox n’est plus inscriptible', $guide);
     }
 
+    public function testMessengerWorkerRunsWithLeastPrivilegeAccount(): void
+    {
+        $service = file_get_contents(__DIR__.'/../../../../deploy/systemd/hociatec-messenger.service');
+        self::assertIsString($service);
+
+        self::assertStringContainsString('User=www-data', $service);
+        self::assertStringContainsString('Group=www-data', $service);
+        self::assertStringContainsString('messenger:consume async', $service);
+    }
+
     public function testPrivateDocumentsAndUploadLimitsAreGuardedInCode(): void
     {
         $tradeInStorage = file_get_contents(__DIR__.'/../../../src/Module/TradeIn/Infrastructure/Storage/TradeInPrivateFileStorage.php');
@@ -405,6 +414,8 @@ final class SecurityConfigurationTest extends TestCase
         self::assertStringContainsString("public const HEADER = 'X-Request-Id';", file_get_contents(__DIR__.'/../../../src/Shared/Infrastructure/Http/RequestIdSubscriber.php') ?: '');
         self::assertStringContainsString('hociatec_http_request_duration_seconds_count', $metricProvider);
         self::assertStringContainsString('hociatec_http_responses_total{status_class="5xx"}', $metricProvider);
+        self::assertStringContainsString('hociatec_webhook_failures_total', $metricProvider);
+        self::assertStringContainsString('hociatec_backup_failed_total', $metricProvider);
         self::assertStringContainsString('hociatec_outbox_dead_events', $metricProvider);
         self::assertStringContainsString('Outbox events reached the dead-letter queue.', $alertPolicy);
         self::assertStringContainsString('Outbox events are stuck in processing.', $alertPolicy);
@@ -547,7 +558,8 @@ final class SecurityConfigurationTest extends TestCase
             'src/Module/Contact/UI/Controller/ContactController.php' => ['RateLimitKeyFactory', '$input->email', 'limiter.contact_public'],
             'src/Module/Catalog/UI/Controller/PublicApi/ShareProductEmailController.php' => ['RateLimitKeyFactory', '$input->email', 'limiter.product_share_public'],
             'src/Module/News/UI/Controller/PublicApi/ShareNewsArticleEmailController.php' => ['RateLimitKeyFactory', '$input->email', 'limiter.content_share_public'],
-            'src/Module/TradeIn/UI/Controller/CreatePublicTradeInController.php' => ['RateLimitKeyFactory', '$input->email', 'limiter.public_api'],
+            'src/Module/TradeIn/UI/Controller/CreatePublicTradeInController.php' => ['$input->email'],
+            'src/Module/TradeIn/UI/Http/PublicTradeInRateLimiter.php' => ['RateLimitKeyFactory', 'limiter.public_api'],
             'src/Module/Quote/UI/Controller/PublicApi/CreateQuoteController.php' => ['RateLimitKeyFactory', "customer['email']", 'limiter.public_api'],
         ];
 
@@ -628,6 +640,8 @@ final class SecurityConfigurationTest extends TestCase
             'src/Module/Outbox/Application/OutboxDispatcher.php' => ['private const MAX_ATTEMPTS = 5', 'recoverStaleProcessing', 'markDead', 'markFailed'],
             'src/Module/Auth/Application/Outbox/SendPasswordResetEmailHandler.php' => ['hash_equals', "auth.password_reset.'.hash('sha256', \$token)", 'return;'],
             'src/Module/User/Application/Outbox/SendActivationEmailHandler.php' => ['sendActivationEmail($user, $token, $event->getKey())'],
+            'src/Module/Quote/Application/Outbox/SendQuoteCreatedEmailHandler.php' => ['force', 'getCreatedEmailSentAt()', 'setCreatedEmailSentAt(new \\DateTimeImmutable())'],
+            'src/Module/Marketing/Infrastructure/MessageHandler/SendMarketingCampaignRecipientEmailHandler.php' => ['canAttemptDelivery()', 'markSent()', 'markFailed('],
             'src/Module/Order/Application/Workflow/RefundStripeProcessor.php' => ['findForUpdate($refundId)', 'transactional(function () use ($refundId)'],
             'src/Module/Admin/Application/Operations/Workflow/StockOperationsService.php' => ['findForUpdate($productId)', 'transactional(function () use ($productId'],
             'src/Module/Auth/Infrastructure/Repository/RefreshTokenRepository.php' => ['LockMode::PESSIMISTIC_WRITE', 'findOneBySelectorForUpdate'],
@@ -676,6 +690,8 @@ final class SecurityConfigurationTest extends TestCase
         self::assertStringContainsString("['mysqldump'", $dumper);
         self::assertStringContainsString('PROCESS_TIMEOUT_SECONDS = 900', $dumper);
         self::assertStringContainsString('sodium_crypto_secretstream_xchacha20poly1305_init_push', $encryption);
+        self::assertStringContainsString('function decryptFile(', $encryption);
+        self::assertStringContainsString('testEncryptedBackupCanBeDecryptedAndRestoredToSqlPayload', $backupTest);
         self::assertStringContainsString('applyRetention', $storage);
     }
 
@@ -727,6 +743,20 @@ final class SecurityConfigurationTest extends TestCase
         }
 
         self::assertSame([], $violations);
+    }
+
+    public function testDebugAndFixturesToolingStayDisabledInProduction(): void
+    {
+        $bundles = require __DIR__.'/../../../config/bundles.php';
+        $frameworkRoutes = file_get_contents(__DIR__.'/../../../config/routes/framework.yaml');
+        self::assertIsArray($bundles);
+        self::assertIsString($frameworkRoutes);
+
+        self::assertSame(['dev' => true], $bundles['Symfony\\Bundle\\MakerBundle\\MakerBundle']);
+        self::assertSame(['dev' => true, 'test' => true], $bundles['Doctrine\\Bundle\\FixturesBundle\\DoctrineFixturesBundle']);
+        self::assertStringContainsString('when@dev:', $frameworkRoutes);
+        self::assertStringContainsString("@FrameworkBundle/Resources/config/routing/errors.php", $frameworkRoutes);
+        self::assertStringContainsString('prefix: /_error', $frameworkRoutes);
     }
 
     /** @return array<string, string> */

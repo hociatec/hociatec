@@ -19,7 +19,6 @@ use App\Module\Order\Application\Provider\OrderNotificationTemplateRenderer;
 use App\Module\Order\Application\Workflow\OrderEventLogger;
 use App\Module\Order\Application\Workflow\OrderNotificationEmailService;
 use App\Module\Order\Domain\Entity\Order;
-use App\Module\Order\Infrastructure\Persistence\OrderEventPersistence;
 use App\Module\Order\Infrastructure\Persistence\OrderPersistence;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
 use App\Module\TradeIn\Application\Workflow\TradeInNotificationEmailService;
@@ -112,7 +111,7 @@ final class AlignedEmailServicesTest extends TestCase
             new OrderPersistence($orderEm),
             $content,
             $mailer,
-            new OrderEventLogger(new OrderEventPersistence($eventEm)),
+            new OrderEventLogger(new DoctrineUnitOfWork($eventEm)),
             $this->notifier(),
             'noreply@example.com',
         );

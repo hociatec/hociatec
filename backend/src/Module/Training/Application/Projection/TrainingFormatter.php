@@ -54,9 +54,9 @@ final class TrainingFormatter
     }
 
     /** @return array<string, mixed> */
-    public function formatSession(TrainingSession $session): array
+    public function formatSession(TrainingSession $session, ?int $enrolledCount = null): array
     {
-        $enrolledCount = $this->enrollments->countActiveForSession($session);
+        $enrolledCount ??= $this->enrollments->countActiveForSession($session);
 
         return [
             'id' => $session->getId(),
@@ -84,7 +84,7 @@ final class TrainingFormatter
     }
 
     /** @return array<string, mixed> */
-    public function formatEnrollment(TrainingEnrollment $enrollment): array
+    public function formatEnrollment(TrainingEnrollment $enrollment, ?int $enrolledCount = null): array
     {
         return [
             'id' => $enrollment->getId(),
@@ -96,7 +96,7 @@ final class TrainingFormatter
             'paidAt' => $enrollment->getPaidAt()?->format(\DateTimeImmutable::ATOM),
             'stripeSessionId' => $enrollment->getStripeSessionId(),
             'createdAt' => $enrollment->getCreatedAt()->format(\DateTimeImmutable::ATOM),
-            'session' => $this->formatSession($enrollment->getSession()),
+            'session' => $this->formatSession($enrollment->getSession(), $enrolledCount),
         ];
     }
 }

@@ -12,8 +12,9 @@ use App\Module\Cart\Infrastructure\Repository\CartSessionRepository;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Voucher\Application\Calculator\VoucherEngine;
-use App\Module\Voucher\Application\Port\VoucherLookupPort;
+use App\Module\Voucher\Application\Port\VoucherRepositoryPort;
 use App\Module\Voucher\Domain\Entity\Voucher;
+use App\Shared\Application\LockMode;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
@@ -85,9 +86,9 @@ final class CartVoucherServiceTest extends TestCase
         );
     }
 
-    private function voucherLookup(?Voucher $voucher): VoucherLookupPort
+    private function voucherLookup(?Voucher $voucher): VoucherRepositoryPort
     {
-        return new class($voucher) implements VoucherLookupPort {
+        return new class($voucher) implements VoucherRepositoryPort {
             public function __construct(private readonly ?Voucher $voucher)
             {
             }
@@ -97,6 +98,40 @@ final class CartVoucherServiceTest extends TestCase
                 return $this->voucher instanceof Voucher && $this->voucher->getCode() === $code
                     ? $this->voucher
                     : null;
+            }
+
+            public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?Voucher
+            {
+                return null;
+            }
+
+            public function findBy(array $criteria, ?array $orderBy = null, ?int $limit = null, ?int $offset = null): array
+            {
+                return [];
+            }
+
+            public function count(array $criteria): int
+            {
+                return 0;
+            }
+
+            public function findActiveForDate(\DateTimeImmutable $now): array
+            {
+                return [];
+            }
+
+            public function save(Voucher $voucher): void
+            {
+            }
+
+            public function findByRecipientUserId(int $userId, int $limit = 20, int $offset = 0): array
+            {
+                return [];
+            }
+
+            public function countByRecipientUserId(int $userId): int
+            {
+                return 0;
             }
         };
     }

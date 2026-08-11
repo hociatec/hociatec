@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace App\Module\Catalog\Application\Workflow;
 
 use App\Module\Catalog\Application\Port\BrandRepositoryPort;
-use App\Module\Catalog\Application\Port\CatalogPersistencePort;
 use App\Module\Catalog\Application\Port\ProductCatalogRepository;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Exception\CatalogOperationException;
+use App\Shared\Application\UnitOfWork;
 
 final class BrandService
 {
     public function __construct(
         private readonly BrandRepositoryPort $brandRepository,
         private readonly ProductCatalogRepository $productRepository,
-        private readonly CatalogPersistencePort $persistence,
+        private readonly UnitOfWork $persistence,
     ) {
     }
 
@@ -40,7 +40,7 @@ final class BrandService
 
         $brand = new Brand($normalizedName);
         try {
-            $this->persistence->save($brand);
+            $this->persistence->persist($brand);
             $this->persistence->flush();
         } catch (\RuntimeException $exception) {
             throw CatalogOperationException::failed('Impossible de créer la marque.', $exception);
@@ -69,7 +69,7 @@ final class BrandService
     {
         try {
             $this->productRepository->clearBrand($brand);
-            $this->persistence->delete($brand);
+            $this->persistence->remove($brand);
             $this->persistence->flush();
         } catch (\RuntimeException $exception) {
             throw CatalogOperationException::failed('Impossible de supprimer la marque.', $exception);

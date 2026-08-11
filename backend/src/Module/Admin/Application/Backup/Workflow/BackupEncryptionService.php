@@ -69,6 +69,86 @@ final readonly class BackupEncryptionService
         }
     }
 
+    public function decryptFile(string $sourcePath, string $targetPath): void
+    {
+        $temporaryPath = $targetPath.'.tmp';
+        $completed = false;
+        $source = fopen($sourcePath, 'rb');
+        if (false === $source) {
+            throw new \RuntimeException('Impossible de lire la sauvegarde chiffrée.');
+        }
+
+        $target = fopen($temporaryPath, 'wb');
+        if (false === $target) {
+            fclose($source);
+            throw new \RuntimeException('Impossible de créer la sauvegarde restaurée.');
+        }
+
+        try {
+            $magic = fread($source, strlen(self::MAGIC));
+            if (self::MAGIC !== $magic) {
+                throw new \RuntimeException('Format de sauvegarde chiffrée invalide.');
+            }
+
+            $headerLength = SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_HEADERBYTES;
+            $header = fread($source, $headerLength);
+            if (false === $header || strlen($header) !== $headerLength) {
+                throw new \RuntimeException('En-tête de sauvegarde chiffrée incomplet.');
+            }
+
+            $state = sodium_crypto_secretstream_xchacha20poly1305_init_pull($header, $this->key());
+            $cipherChunkSize = self::CHUNK_SIZE + SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_ABYTES;
+            $finalChunkSeen = false;
+
+            while (!feof($source)) {
+                $chunk = fread($source, $cipherChunkSize);
+                if (false === $chunk) {
+                    throw new \RuntimeException('Lecture de sauvegarde chiffrée interrompue.');
+                }
+                if ('' === $chunk) {
+                    continue;
+                }
+
+                $decrypted = sodium_crypto_secretstream_xchacha20poly1305_pull($state, $chunk);
+                if (false === $decrypted) {
+                    throw new \RuntimeException('Le déchiffrement de la sauvegarde a échoué.');
+                }
+
+                [$plainChunk, $tag] = $decrypted;
+                $this->writeAll($target, $plainChunk);
+                if (SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_TAG_FINAL === $tag) {
+                    $finalChunkSeen = true;
+                }
+            }
+
+            if (!$finalChunkSeen) {
+                throw new \RuntimeException('Balise finale de sauvegarde chiffrée absente.');
+            }
+
+            fclose($source);
+            fclose($target);
+            $source = false;
+            $target = false;
+            if (!chmod($temporaryPath, 0640)) {
+                throw new \RuntimeException('Impossible de sécuriser la sauvegarde restaurée.');
+            }
+            if (!rename($temporaryPath, $targetPath)) {
+                throw new \RuntimeException('Impossible de finaliser la sauvegarde restaurée.');
+            }
+            $completed = true;
+        } finally {
+            if (is_resource($source)) {
+                fclose($source);
+            }
+            if (is_resource($target)) {
+                fclose($target);
+            }
+            if (!$completed && is_file($temporaryPath)) {
+                unlink($temporaryPath);
+            }
+        }
+    }
+
     private function key(): string
     {
         $encoded = is_file($this->keyFile) ? file_get_contents($this->keyFile) : false;

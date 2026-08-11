@@ -11,10 +11,10 @@ use App\Module\User\Application\Exception\InvalidBirthDateException;
 use App\Module\User\Application\Exception\UserAlreadyExistsException;
 use App\Module\User\Application\Mapper\UserUniqueConstraintViolationDetector;
 use App\Module\User\Application\Port\UserPasswordHasher;
-use App\Module\User\Application\Port\UserPersistencePort;
 use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\TransactionManager;
+use App\Shared\Application\UnitOfWork;
 use App\Shared\Domain\DateTime\DateTimeParser;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 
@@ -24,7 +24,7 @@ class RegisterUserService
         private readonly UserRepositoryPort $userRepository,
         private readonly UserPasswordHasher $passwordHasher,
         private readonly Outbox $outbox,
-        private readonly UserPersistencePort $persistence,
+        private readonly UnitOfWork $persistence,
         private readonly TransactionManager $transactions,
         private readonly BetaTesterProfileService $betaProfiles,
     ) {
@@ -64,11 +64,10 @@ class RegisterUserService
 
         try {
             return $this->transactions->transactional(function () use ($user, $token, $input): User {
-                $this->persistence->save($user);
+                $this->persistence->persist($user);
                 $this->persistence->flush();
                 if (null !== $input->betaProfile) {
                     $this->betaProfiles->create($user, $input->betaProfile);
-                    $this->persistence->flush();
                 }
                 $this->outbox->record('user.activation.'.$user->getId().'.'.$user->getVerificationToken(), 'user.activation_email_requested', [
                     'userId' => $user->getId(),

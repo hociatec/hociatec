@@ -41,9 +41,9 @@ final readonly class PromotionInput
      *   criteria:array<string,mixed>,
      *   description:?string,
      *   isActive:bool,
-     *   startsAt:?DateTimeImmutable,
-     *   endsAt:?DateTimeImmutable
-     * } $payload
+     *   startsAt:?\DateTimeImmutable,
+     *   endsAt:?\DateTimeImmutable
+     * }|null $payload
      */
     public function __construct(
         ?array $payload = null,
@@ -105,5 +105,4 @@ final readonly class PromotionInput
             return null;
         }
     }
-
 }

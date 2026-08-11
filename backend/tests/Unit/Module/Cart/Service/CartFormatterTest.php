@@ -77,7 +77,7 @@ final class CartFormatterTest extends TestCase
                 ->setEndsAt(new \DateTimeImmutable('+1 day')),
         ]);
 
-        $voucherRepository = $this->createMock(\App\Module\Voucher\Application\Port\VoucherLookupPort::class);
+        $voucherRepository = $this->createMock(\App\Module\Voucher\Application\Port\VoucherRepositoryPort::class);
         $voucherRepository->method('findOneByCode')->with('VOUCHER8')->willReturn(
             (new \App\Module\Voucher\Domain\Entity\Voucher('Voucher 8', 'VOUCHER8', \App\Module\Voucher\Domain\Entity\Voucher::TYPE_FIXED_CENTS, 8000))
                 ->setStartsAt(new \DateTimeImmutable('-1 day'))

@@ -22,7 +22,6 @@ use App\Module\User\Application\Exception\InvalidBirthDateException;
 use App\Module\User\Application\Exception\InvalidCurrentPasswordException;
 use App\Module\User\Application\Exception\InvalidProfilePasswordException;
 use App\Module\User\Application\Exception\UserAlreadyExistsException;
-use App\Module\User\Application\Port\UserPersistencePort;
 use App\Module\User\Application\Provider\PersonalDataExportProvider;
 use App\Module\User\Application\Projection\UserProfileFormatter;
 use App\Module\User\Application\Workflow\CustomerAddressBookService;
@@ -32,7 +31,6 @@ use App\Module\User\Application\Workflow\UpdateProfileService;
 use App\Module\User\Application\Workflow\UserPersonalDataAnonymizer;
 use App\Module\User\Domain\Entity\ShippingAddress;
 use App\Module\User\Domain\Entity\User;
-use App\Module\User\Infrastructure\Persistence\UserPersistence;
 use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
 use App\Module\User\UI\Controller\Address\CreateAddressController;
 use App\Module\User\UI\Controller\Address\UpdateAddressController;
@@ -41,7 +39,9 @@ use App\Module\User\UI\Controller\ExportMyPersonalDataController;
 use App\Module\User\UI\Controller\RegisterController;
 use App\Module\User\UI\Controller\UpdateProfileController;
 use App\Module\User\UI\Http\RegistrationRateLimiter;
+use App\Shared\Application\UnitOfWork;
 use App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use App\Shared\Infrastructure\Http\AttachmentResponseFactory;
 use App\Shared\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Shared\Infrastructure\Validation\DtoValidator;
@@ -252,12 +252,12 @@ final class UserRemainingControllersTest extends TestCase
                 return $operation();
             });
         $entityManager->expects(self::once())->method('remove')->with($user);
-        $entityManager->expects(self::once())->method('flush');
+        $entityManager->expects(self::never())->method('flush');
 
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects(self::once())->method('error');
-        $delete = new class($orders, $tradeIns, $quotes, $refreshTokens, new UserPersistence($entityManager), new DoctrineTransactionManager($entityManager), $logger, $user) extends DeleteAccountController {
-            public function __construct(OrderRepository $orders, TradeInRequestRepositoryPort $tradeIns, QuoteRepositoryPort $quotes, RefreshTokenRepository $refreshTokens, UserPersistence $persistence, DoctrineTransactionManager $transactions, LoggerInterface $logger, private User $user)
+        $delete = new class($orders, $tradeIns, $quotes, $refreshTokens, new DoctrineUnitOfWork($entityManager), new DoctrineTransactionManager($entityManager), $logger, $user) extends DeleteAccountController {
+            public function __construct(OrderRepository $orders, TradeInRequestRepositoryPort $tradeIns, QuoteRepositoryPort $quotes, RefreshTokenRepository $refreshTokens, DoctrineUnitOfWork $persistence, DoctrineTransactionManager $transactions, LoggerInterface $logger, private User $user)
             {
                 parent::__construct(new DeleteAccountService(
                     $orders,
@@ -321,7 +321,6 @@ final class UserRemainingControllersTest extends TestCase
             $registerService,
             $validator,
             $warnLogger,
-            $profiles,
             new RegistrationRateLimiter(new \App\Shared\Infrastructure\Http\RateLimitKeyFactory(), $factory),
         );
         self::assertSame(429, $register(Request::create('/', 'POST', [], [], [], ['REMOTE_ADDR' => '127.0.0.1'], json_encode($this->registerPayload(), JSON_THROW_ON_ERROR)))->getStatusCode());
@@ -386,8 +385,8 @@ final class UserRemainingControllersTest extends TestCase
         $quotes = $this->createMock(QuoteRepositoryPort::class);
         $quotes->expects(self::once())->method('findByCustomerEmail')->with('ada@example.com', 1000)->willReturn([$quote]);
 
-        $persistence = $this->createMock(UserPersistencePort::class);
-        $persistence->expects(self::once())->method('save')->with($user);
+        $persistence = $this->createMock(UnitOfWork::class);
+        $persistence->expects(self::once())->method('persist')->with($user);
 
         (new UserPersonalDataAnonymizer($orders, $tradeIns, $quotes, $persistence))->anonymize($user);
 

@@ -45,6 +45,42 @@ class TrainingEnrollmentRepository extends ServiceEntityRepository implements Tr
             ->getSingleScalarResult();
     }
 
+    public function countActiveForSessions(array $sessions): array
+    {
+        $sessionIds = array_values(array_filter(
+            array_map(static fn (TrainingSession $session): ?int => $session->getId(), $sessions),
+            static fn (?int $id): bool => null !== $id,
+        ));
+        if ([] === $sessionIds) {
+            return [];
+        }
+
+        $rows = $this->createQueryBuilder('e')
+            ->select('IDENTITY(e.session) AS sessionId')
+            ->addSelect('COUNT(e.id) AS enrolledCount')
+            ->andWhere('e.session IN (:sessionIds)')
+            ->andWhere('e.status IN (:statuses)')
+            ->setParameter('sessionIds', $sessionIds)
+            ->setParameter('statuses', [
+                TrainingEnrollment::STATUS_PAID,
+                TrainingEnrollment::STATUS_CONFIRMED,
+                TrainingEnrollment::STATUS_COMPLETED,
+            ])
+            ->groupBy('e.session')
+            ->getQuery()
+            ->getArrayResult();
+
+        $counts = [];
+        foreach ($rows as $row) {
+            $sessionId = (int) ($row['sessionId'] ?? 0);
+            if ($sessionId > 0) {
+                $counts[$sessionId] = (int) ($row['enrolledCount'] ?? 0);
+            }
+        }
+
+        return $counts;
+    }
+
     public function countActiveForSessionSlot(TrainingSession $session, \DateTimeImmutable $startsAt, \DateTimeImmutable $endsAt): int
     {
         return (int) $this->createQueryBuilder('e')
@@ -78,7 +114,18 @@ class TrainingEnrollmentRepository extends ServiceEntityRepository implements Tr
     /** @return list<TrainingEnrollment> */
     public function findForUser(User $user, int $limit = 20, int $offset = 0): array
     {
-        return $this->findBy(['user' => $user], ['createdAt' => 'DESC'], max(1, min(100, $limit)), max(0, $offset));
+        return $this->createQueryBuilder('e')
+            ->addSelect('s', 't', 'r')
+            ->join('e.session', 's')
+            ->join('s.training', 't')
+            ->leftJoin('t.roadmapItems', 'r')
+            ->andWhere('e.user = :user')
+            ->setParameter('user', $user)
+            ->orderBy('e.createdAt', 'DESC')
+            ->setFirstResult(max(0, $offset))
+            ->setMaxResults(max(1, min(100, $limit)))
+            ->getQuery()
+            ->getResult();
     }
 
     public function countForUser(User $user): int

@@ -16,7 +16,6 @@ use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRe
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\User\Domain\Entity\User;
-use App\Module\User\Infrastructure\Persistence\UserPersistence;
 use App\Module\Voucher\Application\Handler\CreateVoucherHandler;
 use App\Module\Voucher\Application\Mapper\VoucherPayload;
 use App\Module\Voucher\Domain\Entity\Voucher;
@@ -77,7 +76,7 @@ final class NotificationAndLoyaltyServicesTest extends TestCase
     {
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::exactly(4))->method('flush');
-        $service = new AccountNotificationReadStateService(new UserPersistence($entityManager));
+        $service = new AccountNotificationReadStateService(new DoctrineUnitOfWork($entityManager));
         $user = $this->user();
 
         self::assertSame(['seenKeys' => [], 'dismissedKeys' => [], 'seenSignature' => ''], $service->read($user));

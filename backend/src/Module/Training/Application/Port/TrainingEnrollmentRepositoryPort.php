@@ -26,6 +26,13 @@ interface TrainingEnrollmentRepositoryPort
 
     public function countActiveForSession(TrainingSession $session): int;
 
+    /**
+     * @param list<TrainingSession> $sessions
+     *
+     * @return array<int, int>
+     */
+    public function countActiveForSessions(array $sessions): array;
+
     public function countActiveForSessionSlot(TrainingSession $session, \DateTimeImmutable $startsAt, \DateTimeImmutable $endsAt): int;
 
     public function findOneForUserAndSession(User $user, TrainingSession $session): ?TrainingEnrollment;

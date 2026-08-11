@@ -7,9 +7,9 @@ namespace App\Module\User\Application\Workflow;
 use App\Module\Auth\Application\Workflow\RefreshTokenRevocationService;
 use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\User\Application\Exception\DeleteAccountBlockedException;
-use App\Module\User\Application\Port\UserPersistencePort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\TransactionManager;
+use App\Shared\Application\UnitOfWork;
 
 final readonly class DeleteAccountService
 {
@@ -17,7 +17,7 @@ final readonly class DeleteAccountService
         private OrderRepositoryPort $orders,
         private RefreshTokenRevocationService $refreshTokenRevocations,
         private UserPersonalDataAnonymizer $anonymizer,
-        private UserPersistencePort $persistence,
+        private UnitOfWork $persistence,
         private TransactionManager $transactions,
     ) {
     }
@@ -33,13 +33,11 @@ final readonly class DeleteAccountService
 
             if ($this->anonymizer->shouldRetainHistory($user)) {
                 $this->anonymizer->anonymize($user);
-                $this->persistence->flush();
 
                 return;
             }
 
             $this->persistence->remove($user);
-            $this->persistence->flush();
         });
     }
 }

@@ -28,13 +28,24 @@ final class RoadmapClosure70To110Test extends TestCase
         foreach ([
             __DIR__.'/../Module/Auth/RefreshTokenControllersAndLogoutTest.php',
             __DIR__.'/../Module/Auth/RefreshTokenConcurrencyTest.php',
+            __DIR__.'/../Module/Auth/PasswordResetAndVerifyControllersTest.php',
             __DIR__.'/../Module/Misc/RoadmapConcurrencyClosureTest.php',
+            __DIR__.'/../Module/Misc/RepositorySqliteIntegrationTest.php',
+            __DIR__.'/../Module/Misc/UserControllerAndSecurityBatchTest.php',
+            __DIR__.'/../Module/Notification/Service/UserCommunicationNotifierTest.php',
             __DIR__.'/../Module/Security/ResourceAccessPolicyTest.php',
+            __DIR__.'/../Module/Appointment/Repository/AppointmentRepositoriesIntegrationTest.php',
             __DIR__.'/../Module/Appointment/Controller/PublicAndClientAppointmentControllersIntegrationTest.php',
+            __DIR__.'/../Module/Training/Repository/TrainingCompletionRepositoryTest.php',
             __DIR__.'/../Module/Training/Controller/TrainingPublicAndClientControllersIntegrationTest.php',
+            __DIR__.'/../Module/TradeIn/Service/TradeInPrivateFileStorageFunctionOverrideTest.php',
+            __DIR__.'/../Module/TradeIn/Service/TradeInVoucherAndPdfCoverageTest.php',
             __DIR__.'/../Module/Outbox/OutboxTest.php',
             __DIR__.'/../Module/Admin/Backup/BackupWorkflowCoverageTest.php',
+            __DIR__.'/../Module/Order/Repository/OrderRepositoryTest.php',
+            __DIR__.'/../Module/Order/Service/RefundOperationsServiceTest.php',
             __DIR__.'/../Module/Order/Service/StripeWebhookServiceTest.php',
+            __DIR__.'/../Module/User/Service/UserRemainingServicesTest.php',
         ] as $path) {
             self::assertFileExists($path);
         }
@@ -187,6 +198,38 @@ final class RoadmapClosure70To110Test extends TestCase
             'TransactionManager::transactional()',
             (string) file_get_contents(__DIR__.'/../../../../docs/backend-transaction-conventions.md'),
         );
+        self::assertStringContainsString(
+            'prefer one final `flush()`',
+            (string) file_get_contents(__DIR__.'/../../../../docs/backend-transaction-conventions.md'),
+        );
+    }
+
+    public function testReviewedTransactionalWorkflowsKeepOnlyDocumentedIntermediateFlushes(): void
+    {
+        $refreshTokenService = file_get_contents(__DIR__.'/../../../src/Module/Auth/Application/Workflow/RefreshTokenService.php');
+        $passwordResetService = file_get_contents(__DIR__.'/../../../src/Module/Auth/Application/Workflow/PasswordResetService.php');
+        $registerUserService = file_get_contents(__DIR__.'/../../../src/Module/User/Application/Workflow/RegisterUserService.php');
+        $quoteConverter = file_get_contents(__DIR__.'/../../../src/Module/Quote/Application/Conversion/QuoteToOrderConverter.php');
+        $deleteAccountService = file_get_contents(__DIR__.'/../../../src/Module/User/Application/Workflow/DeleteAccountService.php');
+        $trainingCheckoutService = file_get_contents(__DIR__.'/../../../src/Module/Training/Application/Workflow/TrainingEnrollmentCheckoutService.php');
+        self::assertIsString($refreshTokenService);
+        self::assertIsString($passwordResetService);
+        self::assertIsString($registerUserService);
+        self::assertIsString($quoteConverter);
+        self::assertIsString($deleteAccountService);
+        self::assertIsString($trainingCheckoutService);
+
+        self::assertSame(3, substr_count($refreshTokenService, 'unitOfWork->flush();'));
+        self::assertStringContainsString('persist($refreshToken);', $refreshTokenService);
+        self::assertStringContainsString('flush();', $refreshTokenService);
+        self::assertStringContainsString('revokeActiveTokensOverLimit($user, self::MAX_ACTIVE_SESSIONS_PER_USER);', $refreshTokenService);
+        self::assertSame(1, substr_count($passwordResetService, 'unitOfWork->flush();'));
+        self::assertSame(1, substr_count($registerUserService, 'persistence->flush();'));
+        self::assertSame(1, substr_count($quoteConverter, 'persistence->flush();'));
+        self::assertSame(0, substr_count($deleteAccountService, 'persistence->flush();'));
+        self::assertSame(3, substr_count($trainingCheckoutService, 'persistence->flush();'));
+        self::assertStringContainsString('training_enrollment_id', $trainingCheckoutService);
+        self::assertStringContainsString('user.activation.', $registerUserService);
     }
 
     public function testPaginationStreamingCacheAndPrivateFilePoliciesAreExplicit(): void
@@ -272,6 +315,7 @@ final class RoadmapClosure70To110Test extends TestCase
     public function testDeadCodeCleanupRemovesRedundantVoucherLookupInterfaceAndSingleUseTraits(): void
     {
         self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Voucher/Infrastructure/Repository/VoucherLookupInterface.php');
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Voucher/Application/Port/VoucherLookupPort.php');
 
         foreach ([
             __DIR__.'/../../../src/Module/Catalog/Application/Workflow/CategoryReaderTrait.php',
@@ -283,35 +327,67 @@ final class RoadmapClosure70To110Test extends TestCase
 
         $voucherRepository = file_get_contents(__DIR__.'/../../../src/Module/Voucher/Infrastructure/Repository/VoucherRepository.php');
         $categoryWorkflow = file_get_contents(__DIR__.'/../../../src/Module/Catalog/Application/Workflow/CategoryCatalogWorkflow.php');
+        $orderEventLogger = file_get_contents(__DIR__.'/../../../src/Module/Order/Application/Workflow/OrderEventLogger.php');
+        $stripeWebhookService = file_get_contents(__DIR__.'/../../../src/Module/Order/Application/Workflow/StripeWebhookService.php');
+        $favoriteService = file_get_contents(__DIR__.'/../../../src/Module/Favorite/Application/Workflow/FavoriteService.php');
+        $auditCreateService = file_get_contents(__DIR__.'/../../../src/Module/Audit/Application/Workflow/CreateAuditRequestService.php');
+        $productRatingService = file_get_contents(__DIR__.'/../../../src/Module/Rating/Application/Workflow/ProductRatingService.php');
         self::assertIsString($voucherRepository);
         self::assertIsString($categoryWorkflow);
+        self::assertIsString($orderEventLogger);
+        self::assertIsString($stripeWebhookService);
+        self::assertIsString($favoriteService);
+        self::assertIsString($auditCreateService);
+        self::assertIsString($productRatingService);
         self::assertStringNotContainsString('implements VoucherLookupInterface', $voucherRepository);
+        self::assertStringNotContainsString('implements VoucherLookupPort', $voucherRepository);
         self::assertStringNotContainsString('use CategoryReaderTrait;', $categoryWorkflow);
         self::assertStringNotContainsString('use CategoryWriterTrait;', $categoryWorkflow);
         self::assertStringNotContainsString('use CategoryValidationTrait;', $categoryWorkflow);
+        self::assertStringNotContainsString('OrderEventPersistencePort', $orderEventLogger);
+        self::assertStringNotContainsString('StripeWebhookEventPersistencePort', $stripeWebhookService);
+        self::assertStringNotContainsString('FavoritePersistencePort', $favoriteService);
+        self::assertStringNotContainsString('AuditPersistencePort', $auditCreateService);
+        self::assertStringNotContainsString('RatingPersistencePort', $productRatingService);
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Order/Application/Port/OrderEventPersistencePort.php');
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Order/Application/Port/StripeWebhookEventPersistencePort.php');
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Order/Infrastructure/Persistence/OrderEventPersistence.php');
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Order/Infrastructure/Persistence/StripeWebhookEventPersistence.php');
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Favorite/Application/Port/FavoritePersistencePort.php');
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Favorite/Infrastructure/Persistence/FavoritePersistence.php');
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Audit/Application/Port/AuditPersistencePort.php');
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Audit/Infrastructure/Persistence/AuditPersistence.php');
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Rating/Application/Port/RatingPersistencePort.php');
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Rating/Infrastructure/Persistence/RatingPersistence.php');
     }
 
     public function testSensitiveCommandsUseLocksAndIdempotencyGuards(): void
     {
         $checkoutOrderCreator = file_get_contents(__DIR__.'/../../../src/Module/Order/Application/Workflow/CheckoutSessionOrderCreator.php');
         $cartOrderCreator = file_get_contents(__DIR__.'/../../../src/Module/Order/Application/Factory/CartOrderCreator.php');
+        $cartOrderLineConverter = file_get_contents(__DIR__.'/../../../src/Module/Order/Application/Factory/CartOrderLineConverter.php');
         $refundProcessor = file_get_contents(__DIR__.'/../../../src/Module/Order/Application/Workflow/RefundStripeProcessor.php');
         $stripeWebhook = file_get_contents(__DIR__.'/../../../src/Module/Order/Application/Workflow/StripeWebhookService.php');
         $orderHostedCheckout = file_get_contents(__DIR__.'/../../../src/Module/Order/Application/Workflow/OrderHostedCheckoutCreator.php');
         $cartHostedCheckout = file_get_contents(__DIR__.'/../../../src/Module/Order/Application/Workflow/CartHostedCheckoutCreator.php');
+        $bulkOrderStatus = file_get_contents(__DIR__.'/../../../src/Module/Admin/Application/Operations/Workflow/BulkOrderStatusService.php');
         self::assertIsString($checkoutOrderCreator);
         self::assertIsString($cartOrderCreator);
+        self::assertIsString($cartOrderLineConverter);
         self::assertIsString($refundProcessor);
         self::assertIsString($stripeWebhook);
         self::assertIsString($orderHostedCheckout);
         self::assertIsString($cartHostedCheckout);
+        self::assertIsString($bulkOrderStatus);
 
         self::assertStringContainsString('if (null !== $checkout->getOrderId())', $checkoutOrderCreator);
         self::assertStringContainsString('findForUpdate($checkout->getOrderId())', $checkoutOrderCreator);
         self::assertStringContainsString('return $existing;', $checkoutOrderCreator);
+        self::assertStringContainsString('sortedItemsPayload($checkout->getItemsPayload())', $checkoutOrderCreator);
         self::assertStringContainsString('findForUpdate($cartId)', $cartOrderCreator);
         self::assertStringContainsString("if (\$lockedCart->isConverted())", $cartOrderCreator);
         self::assertStringContainsString('Ce panier a deja ete valide.', $cartOrderCreator);
+        self::assertStringContainsString('usort($items, static function', $cartOrderLineConverter);
         self::assertStringContainsString('findForUpdate($refundId)', $refundProcessor);
         self::assertStringContainsString("'refund_request:'.\$refund->getId()", $refundProcessor);
         self::assertStringContainsString("'duplicate' => true", $stripeWebhook);
@@ -319,6 +395,7 @@ final class RoadmapClosure70To110Test extends TestCase
         self::assertStringContainsString('return $existing;', $orderHostedCheckout);
         self::assertStringContainsString('findReusableOpenSessionForCart($user, $cart->getToken())', $cartHostedCheckout);
         self::assertStringContainsString('return $existing;', $cartHostedCheckout);
+        self::assertStringContainsString('sort($orderIds);', $bulkOrderStatus);
     }
 
     public function testDoctrineDeleteStrategiesAndConstraintsStayExplicitlyOwned(): void
@@ -349,6 +426,10 @@ final class RoadmapClosure70To110Test extends TestCase
 
         $constraints = [
             'src/Module/Outbox/Domain/Entity/OutboxEvent.php' => ['uniq_outbox_event_key', 'idx_outbox_pending'],
+            'src/Module/Order/Domain/Entity/Order.php' => ['idx_orders_status_created', 'idx_orders_user_created', 'idx_orders_invoiced_at'],
+            'src/Module/Order/Domain/Entity/OrderCheckoutSession.php' => ['idx_checkout_user_cart_status', 'idx_checkout_user_order_status', 'idx_checkout_status_created', 'idx_checkout_customer_email'],
+            'src/Module/TradeIn/Domain/Entity/TradeInRequest.php' => ['idx_trade_in_status_created', 'idx_trade_in_requester_created', 'idx_trade_in_email', 'idx_trade_in_closed_at'],
+            'src/Module/Catalog/Domain/Entity/Product.php' => ['idx_catalog_products_publication', 'idx_catalog_products_category_publication', 'idx_catalog_products_price_publication'],
             'src/Module/Order/Domain/Entity/StripeWebhookEvent.php' => ['unique: true'],
             'src/Module/User/Domain/Entity/User.php' => ['UNIQ_USERS_EMAIL'],
             'src/Module/Training/Domain/Entity/TrainingEnrollment.php' => ['uniq_training_session_user'],

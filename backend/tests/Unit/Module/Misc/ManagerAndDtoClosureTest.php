@@ -12,7 +12,6 @@ use App\Module\Promotion\Application\Handler\UpdatePromotionHandler;
 use App\Module\Promotion\Application\Writer\PromotionDataApplier;
 use App\Module\Promotion\Domain\Entity\Promotion;
 use App\Module\User\Domain\Entity\User;
-use App\Module\User\Infrastructure\Persistence\UserPersistence;
 use App\Module\Voucher\Application\Handler\CreateVoucherHandler;
 use App\Module\Voucher\Application\Handler\DeleteVoucherHandler;
 use App\Module\Voucher\Application\Handler\UpdateVoucherHandler;
@@ -45,10 +44,10 @@ final class ManagerAndDtoClosureTest extends TestCase
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::once())->method('persist')->with(self::isInstanceOf(User::class));
         $entityManager->expects(self::once())->method('flush');
-        $persistence = new UserPersistence($entityManager);
+        $persistence = new DoctrineUnitOfWork($entityManager);
         $user = new User('ada@example.com', 'Ada', 'Lovelace', new \DateTimeImmutable('1990-01-01'), '0102030405', 'female');
 
-        $persistence->save($user);
+        $persistence->persist($user);
         $persistence->flush();
     }
 

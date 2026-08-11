@@ -98,7 +98,7 @@ class BugReport
         $this->actualBehavior = $data['actualBehavior'];
         $this->severity = (string) $data['severity'];
         $this->pageUrl = $data['pageUrl'];
-        $this->attachments = is_array($data['attachments']) ? array_values(array_filter($data['attachments'], 'is_string')) : [];
+        $this->attachments = array_values(array_filter($data['attachments'], 'is_string'));
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = $this->createdAt;
     }

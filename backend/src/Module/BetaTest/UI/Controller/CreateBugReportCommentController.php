@@ -24,8 +24,7 @@ final class CreateBugReportCommentController extends AbstractController
     public function __construct(
         private readonly CustomerBugReportPortalService $portal,
         private readonly BugReportCommentFormatter $formatter,
-    )
-    {
+    ) {
     }
 
     public function __invoke(int $id, Request $request): JsonResponse
@@ -47,8 +46,6 @@ final class CreateBugReportCommentController extends AbstractController
             }
 
             return ApiResponse::error('Rapport introuvable.', 404);
-        } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error('Le contenu du message ne peut pas être vide.', 422);
         } catch (BetaTestOperationException) {
             return ApiResponse::internalError();
         }

@@ -70,7 +70,7 @@ final class StripeApiClient implements StripeRefundClient
         }
 
         $attempt = 0;
-        $lastException = null;
+        $lastException = new ExternalServiceException('Le service de paiement est momentanément indisponible.');
 
         while ($attempt < self::MAX_ATTEMPTS) {
             ++$attempt;
@@ -86,7 +86,7 @@ final class StripeApiClient implements StripeRefundClient
             }
         }
 
-        throw $lastException ?? new ExternalServiceException('Le service de paiement est momentanément indisponible.');
+        throw $lastException;
     }
 
     /**
@@ -139,11 +139,7 @@ final class StripeApiClient implements StripeRefundClient
         curl_close($curl);
 
         if (!is_string($response)) {
-            throw new ExternalServiceException(
-                sprintf('Erreur cURL Stripe : %s', '' !== $error ? $error : 'réponse absente'),
-                'Le service de paiement est momentanément indisponible.',
-                $statusCode,
-            );
+            throw new ExternalServiceException(sprintf('Erreur cURL Stripe : %s', '' !== $error ? $error : 'réponse absente'), 'Le service de paiement est momentanément indisponible.', $statusCode);
         }
 
         try {
@@ -157,11 +153,7 @@ final class StripeApiClient implements StripeRefundClient
         }
 
         if ($statusCode < 200 || $statusCode >= 300) {
-            throw new ExternalServiceException(
-                sprintf('Stripe a refusé la requête avec le statut HTTP %d.', $statusCode),
-                'Le service de paiement a refusé la requête.',
-                $statusCode,
-            );
+            throw new ExternalServiceException(sprintf('Stripe a refusé la requête avec le statut HTTP %d.', $statusCode), 'Le service de paiement a refusé la requête.', $statusCode);
         }
 
         /* @var array<string, mixed> $decoded */
