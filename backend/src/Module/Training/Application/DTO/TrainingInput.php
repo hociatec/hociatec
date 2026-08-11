@@ -25,9 +25,36 @@ final readonly class TrainingInput
     public array $roadmap;
     public bool $isActive;
 
-    public function __construct(mixed ...$values)
+    /**
+     * @param array{
+     *   title?: string,
+     *   slug?: ?string,
+     *   shortDescription?: ?string,
+     *   objective?: ?string,
+     *   audience?: ?string,
+     *   category?: ?string,
+     *   durationMinutes?: int,
+     *   priceCents?: int,
+     *   availableFormats?: list<string>,
+     *   roadmap?: list<string>,
+     *   isActive?: bool
+     * }|null $payload
+     */
+    public function __construct(?array $payload = null)
     {
-        $data = $this->mapValues($values);
+        $data = array_replace([
+            'title' => '',
+            'slug' => null,
+            'shortDescription' => null,
+            'objective' => null,
+            'audience' => null,
+            'category' => null,
+            'durationMinutes' => 60,
+            'priceCents' => 0,
+            'availableFormats' => [],
+            'roadmap' => [],
+            'isActive' => true,
+        ], $payload ?? []);
         $this->title = (string) $data['title'];
         $this->slug = $data['slug'];
         $this->shortDescription = $data['shortDescription'];
@@ -48,45 +75,18 @@ final readonly class TrainingInput
             return is_array($value) ? array_values(array_filter(array_map(static fn (mixed $item): string => is_string($item) ? trim($item) : '', $value), static fn (string $item): bool => '' !== $item)) : [];
         };
 
-        return new self(
-            is_string($p['title'] ?? null) ? trim($p['title']) : '',
-            is_string($p['slug'] ?? null) ? trim($p['slug']) : null,
-            is_string($p['shortDescription'] ?? null) ? trim($p['shortDescription']) : null,
-            is_string($p['objective'] ?? null) ? trim($p['objective']) : null,
-            is_string($p['audience'] ?? null) ? trim($p['audience']) : null,
-            is_string($p['category'] ?? null) ? trim($p['category']) : null,
-            is_numeric($p['durationMinutes'] ?? null) ? (int) $p['durationMinutes'] : 60,
-            is_numeric($p['priceCents'] ?? null) ? max(0, (int) $p['priceCents']) : 0,
-            $strings($p['availableFormats'] ?? ['onsite']),
-            $strings($p['roadmap'] ?? []),
-            is_bool($p['isActive'] ?? null) ? $p['isActive'] : true,
-        );
-    }
-
-    /**
-     * @param array<int|string, mixed> $values
-     *
-     * @return array<string, mixed>
-     */
-    private function mapValues(array $values): array
-    {
-        $keys = ['title', 'slug', 'shortDescription', 'objective', 'audience', 'category', 'durationMinutes', 'priceCents', 'availableFormats', 'roadmap', 'isActive'];
-        $defaults = array_fill_keys($keys, null);
-        $defaults['title'] = '';
-        $defaults['durationMinutes'] = 60;
-        $defaults['priceCents'] = 0;
-        $defaults['availableFormats'] = [];
-        $defaults['roadmap'] = [];
-        $defaults['isActive'] = true;
-        foreach ($values as $index => $value) {
-            if (!is_int($index)) {
-                continue;
-            }
-            if (isset($keys[$index])) {
-                $defaults[$keys[$index]] = $value;
-            }
-        }
-
-        return array_replace($defaults, array_filter($values, 'is_string', ARRAY_FILTER_USE_KEY));
+        return new self([
+            'title' => is_string($p['title'] ?? null) ? trim($p['title']) : '',
+            'slug' => is_string($p['slug'] ?? null) ? trim($p['slug']) : null,
+            'shortDescription' => is_string($p['shortDescription'] ?? null) ? trim($p['shortDescription']) : null,
+            'objective' => is_string($p['objective'] ?? null) ? trim($p['objective']) : null,
+            'audience' => is_string($p['audience'] ?? null) ? trim($p['audience']) : null,
+            'category' => is_string($p['category'] ?? null) ? trim($p['category']) : null,
+            'durationMinutes' => is_numeric($p['durationMinutes'] ?? null) ? (int) $p['durationMinutes'] : 60,
+            'priceCents' => is_numeric($p['priceCents'] ?? null) ? max(0, (int) $p['priceCents']) : 0,
+            'availableFormats' => $strings($p['availableFormats'] ?? ['onsite']),
+            'roadmap' => $strings($p['roadmap'] ?? []),
+            'isActive' => is_bool($p['isActive'] ?? null) ? $p['isActive'] : true,
+        ]);
     }
 }

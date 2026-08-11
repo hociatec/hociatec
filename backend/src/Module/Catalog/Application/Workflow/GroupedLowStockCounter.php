@@ -22,7 +22,10 @@ final readonly class GroupedLowStockCounter
         $offset = 0;
 
         do {
-            $page = $this->products->findAllForAdmin(new ProductAdminCriteria(limit: self::BATCH_SIZE, offset: $offset));
+            $page = $this->products->findAllForAdmin(new ProductAdminCriteria([
+                'limit' => self::BATCH_SIZE,
+                'offset' => $offset,
+            ]));
 
             /** @var Product $product */
             foreach ($page as $product) {

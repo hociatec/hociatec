@@ -35,6 +35,10 @@ Production hardening checklist (Hociatec)
 4) HTTPS / reverse proxy
 - Terminer TLS au reverse proxy (Nginx/Traefik) et transmettre X-Forwarded-*.
 - Définir TRUSTED_PROXIES / TRUSTED_HOSTS comme ci‑dessus.
+- Ne jamais utiliser `*`, `0.0.0.0/0` ou `::/0` dans `TRUSTED_PROXIES`.
+- Si vous êtes derrière Cloudflare, Traefik, Nginx ou un load balancer, renseigner uniquement les IP/CIDR réellement maîtrisés par l’infra ou utiliser `REMOTE_ADDR` quand le proxy local termine TLS puis relaie vers PHP.
+- Exemples acceptables: `TRUSTED_PROXIES=127.0.0.1,REMOTE_ADDR`, `TRUSTED_PROXIES=10.0.0.0/8,127.0.0.1`, `TRUSTED_PROXIES=172.18.0.0/16`.
+- Après déploiement, vérifier que les logs applicatifs voient la bonne IP cliente et que le rate limiting ne retombe pas systématiquement sur l’IP du reverse proxy.
 - Activer HSTS côté proxy (ex: Strict-Transport-Security: max-age=31536000; includeSubDomains; preload).
 - Vérifier que `/api/*` renvoie les en-têtes de sécurité: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, `Content-Security-Policy`.
 - Servir aussi le frontend avec des en-têtes de sécurité. Le fichier `frontend/public/_headers` fournit une base compatible avec les hébergeurs statiques qui le supportent. Si Nginx/Apache sert le frontend, reporter ces mêmes valeurs dans la configuration du virtual host.
@@ -45,12 +49,27 @@ Production hardening checklist (Hociatec)
 - Créer un utilisateur dédié avec mot de passe fort (pas de root en prod).
 - Sauvegardes: voir tools/backup_db.sh et planifier un cron quotidien + rétention.
 
+5bis) Documents sensibles (RIB / justificatifs)
+- Les RIB et justificatifs de reprise sont stockés sous `var/private/trade-ins`, hors `public/`.
+- Ne pas se limiter au `chmod 0600`: le volume ou disque qui porte `var/private` doit être chiffré au repos côté infrastructure (LUKS, volume cloud chiffré, bucket chiffré ou équivalent).
+- L’antivirus ClamAV doit être disponible sur l’hôte avant mise en production; le contrôle `tools/production_check.sh` échoue sinon.
+- Les téléchargements admin de documents trade-in doivent rester journalisés avec l’identifiant de l’admin, le document demandé et la référence métier.
+- Exécuter régulièrement `APP_ENV=prod php bin/console app:trade-in:purge-private-documents --retention-days=180` pour supprimer les RIB et justificatifs devenus inutiles.
+
 6) CORS
 - Définir CORS_ALLOW_ORIGIN sur votre domaine exact (regex), pas de joker global.
 - Pour Hociatec, la valeur attendue est `^https://(www\.)?hociatec\.fr$`.
 - L'authentification utilise des cookies `HttpOnly`; conserver `allow_credentials: true` et vérifier que le reverse proxy renvoie un `Access-Control-Allow-Origin` explicite, jamais `*`.
 - Après déploiement, vérifier que `Access-Control-Allow-Headers` ne contient plus `authorization` lorsque l'authentification par cookies HttpOnly est active.
 - Vérifier dans le navigateur que les cookies `hociatec_access` et `hociatec_refresh` sont `HttpOnly`, `Secure` en production, `SameSite=Lax`, et limités aux chemins `/api` et `/api/auth`.
+
+6bis) Politique de session / tokens
+- Le cookie d’accès est émis pour `/api` avec une durée de vie d’environ `1 heure`.
+- Le refresh token a une durée de vie de `30 jours` et le backend conserve au plus `10` sessions actives par utilisateur.
+- Lors d’une rotation réussie, l’ancien refresh token devient inutilisable. Sa réutilisation ultérieure doit échouer sans réauthentifier l’utilisateur.
+- Le comportement actuel n’effectue pas de révocation globale sur simple réutilisation d’un ancien token déjà rotaté; seules les sessions explicitement révoquées ou dépassant la limite active sont coupées.
+- Une réinitialisation de mot de passe, un changement de mot de passe depuis le profil ou une suppression de compte révoque toutes les sessions refresh encore actives de l’utilisateur.
+- En cas de compromission ou d’incident support, exécuter `APP_ENV=prod php bin/console app:auth:revoke-user-refresh-tokens user@example.com`.
 
 7) Emails
 - Configurer `MAILER_DSN` avec un transport professionnel et un expéditeur autorisé par le fournisseur (SPF/DKIM/DMARC configurés dans DNS).
@@ -93,4 +112,13 @@ Production hardening checklist (Hociatec)
 10) Sécurité applicative
 - Mettre à jour régulièrement dépendances Composer/NPM.
 - Forcer les secrets hors dépôt (.env.local / secrets Symfony).
+
+11) Rotation des secrets
+- Toujours préparer la rotation dans cet ordre: ajouter la nouvelle valeur, recharger la configuration, vérifier les dépendances, puis révoquer l’ancienne valeur.
+- `APP_SECRET`: planifier une fenêtre de maintenance légère. La rotation invalide les jetons CSRF et peut casser des sessions/outils dépendants du secret Symfony; purger le cache applicatif juste après la bascule.
+- JWT: générer une nouvelle paire et une nouvelle `JWT_PASSPHRASE`, déployer les nouvelles clés sur tous les nœuds, puis redémarrer PHP-FPM/workers. Les JWT déjà émis deviennent invalides si la clé privée/publique change; prévenir une reconnexion utilisateur.
+- Stripe: créer d’abord les nouveaux secrets (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_REFUND_WEBHOOK_SECRET`) dans le dashboard Stripe, mettre à jour l’environnement du backend, redéployer, puis faire un test webhook avant de supprimer les anciens secrets.
+- Base de données: créer d’abord un nouvel utilisateur applicatif avec les mêmes droits minimaux, mettre à jour `DATABASE_URL`, valider les connexions, puis seulement retirer l’ancien compte.
+- Mailer/SMTP/API email: créer une nouvelle clé ou un nouveau mot de passe applicatif, mettre à jour `MAILER_DSN`, tester `mailer:test`, puis révoquer l’ancien identifiant.
+- Après chaque rotation: exécuter `composer dump-env prod`, `APP_ENV=prod APP_DEBUG=0 php bin/console cache:clear`, redémarrer les workers Messenger et vérifier `tools/production_check.sh`.
 

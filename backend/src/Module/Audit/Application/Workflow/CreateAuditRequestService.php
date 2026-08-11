@@ -45,7 +45,7 @@ class CreateAuditRequestService
         }
 
         $this->persistence->save($audit);
-        $this->persistence->commit();
+        $this->persistence->flush();
 
         return $audit;
     }

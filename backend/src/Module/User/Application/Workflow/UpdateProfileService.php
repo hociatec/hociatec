@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\User\Application\Workflow;
 
+use App\Module\Auth\Application\Workflow\RefreshTokenRevocationService;
 use App\Module\User\Application\DTO\UpdateProfileInput;
 use App\Module\User\Application\Exception\InvalidBirthDateException;
 use App\Module\User\Application\Exception\InvalidCurrentPasswordException;
@@ -23,6 +24,7 @@ class UpdateProfileService
         private readonly UpdatePersonalInformationService $personalInformation,
         private readonly ChangeProfileEmailService $emailChanger,
         private readonly ChangeProfilePasswordService $passwordChanger,
+        private readonly RefreshTokenRevocationService $refreshTokenRevocations,
     ) {
     }
 
@@ -41,11 +43,14 @@ class UpdateProfileService
 
         $this->personalInformation->update($user, $input);
         $this->emailChanger->change($user, $userId, $input->email, $input->currentPassword);
-        $this->passwordChanger->change($user, $input->newPassword, $input->currentPassword);
+        $passwordChanged = $this->passwordChanger->change($user, $input->newPassword, $input->currentPassword);
 
         try {
+            if ($passwordChanged) {
+                $this->refreshTokenRevocations->revokeAllForUser($user);
+            }
             $this->userRepository->save($user);
-            $this->unitOfWork->commit();
+            $this->unitOfWork->flush();
         } catch (UniqueConstraintViolationException $exception) {
             if (!UserUniqueConstraintViolationDetector::isEmail($exception)) {
                 throw $exception;

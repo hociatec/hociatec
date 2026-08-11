@@ -17,21 +17,21 @@ final class ExportBetaTestersControllerTest extends TestCase
     public function testExportBetaTestersStreamsCsvRows(): void
     {
         $profiles = [
-            (new BetaTesterProfile(
-                $this->user('ada@example.test', 'Ada', 'Lovelace'),
-                ['weekdays', 'evenings'],
-                'Motivation',
-                'manual',
-                'clear',
-                'advanced',
-                'screen-reader',
-                ['nvda'],
-                ['windows'],
-                ['firefox'],
-                ['ui', 'api'],
-                new \DateTimeImmutable('2026-08-01T10:00:00+00:00'),
-                '2026-07'
-            ))->setStatus(BetaTesterProfile::STATUS_ACCEPTED),
+            (new BetaTesterProfile([
+                'user' => $this->user('ada@example.test', 'Ada', 'Lovelace'),
+                'availability' => ['weekdays', 'evenings'],
+                'motivation' => 'Motivation',
+                'testingExperience' => 'manual',
+                'bugDescriptionAbility' => 'clear',
+                'technicalKnowledge' => 'advanced',
+                'accessibilityNeed' => 'screen-reader',
+                'assistiveTools' => ['nvda'],
+                'devices' => ['windows'],
+                'browsers' => ['firefox'],
+                'testingTypes' => ['ui', 'api'],
+                'consentAt' => new \DateTimeImmutable('2026-08-01T10:00:00+00:00'),
+                'privacyNoticeVersion' => '2026-07'
+            ]))->setStatus(BetaTesterProfile::STATUS_ACCEPTED),
         ];
 
         $controller = new ExportBetaTestersController(

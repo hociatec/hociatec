@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\Operations\Workflow;
 
+use App\Module\Admin\Application\Operations\DTO\FulfillmentOrderOutput;
 use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFoundException;
 use App\Module\Admin\Application\Operations\Persistence\OperationsPersistence;
 use App\Module\Admin\Application\Operations\Projection\AdminOperationsFormatter;
@@ -23,16 +24,13 @@ final readonly class FulfillmentOperationsService
     ) {
     }
 
-    /**
-     * @return list<array<string, mixed>>
-     */
+    /** @return list<FulfillmentOrderOutput> */
     public function queue(): array
     {
         return array_map($this->formatter->fulfillmentOrder(...), $this->orders->findFulfillmentQueue(50));
     }
 
-    /** @return array<string, mixed> */
-    public function ship(int $orderId, DeliveryInput $input, ?User $actor): array
+    public function ship(int $orderId, DeliveryInput $input, ?User $actor): FulfillmentOrderOutput
     {
         $order = $this->orders->find($orderId);
         if (!$order instanceof Order) {
@@ -53,7 +51,7 @@ final readonly class FulfillmentOperationsService
         if (null === $order->getDeliveryShippedAt()) {
             $order->setDeliveryShippedAt(new \DateTimeImmutable());
         }
-        $this->persistence->commit();
+        $this->persistence->flush();
 
         $this->events->log(
             $order,

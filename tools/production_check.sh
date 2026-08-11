@@ -193,11 +193,13 @@ forbid_env_pattern CORS_ALLOW_ORIGIN 'localhost|127\.0\.0\.1|\.\*|\*' "a local o
 forbid_env_pattern DATABASE_URL '://root:|motdepasse|://user:' "a root or placeholder database DSN"
 forbid_env_pattern MAILER_DSN 'localhost|127\.0\.0\.1|mailpit|smtp://user:pass|votre-' "a local or placeholder mailer DSN"
 forbid_env_pattern TRUSTED_HOSTS 'localhost|127\.0\.0\.1|votre-' "a local or placeholder trusted host"
+forbid_env_pattern TRUSTED_PROXIES '^\*$|0\.0\.0\.0/0|::/0|votre-|change-me' "an unsafe trusted proxy wildcard or placeholder"
 forbid_env_pattern STRIPE_SECRET_KEY '^sk_test_|stripe-|change-me|votre-' "a Stripe test or placeholder secret"
 forbid_env_pattern STRIPE_WEBHOOK_SECRET '^whsec_test|stripe-|change-me|votre-' "a Stripe webhook placeholder"
 forbid_env_pattern STRIPE_REFUND_WEBHOOK_SECRET '^whsec_test|stripe-|change-me|votre-' "a Stripe refund webhook placeholder"
 require_env_pattern APP_FRONTEND_URL '^https://' "use HTTPS"
 require_env_pattern MESSENGER_TRANSPORT_DSN '^doctrine://|^amqp://|^redis://' "use a production-capable Messenger transport"
+require_env_pattern TRUSTED_PROXIES 'REMOTE_ADDR|/|,|^([0-9]{1,3}\.){3}[0-9]{1,3}$' "declare explicit trusted proxy addresses or CIDRs"
 
 require_file "$BACKEND_DIR/config/jwt/private.pem" "JWT private key exists"
 require_file "$BACKEND_DIR/config/jwt/public.pem" "JWT public key exists"

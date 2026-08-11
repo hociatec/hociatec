@@ -23,10 +23,15 @@ use App\Module\Training\Infrastructure\Repository\TrainingRepository;
 use App\Module\Training\UI\Controller\Admin\DeleteTrainingCategoryController;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Http\RateLimitKeyFactory;
+use App\Shared\Infrastructure\Validation\ConstraintViolationFormatter;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Validator\ConstraintViolationList;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final class MoreLightControllerBatchesTest extends TestCase
 {
@@ -117,16 +122,16 @@ final class MoreLightControllerBatchesTest extends TestCase
             });
 
         $quoteFormatter = new \App\Module\Quote\Application\Projection\QuoteFormatter(new QuoteCalculator(), \App\Tests\Support\OrderFormatterFactory::create());
-        $create = new CreateQuoteController($quoteService, $quoteFormatter);
+        $create = new CreateQuoteController($quoteService, $quoteFormatter, $this->validator(), new RateLimitKeyFactory(), $this->limiter(10));
         try {
             $create(new Request(content: '{"name":'));
             self::fail('Expected invalid JSON payload exception.');
         } catch (\App\Shared\Infrastructure\Http\InvalidJsonPayloadException) {
             self::assertTrue(true);
         }
-        $createPayload = json_decode((string) $create(new Request(content: json_encode([
+        $createPayload = json_decode((string) $create(new Request(server: ['REMOTE_ADDR' => '127.0.0.1'], content: json_encode([
             'customer' => ['name' => 'Ada', 'email' => 'ada@example.com'],
-            'items' => [],
+            'items' => [['name' => 'Diagnostic']],
             'shippingCents' => 999,
         ], JSON_THROW_ON_ERROR)))->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('Q-9', $createPayload['data']['number']);
@@ -138,10 +143,10 @@ final class MoreLightControllerBatchesTest extends TestCase
         $failingQuoteService->expects(self::once())
             ->method('createFromPayload')
             ->willThrowException(new \RuntimeException('db down'));
-        $failingCreate = new CreateQuoteController($failingQuoteService, $quoteFormatter);
+        $failingCreate = new CreateQuoteController($failingQuoteService, $quoteFormatter, $this->validator(), new RateLimitKeyFactory(), $this->limiter(10));
         self::assertSame(
             Response::HTTP_INTERNAL_SERVER_ERROR,
-            $failingCreate(new Request(content: '{"customer":{"name":"Ada","email":"ada@example.com"},"items":[]}'))->getStatusCode()
+            $failingCreate(new Request(server: ['REMOTE_ADDR' => '127.0.0.1'], content: '{"customer":{"name":"Ada","email":"ada@example.com"},"items":[{"name":"Diagnostic"}]}'))->getStatusCode()
         );
 
         $category = new TrainingCategory('SEO', 'seo');
@@ -171,5 +176,23 @@ final class MoreLightControllerBatchesTest extends TestCase
     {
         $reflection = new \ReflectionObject($entity);
         $reflection->getProperty('id')->setValue($entity, $id);
+    }
+
+    private function validator(): DtoValidator
+    {
+        $validator = $this->createMock(ValidatorInterface::class);
+        $validator->method('validate')->willReturn(new ConstraintViolationList());
+
+        return new DtoValidator($validator, new ConstraintViolationFormatter());
+    }
+
+    private function limiter(int $limit): \Symfony\Component\RateLimiter\RateLimiterFactory
+    {
+        return new \Symfony\Component\RateLimiter\RateLimiterFactory([
+            'id' => 'test',
+            'policy' => 'fixed_window',
+            'limit' => $limit,
+            'interval' => '1 hour',
+        ], new \Symfony\Component\RateLimiter\Storage\InMemoryStorage());
     }
 }

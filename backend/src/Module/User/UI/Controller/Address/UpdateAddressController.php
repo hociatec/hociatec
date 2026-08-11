@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\User\UI\Controller\Address;
 
 use App\Module\User\Application\DTO\ShippingAddressInput;
-use App\Module\User\Application\Port\ShippingAddressRepositoryPort;
 use App\Module\User\Application\Projection\ShippingAddressFormatter;
+use App\Module\User\Application\Workflow\CustomerAddressBookService;
 use App\Module\User\Application\Writer\ShippingAddressWriter;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
@@ -24,7 +24,7 @@ class UpdateAddressController extends AbstractController
     use AuthenticatedDomainUserTrait;
 
     public function __construct(
-        private readonly ShippingAddressRepositoryPort $addresses,
+        private readonly CustomerAddressBookService $addressBook,
         private readonly ShippingAddressWriter $writer,
         private readonly DtoValidator $dtoValidator,
         private readonly ShippingAddressFormatter $formatter,
@@ -33,8 +33,7 @@ class UpdateAddressController extends AbstractController
 
     public function __invoke(int $id, Request $request): JsonResponse
     {
-        $user = $this->currentUser();
-        $address = $this->addresses->findOneForUser($id, $user);
+        $address = $this->addressBook->findForUser($this->currentUser(), $id);
         if (null === $address) {
             return ApiResponse::error('Adresse introuvable.', JsonResponse::HTTP_NOT_FOUND);
         }

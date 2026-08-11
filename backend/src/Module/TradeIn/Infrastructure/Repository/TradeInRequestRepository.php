@@ -70,6 +70,20 @@ final class TradeInRequestRepository extends ServiceEntityRepository implements 
             ->getSingleScalarResult();
     }
 
+    /** @return list<TradeInRequest> */
+    public function findClosedWithExpiredPrivateDocuments(\DateTimeImmutable $closedBefore, int $limit = 100): array
+    {
+        return $this->createQueryBuilder('r')
+            ->andWhere('r.closedAt IS NOT NULL')
+            ->andWhere('r.closedAt < :closedBefore')
+            ->andWhere('(r.ribPath IS NOT NULL OR r.receiptPath IS NOT NULL)')
+            ->setParameter('closedBefore', $closedBefore)
+            ->orderBy('r.closedAt', 'ASC')
+            ->setMaxResults(max(1, min(500, $limit)))
+            ->getQuery()
+            ->getResult();
+    }
+
     private function createAdminQuery(?string $search = null, ?TradeInStatus $status = null): \Doctrine\ORM\QueryBuilder
     {
         $qb = $this->createQueryBuilder('r');

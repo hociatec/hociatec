@@ -28,7 +28,7 @@ final readonly class MarkBugReportDuplicateHandler
         $previous = $report->getDuplicateOf()?->getId();
         $report->markDuplicateOf($duplicateOf, $reason);
         $this->activityLogger->log($report, $actor, 'marked_duplicate', null !== $previous ? (string) $previous : null, (string) $duplicateOf->getId(), $reason);
-        $this->persistence->commit();
+        $this->persistence->flush();
         $this->notifier->notify(
             $report->getReporter(),
             sprintf('beta-report-duplicate:%d:%d', $report->getId(), $duplicateOf->getId()),

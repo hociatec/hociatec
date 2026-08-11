@@ -20,7 +20,7 @@ final readonly class DeleteBugReportHandler
     {
         $attachmentNames = $report->getAttachments();
         $this->persistence->remove($report);
-        $this->persistence->commit();
+        $this->persistence->flush();
         $this->attachments->deleteMany($attachmentNames);
     }
 }

@@ -55,6 +55,6 @@ final readonly class StripePaidCheckoutSessionHandler
     private function save(object $entity): void
     {
         $this->persistence->persist($entity);
-        $this->persistence->commit();
+        $this->persistence->flush();
     }
 }

@@ -49,8 +49,8 @@ final class CreateBugReportCommentController extends AbstractController
             return ApiResponse::error('Rapport introuvable.', 404);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error('Le contenu du message ne peut pas être vide.', 422);
-        } catch (BetaTestOperationException $exception) {
-            return ApiResponse::internalError($exception->getMessage());
+        } catch (BetaTestOperationException) {
+            return ApiResponse::internalError();
         }
 
         if (null === $comment) {

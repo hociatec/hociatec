@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\User\UI\Controller\Address;
 
-use App\Module\User\Application\Port\ShippingAddressRepositoryPort;
-use App\Module\User\Application\Projection\ShippingAddressFormatter;
+use App\Module\User\Application\Workflow\CustomerAddressBookService;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
@@ -22,8 +21,7 @@ class ListMyAddressesController extends AbstractController
     use AuthenticatedDomainUserTrait;
 
     public function __construct(
-        private readonly ShippingAddressRepositoryPort $addresses,
-        private readonly ShippingAddressFormatter $formatter,
+        private readonly CustomerAddressBookService $addressBook,
     ) {
     }
 
@@ -31,12 +29,8 @@ class ListMyAddressesController extends AbstractController
     {
         $request ??= new Request();
         $pagination = RequestQueryMapper::pagination($request, 10, 50);
-        $user = $this->currentUser();
-        $items = array_map(
-            fn ($a) => $this->formatter->toArray($a),
-            $this->addresses->findAllForUser($user, $pagination->perPage, $pagination->offset())
-        );
+        $result = $this->addressBook->listForUser($this->currentUser(), $pagination->perPage, $pagination->offset());
 
-        return ApiResponse::paginated($items, $pagination->metadata($this->addresses->countForUser($user)));
+        return ApiResponse::paginated($result['items'], $pagination->metadata($result['total']));
     }
 }

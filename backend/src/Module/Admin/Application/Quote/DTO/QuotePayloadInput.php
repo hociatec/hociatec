@@ -22,9 +22,30 @@ final readonly class QuotePayloadInput
     /** @var list<array<string,mixed>> */
     public array $items;
 
-    public function __construct(mixed ...$values)
+    /**
+     * @param array{
+     *   customer?: array<string,mixed>,
+     *   status?: string,
+     *   discountCents?: int,
+     *   shippingCents?: int,
+     *   conditions?: ?string,
+     *   validFrom?: ?string,
+     *   validUntil?: ?string,
+     *   items?: list<array<string,mixed>>
+     * }|null $payload
+     */
+    public function __construct(?array $payload = null)
     {
-        $data = $this->mapValues($values);
+        $data = array_replace([
+            'customer' => [],
+            'status' => 'draft',
+            'discountCents' => 0,
+            'shippingCents' => 0,
+            'conditions' => null,
+            'validFrom' => null,
+            'validUntil' => null,
+            'items' => [],
+        ], $payload ?? []);
         $this->customer = $data['customer'];
         $this->status = (string) $data['status'];
         $this->discountCents = (int) $data['discountCents'];
@@ -38,7 +59,16 @@ final readonly class QuotePayloadInput
     /** @param array<string,mixed> $p */
     public static function fromArray(array $p): self
     {
-        return new self(is_array($p['customer'] ?? null) ? $p['customer'] : [], is_string($p['status'] ?? null) ? trim($p['status']) : 'draft', is_numeric($p['discountCents'] ?? null) ? (int) $p['discountCents'] : 0, is_numeric($p['shippingCents'] ?? null) ? (int) $p['shippingCents'] : 0, is_string($p['conditions'] ?? null) ? trim($p['conditions']) : null, is_string($p['validFrom'] ?? null) ? trim($p['validFrom']) : null, is_string($p['validUntil'] ?? null) ? trim($p['validUntil']) : null, is_array($p['items'] ?? null) ? array_values(array_filter($p['items'], static fn (mixed $v): bool => is_array($v))) : []);
+        return new self([
+            'customer' => is_array($p['customer'] ?? null) ? $p['customer'] : [],
+            'status' => is_string($p['status'] ?? null) ? trim($p['status']) : 'draft',
+            'discountCents' => is_numeric($p['discountCents'] ?? null) ? (int) $p['discountCents'] : 0,
+            'shippingCents' => is_numeric($p['shippingCents'] ?? null) ? (int) $p['shippingCents'] : 0,
+            'conditions' => is_string($p['conditions'] ?? null) ? trim($p['conditions']) : null,
+            'validFrom' => is_string($p['validFrom'] ?? null) ? trim($p['validFrom']) : null,
+            'validUntil' => is_string($p['validUntil'] ?? null) ? trim($p['validUntil']) : null,
+            'items' => is_array($p['items'] ?? null) ? array_values(array_filter($p['items'], static fn (mixed $v): bool => is_array($v))) : [],
+        ]);
     }
 
     /** @return array<string,mixed> */
@@ -47,29 +77,4 @@ final readonly class QuotePayloadInput
         return ['customer' => $this->customer, 'status' => $this->status, 'discountCents' => $this->discountCents, 'shippingCents' => $this->shippingCents, 'conditions' => $this->conditions, 'validFrom' => $this->validFrom, 'validUntil' => $this->validUntil, 'items' => $this->items];
     }
 
-    /**
-     * @param array<int|string, mixed> $values
-     *
-     * @return array<string, mixed>
-     */
-    private function mapValues(array $values): array
-    {
-        $keys = ['customer', 'status', 'discountCents', 'shippingCents', 'conditions', 'validFrom', 'validUntil', 'items'];
-        $defaults = array_fill_keys($keys, null);
-        $defaults['customer'] = [];
-        $defaults['status'] = 'draft';
-        $defaults['discountCents'] = 0;
-        $defaults['shippingCents'] = 0;
-        $defaults['items'] = [];
-        foreach ($values as $index => $value) {
-            if (!is_int($index)) {
-                continue;
-            }
-            if (isset($keys[$index])) {
-                $defaults[$keys[$index]] = $value;
-            }
-        }
-
-        return array_replace($defaults, array_filter($values, 'is_string', ARRAY_FILTER_USE_KEY));
-    }
 }

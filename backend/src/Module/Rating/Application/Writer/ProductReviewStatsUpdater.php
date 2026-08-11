@@ -22,6 +22,6 @@ class ProductReviewStatsUpdater
         $product->setReviewsCount($stats['count']);
         $product->setReviewsAverage($stats['average']);
         $this->persistence->persist($product);
-        $this->persistence->commit();
+        $this->persistence->flush();
     }
 }

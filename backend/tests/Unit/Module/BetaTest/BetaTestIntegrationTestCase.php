@@ -50,8 +50,32 @@ abstract class BetaTestIntegrationTestCase extends TestCase
         $user = $this->user('reporter@example.com');
         $admin = $this->user('admin@example.com', ['ROLE_ADMIN']);
         $campaign = (new BetaCampaign('Campaign', 'Desc', new \DateTimeImmutable('-1 day'), new \DateTimeImmutable('+1 day')))->setStatus(BetaCampaign::STATUS_ACTIVE);
-        $profile = (new BetaTesterProfile($user, ['weekdays'], 'Motivation', 'manual', 'clear', 'advanced', 'none', ['nvda'], ['windows'], ['chrome'], ['ui'], new \DateTimeImmutable(), '2026-07-26'))->setStatus(BetaTesterProfile::STATUS_ACCEPTED);
-        $report = new BugReport($user, $campaign, 'Bug', 'Desc', 'Expected', 'Actual', 'high', '/page', ['screen.png', '']);
+        $profile = (new BetaTesterProfile([
+            'user' => $user,
+            'availability' => ['weekdays'],
+            'motivation' => 'Motivation',
+            'testingExperience' => 'manual',
+            'bugDescriptionAbility' => 'clear',
+            'technicalKnowledge' => 'advanced',
+            'accessibilityNeed' => 'none',
+            'assistiveTools' => ['nvda'],
+            'devices' => ['windows'],
+            'browsers' => ['chrome'],
+            'testingTypes' => ['ui'],
+            'consentAt' => new \DateTimeImmutable(),
+            'privacyNoticeVersion' => '2026-07-26',
+        ]))->setStatus(BetaTesterProfile::STATUS_ACCEPTED);
+        $report = new BugReport([
+            'reporter' => $user,
+            'campaign' => $campaign,
+            'title' => 'Bug',
+            'description' => 'Desc',
+            'expectedBehavior' => 'Expected',
+            'actualBehavior' => 'Actual',
+            'severity' => 'high',
+            'pageUrl' => '/page',
+            'attachments' => ['screen.png', ''],
+        ]);
         $comment = new BugReportComment($report, $user, 'Hello');
         foreach ([$user, $admin, $campaign, $profile, $report, $comment] as $entity) {
             $em->persist($entity);

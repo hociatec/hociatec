@@ -19,6 +19,6 @@ final readonly class OrderWorkflowService
             ->setStatus(Order::STATUS_CANCELLED)
             ->setInvoiceStatus(Order::INVOICE_STATUS_CANCELLED);
 
-        $this->persistence->commit();
+        $this->persistence->flush();
     }
 }

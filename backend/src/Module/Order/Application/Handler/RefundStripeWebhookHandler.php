@@ -53,7 +53,7 @@ final class RefundStripeWebhookHandler
                 $refund->setStatus(RefundRequest::STATUS_APPROVED);
             }
 
-            $this->persistence->commit();
+            $this->persistence->flush();
         });
 
         return ['type' => $type, 'refundId' => $stripeRefundId, 'localRefundId' => $refund->getId()];

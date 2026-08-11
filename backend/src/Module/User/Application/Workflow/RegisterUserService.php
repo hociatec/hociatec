@@ -65,10 +65,10 @@ class RegisterUserService
         try {
             return $this->transactions->transactional(function () use ($user, $token, $input): User {
                 $this->persistence->save($user);
-                $this->persistence->commit();
+                $this->persistence->flush();
                 if (null !== $input->betaProfile) {
                     $this->betaProfiles->create($user, $input->betaProfile);
-                    $this->persistence->commit();
+                    $this->persistence->flush();
                 }
                 $this->outbox->record('user.activation.'.$user->getId().'.'.$user->getVerificationToken(), 'user.activation_email_requested', [
                     'userId' => $user->getId(),

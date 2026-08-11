@@ -6,6 +6,7 @@ namespace App\Module\Admin\UI\TradeIn\Controller;
 
 use App\Module\TradeIn\Application\Port\TradeInPrivateFileStoragePort;
 use App\Module\TradeIn\Application\Port\TradeInRequestRepositoryPort;
+use Psr\Log\LoggerInterface;
 use App\Shared\Infrastructure\Http\AttachmentResponseFactory;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,6 +21,7 @@ final class DownloadTradeInDocumentController extends AbstractController
         private readonly TradeInRequestRepositoryPort $requests,
         private readonly TradeInPrivateFileStoragePort $files,
         private readonly AttachmentResponseFactory $attachments,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -33,6 +35,13 @@ final class DownloadTradeInDocumentController extends AbstractController
         if (null === $path) {
             throw $this->createNotFoundException('Document indisponible.');
         }
+
+        $this->logger->info('Trade-in private document downloaded by admin.', [
+            'tradeInId' => $request->getId(),
+            'tradeInReference' => $request->getReference(),
+            'document' => $document,
+            'actor' => $this->getUser()?->getUserIdentifier(),
+        ]);
 
         return $this->attachments->create($this->files->read($path), 'receipt' === $document ? 'justificatif-reprise.pdf' : 'rib-demandeur.pdf', 'application/pdf');
     }

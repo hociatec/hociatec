@@ -10,5 +10,5 @@ interface WorkingDayConfigurationPersistencePort
 {
     public function save(WorkingDayConfiguration $configuration): void;
 
-    public function commit(): void;
+    public function flush(): void;
 }

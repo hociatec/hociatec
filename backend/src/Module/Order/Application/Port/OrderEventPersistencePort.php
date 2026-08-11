@@ -10,5 +10,5 @@ interface OrderEventPersistencePort
 {
     public function save(OrderEvent $event): void;
 
-    public function commit(): void;
+    public function flush(): void;
 }

@@ -19,6 +19,6 @@ final readonly class DeleteQuoteServiceHandler
     public function delete(ServiceOffering $service): void
     {
         $this->services->delete($service);
-        $this->persistence->commit();
+        $this->persistence->flush();
     }
 }

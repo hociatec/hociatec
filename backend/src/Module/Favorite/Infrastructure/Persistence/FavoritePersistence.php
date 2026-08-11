@@ -24,7 +24,7 @@ final readonly class FavoritePersistence implements FavoritePersistencePort
         $this->entityManager->remove($favorite);
     }
 
-    public function commit(): void
+    public function flush(): void
     {
         $this->entityManager->flush();
     }

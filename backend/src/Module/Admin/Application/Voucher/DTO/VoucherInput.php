@@ -23,48 +23,55 @@ final readonly class VoucherInput
     public ?string $startsAt;
     public ?string $endsAt;
 
-    public function __construct(mixed ...$values)
-    {
-        $data = $this->mapValues($values);
-        $this->name = (string) $data['name'];
-        $this->code = (string) $data['code'];
-        $this->description = $data['description'];
-        $this->discountType = (string) $data['discountType'];
-        $this->discountValue = (int) $data['discountValue'];
-        $this->isActive = (bool) $data['isActive'];
-        $this->startsAt = $data['startsAt'];
-        $this->endsAt = $data['endsAt'];
+    /**
+     * @param array{
+     *   name:string,
+     *   code:string,
+     *   description:?string,
+     *   discountType:string,
+     *   discountValue:int,
+     *   isActive:bool,
+     *   startsAt:?string,
+     *   endsAt:?string
+     * } $payload
+     */
+    public function __construct(
+        ?array $payload = null,
+    ) {
+        $payload ??= [
+            'name' => '',
+            'code' => '',
+            'description' => null,
+            'discountType' => '',
+            'discountValue' => 0,
+            'isActive' => true,
+            'startsAt' => null,
+            'endsAt' => null,
+        ];
+        $this->name = $payload['name'];
+        $this->code = $payload['code'];
+        $this->description = $payload['description'];
+        $this->discountType = $payload['discountType'];
+        $this->discountValue = $payload['discountValue'];
+        $this->isActive = $payload['isActive'];
+        $this->startsAt = $payload['startsAt'];
+        $this->endsAt = $payload['endsAt'];
     }
 
     /** @param array<string,mixed> $payload */
     public static function fromArray(array $payload): self
     {
-        return new self(is_string($payload['name'] ?? null) ? trim($payload['name']) : '', is_string($payload['code'] ?? null) ? mb_strtoupper(trim($payload['code'])) : '', is_string($payload['description'] ?? null) ? trim($payload['description']) : null, is_string($payload['discountType'] ?? null) ? trim($payload['discountType']) : '', is_numeric($payload['discountValue'] ?? null) ? (int) $payload['discountValue'] : 0, is_bool($payload['isActive'] ?? null) ? $payload['isActive'] : true, is_string($payload['startsAt'] ?? null) ? trim($payload['startsAt']) : null, is_string($payload['endsAt'] ?? null) ? trim($payload['endsAt']) : null);
-    }
-
-    /**
-     * @param array<int|string, mixed> $values
-     *
-     * @return array<string, mixed>
-     */
-    private function mapValues(array $values): array
-    {
-        $keys = ['name', 'code', 'description', 'discountType', 'discountValue', 'isActive', 'startsAt', 'endsAt'];
-        $defaults = array_fill_keys($keys, null);
-        $defaults['name'] = '';
-        $defaults['code'] = '';
-        $defaults['discountType'] = '';
-        $defaults['discountValue'] = 0;
-        $defaults['isActive'] = true;
-        foreach ($values as $index => $value) {
-            if (!is_int($index)) {
-                continue;
-            }
-            if (isset($keys[$index])) {
-                $defaults[$keys[$index]] = $value;
-            }
-        }
-
-        return array_replace($defaults, array_filter($values, 'is_string', ARRAY_FILTER_USE_KEY));
+        return new self(
+            [
+                'name' => is_string($payload['name'] ?? null) ? trim($payload['name']) : '',
+                'code' => is_string($payload['code'] ?? null) ? mb_strtoupper(trim($payload['code'])) : '',
+                'description' => is_string($payload['description'] ?? null) ? trim($payload['description']) : null,
+                'discountType' => is_string($payload['discountType'] ?? null) ? trim($payload['discountType']) : '',
+                'discountValue' => is_numeric($payload['discountValue'] ?? null) ? (int) $payload['discountValue'] : 0,
+                'isActive' => is_bool($payload['isActive'] ?? null) ? $payload['isActive'] : true,
+                'startsAt' => is_string($payload['startsAt'] ?? null) ? trim($payload['startsAt']) : null,
+                'endsAt' => is_string($payload['endsAt'] ?? null) ? trim($payload['endsAt']) : null,
+            ],
+        );
     }
 }

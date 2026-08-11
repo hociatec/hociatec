@@ -52,8 +52,8 @@ class UpdateCategoryController extends AbstractController
             $category = $this->categoryService->update($category, $input->name, $input->slug, $input->description, $input->isVisible);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY);
-        } catch (CatalogOperationException $exception) {
-            return ApiResponse::internalError($exception->getMessage());
+        } catch (CatalogOperationException) {
+            return ApiResponse::internalError();
         }
 
         return ApiResponse::success($this->catalogFormatter->formatCategory($category, true), JsonResponse::HTTP_OK, 'La catégorie a bien été mise à jour.');

@@ -81,9 +81,9 @@ const rethrowApiError = (error: unknown): never => {
   throw error;
 };
 
-export const registerUser = async (payload: RegisterPayload): Promise<AuthOperationResult<AuthUser>> => {
+export const registerUser = async (payload: RegisterPayload): Promise<AuthOperationResult<Record<string, never>>> => {
   try {
-    const { data } = await httpClient.post<ApiResponse<AuthUser>>('/api/auth/register', payload);
+    const { data } = await httpClient.post<ApiResponse<Record<string, never>>>('/api/auth/register', payload);
     return { data: unwrapResponse(data), message: data.message };
   } catch (error) {
     return rethrowApiError(error);

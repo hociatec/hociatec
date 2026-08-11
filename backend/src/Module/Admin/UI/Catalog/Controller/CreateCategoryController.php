@@ -44,8 +44,8 @@ class CreateCategoryController extends AbstractController
             $category = $this->categoryService->create($input->name, $input->slug, $input->description, $input->isVisible);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY);
-        } catch (CatalogOperationException $exception) {
-            return ApiResponse::internalError($exception->getMessage());
+        } catch (CatalogOperationException) {
+            return ApiResponse::internalError();
         }
 
         return ApiResponse::created($this->catalogFormatter->formatCategory($category, true), 'La catégorie a bien été créée.');

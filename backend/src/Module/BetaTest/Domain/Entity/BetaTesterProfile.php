@@ -63,27 +63,40 @@ class BetaTesterProfile
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $updatedAt;
 
-    public function __construct(mixed ...$values)
+    /**
+     * @param array{
+     *   user?: User,
+     *   availability?: list<string>,
+     *   motivation?: string,
+     *   testingExperience?: string,
+     *   bugDescriptionAbility?: string,
+     *   technicalKnowledge?: ?string,
+     *   accessibilityNeed?: string,
+     *   assistiveTools?: list<string>,
+     *   devices?: list<string>,
+     *   browsers?: list<string>,
+     *   testingTypes?: list<string>,
+     *   consentAt?: \DateTimeImmutable,
+     *   privacyNoticeVersion?: string
+     * }|null $payload
+     */
+    public function __construct(?array $payload = null)
     {
-        $keys = ['user', 'availability', 'motivation', 'testingExperience', 'bugDescriptionAbility', 'technicalKnowledge', 'accessibilityNeed', 'assistiveTools', 'devices', 'browsers', 'testingTypes', 'consentAt', 'privacyNoticeVersion'];
-        $data = array_fill_keys($keys, null);
-        $data['availability'] = [];
-        $data['accessibilityNeed'] = 'none';
-        $data['assistiveTools'] = [];
-        $data['devices'] = [];
-        $data['browsers'] = [];
-        $data['testingTypes'] = [];
-        $data['consentAt'] = new \DateTimeImmutable();
-        $data['privacyNoticeVersion'] = 'unknown';
-        foreach ($values as $index => $value) {
-            if (!is_int($index)) {
-                continue;
-            }
-            if (isset($keys[$index])) {
-                $data[$keys[$index]] = $value;
-            }
-        }
-        $data = array_replace($data, array_filter($values, 'is_string', ARRAY_FILTER_USE_KEY));
+        $data = array_replace([
+            'user' => null,
+            'availability' => [],
+            'motivation' => '',
+            'testingExperience' => '',
+            'bugDescriptionAbility' => '',
+            'technicalKnowledge' => null,
+            'accessibilityNeed' => 'none',
+            'assistiveTools' => [],
+            'devices' => [],
+            'browsers' => [],
+            'testingTypes' => [],
+            'consentAt' => new \DateTimeImmutable(),
+            'privacyNoticeVersion' => 'unknown',
+        ], $payload ?? []);
         if (!$data['user'] instanceof User) {
             throw new \InvalidArgumentException('Le profil bêta doit être associé à un utilisateur.');
         }

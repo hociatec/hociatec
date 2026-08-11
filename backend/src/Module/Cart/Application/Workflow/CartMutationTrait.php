@@ -116,6 +116,6 @@ trait CartMutationTrait
     {
         $cart->touch();
         $this->persistence->persist($cart);
-        $this->persistence->commit();
+        $this->persistence->flush();
     }
 }

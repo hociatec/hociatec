@@ -21,6 +21,9 @@ final class RefreshTokenControllersAndLogoutTest extends AuthIntegrationTestCase
         $em->persist($user);
         $em->flush();
         $service = $this->refreshService($em);
+        $serviceReflection = new \ReflectionClass($service);
+        self::assertSame(30, $serviceReflection->getConstant('REFRESH_TOKEN_TTL_DAYS'));
+        self::assertSame(10, $serviceReflection->getConstant('MAX_ACTIVE_SESSIONS_PER_USER'));
         $issued = $service->issueForUser($user);
         $selector = explode('.', $issued['refreshToken'], 2)[0];
 
@@ -56,6 +59,21 @@ final class RefreshTokenControllersAndLogoutTest extends AuthIntegrationTestCase
         self::assertSame(Response::HTTP_UNPROCESSABLE_ENTITY, $controller(Request::create('/', 'POST', [], [], [], [], '{"refreshToken":""}'))->getStatusCode());
         $refreshed = $controller(Request::create('/', 'POST', [], [], [], [], json_encode(['refreshToken' => $issued['refreshToken']], JSON_THROW_ON_ERROR)));
         self::assertSame(Response::HTTP_OK, $refreshed->getStatusCode());
+        $refreshPayload = json_decode((string) $refreshed->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertIsArray($refreshPayload);
+        $parallelSession = $service->issueForUser($user)['refreshToken'];
+        $rotatedRefreshToken = null;
+        foreach ($refreshed->headers->getCookies() as $cookie) {
+            if (AuthCookieService::REFRESH_COOKIE === $cookie->getName()) {
+                $rotatedRefreshToken = $cookie->getValue();
+                break;
+            }
+        }
+        self::assertNull($service->rotate($issued['refreshToken']));
+        self::assertIsString($rotatedRefreshToken);
+        self::assertNotSame('', $rotatedRefreshToken);
+        self::assertNotNull($service->rotate($rotatedRefreshToken));
+        self::assertNotNull($service->rotate($parallelSession));
         $cookieIssued = $service->issueForUser($user);
         self::assertSame(Response::HTTP_OK, $controller(Request::create('/', 'POST', cookies: [AuthCookieService::REFRESH_COOKIE => $cookieIssued['refreshToken']], content: '{"refreshToken":"ignored"}'))->getStatusCode());
 

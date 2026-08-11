@@ -37,23 +37,23 @@ final readonly class BugReportWriter
             throw new \InvalidArgumentException('Le titre et la description sont obligatoires.');
         }
 
-        $report = new BugReport(
-            $user,
-            $campaign,
-            $title,
-            $description,
-            isset($payload['expectedBehavior']) ? (string) $payload['expectedBehavior'] : null,
-            isset($payload['actualBehavior']) ? (string) $payload['actualBehavior'] : null,
-            in_array($payload['severity'] ?? 'normal', ['low', 'normal', 'high', 'critical'], true) ? (string) $payload['severity'] : 'normal',
-            isset($payload['pageUrl']) ? (string) $payload['pageUrl'] : null,
-            $this->attachments->store($files),
-        );
+        $report = new BugReport([
+            'reporter' => $user,
+            'campaign' => $campaign,
+            'title' => $title,
+            'description' => $description,
+            'expectedBehavior' => isset($payload['expectedBehavior']) ? (string) $payload['expectedBehavior'] : null,
+            'actualBehavior' => isset($payload['actualBehavior']) ? (string) $payload['actualBehavior'] : null,
+            'severity' => in_array($payload['severity'] ?? 'normal', ['low', 'normal', 'high', 'critical'], true) ? (string) $payload['severity'] : 'normal',
+            'pageUrl' => isset($payload['pageUrl']) ? (string) $payload['pageUrl'] : null,
+            'attachments' => $this->attachments->store($files),
+        ]);
         $report->recordReporterReply();
 
         try {
             $this->persistence->persist($report);
             $this->activityLogger->log($report, $user, 'report_created', null, null, $title);
-            $this->persistence->commit();
+            $this->persistence->flush();
         } catch (\RuntimeException $exception) {
             throw BetaTestOperationException::failed('Impossible d’enregistrer le signalement bêta.', $exception);
         }

@@ -10,5 +10,5 @@ interface StripeWebhookEventPersistencePort
 {
     public function save(StripeWebhookEvent $event): void;
 
-    public function commit(): void;
+    public function flush(): void;
 }

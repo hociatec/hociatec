@@ -53,7 +53,7 @@ final readonly class BetaCampaignProvider
         } while (100 === count($campaigns));
 
         if ($hasClosedCampaign) {
-            $this->persistence->commit();
+            $this->persistence->flush();
         }
     }
 }

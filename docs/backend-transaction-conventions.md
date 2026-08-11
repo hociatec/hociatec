@@ -1,6 +1,6 @@
 # Backend Transaction Conventions
 
-Use `UnitOfWork::commit()` only for a simple use case that performs one coherent persistence change and has no external side effect to coordinate.
+Use `UnitOfWork::flush()` only for a simple use case that performs one coherent persistence change and has no external side effect to coordinate.
 
 Use `TransactionManager::transactional()` when a use case combines several writes, writes plus file side effects, cache invalidation scheduling, outbox recording, payment state transitions, or any workflow that must be committed as one business operation.
 

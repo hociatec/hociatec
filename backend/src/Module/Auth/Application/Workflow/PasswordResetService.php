@@ -19,6 +19,7 @@ class PasswordResetService
         private readonly TransactionManager $transactions,
         private readonly UserPasswordHasher $passwordHasher,
         private readonly Outbox $outbox,
+        private readonly RefreshTokenRevocationService $refreshTokenRevocations,
     ) {
     }
 
@@ -29,24 +30,25 @@ class PasswordResetService
             return;
         }
 
-        $token = bin2hex(random_bytes(32));
+        $token = PasswordResetTokenHasher::generateRawToken();
         $expiresAt = new \DateTimeImmutable('+1 hour');
 
         $user
-            ->setPasswordResetToken($token)
+            ->setPasswordResetToken(PasswordResetTokenHasher::hash($token))
             ->setPasswordResetTokenExpiresAt($expiresAt);
 
         $this->transactions->transactional(function () use ($user, $token): void {
             $this->users->save($user);
             $this->outbox->record('auth.password_reset.'.hash('sha256', $token), 'auth.password_reset_email_requested', [
                 'email' => $user->getEmail(),
+                'token' => $token,
             ]);
         });
     }
 
     public function reset(string $token, string $plainPassword): void
     {
-        $user = $this->users->findOneByPasswordResetToken($token);
+        $user = $this->users->findOneByPasswordResetTokens(PasswordResetTokenHasher::hash($token), $token);
         if (!$user instanceof User) {
             throw new \RuntimeException('Lien de réinitialisation invalide.');
         }
@@ -57,7 +59,7 @@ class PasswordResetService
                 ->setPasswordResetToken(null)
                 ->setPasswordResetTokenExpiresAt(null);
             $this->users->save($user);
-            $this->unitOfWork->commit();
+            $this->unitOfWork->flush();
 
             throw new \RuntimeException('Le lien de réinitialisation a expiré.');
         }
@@ -67,7 +69,10 @@ class PasswordResetService
             ->setPasswordResetToken(null)
             ->setPasswordResetTokenExpiresAt(null);
 
-        $this->users->save($user);
-        $this->unitOfWork->commit();
+        $this->transactions->transactional(function () use ($user): void {
+            $this->users->save($user);
+            $this->refreshTokenRevocations->revokeAllForUser($user);
+            $this->unitOfWork->flush();
+        });
     }
 }

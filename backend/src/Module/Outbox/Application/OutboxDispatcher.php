@@ -67,7 +67,7 @@ final readonly class OutboxDispatcher
         $handler = $this->handlerFor($event);
         if (null === $handler) {
             $event->markDead('No outbox handler registered for event type '.$event->getType().'.');
-            $this->persistence->commit();
+            $this->persistence->flush();
             $this->logger->warning('No outbox handler registered.', [
                 'eventId' => $event->getId(),
                 'type' => $event->getType(),
@@ -96,7 +96,7 @@ final readonly class OutboxDispatcher
             ]);
         }
 
-        $this->persistence->commit();
+        $this->persistence->flush();
 
         return true;
     }

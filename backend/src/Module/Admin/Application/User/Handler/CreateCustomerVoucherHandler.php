@@ -50,7 +50,7 @@ final readonly class CreateCustomerVoucherHandler
         }
 
         $this->vouchers->save($voucher);
-        $this->unitOfWork->commit();
+        $this->unitOfWork->flush();
 
         return new CreatedCustomerVoucher($voucher, $emailSent);
     }

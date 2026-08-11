@@ -7,11 +7,11 @@ namespace App\Tests\Unit\Module\Auth;
 use App\Module\Auth\Application\Workflow\RefreshTokenRevocationService;
 use App\Module\Auth\Application\Workflow\RefreshTokenService;
 use App\Module\Auth\Domain\Entity\RefreshToken;
-use App\Module\Auth\Infrastructure\Persistence\RefreshTokenPersistence;
 use App\Module\Auth\Infrastructure\Repository\RefreshTokenRepository;
 use App\Module\Outbox\Domain\Entity\OutboxEvent;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use App\Shared\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Doctrine\DBAL\DriverManager;
@@ -35,7 +35,7 @@ abstract class AuthIntegrationTestCase extends TestCase
 
         return new RefreshTokenService(
             $repository,
-            new RefreshTokenPersistence($em),
+            new DoctrineUnitOfWork($em),
             new \App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager($em),
             new RefreshTokenRevocationService($repository),
         );

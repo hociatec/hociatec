@@ -32,7 +32,7 @@ final class EntityCoverageBatchTest extends TestCase
         $reporter = $this->user('reporter@example.com', 'Reporter');
         $admin = $this->user('admin@example.com', 'Admin');
         $campaign = new BetaCampaign('Campagne', 'Desc');
-        $bug = new BugReport($reporter, $campaign, 'Titre', 'Desc', 'Expected', 'Actual', 'high', 'https://example.com');
+        $bug = new BugReport(['reporter' => $reporter, 'campaign' => $campaign, 'title' => 'Titre', 'description' => 'Desc', 'expectedBehavior' => 'Expected', 'actualBehavior' => 'Actual', 'severity' => 'high', 'pageUrl' => 'https://example.com']);
 
         $activity = new BugReportActivity($bug, $admin, 'status_changed', 'submitted', 'planned', ' planned ');
         $comment = new BugReportComment($bug, $reporter, 'Commentaire');

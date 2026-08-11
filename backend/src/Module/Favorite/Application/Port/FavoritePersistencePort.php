@@ -12,5 +12,5 @@ interface FavoritePersistencePort
 
     public function delete(Favorite $favorite): void;
 
-    public function commit(): void;
+    public function flush(): void;
 }

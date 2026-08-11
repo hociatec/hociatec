@@ -77,7 +77,7 @@ final readonly class ApiExceptionSubscriber
             $exception instanceof AuthenticationException => ['Authentification requise.', JsonResponse::HTTP_UNAUTHORIZED, []],
             $exception instanceof UniqueConstraintViolationException => ['Une ressource avec ces informations existe déjà.', JsonResponse::HTTP_CONFLICT, []],
             $exception instanceof PublicApiException => [$exception->publicMessage(), $exception->getStatusCode(), []],
-            $exception instanceof ApiProblemException => [$exception->getMessage(), $exception->getStatusCode(), []],
+            $exception instanceof ApiProblemException => [$exception->getStatusCode() >= JsonResponse::HTTP_INTERNAL_SERVER_ERROR ? 'Une erreur interne est survenue.' : 'Requête impossible.', $exception->getStatusCode(), []],
             $exception instanceof \DomainException => ['Requête impossible.', JsonResponse::HTTP_UNPROCESSABLE_ENTITY, []],
             $exception instanceof \InvalidArgumentException => ['Requête invalide.', JsonResponse::HTTP_BAD_REQUEST, []],
             default => ['Une erreur interne est survenue.', JsonResponse::HTTP_INTERNAL_SERVER_ERROR, []],

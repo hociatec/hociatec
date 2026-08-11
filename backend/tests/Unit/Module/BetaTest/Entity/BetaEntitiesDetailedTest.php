@@ -44,21 +44,21 @@ final class BetaEntitiesDetailedTest extends TestCase
         $user = new User('ada@example.com', 'Ada', 'Lovelace', new \DateTimeImmutable('1990-01-01'), '0102030405', 'femme');
         $consentAt = new \DateTimeImmutable('2026-07-01T10:00:00+00:00');
 
-        $profile = new BetaTesterProfile(
-            $user,
-            ['weekdays'],
-            'Motivation',
-            'regular',
-            'steps',
-            'web',
-            'none',
-            ['nvda'],
-            ['windows'],
-            ['chrome'],
-            ['bugs'],
-            $consentAt,
-            'v1'
-        );
+        $profile = new BetaTesterProfile([
+            'user' => $user,
+            'availability' => ['weekdays'],
+            'motivation' => 'Motivation',
+            'testingExperience' => 'regular',
+            'bugDescriptionAbility' => 'steps',
+            'technicalKnowledge' => 'web',
+            'accessibilityNeed' => 'none',
+            'assistiveTools' => ['nvda'],
+            'devices' => ['windows'],
+            'browsers' => ['chrome'],
+            'testingTypes' => ['bugs'],
+            'consentAt' => $consentAt,
+            'privacyNoticeVersion' => 'v1',
+        ]);
 
         self::assertNull($profile->getId());
         $updatedAt = $profile->getUpdatedAt();
@@ -101,8 +101,8 @@ final class BetaEntitiesDetailedTest extends TestCase
         $admin->setRoles(['ROLE_ADMIN']);
 
         $campaign = new BetaCampaign('Campaign', 'Desc');
-        $bug = new BugReport($reporter, $campaign, 'Title', 'Desc', 'Expected', 'Actual', 'high', 'https://example.com', ['a.png']);
-        $duplicate = new BugReport($reporter, null, 'Dup', 'Desc', null, null, 'low', null);
+        $bug = new BugReport(['reporter' => $reporter, 'campaign' => $campaign, 'title' => 'Title', 'description' => 'Desc', 'expectedBehavior' => 'Expected', 'actualBehavior' => 'Actual', 'severity' => 'high', 'pageUrl' => 'https://example.com', 'attachments' => ['a.png']]);
+        $duplicate = new BugReport(['reporter' => $reporter, 'campaign' => null, 'title' => 'Dup', 'description' => 'Desc', 'expectedBehavior' => null, 'actualBehavior' => null, 'severity' => 'low', 'pageUrl' => null]);
 
         self::assertNull($bug->getId());
         $updatedAt = $bug->getUpdatedAt();

@@ -46,7 +46,7 @@ trait OrderStatusEmailNotifierTrait
             Order::STATUS_CANCELLED => $order->setStatusCancelledEmailSentAt($sentAt),
         };
 
-        $this->persistence->commit();
+        $this->persistence->flush();
         $this->events->log($order, null, $force ? 'email_resent' : 'email_sent', ($force ? 'Email client renvoyé: statut ' : 'Email client envoyé: statut ').$this->formatStatus($newStatus).'.');
 
         return true;

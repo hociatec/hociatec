@@ -32,21 +32,21 @@ final class ProductAdminHelpersTest extends TestCase
         $endsAt = new \DateTimeImmutable('2026-08-31');
 
         $data = new ProductWriteData(
-            core: new ProductCoreWriteData(
-                name: 'Phone',
-                sku: 'SKU-1',
-                slug: 'phone',
-                description: 'Desc',
-                shortDescription: 'Short',
-                priceCents: 1000,
-                stock: 4,
-                isPublished: true,
-                isFeaturedHome: false,
-                category: $category,
-                imageAlt: 'Alt',
-                sellingType: 'sale',
-                brand: $brand,
-            ),
+            core: new ProductCoreWriteData([
+                'name' => 'Phone',
+                'sku' => 'SKU-1',
+                'slug' => 'phone',
+                'description' => 'Desc',
+                'shortDescription' => 'Short',
+                'priceCents' => 1000,
+                'stock' => 4,
+                'isPublished' => true,
+                'isFeaturedHome' => false,
+                'category' => $category,
+                'imageAlt' => 'Alt',
+                'sellingType' => 'sale',
+                'brand' => $brand,
+            ]),
             gallery: new ProductGalleryWriteData(files: [$file, null, null, null], toRemove: [0, 2], removeMainImage: true),
             variant: new ProductVariantWriteData(
                 group: 'group-a',

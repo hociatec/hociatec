@@ -93,7 +93,7 @@ final class WorkingDayConfigurationService
         }
 
         try {
-            $this->persistence->commit();
+            $this->persistence->flush();
         } catch (\RuntimeException $exception) {
             throw AppointmentOperationException::failed('Impossible de mettre a jour la configuration.', $exception);
         }
@@ -128,7 +128,7 @@ final class WorkingDayConfigurationService
         }
 
         try {
-            $this->persistence->commit();
+            $this->persistence->flush();
         } catch (\RuntimeException $exception) {
             throw AppointmentOperationException::failed('Impossible de préparer la configuration par défaut.', $exception);
         }

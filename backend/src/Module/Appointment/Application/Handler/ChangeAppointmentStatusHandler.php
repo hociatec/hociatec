@@ -33,6 +33,6 @@ final readonly class ChangeAppointmentStatusHandler
         }
 
         $appointment->setStatus($targetStatus);
-        $this->persistence->commit();
+        $this->persistence->flush();
     }
 }

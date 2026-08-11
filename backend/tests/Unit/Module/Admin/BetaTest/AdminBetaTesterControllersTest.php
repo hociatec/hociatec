@@ -29,7 +29,21 @@ final class AdminBetaTesterControllersTest extends AdminBetaTestIntegrationTestC
         $profile = $this->profiles($em)->findOneByUser($reporter);
         self::assertInstanceOf(BetaTesterProfile::class, $profile);
         $deleteProfileUser = $this->user('delete-profile-admin-beta@example.test');
-        $deleteProfile = (new BetaTesterProfile($deleteProfileUser, ['weekdays'], 'Delete', 'manual', 'clear', 'advanced', 'none', ['nvda'], ['windows'], ['chrome'], ['ui'], new \DateTimeImmutable('2026-08-11T10:00:00+00:00'), '2026-08-04'))->setStatus(BetaTesterProfile::STATUS_PENDING);
+        $deleteProfile = (new BetaTesterProfile([
+            'user' => $deleteProfileUser,
+            'availability' => ['weekdays'],
+            'motivation' => 'Delete',
+            'testingExperience' => 'manual',
+            'bugDescriptionAbility' => 'clear',
+            'technicalKnowledge' => 'advanced',
+            'accessibilityNeed' => 'none',
+            'assistiveTools' => ['nvda'],
+            'devices' => ['windows'],
+            'browsers' => ['chrome'],
+            'testingTypes' => ['ui'],
+            'consentAt' => new \DateTimeImmutable('2026-08-11T10:00:00+00:00'),
+            'privacyNoticeVersion' => '2026-08-04',
+        ]))->setStatus(BetaTesterProfile::STATUS_PENDING);
         $em->persist($deleteProfileUser);
         $em->persist($deleteProfile);
         $em->flush();

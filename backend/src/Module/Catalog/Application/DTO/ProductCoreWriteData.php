@@ -23,9 +23,41 @@ final readonly class ProductCoreWriteData
     public string $sellingType;
     public ?Brand $brand;
 
-    public function __construct(mixed ...$values)
+    /**
+     * @param array{
+     *   name?: string,
+     *   sku?: string,
+     *   slug?: ?string,
+     *   description?: string,
+     *   shortDescription?: ?string,
+     *   priceCents?: int,
+     *   stock?: int,
+     *   isPublished?: bool,
+     *   isFeaturedHome?: bool,
+     *   category?: Category,
+     *   imageAlt?: ?string,
+     *   sellingType?: string,
+     *   brand?: ?Brand
+     * }|null $payload
+     */
+    public function __construct(?array $payload = null)
     {
-        $data = $this->mapValues($values);
+        $data = array_replace([
+            'name' => '',
+            'sku' => '',
+            'slug' => null,
+            'description' => '',
+            'shortDescription' => null,
+            'priceCents' => 0,
+            'stock' => 0,
+            'isPublished' => false,
+            'isFeaturedHome' => false,
+            'category' => null,
+            'imageAlt' => null,
+            'sellingType' => 'sale',
+            'brand' => null,
+        ], $payload ?? []);
+
         $this->name = (string) $data['name'];
         $this->sku = (string) $data['sku'];
         $this->slug = $data['slug'];
@@ -39,32 +71,5 @@ final readonly class ProductCoreWriteData
         $this->imageAlt = $data['imageAlt'];
         $this->sellingType = (string) $data['sellingType'];
         $this->brand = $data['brand'];
-    }
-
-    /**
-     * @param array<int|string, mixed> $values
-     *
-     * @return array<string, mixed>
-     */
-    private function mapValues(array $values): array
-    {
-        $keys = ['name', 'sku', 'slug', 'description', 'shortDescription', 'priceCents', 'stock', 'isPublished', 'isFeaturedHome', 'category', 'imageAlt', 'sellingType', 'brand'];
-        $defaults = array_fill_keys($keys, null);
-        $defaults['description'] = '';
-        $defaults['priceCents'] = 0;
-        $defaults['stock'] = 0;
-        $defaults['isPublished'] = false;
-        $defaults['isFeaturedHome'] = false;
-        $defaults['sellingType'] = 'sale';
-        foreach ($values as $index => $value) {
-            if (!is_int($index)) {
-                continue;
-            }
-            if (isset($keys[$index])) {
-                $defaults[$keys[$index]] = $value;
-            }
-        }
-
-        return array_replace($defaults, array_filter($values, 'is_string', ARRAY_FILTER_USE_KEY));
     }
 }

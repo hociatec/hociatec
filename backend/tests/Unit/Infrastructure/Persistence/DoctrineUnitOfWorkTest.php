@@ -23,7 +23,7 @@ final class DoctrineUnitOfWorkTest extends TestCase
 
         $persistence->persist($entity);
         $persistence->remove($entity);
-        $persistence->commit();
+        $persistence->flush();
     }
 
     public function testTransactionManagerWrapsTransactions(): void

@@ -19,7 +19,7 @@ final readonly class StripeWebhookEventPersistence implements StripeWebhookEvent
         $this->entityManager->persist($event);
     }
 
-    public function commit(): void
+    public function flush(): void
     {
         $this->entityManager->flush();
     }

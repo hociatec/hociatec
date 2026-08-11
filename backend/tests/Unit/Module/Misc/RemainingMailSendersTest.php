@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Module\Misc;
 
 use App\Module\Auth\Application\Outbox\SendPasswordResetEmailHandler;
 use App\Module\Auth\Application\Workflow\PasswordResetEmailService;
+use App\Module\Auth\Application\Workflow\PasswordResetTokenHasher;
 use App\Module\Contact\Application\DTO\ContactInput;
 use App\Module\Contact\Application\Notification\ContactAcknowledgementSender;
 use App\Module\Contact\Application\Notification\ContactNotificationSender;
@@ -87,7 +88,7 @@ final class RemainingMailSendersTest extends TestCase
     public function testPasswordResetOutboxHandlerSendsOnlyCurrentValidToken(): void
     {
         $user = $this->user('reset-handler@example.com');
-        $user->setPasswordResetToken('current-token')->setPasswordResetTokenExpiresAt(new \DateTimeImmutable('+1 hour'));
+        $user->setPasswordResetToken(PasswordResetTokenHasher::hash('current-token'))->setPasswordResetTokenExpiresAt(new \DateTimeImmutable('+1 hour'));
         $repository = $this->getMockBuilder(UserRepository::class)->disableOriginalConstructor()->onlyMethods(['findOneByEmailInsensitive'])->getMock();
         $repository->expects(self::exactly(2))->method('findOneByEmailInsensitive')->willReturn($user);
 
@@ -105,9 +106,9 @@ final class RemainingMailSendersTest extends TestCase
         );
 
         $handler = new SendPasswordResetEmailHandler($repository, $emails);
-        self::assertTrue($handler->supports(new OutboxEvent('reset-1', 'auth.password_reset_email_requested', ['email' => $user->getEmail()])));
-        $handler->handle(new OutboxEvent($eventKey, 'auth.password_reset_email_requested', ['email' => $user->getEmail()]));
-        $handler->handle(new OutboxEvent('auth.password_reset.'.hash('sha256', 'stale-token'), 'auth.password_reset_email_requested', ['email' => $user->getEmail()]));
+        self::assertTrue($handler->supports(new OutboxEvent('reset-1', 'auth.password_reset_email_requested', ['email' => $user->getEmail(), 'token' => 'current-token'])));
+        $handler->handle(new OutboxEvent($eventKey, 'auth.password_reset_email_requested', ['email' => $user->getEmail(), 'token' => 'current-token']));
+        $handler->handle(new OutboxEvent('auth.password_reset.'.hash('sha256', 'stale-token'), 'auth.password_reset_email_requested', ['email' => $user->getEmail(), 'token' => 'stale-token']));
     }
 
     public function testContactSendersUseMailerWithExpectedContent(): void

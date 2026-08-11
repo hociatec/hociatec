@@ -74,7 +74,7 @@ final class ResourceAccessPolicyTest extends TestCase
     {
         $owner = $this->user('bug-owner@example.test');
         $other = $this->user('bug-other@example.test');
-        $report = new BugReport($owner, null, 'Bug', 'Description', null, null, 'medium', null, ['screen.png']);
+        $report = new BugReport(['reporter' => $owner, 'campaign' => null, 'title' => 'Bug', 'description' => 'Description', 'expectedBehavior' => null, 'actualBehavior' => null, 'severity' => 'medium', 'pageUrl' => null, 'attachments' => ['screen.png']]);
         $policy = new BugReportAccessPolicy();
 
         self::assertTrue($policy->canView($owner, $report));
@@ -109,7 +109,7 @@ final class ResourceAccessPolicyTest extends TestCase
         ));
         self::assertFalse((new BugReportAccessPolicy())->canComment(
             $admin,
-            new BugReport($owner, null, 'Bug', 'Description', null, null, 'medium', null),
+            new BugReport(['reporter' => $owner, 'campaign' => null, 'title' => 'Bug', 'description' => 'Description', 'expectedBehavior' => null, 'actualBehavior' => null, 'severity' => 'medium', 'pageUrl' => null]),
         ));
         self::assertFalse((new TradeInAccessPolicy())->canDownloadReceipt(
             $admin,

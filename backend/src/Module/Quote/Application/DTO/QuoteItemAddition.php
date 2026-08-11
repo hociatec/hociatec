@@ -15,9 +15,30 @@ final readonly class QuoteItemAddition
     public ?int $vatRateBps;
     public ?int $discountCents;
 
-    public function __construct(mixed ...$values)
+    /**
+     * @param array{
+     *   name?: ?string,
+     *   unitPriceCents?: ?int,
+     *   description?: ?string,
+     *   unit?: ?string,
+     *   quantity?: int,
+     *   vatRate?: ?float,
+     *   vatRateBps?: ?int,
+     *   discountCents?: ?int
+     * }|null $payload
+     */
+    public function __construct(?array $payload = null)
     {
-        $data = $this->mapValues($values);
+        $data = array_replace([
+            'name' => null,
+            'unitPriceCents' => null,
+            'description' => null,
+            'unit' => null,
+            'quantity' => 1,
+            'vatRate' => null,
+            'vatRateBps' => null,
+            'discountCents' => null,
+        ], $payload ?? []);
         $this->name = $data['name'];
         $this->unitPriceCents = $data['unitPriceCents'];
         $this->description = $data['description'];
@@ -31,37 +52,15 @@ final readonly class QuoteItemAddition
     /** @param array<string,mixed> $payload */
     public static function fromArray(array $payload): self
     {
-        return new self(
-            is_string($payload['name'] ?? null) && '' !== trim($payload['name']) ? trim($payload['name']) : null,
-            is_numeric($payload['unitPriceCents'] ?? null) ? max(0, (int) $payload['unitPriceCents']) : null,
-            is_string($payload['description'] ?? null) ? trim($payload['description']) : null,
-            is_string($payload['unit'] ?? null) ? trim($payload['unit']) : null,
-            max(1, is_numeric($payload['quantity'] ?? null) ? (int) $payload['quantity'] : 1),
-            is_numeric($payload['vatRate'] ?? null) ? (float) $payload['vatRate'] : null,
-            is_numeric($payload['vatRateBps'] ?? null) ? max(0, (int) $payload['vatRateBps']) : null,
-            is_numeric($payload['discountCents'] ?? null) ? max(0, (int) $payload['discountCents']) : null,
-        );
-    }
-
-    /**
-     * @param array<int|string, mixed> $values
-     *
-     * @return array<string, mixed>
-     */
-    private function mapValues(array $values): array
-    {
-        $keys = ['name', 'unitPriceCents', 'description', 'unit', 'quantity', 'vatRate', 'vatRateBps', 'discountCents'];
-        $defaults = array_fill_keys($keys, null);
-        $defaults['quantity'] = 1;
-        foreach ($values as $index => $value) {
-            if (!is_int($index)) {
-                continue;
-            }
-            if (isset($keys[$index])) {
-                $defaults[$keys[$index]] = $value;
-            }
-        }
-
-        return array_replace($defaults, array_filter($values, 'is_string', ARRAY_FILTER_USE_KEY));
+        return new self([
+            'name' => is_string($payload['name'] ?? null) && '' !== trim($payload['name']) ? trim($payload['name']) : null,
+            'unitPriceCents' => is_numeric($payload['unitPriceCents'] ?? null) ? max(0, (int) $payload['unitPriceCents']) : null,
+            'description' => is_string($payload['description'] ?? null) ? trim($payload['description']) : null,
+            'unit' => is_string($payload['unit'] ?? null) ? trim($payload['unit']) : null,
+            'quantity' => max(1, is_numeric($payload['quantity'] ?? null) ? (int) $payload['quantity'] : 1),
+            'vatRate' => is_numeric($payload['vatRate'] ?? null) ? (float) $payload['vatRate'] : null,
+            'vatRateBps' => is_numeric($payload['vatRateBps'] ?? null) ? max(0, (int) $payload['vatRateBps']) : null,
+            'discountCents' => is_numeric($payload['discountCents'] ?? null) ? max(0, (int) $payload['discountCents']) : null,
+        ]);
     }
 }

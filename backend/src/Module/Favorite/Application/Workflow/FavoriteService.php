@@ -46,7 +46,7 @@ class FavoriteService
 
         $favorite = new Favorite($user, $product);
         $this->persistence->save($favorite);
-        $this->persistence->commit();
+        $this->persistence->flush();
 
         return [
             'favorite' => $favorite,
@@ -62,7 +62,7 @@ class FavoriteService
         }
 
         $this->persistence->delete($favorite);
-        $this->persistence->commit();
+        $this->persistence->flush();
     }
 
     public function isFavorite(User $user, Product $product): bool

@@ -92,11 +92,13 @@ class UserRepository extends ServiceEntityRepository implements UserRepositoryPo
             ->getOneOrNullResult();
     }
 
-    public function findOneByPasswordResetToken(string $token): ?User
+    public function findOneByPasswordResetTokens(string $hashedToken, string $legacyToken): ?User
     {
         return $this->createQueryBuilder('u')
-            ->andWhere('u.security.passwordResetToken = :token')
-            ->setParameter('token', $token)
+            ->andWhere('u.security.passwordResetToken = :hashedToken OR u.security.passwordResetToken = :legacyToken')
+            ->setParameter('hashedToken', $hashedToken)
+            ->setParameter('legacyToken', $legacyToken)
+            ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
     }

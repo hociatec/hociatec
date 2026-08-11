@@ -30,7 +30,7 @@ final readonly class CreatePromotionHandler
 
         $this->dataApplier->apply($promotion, $input);
         $this->persistence->persist($promotion);
-        $this->persistence->commit();
+        $this->persistence->flush();
 
         return $promotion;
     }

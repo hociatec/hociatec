@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\User\Service;
 
+use App\Module\Auth\Application\Workflow\RefreshTokenRevocationService;
 use App\Module\BetaTest\Application\DTO\BetaProfileInput;
 use App\Module\BetaTest\Application\Workflow\BetaTesterProfileService;
 use App\Module\Marketing\Application\Notification\EmailTemplateRenderer;
@@ -143,6 +144,7 @@ final class UserRemainingServicesTest extends TestCase
         ]);
 
         $userRepository = $this->createMock(UserRepository::class);
+        $refreshTokens = $this->createMock(\App\Module\Auth\Infrastructure\Repository\RefreshTokenRepository::class);
         $passwordHasher = $this->createMock(UserPasswordHasher::class);
         $passwordHasher->method('isPasswordValid')->willReturn(true);
         $passwordHasher->method('hashPassword')->willReturn('hashed-new');
@@ -153,10 +155,12 @@ final class UserRemainingServicesTest extends TestCase
             new UpdatePersonalInformationService(),
             new ChangeProfileEmailService($userRepository, new ProfileCurrentPasswordVerifier($passwordHasher)),
             new ChangeProfilePasswordService($passwordHasher, new ProfileCurrentPasswordVerifier($passwordHasher)),
+            new RefreshTokenRevocationService($refreshTokens),
         );
 
         $userRepository->expects(self::once())->method('existsByEmailExcludingUser')->with('new@example.com', 9)->willReturn(false);
         $userRepository->expects(self::once())->method('save')->with($user);
+        $refreshTokens->expects(self::once())->method('revokeAllForUser')->with($user);
 
         $updated = $service->update($user, $input);
         self::assertSame($user, $updated);
@@ -172,6 +176,7 @@ final class UserRemainingServicesTest extends TestCase
         }
 
         $userRepository2 = $this->createMock(UserRepository::class);
+        $refreshTokens2 = $this->createMock(\App\Module\Auth\Infrastructure\Repository\RefreshTokenRepository::class);
         $userRepository2->method('existsByEmailExcludingUser')->willReturn(false);
         $userRepository2->method('save')->willThrowException($this->uniqueConstraint('uniq_users_email'));
         $service2 = new UpdateProfileService(
@@ -180,7 +185,9 @@ final class UserRemainingServicesTest extends TestCase
             new UpdatePersonalInformationService(),
             new ChangeProfileEmailService($userRepository2, new ProfileCurrentPasswordVerifier($passwordHasher)),
             new ChangeProfilePasswordService($passwordHasher, new ProfileCurrentPasswordVerifier($passwordHasher)),
+            new RefreshTokenRevocationService($refreshTokens2),
         );
+        $refreshTokens2->expects(self::once())->method('revokeAllForUser')->with($user);
 
         try {
             $service2->update($user, $input);
@@ -190,6 +197,7 @@ final class UserRemainingServicesTest extends TestCase
         }
 
         $userRepository3 = $this->createMock(UserRepository::class);
+        $refreshTokens3 = $this->createMock(\App\Module\Auth\Infrastructure\Repository\RefreshTokenRepository::class);
         $userRepository3->method('existsByEmailExcludingUser')->willReturn(false);
         $nonEmail = $this->uniqueConstraint('other_unique_key');
         $userRepository3->method('save')->willThrowException($nonEmail);
@@ -199,7 +207,9 @@ final class UserRemainingServicesTest extends TestCase
             new UpdatePersonalInformationService(),
             new ChangeProfileEmailService($userRepository3, new ProfileCurrentPasswordVerifier($passwordHasher)),
             new ChangeProfilePasswordService($passwordHasher, new ProfileCurrentPasswordVerifier($passwordHasher)),
+            new RefreshTokenRevocationService($refreshTokens3),
         );
+        $refreshTokens3->expects(self::once())->method('revokeAllForUser')->with($user);
 
         try {
             $service3->update($user, $input);

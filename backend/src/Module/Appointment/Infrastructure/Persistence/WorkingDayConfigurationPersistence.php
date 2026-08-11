@@ -19,7 +19,7 @@ final readonly class WorkingDayConfigurationPersistence implements WorkingDayCon
         $this->entityManager->persist($configuration);
     }
 
-    public function commit(): void
+    public function flush(): void
     {
         $this->entityManager->flush();
     }

@@ -23,7 +23,21 @@ final class QuoteServiceFormHandlersAndMapperTest extends MiscSupportTestCase
         $updateService = new UpdateQuoteServiceHandler(new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class)), $formApplier);
 
         try {
-            $createService->create(new QuoteServiceFormData('Audit', null, null, null, null, 1000, null, false, null, null, null, true, false));
+            $createService->create(new QuoteServiceFormData([
+                'title' => 'Audit',
+                'description' => null,
+                'billingMode' => null,
+                'durationValue' => null,
+                'durationUnit' => null,
+                'priceCents' => 1000,
+                'vatRateBps' => null,
+                'isFeaturedHome' => false,
+                'imageFile' => null,
+                'imageUrl' => null,
+                'imageAlt' => null,
+                'updatesBillingMode' => true,
+                'updatesDuration' => false,
+            ]));
             self::fail('Expected invalid billing mode exception.');
         } catch (\InvalidArgumentException $exception) {
             self::assertSame('Mode de facturation invalide.', $exception->getMessage());
@@ -32,7 +46,21 @@ final class QuoteServiceFormHandlersAndMapperTest extends MiscSupportTestCase
         try {
             $updateService->update(
                 new ServiceOffering('Audit', 1000, 2000),
-                new QuoteServiceFormData('Audit', null, 'hour', 2, null, 1000, null, false, null, null, null, true, true),
+                new QuoteServiceFormData([
+                    'title' => 'Audit',
+                    'description' => null,
+                    'billingMode' => 'hour',
+                    'durationValue' => 2,
+                    'durationUnit' => null,
+                    'priceCents' => 1000,
+                    'vatRateBps' => null,
+                    'isFeaturedHome' => false,
+                    'imageFile' => null,
+                    'imageUrl' => null,
+                    'imageAlt' => null,
+                    'updatesBillingMode' => true,
+                    'updatesDuration' => true,
+                ]),
             );
             self::fail('Expected invalid duration exception.');
         } catch (\InvalidArgumentException $exception) {
@@ -42,7 +70,21 @@ final class QuoteServiceFormHandlersAndMapperTest extends MiscSupportTestCase
         try {
             $updateService->update(
                 new ServiceOffering('Audit', 1000, 2000),
-                new QuoteServiceFormData('Audit', null, null, null, null, -1, null, false, null, null, null, false, false),
+                new QuoteServiceFormData([
+                    'title' => 'Audit',
+                    'description' => null,
+                    'billingMode' => null,
+                    'durationValue' => null,
+                    'durationUnit' => null,
+                    'priceCents' => -1,
+                    'vatRateBps' => null,
+                    'isFeaturedHome' => false,
+                    'imageFile' => null,
+                    'imageUrl' => null,
+                    'imageAlt' => null,
+                    'updatesBillingMode' => false,
+                    'updatesDuration' => false,
+                ]),
             );
             self::fail('Expected invalid price exception.');
         } catch (\InvalidArgumentException $exception) {

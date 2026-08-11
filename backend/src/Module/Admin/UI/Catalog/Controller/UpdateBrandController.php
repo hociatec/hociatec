@@ -52,8 +52,8 @@ class UpdateBrandController extends AbstractController
             $brand = $this->brandService->update($brand, $input->name);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY);
-        } catch (CatalogOperationException $exception) {
-            return ApiResponse::internalError($exception->getMessage());
+        } catch (CatalogOperationException) {
+            return ApiResponse::internalError();
         }
 
         return ApiResponse::success($this->catalogFormatter->formatBrand($brand), JsonResponse::HTTP_OK, 'La marque a bien été mise à jour.');

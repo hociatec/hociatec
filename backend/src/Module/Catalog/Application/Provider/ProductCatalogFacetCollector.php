@@ -66,12 +66,12 @@ final class ProductCatalogFacetCollector
         return new ProductCatalogDiscountView(
             $type,
             $value,
-            $product['discountStartsAt'] ?? null,
-            $product['discountEndsAt'] ?? null,
+            $product['discountStartsAt'] instanceof \DateTimeInterface ? $product['discountStartsAt'] : null,
+            $product['discountEndsAt'] instanceof \DateTimeInterface ? $product['discountEndsAt'] : null,
         );
     }
 
-    private function isDiscountActive(mixed $startsAt, mixed $endsAt): bool
+    private function isDiscountActive(?\DateTimeInterface $startsAt, ?\DateTimeInterface $endsAt): bool
     {
         $now = new \DateTimeImmutable();
 

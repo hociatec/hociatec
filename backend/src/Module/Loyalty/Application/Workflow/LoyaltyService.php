@@ -73,7 +73,7 @@ final class LoyaltyService
 
         try {
             $this->persistence->persist($user);
-            $this->persistence->commit();
+            $this->persistence->flush();
         } catch (\RuntimeException $exception) {
             throw LoyaltyOperationException::failed('Impossible de mettre à jour le solde fidélité.', $exception);
         }
@@ -137,7 +137,7 @@ final class LoyaltyService
         $user->addLoyaltyPoints(-$normalizedPoints);
         $this->persistence->persist($voucher);
         $this->persistence->persist($user);
-        $this->persistence->commit();
+        $this->persistence->flush();
 
         return $voucher;
     }

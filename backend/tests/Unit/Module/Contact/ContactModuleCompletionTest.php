@@ -12,6 +12,7 @@ use App\Module\Contact\UI\Controller\ContactController;
 use App\Module\Marketing\Application\Notification\EmailTemplateRenderer;
 use App\Module\Marketing\Infrastructure\Repository\EmailTemplateRepository;
 use App\Shared\Application\Exception\MailDeliveryException;
+use App\Shared\Infrastructure\Http\RateLimitKeyFactory;
 use App\Shared\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use PHPUnit\Framework\TestCase;
@@ -29,13 +30,13 @@ final class ContactModuleCompletionTest extends TestCase
     {
         $mailer = $this->createMock(EmailSender::class);
         $mailer->expects(self::exactly(2))->method('send')->with(self::isInstanceOf(Email::class));
-        $controller = new ContactController($this->submission($mailer), $this->validator(1));
+        $controller = new ContactController($this->submission($mailer), $this->validator(1), new RateLimitKeyFactory(), $this->limiter(10));
 
         self::assertSame(Response::HTTP_OK, $controller(Request::create('/', 'POST', [], [], [], [], json_encode($this->payload(), JSON_THROW_ON_ERROR)))->getStatusCode());
 
         $failingMailer = $this->createMock(EmailSender::class);
         $failingMailer->method('send')->willThrowException(new \RuntimeException('smtp down'));
-        $failingController = new ContactController($this->submission($failingMailer), $this->validator(1));
+        $failingController = new ContactController($this->submission($failingMailer), $this->validator(1), new RateLimitKeyFactory(), $this->limiter(10));
 
         self::assertSame(Response::HTTP_SERVICE_UNAVAILABLE, $failingController(Request::create('/', 'POST', [], [], [], [], json_encode($this->payload(), JSON_THROW_ON_ERROR)))->getStatusCode());
     }
@@ -94,6 +95,16 @@ final class ContactModuleCompletionTest extends TestCase
         $symfonyValidator->expects(self::exactly($calls))->method('validate')->willReturn(new ConstraintViolationList());
 
         return new DtoValidator($symfonyValidator, new ConstraintViolationFormatter());
+    }
+
+    private function limiter(int $limit): \Symfony\Component\RateLimiter\RateLimiterFactory
+    {
+        return new \Symfony\Component\RateLimiter\RateLimiterFactory([
+            'id' => 'test',
+            'policy' => 'fixed_window',
+            'limit' => $limit,
+            'interval' => '1 hour',
+        ], new \Symfony\Component\RateLimiter\Storage\InMemoryStorage());
     }
 
     /** @return array<string, string> */

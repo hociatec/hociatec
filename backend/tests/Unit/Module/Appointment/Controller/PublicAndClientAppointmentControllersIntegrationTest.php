@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Appointment\Controller;
 
+use App\Module\Appointment\Application\Workflow\CustomerAppointmentPortalService;
 use App\Module\Appointment\Domain\Entity\Appointment;
 use App\Module\Appointment\Domain\Security\AppointmentAccessPolicy;
 use App\Module\Appointment\UI\Controller\Client\CreateAppointmentController;
@@ -50,12 +51,13 @@ final class PublicAndClientAppointmentControllersIntegrationTest extends Appoint
         self::assertSame(201, $created->getStatusCode());
         $appointmentId = (int) $this->payload($created)['data']['id'];
 
-        $list = new ListMyAppointmentsController($service);
+        $portal = new CustomerAppointmentPortalService($this->appointments(), $service, $formatter, new AppointmentAccessPolicy());
+        $list = new ListMyAppointmentsController($portal);
         $list->setContainer($this->container($user));
         $listPayload = $this->payload($list());
         self::assertSame($appointmentId, $listPayload['data']['upcoming'][0]['id']);
 
-        $update = new UpdateAppointmentStatusController($this->appointments(), $service, $formatter, $this->validator(), new AppointmentAccessPolicy());
+        $update = new UpdateAppointmentStatusController($portal, $this->validator());
         $update->setContainer($this->container($user));
         self::assertSame(404, $update(999, $this->jsonRequest(['status' => Appointment::STATUS_CANCELLED], 'PATCH'))->getStatusCode());
         self::assertSame(400, $update($appointmentId, Request::create('/', 'PATCH', server: [], content: '{bad'))->getStatusCode());

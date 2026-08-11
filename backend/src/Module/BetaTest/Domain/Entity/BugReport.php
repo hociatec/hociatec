@@ -61,20 +61,32 @@ class BugReport
     #[ORM\Column(type: 'datetime_immutable', nullable: true)] private ?\DateTimeImmutable $lastReporterReplyAt = null;
     #[ORM\Column(type: 'datetime_immutable')] private \DateTimeImmutable $createdAt;
     #[ORM\Column(type: 'datetime_immutable')] private \DateTimeImmutable $updatedAt;
-    public function __construct(mixed ...$values)
+    /**
+     * @param array{
+     *   reporter?: User,
+     *   campaign?: ?BetaCampaign,
+     *   title?: string,
+     *   description?: string,
+     *   expectedBehavior?: ?string,
+     *   actualBehavior?: ?string,
+     *   severity?: string,
+     *   pageUrl?: ?string,
+     *   attachments?: list<string>
+     * }|null $payload
+     */
+    public function __construct(?array $payload = null)
     {
-        $keys = ['reporter', 'campaign', 'title', 'description', 'expectedBehavior', 'actualBehavior', 'severity', 'pageUrl', 'attachments'];
-        $data = array_fill_keys($keys, null);
-        $data['attachments'] = [];
-        foreach ($values as $index => $value) {
-            if (!is_int($index)) {
-                continue;
-            }
-            if (isset($keys[$index])) {
-                $data[$keys[$index]] = $value;
-            }
-        }
-        $data = array_replace($data, array_filter($values, 'is_string', ARRAY_FILTER_USE_KEY));
+        $data = array_replace([
+            'reporter' => null,
+            'campaign' => null,
+            'title' => '',
+            'description' => '',
+            'expectedBehavior' => null,
+            'actualBehavior' => null,
+            'severity' => '',
+            'pageUrl' => null,
+            'attachments' => [],
+        ], $payload ?? []);
         if (!$data['reporter'] instanceof User) {
             throw new \InvalidArgumentException('Le rapport de bug doit être associé à un utilisateur.');
         }

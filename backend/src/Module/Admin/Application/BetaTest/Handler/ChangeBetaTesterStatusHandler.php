@@ -21,6 +21,6 @@ final readonly class ChangeBetaTesterStatusHandler
         }
 
         $profile->setStatus(BetaTesterStatus::from($status));
-        $this->persistence->commit();
+        $this->persistence->flush();
     }
 }

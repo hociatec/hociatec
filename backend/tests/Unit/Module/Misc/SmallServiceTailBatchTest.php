@@ -62,19 +62,19 @@ final class SmallServiceTailBatchTest extends TestCase
 
         $user = $this->user();
         $profileService = new BetaTesterProfileService($persistence, new MockClock('2026-07-26'));
-        $profile = $profileService->create($user, new BetaProfileInput(
-            ['weekly'],
-            'motivation',
-            'advanced',
-            'high',
-            'expert',
-            'none',
-            ['screen-reader'],
-            ['mac'],
-            ['chrome'],
-            ['ui'],
-            true,
-        ));
+        $profile = $profileService->create($user, new BetaProfileInput([
+            'availability' => ['weekly'],
+            'motivation' => 'motivation',
+            'testingExperience' => 'advanced',
+            'bugDescriptionAbility' => 'high',
+            'technicalKnowledge' => 'expert',
+            'accessibilityNeed' => 'none',
+            'assistiveTools' => ['screen-reader'],
+            'devices' => ['mac'],
+            'browsers' => ['chrome'],
+            'testingTypes' => ['ui'],
+            'consent' => true,
+        ]));
         self::assertSame($user, $profile->getUser());
 
         $logger = $this->createMock(LoggerInterface::class);

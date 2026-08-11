@@ -46,7 +46,7 @@ final readonly class SendMarketingCampaignRecipientEmailHandler
         $user = $this->users->find($message->userId);
         if (!$user instanceof User) {
             $recipient->markSkipped('User not found.');
-            $this->persistence->commit();
+            $this->persistence->flush();
             $this->logger->warning('Marketing campaign email skipped: user not found.', [
                 'campaignId' => $message->campaignId,
                 'userId' => $message->userId,
@@ -57,7 +57,7 @@ final readonly class SendMarketingCampaignRecipientEmailHandler
 
         if (!$this->userNotifications->shouldSendNewsEmail($user)) {
             $recipient->markSkipped('Communication preferences disabled marketing news email.');
-            $this->persistence->commit();
+            $this->persistence->flush();
 
             return;
         }
@@ -66,10 +66,10 @@ final readonly class SendMarketingCampaignRecipientEmailHandler
         try {
             $this->sender->send($campaign, $user);
             $recipient->markSent();
-            $this->persistence->commit();
+            $this->persistence->flush();
         } catch (TransportExceptionInterface|\RuntimeException $exception) {
             $recipient->markFailed($exception->getMessage());
-            $this->persistence->commit();
+            $this->persistence->flush();
 
             throw $exception;
         }

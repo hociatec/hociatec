@@ -31,7 +31,7 @@ final readonly class StripeExpiredCheckoutSessionHandler
         }
 
         $this->persistence->persist($checkout);
-        $this->persistence->commit();
+        $this->persistence->flush();
 
         return ['type' => $type, 'sessionId' => $checkout->getStripeSessionId()];
     }

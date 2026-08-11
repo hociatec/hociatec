@@ -34,8 +34,8 @@ class DeleteProductController extends AbstractController
 
         try {
             $this->products->delete($product);
-        } catch (CatalogOperationException $exception) {
-            return ApiResponse::internalError($exception->getMessage());
+        } catch (CatalogOperationException) {
+            return ApiResponse::internalError();
         }
 
         return ApiResponse::success(['id' => $id], JsonResponse::HTTP_OK, 'Le produit a bien été supprimé du catalogue.');

@@ -29,8 +29,8 @@ final readonly class CreateAdminNewsArticleController
             $article = $this->writer->create(\App\Shared\Infrastructure\Http\JsonRequestInput::decode($request, NewsArticleInput::class));
         } catch (InvalidJsonPayloadException|\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), JsonResponse::HTTP_BAD_REQUEST);
-        } catch (NewsOperationException $exception) {
-            return ApiResponse::internalError($exception->getMessage());
+        } catch (NewsOperationException) {
+            return ApiResponse::internalError();
         }
 
         return ApiResponse::createdItem('article', $this->formatter->article($article), 'Actualité créée.');

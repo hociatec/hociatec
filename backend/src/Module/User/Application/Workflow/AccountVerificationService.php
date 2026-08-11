@@ -47,7 +47,7 @@ final readonly class AccountVerificationService
         $user->setVerificationToken(null);
         $user->setVerificationTokenExpiresAt($now);
         $this->users->save($user);
-        $this->unitOfWork->commit();
+        $this->unitOfWork->flush();
 
         return self::VERIFIED;
     }

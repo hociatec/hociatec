@@ -60,8 +60,8 @@ final class CreateBugReportController extends AbstractController
             $report = $this->writer->create($user, $campaign, $payload, $files);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), 422);
-        } catch (BetaTestOperationException $exception) {
-            return ApiResponse::internalError($exception->getMessage());
+        } catch (BetaTestOperationException) {
+            return ApiResponse::internalError();
         }
 
         return ApiResponse::createdItem('id', $report->getId(), 'Votre signalement a bien été envoyé.');

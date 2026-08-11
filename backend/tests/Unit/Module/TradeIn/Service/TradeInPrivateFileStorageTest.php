@@ -126,6 +126,19 @@ final class TradeInPrivateFileStorageTest extends TestCase
         self::assertSame('600', substr(sprintf('%o', fileperms($absolutePath)), -3));
     }
 
+    public function testDeleteRemovesStoredPrivateDocumentAndIgnoresMissingPath(): void
+    {
+        $projectDir = $this->temporaryProjectDir();
+        $storage = new TradeInPrivateFileStorage($projectDir);
+        $relativePath = $storage->storeReceipt('%PDF-delete');
+        $absolutePath = $projectDir.'/'.$relativePath;
+
+        self::assertFileExists($absolutePath);
+        $storage->delete($relativePath);
+        self::assertFileDoesNotExist($absolutePath);
+        $storage->delete($relativePath);
+    }
+
     private function temporaryProjectDir(): string
     {
         $projectDir = sys_get_temp_dir().'/hociatec-trade-in-'.bin2hex(random_bytes(4));

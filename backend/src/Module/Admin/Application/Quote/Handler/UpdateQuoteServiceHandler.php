@@ -23,7 +23,7 @@ final readonly class UpdateQuoteServiceHandler
         $this->formApplier->validate($data, false);
         $this->formApplier->apply($service, $data);
         try {
-            $this->persistence->commit();
+            $this->persistence->flush();
         } catch (\RuntimeException $exception) {
             throw QuoteOperationException::failed('Impossible de mettre à jour le service.', $exception);
         }

@@ -6,6 +6,7 @@ namespace App\Module\TradeIn\UI\Controller;
 
 use App\Module\TradeIn\Application\Workflow\CustomerTradeInPortalService;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -29,9 +30,9 @@ final class RespondToTradeInOfferController extends AbstractController
         try {
             $result = $this->portal->respondToOfferForUser($this->currentUser(), $id, $action);
         } catch (\DomainException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_CONFLICT);
+            return ApiProblemResponse::fromThrowable($exception, 'Réponse à l’offre impossible.', Response::HTTP_CONFLICT);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+            return ApiProblemResponse::fromThrowable($exception, 'Action de reprise invalide.', Response::HTTP_BAD_REQUEST);
         }
         if (null === $result) {
             return ApiResponse::error('Demande de reprise introuvable.', Response::HTTP_NOT_FOUND);

@@ -28,25 +28,25 @@ final class QuoteServiceFormMapper
             || $request->request->has('durationValue')
             || $request->request->has('durationUnit');
 
-        return new QuoteServiceFormData(
-            trim((string) $request->request->get('title', $service?->getTitle() ?? '')),
-            $this->optionalString($request->request->get('description', $service?->getDescription())),
-            $this->billingMode($request->request->get('unit', $service?->getUnit())),
-            $this->durationValue($request->request->get('durationValue', $service?->getDurationValue())),
-            $this->durationUnit($request->request->get('durationUnit', $service?->getDurationUnit())),
-            $request->request->has('price') || null === $service
+        return new QuoteServiceFormData([
+            'title' => trim((string) $request->request->get('title', $service?->getTitle() ?? '')),
+            'description' => $this->optionalString($request->request->get('description', $service?->getDescription())),
+            'billingMode' => $this->billingMode($request->request->get('unit', $service?->getUnit())),
+            'durationValue' => $this->durationValue($request->request->get('durationValue', $service?->getDurationValue())),
+            'durationUnit' => $this->durationUnit($request->request->get('durationUnit', $service?->getDurationUnit())),
+            'priceCents' => $request->request->has('price') || null === $service
                 ? $this->priceToCents($request->request->get('price'))
                 : null,
-            $request->request->has('vatRate') || null === $service
+            'vatRateBps' => $request->request->has('vatRate') || null === $service
                 ? $this->vatToBps($request->request->get('vatRate'))
                 : null,
-            $this->boolean($request->request->get('isFeaturedHome', $service?->isFeaturedHome() ?? false)),
-            $this->imageFile($request->files->get('image')),
-            $this->optionalString($request->request->get('imageUrl', $service?->getImageExternalUrl())),
-            $this->optionalString($request->request->get('imageAlt', $service?->getImageAlt())),
-            null === $service || $request->request->has('unit'),
-            $updatesDuration,
-        );
+            'isFeaturedHome' => $this->boolean($request->request->get('isFeaturedHome', $service?->isFeaturedHome() ?? false)),
+            'imageFile' => $this->imageFile($request->files->get('image')),
+            'imageUrl' => $this->optionalString($request->request->get('imageUrl', $service?->getImageExternalUrl())),
+            'imageAlt' => $this->optionalString($request->request->get('imageAlt', $service?->getImageAlt())),
+            'updatesBillingMode' => null === $service || $request->request->has('unit'),
+            'updatesDuration' => $updatesDuration,
+        ]);
     }
 
     private function billingMode(mixed $value): ?string

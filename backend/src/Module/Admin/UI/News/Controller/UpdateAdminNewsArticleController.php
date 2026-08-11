@@ -35,8 +35,8 @@ final readonly class UpdateAdminNewsArticleController
             $article = $this->writer->update($article, \App\Shared\Infrastructure\Http\JsonRequestInput::decode($request, NewsArticleInput::class));
         } catch (InvalidJsonPayloadException|\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), JsonResponse::HTTP_BAD_REQUEST);
-        } catch (NewsOperationException $exception) {
-            return ApiResponse::internalError($exception->getMessage());
+        } catch (NewsOperationException) {
+            return ApiResponse::internalError();
         }
 
         return ApiResponse::success(['article' => $this->formatter->article($article)], JsonResponse::HTTP_OK, 'Actualité mise à jour.');

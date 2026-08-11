@@ -140,7 +140,7 @@ final class TrivialClassesCoverageTest extends TestCase
 
         $logger = new BugReportActivityLogger(new DoctrineUnitOfWork($entityManager));
         $user = new User('ada@example.com', 'Ada', 'Lovelace', new \DateTimeImmutable('1990-01-01'), '0102030405', 'female');
-        $report = new BugReport($user, null, 'Bug', 'Body', null, null, 'low', '/beta');
+        $report = new BugReport(['reporter' => $user, 'campaign' => null, 'title' => 'Bug', 'description' => 'Body', 'expectedBehavior' => null, 'actualBehavior' => null, 'severity' => 'low', 'pageUrl' => '/beta']);
 
         $logger->log($report, $user, 'status_changed', 'open', 'closed', 'done');
     }

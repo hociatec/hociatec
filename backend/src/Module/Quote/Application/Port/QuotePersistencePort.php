@@ -15,7 +15,7 @@ interface QuotePersistencePort
 
     public function removeItem(QuoteItem $item): void;
 
-    public function commit(): void;
+    public function flush(): void;
 
     public function delete(Quote $quote): void;
 }

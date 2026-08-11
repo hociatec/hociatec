@@ -31,7 +31,7 @@ trait OrderCreatedEmailNotifierTrait
 
         $this->sendScenario($order, 'order_created');
         $order->setOrderCreatedEmailSentAt(new \DateTimeImmutable());
-        $this->persistence->commit();
+        $this->persistence->flush();
         $this->events->log($order, null, 'email_sent', $force ? 'Email client renvoyé: commande enregistrée.' : 'Email client envoyé: commande enregistrée.');
 
         return true;

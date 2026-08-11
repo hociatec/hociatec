@@ -48,4 +48,16 @@ trait TradeInRequestSettlementMutationTrait
 
         return $this;
     }
+
+    public function clearPrivateDocuments(): self
+    {
+        $this->ribPath = null;
+        $this->ribOriginalName = null;
+        $this->ribSize = null;
+        $this->ribSha256 = null;
+        $this->receiptPath = null;
+        $this->touch();
+
+        return $this;
+    }
 }

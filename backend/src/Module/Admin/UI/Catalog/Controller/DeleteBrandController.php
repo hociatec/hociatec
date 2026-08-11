@@ -34,8 +34,8 @@ class DeleteBrandController extends AbstractController
 
         try {
             $this->brandService->delete($brand);
-        } catch (CatalogOperationException $exception) {
-            return ApiResponse::internalError($exception->getMessage());
+        } catch (CatalogOperationException) {
+            return ApiResponse::internalError();
         }
 
         return ApiResponse::success(['id' => $id], JsonResponse::HTTP_OK, 'La marque a bien été supprimée.');

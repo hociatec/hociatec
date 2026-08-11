@@ -16,6 +16,7 @@ use App\Shared\Infrastructure\Http\CsrfTokenService;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Http\JsonRequestInput;
 use App\Shared\Infrastructure\Http\RateLimited;
+use App\Shared\Infrastructure\Http\RateLimitKeyFactory;
 use App\Shared\Infrastructure\Http\RateLimitSubscriber;
 use App\Shared\Infrastructure\Http\RequestIdProcessor;
 use App\Shared\Infrastructure\Http\RequestIdSubscriber;
@@ -118,6 +119,31 @@ final class HttpInfrastructureTest extends TestCase
         $responseWithoutId = new Response();
         $subscriber->onKernelResponse(new ResponseEvent($kernel, Request::create('/api/orders'), HttpKernelInterface::MAIN_REQUEST, $responseWithoutId));
         self::assertFalse($responseWithoutId->headers->has(RequestIdSubscriber::HEADER));
+    }
+
+    public function testRateLimitKeyFactoryNormalizesIdentityAndIgnoresArbitraryHeaders(): void
+    {
+        $factory = new RateLimitKeyFactory();
+        $request = Request::create('/api/auth/password-reset/request', 'POST', server: ['REMOTE_ADDR' => '127.0.0.1']);
+        $request->headers->set('X-Forwarded-For', '198.51.100.8');
+        $request->headers->set('X-Whatever', 'value-a');
+
+        $firstKey = $factory->forRequest($request, '  Ada@Example.com ');
+        $request->headers->set('X-Whatever', 'value-b');
+        $secondKey = $factory->forRequest($request, 'ada@example.com');
+
+        self::assertSame($firstKey, $secondKey);
+        self::assertStringStartsWith('ip:127.0.0.1:identity:', $firstKey);
+        self::assertStringNotContainsString('Ada@Example.com', $firstKey);
+        self::assertStringNotContainsString('X-Whatever', $firstKey);
+    }
+
+    public function testRateLimitKeyFactoryFallsBackToIpOnlyForAnonymousScope(): void
+    {
+        $factory = new RateLimitKeyFactory();
+
+        self::assertSame('ip:unknown', $factory->forClient('', null));
+        self::assertSame('ip:127.0.0.1', $factory->forClient('127.0.0.1', '   '));
     }
 
     public function testSecurityHeadersSubscriberAppliesHeadersOnlyToSecureApiResponses(): void
@@ -484,6 +510,39 @@ final class HttpInfrastructureTest extends TestCase
             Request::create('/api/orders'),
             HttpKernelInterface::MAIN_REQUEST,
         ));
+    }
+
+    public function testRateLimitSubscriberKeysAreStablePerRouteAndUserOrIp(): void
+    {
+        $storage = new InMemoryStorage();
+        $factory = new RateLimiterFactory(['id' => 'api_test', 'policy' => 'fixed_window', 'limit' => 1, 'interval' => '1 minute'], $storage);
+        $subscriber = new RateLimitSubscriber($this->limiters($factory), $this->security(null));
+
+        $controller = [new #[RateLimited('api_test', 1)] class() {
+            public function __invoke(): string
+            {
+                return 'ok';
+            }
+        }, '__invoke'];
+        $kernel = $this->createMock(HttpKernelInterface::class);
+
+        $requestA = Request::create('/api/orders', server: ['REMOTE_ADDR' => '127.0.0.1', 'HTTP_X_RANDOM' => 'one']);
+        $requestA->attributes->set('_route', 'api_orders_list');
+        $eventA = new ControllerEvent($kernel, $controller, $requestA, HttpKernelInterface::MAIN_REQUEST);
+        $subscriber($eventA);
+        self::assertSame($controller, $eventA->getController());
+
+        $requestB = Request::create('/api/orders', server: ['REMOTE_ADDR' => '127.0.0.1', 'HTTP_X_RANDOM' => 'two']);
+        $requestB->attributes->set('_route', 'api_orders_list');
+        $eventB = new ControllerEvent($kernel, $controller, $requestB, HttpKernelInterface::MAIN_REQUEST);
+        $subscriber($eventB);
+        self::assertIsCallable($eventB->getController());
+
+        $requestC = Request::create('/api/orders/export', server: ['REMOTE_ADDR' => '127.0.0.1']);
+        $requestC->attributes->set('_route', 'api_orders_export');
+        $eventC = new ControllerEvent($kernel, $controller, $requestC, HttpKernelInterface::MAIN_REQUEST);
+        $subscriber($eventC);
+        self::assertSame($controller, $eventC->getController());
     }
 
     private function limiters(object $limiter): ContainerInterface

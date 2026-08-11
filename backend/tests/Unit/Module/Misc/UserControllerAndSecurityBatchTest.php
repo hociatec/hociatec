@@ -20,6 +20,7 @@ use App\Module\Quote\UI\Controller\Client\DeleteMyQuoteController;
 use App\Module\User\Domain\Entity\ShippingAddress;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
+use App\Module\User\Application\Workflow\CustomerAddressBookService;
 use App\Module\User\UI\Controller\Address\DeleteAddressController;
 use App\Module\User\UI\Controller\Address\ListMyAddressesController;
 use App\Module\User\UI\Controller\Address\SetDefaultAddressController;
@@ -68,10 +69,12 @@ final class UserControllerAndSecurityBatchTest extends TestCase
 
         $addresses = $this->createMock(ShippingAddressRepository::class);
         $addresses->expects(self::once())->method('findAllForUser')->with($user)->willReturn([$address]);
-        $listController = new class($addresses, $user) extends ListMyAddressesController {
-            public function __construct(ShippingAddressRepository $addresses, private User $user)
+        $addresses->expects(self::once())->method('countForUser')->with($user)->willReturn(1);
+        $addressBook = new CustomerAddressBookService($addresses, new \App\Module\User\Application\Projection\ShippingAddressFormatter());
+        $listController = new class($addressBook, $user) extends ListMyAddressesController {
+            public function __construct(CustomerAddressBookService $addressBook, private User $user)
             {
-                parent::__construct($addresses, new \App\Module\User\Application\Projection\ShippingAddressFormatter());
+                parent::__construct($addressBook);
             }
 
             public function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface
@@ -89,10 +92,11 @@ final class UserControllerAndSecurityBatchTest extends TestCase
             $deleteRepo,
             new \App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork($this->createMock(\Doctrine\ORM\EntityManagerInterface::class)),
         );
-        $deleteController = new class($deleteRepo, $deleteWriter, $user) extends DeleteAddressController {
-            public function __construct(ShippingAddressRepository $addresses, \App\Module\User\Application\Writer\ShippingAddressWriter $writer, private User $user)
+        $deleteAddressBook = new CustomerAddressBookService($deleteRepo, new \App\Module\User\Application\Projection\ShippingAddressFormatter());
+        $deleteController = new class($deleteAddressBook, $deleteWriter, $user) extends DeleteAddressController {
+            public function __construct(CustomerAddressBookService $addressBook, \App\Module\User\Application\Writer\ShippingAddressWriter $writer, private User $user)
             {
-                parent::__construct($addresses, $writer);
+                parent::__construct($addressBook, $writer);
             }
 
             public function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface
@@ -110,10 +114,11 @@ final class UserControllerAndSecurityBatchTest extends TestCase
             $defaultRepo,
             new \App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork($this->createMock(\Doctrine\ORM\EntityManagerInterface::class)),
         );
-        $defaultController = new class($defaultRepo, $defaultWriter, $user) extends SetDefaultAddressController {
-            public function __construct(ShippingAddressRepository $addresses, \App\Module\User\Application\Writer\ShippingAddressWriter $writer, private User $user)
+        $defaultAddressBook = new CustomerAddressBookService($defaultRepo, new \App\Module\User\Application\Projection\ShippingAddressFormatter());
+        $defaultController = new class($defaultAddressBook, $defaultWriter, $user) extends SetDefaultAddressController {
+            public function __construct(CustomerAddressBookService $addressBook, \App\Module\User\Application\Writer\ShippingAddressWriter $writer, private User $user)
             {
-                parent::__construct($addresses, $writer);
+                parent::__construct($addressBook, $writer);
             }
 
             public function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface

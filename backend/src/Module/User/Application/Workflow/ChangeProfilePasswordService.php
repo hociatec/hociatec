@@ -17,10 +17,10 @@ final readonly class ChangeProfilePasswordService
     ) {
     }
 
-    public function change(User $user, ?string $newPassword, ?string $currentPassword): void
+    public function change(User $user, ?string $newPassword, ?string $currentPassword): bool
     {
         if (null === $newPassword) {
-            return;
+            return false;
         }
 
         if ('' === trim($newPassword)) {
@@ -30,5 +30,7 @@ final readonly class ChangeProfilePasswordService
         $this->currentPasswordVerifier->verify($user, $currentPassword);
 
         $user->setPassword($this->passwordHasher->hashPassword($user, $newPassword));
+
+        return true;
     }
 }

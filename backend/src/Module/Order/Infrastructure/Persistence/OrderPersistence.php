@@ -14,7 +14,7 @@ final readonly class OrderPersistence implements OrderPersistencePort
     {
     }
 
-    public function commit(): void
+    public function flush(): void
     {
         $this->entityManager->flush();
     }

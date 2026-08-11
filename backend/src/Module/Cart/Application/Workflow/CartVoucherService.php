@@ -42,7 +42,7 @@ final readonly class CartVoucherService
     private function save(CartSession $cart): CartSession
     {
         $this->persistence->persist($cart);
-        $this->persistence->commit();
+        $this->persistence->flush();
 
         return $cart;
     }

@@ -21,23 +21,56 @@ readonly class ProductCatalogQuery
     public ?bool $inStockOnly;
     public ?string $sort;
 
-    public function __construct(mixed ...$values)
+    /**
+     * @param array{
+     *   page:int,
+     *   perPage:int,
+     *   categorySlug:?string,
+     *   search:?string,
+     *   onlyFeatured:?bool,
+     *   sellingType:?string,
+     *   brand:?string,
+     *   storageCapacity:?string,
+     *   memoryRam:?string,
+     *   color:?string,
+     *   minPriceCents:?int,
+     *   maxPriceCents:?int,
+     *   inStockOnly:?bool,
+     *   sort:?string
+     * } $payload
+     */
+    public function __construct(?array $payload = null)
     {
-        $data = $this->mapValues($values);
-        $this->page = (int) $data['page'];
-        $this->perPage = (int) $data['perPage'];
-        $this->categorySlug = $data['categorySlug'];
-        $this->search = $data['search'];
-        $this->onlyFeatured = $data['onlyFeatured'];
-        $this->sellingType = $data['sellingType'];
-        $this->brand = $data['brand'];
-        $this->storageCapacity = $data['storageCapacity'];
-        $this->memoryRam = $data['memoryRam'];
-        $this->color = $data['color'];
-        $this->minPriceCents = $data['minPriceCents'];
-        $this->maxPriceCents = $data['maxPriceCents'];
-        $this->inStockOnly = $data['inStockOnly'];
-        $this->sort = $data['sort'];
+        $payload = array_replace([
+            'page' => 1,
+            'perPage' => 12,
+            'categorySlug' => null,
+            'search' => null,
+            'onlyFeatured' => null,
+            'sellingType' => null,
+            'brand' => null,
+            'storageCapacity' => null,
+            'memoryRam' => null,
+            'color' => null,
+            'minPriceCents' => null,
+            'maxPriceCents' => null,
+            'inStockOnly' => null,
+            'sort' => null,
+        ], $payload ?? []);
+        $this->page = $payload['page'];
+        $this->perPage = $payload['perPage'];
+        $this->categorySlug = $payload['categorySlug'];
+        $this->search = $payload['search'];
+        $this->onlyFeatured = $payload['onlyFeatured'];
+        $this->sellingType = $payload['sellingType'];
+        $this->brand = $payload['brand'];
+        $this->storageCapacity = $payload['storageCapacity'];
+        $this->memoryRam = $payload['memoryRam'];
+        $this->color = $payload['color'];
+        $this->minPriceCents = $payload['minPriceCents'];
+        $this->maxPriceCents = $payload['maxPriceCents'];
+        $this->inStockOnly = $payload['inStockOnly'];
+        $this->sort = $payload['sort'];
     }
 
     public function offset(): int
@@ -48,28 +81,5 @@ readonly class ProductCatalogQuery
     public function criteria(): ProductCatalogCriteria
     {
         return ProductCatalogCriteria::fromCatalogQuery($this);
-    }
-
-    /**
-     * @param array<int|string, mixed> $values
-     *
-     * @return array<string, mixed>
-     */
-    private function mapValues(array $values): array
-    {
-        $keys = ['page', 'perPage', 'categorySlug', 'search', 'onlyFeatured', 'sellingType', 'brand', 'storageCapacity', 'memoryRam', 'color', 'minPriceCents', 'maxPriceCents', 'inStockOnly', 'sort'];
-        $defaults = array_fill_keys($keys, null);
-        $defaults['page'] = 1;
-        $defaults['perPage'] = 12;
-        foreach ($values as $index => $value) {
-            if (!is_int($index)) {
-                continue;
-            }
-            if (isset($keys[$index])) {
-                $defaults[$keys[$index]] = $value;
-            }
-        }
-
-        return array_replace($defaults, array_filter($values, 'is_string', ARRAY_FILTER_USE_KEY));
     }
 }

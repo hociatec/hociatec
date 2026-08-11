@@ -6,6 +6,7 @@ namespace App\Module\Quote\UI\Controller\Client;
 
 use App\Module\Quote\Application\Workflow\CustomerQuotePortalService;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -29,9 +30,9 @@ final class RefuseMyQuoteController extends AbstractController
         try {
             $quote = $this->portal->refuseForUser($this->currentUser(), $id);
         } catch (\DomainException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_CONFLICT);
+            return ApiProblemResponse::fromThrowable($exception, 'Refus du devis impossible.', Response::HTTP_CONFLICT);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+            return ApiProblemResponse::fromThrowable($exception, 'Demande de refus invalide.', Response::HTTP_BAD_REQUEST);
         }
         if (null === $quote) {
             return ApiResponse::error('Devis introuvable.', Response::HTTP_NOT_FOUND);

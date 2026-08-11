@@ -63,7 +63,18 @@ final class ProductVariantServicesTest extends TestCase
             ->setGalleryImage4Name('g4.jpg')
             ->setGalleryImage4Size(400);
 
-        $copy = $service->createVariantCopy(new ProductVariantCopyData($template, 'Phone', 'SKU-BASE', null, 'Family', null, null, 9, 2));
+        $copy = $service->createVariantCopy(new ProductVariantCopyData([
+            'template' => $template,
+            'baseName' => 'Phone',
+            'baseSku' => 'SKU-BASE',
+            'baseSlug' => null,
+            'variantGroup' => 'Family',
+            'color' => null,
+            'storageCapacity' => null,
+            'stock' => 9,
+            'priceCents' => null,
+            'position' => 2,
+        ]));
 
         self::assertSame('Phone', $copy->getName());
         self::assertSame('SKU-BASE-3', $copy->getSku());

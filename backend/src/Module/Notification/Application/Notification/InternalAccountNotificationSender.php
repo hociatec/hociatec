@@ -28,7 +28,7 @@ final readonly class InternalAccountNotificationSender
             }
 
             $this->persistence->persist(new AccountNotificationEvent($user, $key, $title, $message, $targetUrl, $type));
-            $this->persistence->commit();
+            $this->persistence->flush();
         } catch (\RuntimeException|\InvalidArgumentException $exception) {
             $this->logger->warning('Internal account notification failed.', [
                 'userId' => $user->getId(),

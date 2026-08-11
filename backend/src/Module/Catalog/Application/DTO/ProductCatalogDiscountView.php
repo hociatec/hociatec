@@ -9,8 +9,8 @@ final readonly class ProductCatalogDiscountView
     public function __construct(
         public string $type,
         public int $value,
-        public mixed $startsAt,
-        public mixed $endsAt,
+        public ?\DateTimeInterface $startsAt,
+        public ?\DateTimeInterface $endsAt,
     ) {
     }
 }

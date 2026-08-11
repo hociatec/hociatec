@@ -12,4 +12,6 @@ interface TradeInPrivateFileStoragePort
     public function storeReceipt(string $pdf): string;
 
     public function read(string $relativePath): string;
+
+    public function delete(string $relativePath): void;
 }

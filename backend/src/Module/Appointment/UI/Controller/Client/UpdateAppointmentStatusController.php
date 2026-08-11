@@ -5,13 +5,9 @@ declare(strict_types=1);
 namespace App\Module\Appointment\UI\Controller\Client;
 
 use App\Module\Appointment\Application\DTO\UpdateAppointmentStatusInput;
-use App\Module\Appointment\Application\Port\AppointmentRepositoryPort;
-use App\Module\Appointment\Application\Projection\AppointmentFormatter;
-use App\Module\Appointment\Application\Workflow\AppointmentService;
-use App\Module\Appointment\Domain\Entity\Appointment;
-use App\Module\Appointment\Domain\Security\AppointmentAccessPolicy;
-use App\Module\User\Domain\Entity\User;
+use App\Module\Appointment\Application\Workflow\CustomerAppointmentPortalService;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -25,30 +21,16 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 final class UpdateAppointmentStatusController extends AbstractController
 {
+    use AuthenticatedDomainUserTrait;
+
     public function __construct(
-        private readonly AppointmentRepositoryPort $appointmentRepository,
-        private readonly AppointmentService $appointmentService,
-        private readonly AppointmentFormatter $appointmentFormatter,
+        private readonly CustomerAppointmentPortalService $portal,
         private readonly DtoValidator $dtoValidator,
-        private readonly AppointmentAccessPolicy $accessPolicy,
     ) {
     }
 
     public function __invoke(int $id, Request $request): JsonResponse
     {
-        /** @var User $user */
-        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
-
-        $appointment = $this->appointmentRepository->find($id);
-
-        if (null === $appointment) {
-            return ApiResponse::error('Rendez-vous introuvable.', Response::HTTP_NOT_FOUND);
-        }
-
-        if (!$this->canAccessAppointment($user, $appointment)) {
-            return ApiResponse::error('Vous n\'êtes pas autorisé à modifier ce rendez-vous.', Response::HTTP_FORBIDDEN);
-        }
-
         try {
             $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
         } catch (InvalidJsonPayloadException|\JsonException) {
@@ -59,18 +41,20 @@ final class UpdateAppointmentStatusController extends AbstractController
         $this->dtoValidator->validate($input);
 
         try {
-            $this->appointmentService->changeStatus($appointment, $input->status);
+            $appointment = $this->portal->changeStatusForUser($this->currentUser(), $id, $input->status);
         } catch (\DomainException $exception) {
+            return ApiResponse::error($exception->getMessage(), Response::HTTP_FORBIDDEN);
+        } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+        } catch (\RuntimeException $exception) {
+            return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+        }
+        if (null === $appointment) {
+            return ApiResponse::error('Rendez-vous introuvable.', Response::HTTP_NOT_FOUND);
         }
 
         return ApiResponse::success([
-            'appointment' => $this->appointmentFormatter->format($appointment),
+            'appointment' => $appointment,
         ]);
-    }
-
-    private function canAccessAppointment(User $user, Appointment $appointment): bool
-    {
-        return $user->isAdmin() || $this->accessPolicy->canChangeStatus($user, $appointment);
     }
 }

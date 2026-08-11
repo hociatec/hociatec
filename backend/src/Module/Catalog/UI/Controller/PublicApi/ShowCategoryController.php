@@ -34,7 +34,9 @@ class ShowCategoryController extends AbstractController
             return ApiResponse::error('Categorie introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $products = $this->productService->listPublished(new ProductCatalogCriteria(categorySlug: $slug));
+        $products = $this->productService->listPublished(new ProductCatalogCriteria([
+            'categorySlug' => $slug,
+        ]));
 
         return ApiResponse::success([
             'category' => $this->catalogFormatter->formatCategory($category),

@@ -19,19 +19,45 @@ final readonly class ProductAdminListQuery
     public bool $lowStock;
     public ?string $sort;
 
-    public function __construct(mixed ...$values)
-    {
-        $data = $this->mapValues($values);
-        $this->page = (int) $data['page'];
-        $this->perPage = (int) $data['perPage'];
-        $this->categorySlug = $data['categorySlug'];
-        $this->search = $data['search'];
-        $this->featured = $data['featured'];
-        $this->sellingType = $data['sellingType'];
-        $this->minPriceCents = $data['minPriceCents'];
-        $this->maxPriceCents = $data['maxPriceCents'];
-        $this->lowStock = (bool) $data['lowStock'];
-        $this->sort = $data['sort'];
+    /**
+     * @param array{
+     *   page:int,
+     *   perPage:int,
+     *   categorySlug:?string,
+     *   search:?string,
+     *   featured:?bool,
+     *   sellingType:?string,
+     *   minPriceCents:?int,
+     *   maxPriceCents:?int,
+     *   lowStock:bool,
+     *   sort:?string
+     * } $payload
+     */
+    public function __construct(
+        ?array $payload = null,
+    ) {
+        $payload ??= [
+            'page' => 1,
+            'perPage' => 25,
+            'categorySlug' => null,
+            'search' => null,
+            'featured' => null,
+            'sellingType' => null,
+            'minPriceCents' => null,
+            'maxPriceCents' => null,
+            'lowStock' => false,
+            'sort' => null,
+        ];
+        $this->page = $payload['page'];
+        $this->perPage = $payload['perPage'];
+        $this->categorySlug = $payload['categorySlug'];
+        $this->search = $payload['search'];
+        $this->featured = $payload['featured'];
+        $this->sellingType = $payload['sellingType'];
+        $this->minPriceCents = $payload['minPriceCents'];
+        $this->maxPriceCents = $payload['maxPriceCents'];
+        $this->lowStock = $payload['lowStock'];
+        $this->sort = $payload['sort'];
     }
 
     public function offset(): int
@@ -41,41 +67,18 @@ final readonly class ProductAdminListQuery
 
     public function criteria(): ProductAdminCriteria
     {
-        return new ProductAdminCriteria(
-            categorySlug: $this->categorySlug,
-            search: $this->search,
-            onlyFeatured: $this->featured,
-            sellingType: $this->sellingType,
-            minPriceCents: $this->minPriceCents,
-            maxPriceCents: $this->maxPriceCents,
-            lowStockOnly: $this->lowStock,
-            sort: $this->sort,
-            limit: $this->perPage,
-            offset: $this->offset(),
-        );
+        return new ProductAdminCriteria([
+            'categorySlug' => $this->categorySlug,
+            'search' => $this->search,
+            'onlyFeatured' => $this->featured,
+            'sellingType' => $this->sellingType,
+            'minPriceCents' => $this->minPriceCents,
+            'maxPriceCents' => $this->maxPriceCents,
+            'lowStockOnly' => $this->lowStock,
+            'sort' => $this->sort,
+            'limit' => $this->perPage,
+            'offset' => $this->offset(),
+        ]);
     }
 
-    /**
-     * @param array<int|string, mixed> $values
-     *
-     * @return array<string, mixed>
-     */
-    private function mapValues(array $values): array
-    {
-        $keys = ['page', 'perPage', 'categorySlug', 'search', 'featured', 'sellingType', 'minPriceCents', 'maxPriceCents', 'lowStock', 'sort'];
-        $defaults = array_fill_keys($keys, null);
-        $defaults['page'] = 1;
-        $defaults['perPage'] = 25;
-        $defaults['lowStock'] = false;
-        foreach ($values as $index => $value) {
-            if (!is_int($index)) {
-                continue;
-            }
-            if (isset($keys[$index])) {
-                $defaults[$keys[$index]] = $value;
-            }
-        }
-
-        return array_replace($defaults, array_filter($values, 'is_string', ARRAY_FILTER_USE_KEY));
-    }
 }

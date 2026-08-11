@@ -6,12 +6,13 @@ namespace App\Module\TradeIn\Infrastructure\Storage;
 
 use App\Module\TradeIn\Application\Port\TradeInPrivateFileStoragePort;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\Process\Process;
 
 final readonly class TradeInPrivateFileStorage implements TradeInPrivateFileStoragePort
 {
     private const MAX_RIB_BYTES = 5_242_880;
 
-    public function __construct(private string $projectDir)
+    public function __construct(private string $projectDir, private ?string $clamScanBinary = null)
     {
     }
 
@@ -46,6 +47,7 @@ final readonly class TradeInPrivateFileStorage implements TradeInPrivateFileStor
             throw new \RuntimeException('Impossible d’enregistrer le RIB.');
         }
         $this->securePrivateFile($absolutePath);
+        $this->scanPdf($absolutePath);
 
         return ['path' => $relativePath, 'originalName' => $file->getClientOriginalName(), 'size' => strlen($contents), 'sha256' => hash('sha256', $contents)];
     }
@@ -82,21 +84,59 @@ final readonly class TradeInPrivateFileStorage implements TradeInPrivateFileStor
         return $contents;
     }
 
-    private function resolvePrivateDocumentPath(string $relativePath): string
+    public function delete(string $relativePath): void
+    {
+        $path = $this->resolvePrivateDocumentTargetPath($relativePath);
+        if (!is_file($path)) {
+            return;
+        }
+
+        if (!unlink($path) && is_file($path)) {
+            throw new \RuntimeException('Impossible de supprimer le document privé.');
+        }
+    }
+
+    private function resolvePrivateDocumentPath(string $relativePath, bool $mustExist = true): ?string
     {
         $root = realpath($this->projectDir.'/var/private/trade-ins');
-        $path = realpath($this->projectDir.'/'.$relativePath);
-        if (false === $root || false === $path || !is_file($path)) {
+        $absolute = $this->projectDir.'/'.$relativePath;
+        $path = $mustExist ? realpath($absolute) : realpath(dirname($absolute));
+        if (false === $root || false === $path) {
             throw new \RuntimeException('Document privé introuvable.');
         }
 
         $normalizedRoot = rtrim(str_replace('\\', '/', $root), '/');
-        $normalizedPath = str_replace('\\', '/', $path);
+        $normalizedPath = str_replace('\\', '/', $mustExist ? $path : dirname($absolute));
         if (!str_starts_with($normalizedPath, $normalizedRoot.'/')) {
             throw new \RuntimeException('Document privé introuvable.');
         }
 
-        return $path;
+        if ($mustExist) {
+            if (!is_file($path)) {
+                throw new \RuntimeException('Document privé introuvable.');
+            }
+
+            return $path;
+        }
+
+        return $absolute;
+    }
+
+    private function resolvePrivateDocumentTargetPath(string $relativePath): string
+    {
+        $root = realpath($this->projectDir.'/var/private/trade-ins');
+        if (false === $root) {
+            throw new \RuntimeException('Document privé introuvable.');
+        }
+
+        $absolute = $this->projectDir.'/'.$relativePath;
+        $normalizedRoot = rtrim(str_replace('\\', '/', $root), '/');
+        $normalizedPath = str_replace('\\', '/', $absolute);
+        if (!str_starts_with($normalizedPath, $normalizedRoot.'/')) {
+            throw new \RuntimeException('Document privé introuvable.');
+        }
+
+        return $absolute;
     }
 
     private function securePrivateFile(string $absolutePath): void
@@ -105,5 +145,32 @@ final readonly class TradeInPrivateFileStorage implements TradeInPrivateFileStor
             unlink($absolutePath);
             throw new \RuntimeException('Impossible de sécuriser le document privé.');
         }
+    }
+
+    private function scanPdf(string $absolutePath): void
+    {
+        $binary = null !== $this->clamScanBinary ? trim($this->clamScanBinary) : '';
+        if ('' === $binary) {
+            return;
+        }
+
+        $process = new Process([$binary, '--no-summary', '--infected', $absolutePath]);
+        $process->run();
+
+        if (0 === $process->getExitCode()) {
+            return;
+        }
+
+        if (1 === $process->getExitCode()) {
+            if (is_file($absolutePath)) {
+                unlink($absolutePath);
+            }
+            throw new \InvalidArgumentException('Le fichier PDF a été rejeté par l’antivirus.');
+        }
+
+        if (is_file($absolutePath)) {
+            unlink($absolutePath);
+        }
+        throw new \RuntimeException('Analyse antivirus du document privé impossible.');
     }
 }

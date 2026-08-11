@@ -37,9 +37,36 @@ final readonly class BetaProfileInput
     #[Assert\IsTrue(message: 'Le consentement au programme bêta est obligatoire.')]
     public bool $consent;
 
-    public function __construct(mixed ...$values)
+    /**
+     * @param array{
+     *   availability?: list<string>,
+     *   motivation?: string,
+     *   testingExperience?: string,
+     *   bugDescriptionAbility?: string,
+     *   technicalKnowledge?: string,
+     *   accessibilityNeed?: string,
+     *   assistiveTools?: list<string>,
+     *   devices?: list<string>,
+     *   browsers?: list<string>,
+     *   testingTypes?: list<string>,
+     *   consent?: bool
+     * }|null $payload
+     */
+    public function __construct(?array $payload = null)
     {
-        $data = $this->mapValues($values);
+        $data = array_replace([
+            'availability' => [],
+            'motivation' => '',
+            'testingExperience' => '',
+            'bugDescriptionAbility' => '',
+            'technicalKnowledge' => '',
+            'accessibilityNeed' => 'none',
+            'assistiveTools' => [],
+            'devices' => [],
+            'browsers' => [],
+            'testingTypes' => [],
+            'consent' => false,
+        ], $payload ?? []);
         $this->availability = $data['availability'];
         $this->motivation = (string) $data['motivation'];
         $this->testingExperience = (string) $data['testingExperience'];
@@ -61,38 +88,18 @@ final readonly class BetaProfileInput
         $serializedRequired = static fn (string $key): string => BetaProfileChoices::serializeList($list($key));
         $technicalKnowledge = BetaProfileChoices::serializeList($list('technicalKnowledge'));
 
-        return new self($list('availability'), $text('motivation'), $serializedRequired('testingExperience'), $serializedRequired('bugDescriptionAbility'), $technicalKnowledge, 'none', $list('assistiveTools'), $list('devices'), $list('browsers'), $list('testingTypes'), true === ($payload['betaConsent'] ?? false));
-    }
-
-    /**
-     * @param array<int|string, mixed> $values
-     *
-     * @return array<string, mixed>
-     */
-    private function mapValues(array $values): array
-    {
-        $keys = ['availability', 'motivation', 'testingExperience', 'bugDescriptionAbility', 'technicalKnowledge', 'accessibilityNeed', 'assistiveTools', 'devices', 'browsers', 'testingTypes', 'consent'];
-        $defaults = array_fill_keys($keys, null);
-        $defaults['availability'] = [];
-        $defaults['motivation'] = '';
-        $defaults['testingExperience'] = '';
-        $defaults['bugDescriptionAbility'] = '';
-        $defaults['technicalKnowledge'] = '';
-        $defaults['accessibilityNeed'] = 'none';
-        $defaults['assistiveTools'] = [];
-        $defaults['devices'] = [];
-        $defaults['browsers'] = [];
-        $defaults['testingTypes'] = [];
-        $defaults['consent'] = false;
-        foreach ($values as $index => $value) {
-            if (!is_int($index)) {
-                continue;
-            }
-            if (isset($keys[$index])) {
-                $defaults[$keys[$index]] = $value;
-            }
-        }
-
-        return array_replace($defaults, array_filter($values, 'is_string', ARRAY_FILTER_USE_KEY));
+        return new self([
+            'availability' => $list('availability'),
+            'motivation' => $text('motivation'),
+            'testingExperience' => $serializedRequired('testingExperience'),
+            'bugDescriptionAbility' => $serializedRequired('bugDescriptionAbility'),
+            'technicalKnowledge' => $technicalKnowledge,
+            'accessibilityNeed' => 'none',
+            'assistiveTools' => $list('assistiveTools'),
+            'devices' => $list('devices'),
+            'browsers' => $list('browsers'),
+            'testingTypes' => $list('testingTypes'),
+            'consent' => true === ($payload['betaConsent'] ?? false),
+        ]);
     }
 }

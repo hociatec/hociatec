@@ -53,17 +53,18 @@ final class PromotionManagerAdditionalTest extends TestCase
         self::assertSame('2026-08-01', $created->getStartsAt()?->format('Y-m-d'));
         self::assertSame('2026-08-31', $created->getEndsAt()?->format('Y-m-d'));
 
-        $updated = $updatePromotion->update($created, new PromotionInput(
-            'Black Friday',
-            'black-friday',
-            Promotion::TYPE_FIXED_CENTS,
-            2500,
-            'loyal_customers',
-            ['minimumOrders' => 3],
-            null,
-            false,
-            null,
-        ));
+        $updated = $updatePromotion->update($created, new PromotionInput([
+            'name' => 'Black Friday',
+            'slug' => 'black-friday',
+            'discountType' => Promotion::TYPE_FIXED_CENTS,
+            'discountValue' => 2500,
+            'audienceKey' => 'loyal_customers',
+            'criteria' => ['minimumOrders' => 3],
+            'description' => null,
+            'isActive' => false,
+            'startsAt' => null,
+            'endsAt' => null,
+        ]));
 
         self::assertSame($created, $updated);
         self::assertSame('Black Friday', $updated->getName());

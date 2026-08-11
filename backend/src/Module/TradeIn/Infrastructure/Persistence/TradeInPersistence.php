@@ -24,7 +24,7 @@ final readonly class TradeInPersistence implements TradeInPersistencePort
         $this->entityManager->remove($request);
     }
 
-    public function commit(): void
+    public function flush(): void
     {
         $this->entityManager->flush();
     }

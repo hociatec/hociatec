@@ -32,8 +32,8 @@ final readonly class CreateServiceController
             $service = $this->createService->create($this->forms->create($request));
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY);
-        } catch (QuoteOperationException $exception) {
-            return ApiResponse::internalError($exception->getMessage());
+        } catch (QuoteOperationException) {
+            return ApiResponse::internalError();
         }
 
         return ApiResponse::created($this->formatter->formatService($service), 'Le service a bien été créé.');

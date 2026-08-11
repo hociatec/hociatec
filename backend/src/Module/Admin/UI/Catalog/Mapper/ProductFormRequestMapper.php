@@ -61,21 +61,21 @@ final readonly class ProductFormRequestMapper
             $discount = $this->discount->map($request);
 
             return new ProductWriteData(
-                core: new ProductCoreWriteData(
-                    name: trim((string) $request->request->get('name', $product?->getName() ?? '')),
-                    sku: strtoupper(trim((string) $request->request->get('sku', $product?->getSku() ?? ''))),
-                    slug: ProductFormValueNormalizer::optionalString($request->request->get('slug', $product?->getSlug())),
-                    description: (string) $request->request->get('description', $product?->getDescription() ?? ''),
-                    shortDescription: ProductFormValueNormalizer::optionalString($request->request->get('shortDescription', $product?->getShortDescription())),
-                    priceCents: $priceCents,
-                    stock: (int) $request->request->get('stock', $product?->getStock() ?? 0),
-                    isPublished: ProductFormValueNormalizer::boolean($request->request->get('isPublished', $product?->isPublished() ?? '1')),
-                    isFeaturedHome: ProductFormValueNormalizer::boolean($request->request->get('isFeaturedHome', $product?->isFeaturedHome() ?? false)),
-                    category: $category,
-                    imageAlt: ProductFormValueNormalizer::optionalString($request->request->get('imageAlt', $product?->getImageAlt())),
-                    sellingType: (string) $request->request->get('sellingType', $product?->getSellingType() ?? 'sale'),
-                    brand: $brand,
-                ),
+                core: new ProductCoreWriteData([
+                    'name' => trim((string) $request->request->get('name', $product?->getName() ?? '')),
+                    'sku' => strtoupper(trim((string) $request->request->get('sku', $product?->getSku() ?? ''))),
+                    'slug' => ProductFormValueNormalizer::optionalString($request->request->get('slug', $product?->getSlug())),
+                    'description' => (string) $request->request->get('description', $product?->getDescription() ?? ''),
+                    'shortDescription' => ProductFormValueNormalizer::optionalString($request->request->get('shortDescription', $product?->getShortDescription())),
+                    'priceCents' => $priceCents,
+                    'stock' => (int) $request->request->get('stock', $product?->getStock() ?? 0),
+                    'isPublished' => ProductFormValueNormalizer::boolean($request->request->get('isPublished', $product?->isPublished() ?? '1')),
+                    'isFeaturedHome' => ProductFormValueNormalizer::boolean($request->request->get('isFeaturedHome', $product?->isFeaturedHome() ?? false)),
+                    'category' => $category,
+                    'imageAlt' => ProductFormValueNormalizer::optionalString($request->request->get('imageAlt', $product?->getImageAlt())),
+                    'sellingType' => (string) $request->request->get('sellingType', $product?->getSellingType() ?? 'sale'),
+                    'brand' => $brand,
+                ]),
                 gallery: new ProductGalleryWriteData(
                     files: $this->gallery->files($request),
                     toRemove: null === $product ? [] : $this->gallery->removals($request),

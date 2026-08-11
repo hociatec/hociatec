@@ -60,9 +60,43 @@ abstract class AdminBetaTestIntegrationTestCase extends TestCase
         $admin = $this->user('admin-beta@example.test', ['ROLE_ADMIN']);
         $campaign = (new BetaCampaign('Campaign', 'Desc', new \DateTimeImmutable('2026-08-10'), new \DateTimeImmutable('2026-08-20')))->setStatus(BetaCampaign::STATUS_ACTIVE);
         $closedCampaign = (new BetaCampaign('Closed', 'Desc', new \DateTimeImmutable('2026-08-01'), new \DateTimeImmutable('2026-08-09')))->setStatus(BetaCampaign::STATUS_ACTIVE);
-        $profile = (new BetaTesterProfile($reporter, ['weekdays'], 'Motivation', 'manual', 'clear', 'advanced', 'none', ['nvda'], ['windows'], ['chrome'], ['ui'], new \DateTimeImmutable('2026-08-11T09:00:00+00:00'), '2026-08-04'))->setStatus(BetaTesterProfile::STATUS_ACCEPTED);
-        $report = new BugReport($reporter, $campaign, 'Bug', 'Desc', 'Expected', 'Actual', 'high', '/page', ['screen.png']);
-        $duplicate = new BugReport($reporter, $campaign, 'Bug duplicate', 'Desc', null, null, 'normal', null, []);
+        $profile = (new BetaTesterProfile([
+            'user' => $reporter,
+            'availability' => ['weekdays'],
+            'motivation' => 'Motivation',
+            'testingExperience' => 'manual',
+            'bugDescriptionAbility' => 'clear',
+            'technicalKnowledge' => 'advanced',
+            'accessibilityNeed' => 'none',
+            'assistiveTools' => ['nvda'],
+            'devices' => ['windows'],
+            'browsers' => ['chrome'],
+            'testingTypes' => ['ui'],
+            'consentAt' => new \DateTimeImmutable('2026-08-11T09:00:00+00:00'),
+            'privacyNoticeVersion' => '2026-08-04',
+        ]))->setStatus(BetaTesterProfile::STATUS_ACCEPTED);
+        $report = new BugReport([
+            'reporter' => $reporter,
+            'campaign' => $campaign,
+            'title' => 'Bug',
+            'description' => 'Desc',
+            'expectedBehavior' => 'Expected',
+            'actualBehavior' => 'Actual',
+            'severity' => 'high',
+            'pageUrl' => '/page',
+            'attachments' => ['screen.png'],
+        ]);
+        $duplicate = new BugReport([
+            'reporter' => $reporter,
+            'campaign' => $campaign,
+            'title' => 'Bug duplicate',
+            'description' => 'Desc',
+            'expectedBehavior' => null,
+            'actualBehavior' => null,
+            'severity' => 'normal',
+            'pageUrl' => null,
+            'attachments' => [],
+        ]);
         foreach ([$reporter, $admin, $campaign, $closedCampaign, $profile, $report, $duplicate, new BugReportComment($report, $reporter, 'Hello'), new BugReportActivity($report, $admin, 'created', null, null, 'Created')] as $entity) {
             $em->persist($entity);
         }

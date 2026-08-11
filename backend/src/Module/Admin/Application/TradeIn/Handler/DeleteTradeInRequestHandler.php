@@ -19,6 +19,6 @@ final readonly class DeleteTradeInRequestHandler
     public function delete(TradeInRequest $request): void
     {
         $this->requests->delete($request);
-        $this->persistence->commit();
+        $this->persistence->flush();
     }
 }

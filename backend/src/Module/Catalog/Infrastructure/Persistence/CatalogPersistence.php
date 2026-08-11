@@ -18,7 +18,7 @@ final readonly class CatalogPersistence implements CatalogPersistencePort
         $this->entityManager->persist($entity);
     }
 
-    public function commit(): void
+    public function flush(): void
     {
         $this->entityManager->flush();
     }

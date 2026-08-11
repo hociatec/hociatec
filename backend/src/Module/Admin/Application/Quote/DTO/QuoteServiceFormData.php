@@ -20,9 +20,40 @@ final readonly class QuoteServiceFormData
     public bool $updatesBillingMode;
     public bool $updatesDuration;
 
-    public function __construct(mixed ...$values)
+    /**
+     * @param array{
+     *   title?: string,
+     *   description?: ?string,
+     *   billingMode?: ?string,
+     *   durationValue?: ?int,
+     *   durationUnit?: ?string,
+     *   priceCents?: ?int,
+     *   vatRateBps?: ?int,
+     *   isFeaturedHome?: bool,
+     *   imageFile?: ?object,
+     *   imageUrl?: ?string,
+     *   imageAlt?: ?string,
+     *   updatesBillingMode?: bool,
+     *   updatesDuration?: bool
+     * }|null $payload
+     */
+    public function __construct(?array $payload = null)
     {
-        $data = $this->mapValues($values);
+        $data = array_replace([
+            'title' => '',
+            'description' => null,
+            'billingMode' => null,
+            'durationValue' => null,
+            'durationUnit' => null,
+            'priceCents' => null,
+            'vatRateBps' => null,
+            'isFeaturedHome' => false,
+            'imageFile' => null,
+            'imageUrl' => null,
+            'imageAlt' => null,
+            'updatesBillingMode' => false,
+            'updatesDuration' => false,
+        ], $payload ?? []);
         $this->title = (string) $data['title'];
         $this->description = $data['description'];
         $this->billingMode = $data['billingMode'];
@@ -38,28 +69,4 @@ final readonly class QuoteServiceFormData
         $this->updatesDuration = (bool) $data['updatesDuration'];
     }
 
-    /**
-     * @param array<int|string, mixed> $values
-     *
-     * @return array<string, mixed>
-     */
-    private function mapValues(array $values): array
-    {
-        $keys = ['title', 'description', 'billingMode', 'durationValue', 'durationUnit', 'priceCents', 'vatRateBps', 'isFeaturedHome', 'imageFile', 'imageUrl', 'imageAlt', 'updatesBillingMode', 'updatesDuration'];
-        $defaults = array_fill_keys($keys, null);
-        $defaults['title'] = '';
-        $defaults['isFeaturedHome'] = false;
-        $defaults['updatesBillingMode'] = false;
-        $defaults['updatesDuration'] = false;
-        foreach ($values as $index => $value) {
-            if (!is_int($index)) {
-                continue;
-            }
-            if (isset($keys[$index])) {
-                $defaults[$keys[$index]] = $value;
-            }
-        }
-
-        return array_replace($defaults, array_filter($values, 'is_string', ARRAY_FILTER_USE_KEY));
-    }
 }

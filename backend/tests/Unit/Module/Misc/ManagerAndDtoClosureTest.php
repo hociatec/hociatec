@@ -49,7 +49,7 @@ final class ManagerAndDtoClosureTest extends TestCase
         $user = new User('ada@example.com', 'Ada', 'Lovelace', new \DateTimeImmutable('1990-01-01'), '0102030405', 'female');
 
         $persistence->save($user);
-        $persistence->commit();
+        $persistence->flush();
     }
 
     public function testDoctrineTransactionManagerDelegatesTransaction(): void
@@ -94,18 +94,18 @@ final class ManagerAndDtoClosureTest extends TestCase
         self::assertSame(['country' => 'FR'], $promotion->getCriteria());
         self::assertSame('Desc', $promotion->getDescription());
 
-        $updated = $updatePromotion->update($promotion, new PromotionInput(
-            'Promo 2',
-            'promo-2',
-            Promotion::TYPE_FIXED_CENTS,
-            2500,
-            'vip',
-            ['minimumOrders' => 2],
-            'Desc 2',
-            false,
-            null,
-            null,
-        ));
+        $updated = $updatePromotion->update($promotion, new PromotionInput([
+            'name' => 'Promo 2',
+            'slug' => 'promo-2',
+            'discountType' => Promotion::TYPE_FIXED_CENTS,
+            'discountValue' => 2500,
+            'audienceKey' => 'vip',
+            'criteria' => ['minimumOrders' => 2],
+            'description' => 'Desc 2',
+            'isActive' => false,
+            'startsAt' => null,
+            'endsAt' => null,
+        ]));
         self::assertSame('Promo 2', $updated->getName());
         self::assertSame('promo-2', $updated->getSlug());
         self::assertSame(Promotion::TYPE_FIXED_CENTS, $updated->getDiscountType());

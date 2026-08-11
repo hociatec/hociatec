@@ -27,7 +27,7 @@ final readonly class NewsCommentWriter
 
         try {
             $this->persistence->persist($comment);
-            $this->persistence->commit();
+            $this->persistence->flush();
         } catch (\RuntimeException $exception) {
             throw NewsOperationException::failed('Impossible de publier le commentaire.', $exception);
         }

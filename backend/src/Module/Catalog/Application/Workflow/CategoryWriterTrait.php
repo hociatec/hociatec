@@ -21,7 +21,7 @@ trait CategoryWriterTrait
 
         try {
             $this->persistence->save($category);
-            $this->persistence->commit();
+            $this->persistence->flush();
         } catch (\RuntimeException $exception) {
             throw CatalogOperationException::failed('Impossible de créer la catégorie.', $exception);
         }
@@ -46,7 +46,7 @@ trait CategoryWriterTrait
             ->setIsVisible($isVisible);
 
         try {
-            $this->persistence->commit();
+            $this->persistence->flush();
         } catch (\RuntimeException $exception) {
             throw CatalogOperationException::failed('Impossible de mettre à jour la catégorie.', $exception);
         }
@@ -62,7 +62,7 @@ trait CategoryWriterTrait
 
         try {
             $this->persistence->delete($category);
-            $this->persistence->commit();
+            $this->persistence->flush();
         } catch (\RuntimeException $exception) {
             throw CatalogOperationException::failed('Impossible de supprimer la catégorie.', $exception);
         }

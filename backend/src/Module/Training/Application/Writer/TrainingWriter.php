@@ -21,13 +21,13 @@ final class TrainingWriter
     public function save(object $entity): void
     {
         $this->persistence->persist($entity);
-        $this->persistence->commit();
+        $this->persistence->flush();
     }
 
     public function delete(object $entity): void
     {
         $this->persistence->remove($entity);
-        $this->persistence->commit();
+        $this->persistence->flush();
     }
 
     public function apply(Training $training, TrainingInput $input): Training

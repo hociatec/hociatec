@@ -26,6 +26,6 @@ final readonly class AssignBugReportHandler
         $previous = $report->getAssignedTo()?->getEmail();
         $report->assignTo($assignedTo);
         $this->activityLogger->log($report, $actor, 'assignment_changed', $previous, $assignedTo?->getEmail());
-        $this->persistence->commit();
+        $this->persistence->flush();
     }
 }

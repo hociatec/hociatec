@@ -110,6 +110,50 @@ final class ModuleBoundaryTest extends TestCase
         }
     }
 
+    public function testFlushBasedPersistenceContractsDoNotExposeCommitNaming(): void
+    {
+        $files = [
+            __DIR__.'/../../../src/Shared/Application/UnitOfWork.php',
+            ...array_filter($this->phpFiles(__DIR__.'/../../../src/Module'), static fn (string $path): bool => str_contains($path, '/Application/Port/') && str_ends_with($path, 'PersistencePort.php')),
+            ...array_filter($this->phpFiles(__DIR__.'/../../../src/Module'), static fn (string $path): bool => str_contains($path, '/Infrastructure/Persistence/') && str_ends_with($path, 'Persistence.php')),
+        ];
+
+        $violations = [];
+        foreach ($files as $path) {
+            $source = file_get_contents($path);
+            self::assertIsString($source);
+
+            if (str_contains($source, 'function commit(')) {
+                $violations[] = $this->relativePath($path).' still exposes commit()';
+            }
+
+            if (
+                !str_contains($path, '/Infrastructure/Persistence/')
+                && !str_ends_with($path, '/Shared/Application/UnitOfWork.php')
+                && !str_contains($source, 'function flush(')
+            ) {
+                $violations[] = $this->relativePath($path).' is missing flush()';
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
+    public function testApplicationWritesDoNotCallCommitOnPersistenceOrUnitOfWork(): void
+    {
+        $violations = [];
+        foreach ($this->phpFiles(__DIR__.'/../../../src') as $path) {
+            $source = file_get_contents($path);
+            self::assertIsString($source);
+
+            if (preg_match('/->(?:persistence|unitOfWork)->commit\(/', $source)) {
+                $violations[] = $this->relativePath($path);
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
     public function testRepositoriesDoNotExposeImplicitFlushBooleans(): void
     {
         $violations = [];
@@ -170,6 +214,121 @@ final class ModuleBoundaryTest extends TestCase
         self::assertIsString($publicApiException);
         self::assertStringContainsString('extends \\App\\Shared\\Application\\Exception\\PublicApiException', $publicApiException);
         self::assertStringNotContainsString('extends ApiProblemException', $publicApiException);
+    }
+
+    public function testAuthCookieResponseWriterIsDefinedOnlyInSharedHttp(): void
+    {
+        self::assertFileExists(__DIR__.'/../../../src/Shared/Infrastructure/Http/AuthCookieResponseWriter.php');
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Auth/UI/Http/AuthCookieResponseWriter.php');
+    }
+
+    public function testAuthRefreshTokenFlowDoesNotKeepTrivialPersistenceWrapper(): void
+    {
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Auth/Application/Port/RefreshTokenPersistencePort.php');
+        self::assertFileDoesNotExist(__DIR__.'/../../../src/Module/Auth/Infrastructure/Persistence/RefreshTokenPersistence.php');
+
+        $service = file_get_contents(__DIR__.'/../../../src/Module/Auth/Application/Workflow/RefreshTokenService.php');
+        self::assertIsString($service);
+        self::assertStringContainsString('UnitOfWork', $service);
+        self::assertStringNotContainsString('RefreshTokenPersistencePort', $service);
+    }
+
+    public function testControllersDoNotPassExceptionMessagesToInternalErrorResponses(): void
+    {
+        $violations = [];
+        foreach ($this->phpFiles(__DIR__.'/../../../src/Module') as $path) {
+            if (!str_ends_with($path, 'Controller.php')) {
+                continue;
+            }
+
+            $source = file_get_contents($path);
+            self::assertIsString($source);
+
+            if (preg_match('/ApiResponse::internalError\(\s*\$[A-Za-z_][A-Za-z0-9_]*->getMessage\(/', $source)) {
+                $violations[] = $this->relativePath($path);
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
+    public function testApiProblemExceptionsAreNotExposedByDefaultInSubscriber(): void
+    {
+        $subscriber = file_get_contents(__DIR__.'/../../../src/Shared/Infrastructure/Http/ApiExceptionSubscriber.php');
+        self::assertIsString($subscriber);
+
+        self::assertStringContainsString("PublicApiException => [\$exception->publicMessage()", $subscriber);
+        self::assertStringContainsString("ApiProblemException => [\$exception->getStatusCode() >= JsonResponse::HTTP_INTERNAL_SERVER_ERROR ? 'Une erreur interne est survenue.' : 'Requête impossible.'", $subscriber);
+        self::assertStringNotContainsString("ApiProblemException => [\$exception->getMessage()", $subscriber);
+    }
+
+    public function testSharedHttpProvidesExplicitPublicApiExceptionHierarchy(): void
+    {
+        foreach ([
+            'src/Shared/Application/Exception/AbstractPublicApiException.php',
+            'src/Shared/Application/Exception/BadRequestApiException.php',
+            'src/Shared/Application/Exception/ConflictApiException.php',
+            'src/Shared/Application/Exception/ForbiddenApiException.php',
+            'src/Shared/Application/Exception/NotFoundApiException.php',
+            'src/Shared/Application/Exception/UnprocessableApiException.php',
+            'src/Shared/Infrastructure/Http/ApiProblemResponse.php',
+        ] as $relativePath) {
+            self::assertFileExists(__DIR__.'/../../../'.$relativePath);
+        }
+    }
+
+    public function testRefreshTokenRepositoryUsesPessimisticWriteLock(): void
+    {
+        $repository = file_get_contents(__DIR__.'/../../../src/Module/Auth/Infrastructure/Repository/RefreshTokenRepository.php');
+        self::assertIsString($repository);
+        self::assertStringContainsString('LockMode::PESSIMISTIC_WRITE', $repository);
+        self::assertStringContainsString('findOneBySelectorForUpdate', $repository);
+    }
+
+    public function testSourceCodeDoesNotLogSensitiveCredentialKeys(): void
+    {
+        $violations = [];
+        $forbiddenKeys = [
+            "'authorization' =>",
+            '"authorization" =>',
+            "'cookie' =>",
+            '"cookie" =>',
+            "'refreshToken' =>",
+            '"refreshToken" =>',
+            "'passwordResetToken' =>",
+            '"passwordResetToken" =>',
+            "'password' =>",
+            '"password" =>',
+            "'app_secret' =>",
+            '"app_secret" =>',
+            "'database_url' =>",
+            '"database_url" =>',
+            "'jwt_passphrase' =>",
+            '"jwt_passphrase" =>',
+            "'stripe_secret_key' =>",
+            '"stripe_secret_key" =>',
+            "'mailer_dsn' =>",
+            '"mailer_dsn" =>',
+            "'ovh_webmail_password' =>",
+            '"ovh_webmail_password" =>',
+        ];
+
+        foreach ($this->phpFiles(__DIR__.'/../../../src') as $path) {
+            $source = file_get_contents($path);
+            self::assertIsString($source);
+
+            if (!str_contains($source, 'logger->') && !str_contains($source, '->log(')) {
+                continue;
+            }
+
+            foreach ($forbiddenKeys as $forbiddenKey) {
+                if (str_contains($source, $forbiddenKey)) {
+                    $violations[] = $this->relativePath($path).': '.$forbiddenKey;
+                }
+            }
+        }
+
+        self::assertSame([], $violations);
     }
 
     public function testUserDomainSecurityContractsDoNotImportSymfonySecurityInterfaces(): void
@@ -722,7 +881,7 @@ final class ModuleBoundaryTest extends TestCase
         $doc = file_get_contents(__DIR__.'/../../../../docs/backend-transaction-conventions.md');
         self::assertIsString($doc);
 
-        self::assertStringContainsString('UnitOfWork::commit()', $doc);
+        self::assertStringContainsString('UnitOfWork::flush()', $doc);
         self::assertStringContainsString('TransactionManager::transactional()', $doc);
         self::assertStringContainsString('outbox event', $doc);
     }

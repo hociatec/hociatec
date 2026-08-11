@@ -43,7 +43,7 @@ final readonly class OrderStatusUpdater
         $this->stateMachine->apply($order, $transition);
         $this->synchronizeOperationalState($order, $status);
         $this->persistence->persist($order);
-        $this->persistence->commit();
+        $this->persistence->flush();
 
         $this->events->log(
             $order,

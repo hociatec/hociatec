@@ -24,7 +24,7 @@ final readonly class DoctrineUnitOfWork implements UnitOfWork
         $this->entityManager->remove($entity);
     }
 
-    public function commit(): void
+    public function flush(): void
     {
         $this->entityManager->flush();
     }

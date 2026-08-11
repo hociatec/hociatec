@@ -47,7 +47,7 @@ final class AppointmentService
                 $appointment = new Appointment($user, $prestation, $startAt);
 
                 $this->persistence->persist($appointment);
-                $this->persistence->commit();
+                $this->persistence->flush();
 
                 return $appointment;
             });
@@ -115,7 +115,7 @@ final class AppointmentService
 
         $appointment->cancel();
         try {
-            $this->persistence->commit();
+            $this->persistence->flush();
         } catch (\RuntimeException $exception) {
             throw AppointmentOperationException::failed('Impossible d\'annuler ce rendez-vous.', $exception);
         }

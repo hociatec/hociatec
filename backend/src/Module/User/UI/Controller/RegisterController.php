@@ -48,9 +48,17 @@ class RegisterController extends AbstractController
         $this->dtoValidator->validate($input);
 
         try {
-            $user = $this->registerUser->register($input);
+            $this->registerUser->register($input);
         } catch (UserAlreadyExistsException $exception) {
-            return ApiResponse::error($exception->getMessage(), JsonResponse::HTTP_CONFLICT);
+            $this->logger->info('Registration request completed with an existing email.', [
+                'exception' => $exception,
+            ]);
+
+            return ApiResponse::success(
+                [],
+                JsonResponse::HTTP_ACCEPTED,
+                'Si l’adresse e-mail peut être utilisée, vous recevrez les instructions de vérification associées.',
+            );
         } catch (InvalidBirthDateException $exception) {
             return ApiResponse::error(
                 'Validation des donnees echouee.',
@@ -68,6 +76,10 @@ class RegisterController extends AbstractController
             );
         }
 
-        return ApiResponse::created($this->profiles->format($user), 'Compte créé. Vérifiez votre adresse e-mail pour activer votre compte.');
+        return ApiResponse::success(
+            [],
+            JsonResponse::HTTP_ACCEPTED,
+            'Si l’adresse e-mail peut être utilisée, vous recevrez les instructions de vérification associées.',
+        );
     }
 }

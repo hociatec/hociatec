@@ -34,8 +34,8 @@ class DeleteCategoryController extends AbstractController
 
         try {
             $this->categoryService->delete($category);
-        } catch (CatalogOperationException $exception) {
-            return ApiResponse::internalError($exception->getMessage());
+        } catch (CatalogOperationException) {
+            return ApiResponse::internalError();
         }
 
         return ApiResponse::success(['id' => $id], JsonResponse::HTTP_OK, 'La catégorie a bien été supprimée.');

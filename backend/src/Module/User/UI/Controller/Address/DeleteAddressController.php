@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\User\UI\Controller\Address;
 
-use App\Module\User\Application\Port\ShippingAddressRepositoryPort;
+use App\Module\User\Application\Workflow\CustomerAddressBookService;
 use App\Module\User\Application\Writer\ShippingAddressWriter;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
@@ -20,15 +20,14 @@ class DeleteAddressController extends AbstractController
     use AuthenticatedDomainUserTrait;
 
     public function __construct(
-        private readonly ShippingAddressRepositoryPort $addresses,
+        private readonly CustomerAddressBookService $addressBook,
         private readonly ShippingAddressWriter $writer,
     ) {
     }
 
     public function __invoke(int $id): JsonResponse
     {
-        $user = $this->currentUser();
-        $address = $this->addresses->findOneForUser($id, $user);
+        $address = $this->addressBook->findForUser($this->currentUser(), $id);
         if (null === $address) {
             return ApiResponse::error('Adresse introuvable.', JsonResponse::HTTP_NOT_FOUND);
         }

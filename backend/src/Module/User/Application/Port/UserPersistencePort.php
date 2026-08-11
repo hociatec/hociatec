@@ -12,5 +12,5 @@ interface UserPersistencePort
 
     public function remove(User $user): void;
 
-    public function commit(): void;
+    public function flush(): void;
 }

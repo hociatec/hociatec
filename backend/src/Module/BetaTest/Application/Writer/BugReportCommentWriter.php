@@ -37,7 +37,7 @@ final readonly class BugReportCommentWriter
         try {
             $this->persistence->persist($comment);
             $this->activityLogger->log($report, $author, 'comment_added', null, null, mb_substr($content, 0, 500));
-            $this->persistence->commit();
+            $this->persistence->flush();
         } catch (\RuntimeException $exception) {
             throw BetaTestOperationException::failed('Impossible d’enregistrer le commentaire bêta.', $exception);
         }

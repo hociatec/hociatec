@@ -121,18 +121,18 @@ final readonly class ProductVariantBatchCreator
         array $values,
         int $position,
     ): void {
-        $copy = $this->variants->createVariantCopy(new ProductVariantCopyData(
-            template: $product,
-            baseName: $name,
-            baseSku: $sku,
-            baseSlug: $slug,
-            variantGroup: $variantGroup,
-            color: $values['color'],
-            storageCapacity: $values['storage'],
-            stock: $values['stock'],
-            priceCents: $values['priceCents'],
-            position: $position,
-        ));
+        $copy = $this->variants->createVariantCopy(new ProductVariantCopyData([
+            'template' => $product,
+            'baseName' => $name,
+            'baseSku' => $sku,
+            'baseSlug' => $slug,
+            'variantGroup' => $variantGroup,
+            'color' => $values['color'],
+            'storageCapacity' => $values['storage'],
+            'stock' => $values['stock'],
+            'priceCents' => $values['priceCents'],
+            'position' => $position,
+        ]));
         $this->persistence->persist($copy);
     }
 }

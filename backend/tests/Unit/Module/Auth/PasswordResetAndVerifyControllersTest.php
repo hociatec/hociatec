@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Module\Auth;
 
 use App\Module\Auth\Application\Workflow\PasswordResetService;
+use App\Module\Auth\Application\Workflow\PasswordResetTokenHasher;
+use App\Module\Auth\Application\Workflow\RefreshTokenRevocationService;
 use App\Module\Auth\UI\Controller\RequestPasswordResetController;
 use App\Module\Auth\UI\Controller\ResetPasswordController;
 use App\Module\Auth\UI\Controller\VerifyAccountController;
@@ -31,20 +33,30 @@ final class PasswordResetAndVerifyControllersTest extends AuthIntegrationTestCas
             new \App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager($em),
             $passwords,
             new Outbox(new \App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork($em)),
+            new RefreshTokenRevocationService($this->refreshRepository($em)),
         );
 
         $requestController = new RequestPasswordResetController($passwordReset, $this->validator(1), new \App\Shared\Infrastructure\Http\RateLimitKeyFactory(), $this->limiter(10));
         self::assertSame(Response::HTTP_BAD_REQUEST, $requestController(Request::create('/', 'POST', [], [], [], [], '{'))->getStatusCode());
         self::assertSame(Response::HTTP_OK, $requestController(Request::create('/', 'POST', [], [], [], [], '{"email":"reset@example.com"}'))->getStatusCode());
         self::assertNotNull($user->getPasswordResetToken());
+        self::assertSame(PasswordResetTokenHasher::HASH_ALGORITHM, 'sha256');
+        self::assertSame(64, strlen((string) $user->getPasswordResetToken()));
         $passwordReset->request('missing@example.com');
 
-        $resetController = new ResetPasswordController($passwordReset, $this->validator(3), new \App\Shared\Infrastructure\Http\RateLimitKeyFactory(), $this->limiter(10));
+        $refresh = $this->refreshService($em);
+        $issued = $refresh->issueForUser($user);
+
+        $resetController = new ResetPasswordController($passwordReset, $this->validator(4), new \App\Shared\Infrastructure\Http\RateLimitKeyFactory(), $this->limiter(10));
         self::assertSame(Response::HTTP_BAD_REQUEST, $resetController('bad', Request::create('/', 'POST', [], [], [], [], '{"password":"new"}'))->getStatusCode());
         self::assertSame(Response::HTTP_BAD_REQUEST, $resetController(str_repeat('b', 64), Request::create('/', 'POST', [], [], [], [], '{'))->getStatusCode());
         self::assertSame(Response::HTTP_BAD_REQUEST, $resetController(str_repeat('d', 64), Request::create('/', 'POST', [], [], [], [], '{"password":"new-password"}'))->getStatusCode());
-        self::assertSame(Response::HTTP_OK, $resetController((string) $user->getPasswordResetToken(), Request::create('/', 'POST', [], [], [], [], '{"password":"new-password"}'))->getStatusCode());
+        $event = $em->getRepository(\App\Module\Outbox\Domain\Entity\OutboxEvent::class)->findOneBy(['type' => 'auth.password_reset_email_requested'], ['id' => 'DESC']);
+        self::assertInstanceOf(\App\Module\Outbox\Domain\Entity\OutboxEvent::class, $event);
+        $payload = $event->getPayload();
+        self::assertSame(Response::HTTP_OK, $resetController((string) ($payload['token'] ?? null), Request::create('/', 'POST', [], [], [], [], '{"password":"new-password"}'))->getStatusCode());
         self::assertSame('new-hash', $user->getPassword());
+        self::assertNull($refresh->rotate($issued['refreshToken']));
 
         $expiredReset = $this->user('expired-reset@example.com');
         $expiredReset->setPasswordResetToken(str_repeat('e', 64))->setPasswordResetTokenExpiresAt(new \DateTimeImmutable('-1 hour'));
@@ -52,11 +64,19 @@ final class PasswordResetAndVerifyControllersTest extends AuthIntegrationTestCas
         $em->flush();
         self::assertSame(Response::HTTP_BAD_REQUEST, $resetController(str_repeat('e', 64), Request::create('/', 'POST', [], [], [], [], '{"password":"new-password"}'))->getStatusCode());
 
+        $legacyReset = $this->user('legacy-reset@example.com');
+        $legacyToken = str_repeat('9', 64);
+        $legacyReset->setPasswordResetToken($legacyToken)->setPasswordResetTokenExpiresAt(new \DateTimeImmutable('+1 hour'));
+        $em->persist($legacyReset);
+        $em->flush();
+        self::assertSame(Response::HTTP_OK, $resetController($legacyToken, Request::create('/', 'POST', [], [], [], [], '{"password":"new-password"}'))->getStatusCode());
+
         $throttledRequest = new RequestPasswordResetController($passwordReset, $this->validator(1), new \App\Shared\Infrastructure\Http\RateLimitKeyFactory(), $this->limiter(0));
         self::assertSame(Response::HTTP_TOO_MANY_REQUESTS, $throttledRequest(Request::create('/', 'POST', [], [], [], [], '{"email":"reset@example.com"}'))->getStatusCode());
-        $throttledReset = new ResetPasswordController($passwordReset, $this->validator(2), new \App\Shared\Infrastructure\Http\RateLimitKeyFactory(), $this->limiter(1));
+        $throttledReset = new ResetPasswordController($passwordReset, $this->validator(3), new \App\Shared\Infrastructure\Http\RateLimitKeyFactory(), $this->limiter(1));
         self::assertSame(Response::HTTP_BAD_REQUEST, $throttledReset(str_repeat('f', 64), Request::create('/', 'POST', [], [], [], [], '{"password":"new-password"}'))->getStatusCode());
         self::assertSame(Response::HTTP_TOO_MANY_REQUESTS, $throttledReset(str_repeat('f', 64), Request::create('/', 'POST', [], [], [], [], '{"password":"new-password"}'))->getStatusCode());
+        self::assertStringNotContainsString('Unknown token', (string) $throttledReset(str_repeat('a', 64), Request::create('/', 'POST', [], [], [], [], '{"password":"new-password"}'))->getContent());
 
         $verifyUser = $this->user('verify@example.com');
         $rawToken = str_repeat('a', 64);

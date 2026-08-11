@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Auth\Application\Workflow;
 
-use App\Module\Auth\Application\Port\RefreshTokenPersistencePort;
 use App\Module\Auth\Application\Port\RefreshTokenRepositoryPort;
 use App\Module\Auth\Domain\Entity\RefreshToken;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\TransactionManager;
+use App\Shared\Application\UnitOfWork;
 
 final class RefreshTokenService
 {
@@ -17,7 +17,7 @@ final class RefreshTokenService
 
     public function __construct(
         private readonly RefreshTokenRepositoryPort $refreshTokenRepository,
-        private readonly RefreshTokenPersistencePort $persistence,
+        private readonly UnitOfWork $unitOfWork,
         private readonly TransactionManager $transactions,
         private readonly RefreshTokenRevocationService $revocations,
     ) {
@@ -31,10 +31,9 @@ final class RefreshTokenService
         return $this->transactions->transactional(function () use ($user): array {
             [$refreshToken, $plainToken, $expiresAt] = $this->createRefreshToken($user);
 
-            $this->persistence->save($refreshToken);
-            $this->persistence->commit();
+            $this->unitOfWork->persist($refreshToken);
+            $this->unitOfWork->flush();
             $this->revocations->revokeActiveTokensOverLimit($user, self::MAX_ACTIVE_SESSIONS_PER_USER);
-            $this->persistence->commit();
 
             return [
                 'refreshToken' => $plainToken,
@@ -68,8 +67,8 @@ final class RefreshTokenService
 
             $storedToken->revoke();
             [$refreshToken, $plainToken, $expiresAt] = $this->createRefreshToken($storedToken->getUser());
-            $this->persistence->save($refreshToken);
-            $this->persistence->commit();
+            $this->unitOfWork->persist($refreshToken);
+            $this->unitOfWork->flush();
             $this->revocations->revokeActiveTokensOverLimit($storedToken->getUser(), self::MAX_ACTIVE_SESSIONS_PER_USER);
 
             return [
@@ -88,17 +87,18 @@ final class RefreshTokenService
         }
         [$selector, $secret] = $parts;
 
-        $storedToken = $this->refreshTokenRepository->findOneBySelector($selector);
-        if (null === $storedToken || $storedToken->isRevoked()) {
-            return;
-        }
+        $this->transactions->transactional(function () use ($selector, $secret): void {
+            $storedToken = $this->refreshTokenRepository->findOneBySelectorForUpdate($selector);
+            if (null === $storedToken || $storedToken->isRevoked()) {
+                return;
+            }
 
-        if (!hash_equals($storedToken->getTokenHash(), hash('sha256', $secret))) {
-            return;
-        }
+            if (!hash_equals($storedToken->getTokenHash(), hash('sha256', $secret))) {
+                return;
+            }
 
-        $storedToken->revoke();
-        $this->persistence->commit();
+            $storedToken->revoke();
+        });
     }
 
     /** @return array{0: string, 1: string}|null */

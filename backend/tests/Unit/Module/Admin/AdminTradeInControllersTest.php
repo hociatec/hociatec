@@ -16,9 +16,14 @@ use App\Module\TradeIn\Domain\Enum\TradeInStatus;
 use App\Module\TradeIn\Infrastructure\Persistence\TradeInPersistence;
 use App\Module\TradeIn\Infrastructure\Repository\TradeInRequestRepository;
 use App\Module\TradeIn\Infrastructure\Storage\TradeInPrivateFileStorage;
+use App\Module\Auth\Infrastructure\Security\SymfonySecurityUser;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
+use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 
 final class AdminTradeInControllersTest extends AdminModuleIntegrationTestCase
 {
@@ -58,7 +63,19 @@ final class AdminTradeInControllersTest extends AdminModuleIntegrationTestCase
         self::assertSame(Response::HTTP_OK, $offer((int) $underReview->getId(), $this->jsonRequest(['offerCents' => 1500, 'offerExpiresAt' => '2026-08-12', 'adminNote' => 'Note'], 'PUT'))->getStatusCode());
         self::assertSame(Response::HTTP_CONFLICT, $offer((int) $accepted->getId(), $this->jsonRequest(['offerCents' => 1500], 'PUT'))->getStatusCode());
 
-        $download = new DownloadTradeInDocumentController($repository, new TradeInPrivateFileStorage($this->projectDir()), new \App\Shared\Infrastructure\Http\AttachmentResponseFactory());
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())
+            ->method('info')
+            ->with(
+                'Trade-in private document downloaded by admin.',
+                self::callback(static fn (array $context): bool => 'TR-ADM-4' === ($context['tradeInReference'] ?? null) && 'rib' === ($context['document'] ?? null))
+            );
+        $download = new DownloadTradeInDocumentController($repository, new TradeInPrivateFileStorage($this->projectDir()), new \App\Shared\Infrastructure\Http\AttachmentResponseFactory(), $logger);
+        $tokenStorage = new TokenStorage();
+        $tokenStorage->setToken(new UsernamePasswordToken(new SymfonySecurityUser($user), 'main', ['ROLE_TRADE_INS_MANAGER']));
+        $container = new Container();
+        $container->set('security.token_storage', $tokenStorage);
+        $download->setContainer($container);
         self::assertSame(Response::HTTP_OK, $download((int) $inspected->getId(), 'rib')->getStatusCode());
         try {
             $download(999, 'rib');

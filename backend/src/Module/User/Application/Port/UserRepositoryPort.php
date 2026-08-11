@@ -25,7 +25,7 @@ interface UserRepositoryPort
 
     public function findOneByVerificationTokens(string $hashedToken, string $legacyToken): ?User;
 
-    public function findOneByPasswordResetToken(string $token): ?User;
+    public function findOneByPasswordResetTokens(string $hashedToken, string $legacyToken): ?User;
 
     /** @return list<User> */
     public function findAdmins(): array;

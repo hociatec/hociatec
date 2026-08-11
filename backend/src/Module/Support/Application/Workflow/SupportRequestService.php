@@ -37,7 +37,7 @@ final readonly class SupportRequestService
         }
 
         $this->persistence->persist($support);
-        $this->persistence->commit();
+        $this->persistence->flush();
 
         return $support;
     }
@@ -57,7 +57,7 @@ final readonly class SupportRequestService
             $support->setSubject($data->subject);
         }
 
-        $this->persistence->commit();
+        $this->persistence->flush();
 
         return $support;
     }
@@ -84,7 +84,7 @@ final readonly class SupportRequestService
         $support
             ->setInternalNotes($note)
             ->setStatus($data->status ?? SupportRequest::STATUS_WAITING_CUSTOMER);
-        $this->persistence->commit();
+        $this->persistence->flush();
 
         return $support;
     }

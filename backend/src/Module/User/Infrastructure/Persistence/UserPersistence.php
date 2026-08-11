@@ -24,7 +24,7 @@ final readonly class UserPersistence implements UserPersistencePort
         $this->entityManager->remove($user);
     }
 
-    public function commit(): void
+    public function flush(): void
     {
         $this->entityManager->flush();
     }

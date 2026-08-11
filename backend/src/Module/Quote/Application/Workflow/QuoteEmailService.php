@@ -39,7 +39,7 @@ final readonly class QuoteEmailService
         }
 
         $quote->setCreatedEmailSentAt(new \DateTimeImmutable());
-        $this->persistence->commit();
+        $this->persistence->flush();
 
         return true;
     }

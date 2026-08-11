@@ -21,7 +21,7 @@ final readonly class CreateBetaCampaignHandler
     {
         $campaign = $this->payloadMapper->create($input);
         $this->persistence->persist($campaign);
-        $this->persistence->commit();
+        $this->persistence->flush();
 
         return $campaign;
     }

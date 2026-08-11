@@ -31,19 +31,45 @@ final readonly class PromotionInput
     public ?\DateTimeImmutable $startsAt;
     public ?\DateTimeImmutable $endsAt;
 
-    public function __construct(mixed ...$values)
-    {
-        $data = $this->mapValues($values);
-        $this->name = (string) $data['name'];
-        $this->slug = (string) $data['slug'];
-        $this->discountType = (string) $data['discountType'];
-        $this->discountValue = (int) $data['discountValue'];
-        $this->audienceKey = (string) $data['audienceKey'];
-        $this->criteria = $data['criteria'];
-        $this->description = $data['description'];
-        $this->isActive = (bool) $data['isActive'];
-        $this->startsAt = $data['startsAt'];
-        $this->endsAt = $data['endsAt'];
+    /**
+     * @param array{
+     *   name:string,
+     *   slug:string,
+     *   discountType:string,
+     *   discountValue:int,
+     *   audienceKey:string,
+     *   criteria:array<string,mixed>,
+     *   description:?string,
+     *   isActive:bool,
+     *   startsAt:?DateTimeImmutable,
+     *   endsAt:?DateTimeImmutable
+     * } $payload
+     */
+    public function __construct(
+        ?array $payload = null,
+    ) {
+        $payload ??= [
+            'name' => '',
+            'slug' => '',
+            'discountType' => '',
+            'discountValue' => 0,
+            'audienceKey' => '',
+            'criteria' => [],
+            'description' => null,
+            'isActive' => true,
+            'startsAt' => null,
+            'endsAt' => null,
+        ];
+        $this->name = $payload['name'];
+        $this->slug = $payload['slug'];
+        $this->discountType = $payload['discountType'];
+        $this->discountValue = $payload['discountValue'];
+        $this->audienceKey = $payload['audienceKey'];
+        $this->criteria = $payload['criteria'];
+        $this->description = $payload['description'];
+        $this->isActive = $payload['isActive'];
+        $this->startsAt = $payload['startsAt'];
+        $this->endsAt = $payload['endsAt'];
     }
 
     /** @param array<string,mixed> $payload */
@@ -52,16 +78,18 @@ final readonly class PromotionInput
         $criteria = $payload['criteria'] ?? [];
 
         return new self(
-            trim(is_string($payload['name'] ?? null) ? $payload['name'] : ''),
-            trim(is_string($payload['slug'] ?? null) ? $payload['slug'] : ''),
-            trim(is_string($payload['discountType'] ?? null) ? $payload['discountType'] : ''),
-            is_numeric($payload['discountValue'] ?? null) ? (int) $payload['discountValue'] : 0,
-            trim(is_string($payload['audienceKey'] ?? null) ? $payload['audienceKey'] : ''),
-            is_array($criteria) ? $criteria : [],
-            isset($payload['description']) && is_string($payload['description']) ? trim($payload['description']) : null,
-            (bool) ($payload['isActive'] ?? true),
-            self::date($payload['startsAt'] ?? null),
-            self::date($payload['endsAt'] ?? null),
+            [
+                'name' => trim(is_string($payload['name'] ?? null) ? $payload['name'] : ''),
+                'slug' => trim(is_string($payload['slug'] ?? null) ? $payload['slug'] : ''),
+                'discountType' => trim(is_string($payload['discountType'] ?? null) ? $payload['discountType'] : ''),
+                'discountValue' => is_numeric($payload['discountValue'] ?? null) ? (int) $payload['discountValue'] : 0,
+                'audienceKey' => trim(is_string($payload['audienceKey'] ?? null) ? $payload['audienceKey'] : ''),
+                'criteria' => is_array($criteria) ? $criteria : [],
+                'description' => isset($payload['description']) && is_string($payload['description']) ? trim($payload['description']) : null,
+                'isActive' => (bool) ($payload['isActive'] ?? true),
+                'startsAt' => self::date($payload['startsAt'] ?? null),
+                'endsAt' => self::date($payload['endsAt'] ?? null),
+            ],
         );
     }
 
@@ -78,31 +106,4 @@ final readonly class PromotionInput
         }
     }
 
-    /**
-     * @param array<int|string, mixed> $values
-     *
-     * @return array<string, mixed>
-     */
-    private function mapValues(array $values): array
-    {
-        $keys = ['name', 'slug', 'discountType', 'discountValue', 'audienceKey', 'criteria', 'description', 'isActive', 'startsAt', 'endsAt'];
-        $defaults = array_fill_keys($keys, null);
-        $defaults['name'] = '';
-        $defaults['slug'] = '';
-        $defaults['discountType'] = '';
-        $defaults['discountValue'] = 0;
-        $defaults['audienceKey'] = '';
-        $defaults['criteria'] = [];
-        $defaults['isActive'] = true;
-        foreach ($values as $index => $value) {
-            if (!is_int($index)) {
-                continue;
-            }
-            if (isset($keys[$index])) {
-                $defaults[$keys[$index]] = $value;
-            }
-        }
-
-        return array_replace($defaults, array_filter($values, 'is_string', ARRAY_FILTER_USE_KEY));
-    }
 }

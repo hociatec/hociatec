@@ -31,7 +31,7 @@ final readonly class QuotePersistence implements QuotePersistencePort
         $this->entityManager->remove($item);
     }
 
-    public function commit(): void
+    public function flush(): void
     {
         $this->entityManager->flush();
     }

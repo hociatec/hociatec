@@ -10,5 +10,5 @@ interface UnitOfWork
 
     public function remove(object $entity): void;
 
-    public function commit(): void;
+    public function flush(): void;
 }

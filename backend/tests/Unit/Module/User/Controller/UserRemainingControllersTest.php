@@ -13,6 +13,7 @@ use App\Module\User\Application\Exception\InvalidCurrentPasswordException;
 use App\Module\User\Application\Exception\InvalidProfilePasswordException;
 use App\Module\User\Application\Exception\UserAlreadyExistsException;
 use App\Module\User\Application\Projection\UserProfileFormatter;
+use App\Module\User\Application\Workflow\CustomerAddressBookService;
 use App\Module\User\Application\Workflow\DeleteAccountService;
 use App\Module\User\Application\Workflow\RegisterUserService;
 use App\Module\User\Application\Workflow\UpdateProfileService;
@@ -92,10 +93,11 @@ final class UserRemainingControllersTest extends TestCase
         ], JSON_THROW_ON_ERROR)));
         self::assertSame(201, $createdB->getStatusCode());
 
-        $update = new class($repo, $writer, $validator, $addressFormatter, $user) extends UpdateAddressController {
-            public function __construct(ShippingAddressRepository $addresses, \App\Module\User\Application\Writer\ShippingAddressWriter $writer, DtoValidator $validator, \App\Module\User\Application\Projection\ShippingAddressFormatter $formatter, private User $user)
+        $addressBook = new CustomerAddressBookService($repo, $addressFormatter);
+        $update = new class($addressBook, $writer, $validator, $addressFormatter, $user) extends UpdateAddressController {
+            public function __construct(CustomerAddressBookService $addressBook, \App\Module\User\Application\Writer\ShippingAddressWriter $writer, DtoValidator $validator, \App\Module\User\Application\Projection\ShippingAddressFormatter $formatter, private User $user)
             {
-                parent::__construct($addresses, $writer, $validator, $formatter);
+                parent::__construct($addressBook, $writer, $validator, $formatter);
             }
 
             protected function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface
@@ -249,8 +251,8 @@ final class UserRemainingControllersTest extends TestCase
             ->disableOriginalConstructor()
             ->onlyMethods(['findDefaultForUser', 'findFirstForUser'])
             ->getMock();
-        $addressRepository->expects(self::once())->method('findDefaultForUser')->willReturn(null);
-        $addressRepository->expects(self::once())->method('findFirstForUser')->willReturn(null);
+        $addressRepository->expects(self::never())->method('findDefaultForUser');
+        $addressRepository->expects(self::never())->method('findFirstForUser');
         $profiles = new UserProfileFormatter($addressRepository);
         $symfonyValidator = $this->createMock(ValidatorInterface::class);
         $symfonyValidator->expects(self::exactly(4))->method('validate')->willReturn(new ConstraintViolationList());
@@ -282,10 +284,20 @@ final class UserRemainingControllersTest extends TestCase
             new RegistrationRateLimiter(new \App\Shared\Infrastructure\Http\RateLimitKeyFactory(), $factory),
         );
         self::assertSame(429, $register(Request::create('/', 'POST', [], [], [], ['REMOTE_ADDR' => '127.0.0.1'], json_encode($this->registerPayload(), JSON_THROW_ON_ERROR)))->getStatusCode());
-        self::assertSame(409, $register(Request::create('/', 'POST', [], [], [], ['REMOTE_ADDR' => '127.0.0.2'], json_encode($this->registerPayload(), JSON_THROW_ON_ERROR)))->getStatusCode());
+        $duplicateResponse = $register(Request::create('/', 'POST', [], [], [], ['REMOTE_ADDR' => '127.0.0.2'], json_encode($this->registerPayload(), JSON_THROW_ON_ERROR)));
+        self::assertSame(202, $duplicateResponse->getStatusCode());
+        self::assertSame(
+            'Si l’adresse e-mail peut être utilisée, vous recevrez les instructions de vérification associées.',
+            json_decode((string) $duplicateResponse->getContent(), true, 512, JSON_THROW_ON_ERROR)['message'],
+        );
         self::assertSame(422, $register(Request::create('/', 'POST', [], [], [], ['REMOTE_ADDR' => '127.0.0.3'], json_encode($this->registerPayload(), JSON_THROW_ON_ERROR)))->getStatusCode());
         self::assertSame(503, $register(Request::create('/', 'POST', [], [], [], ['REMOTE_ADDR' => '127.0.0.4'], json_encode($this->registerPayload(), JSON_THROW_ON_ERROR)))->getStatusCode());
-        self::assertSame(201, $register(Request::create('/', 'POST', [], [], [], ['REMOTE_ADDR' => '127.0.0.5'], json_encode($this->registerPayload(), JSON_THROW_ON_ERROR)))->getStatusCode());
+        $createdResponse = $register(Request::create('/', 'POST', [], [], [], ['REMOTE_ADDR' => '127.0.0.5'], json_encode($this->registerPayload(), JSON_THROW_ON_ERROR)));
+        self::assertSame(202, $createdResponse->getStatusCode());
+        self::assertSame(
+            'Si l’adresse e-mail peut être utilisée, vous recevrez les instructions de vérification associées.',
+            json_decode((string) $createdResponse->getContent(), true, 512, JSON_THROW_ON_ERROR)['message'],
+        );
     }
 
     private function user(): User

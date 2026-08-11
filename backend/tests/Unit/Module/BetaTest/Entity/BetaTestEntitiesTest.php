@@ -24,21 +24,21 @@ final class BetaTestEntitiesTest extends TestCase
     public function testBetaTesterProfileInstantiation(): void
     {
         $user = $this->createMock(User::class);
-        $profile = new BetaTesterProfile(
-            $user,
-            ['evening'],
-            'I want to help',
-            'None',
-            'I can do it',
-            'Some',
-            'none',
-            [],
-            [],
-            [],
-            [],
-            new \DateTimeImmutable(),
-            '2026-07-26'
-        );
+        $profile = new BetaTesterProfile([
+            'user' => $user,
+            'availability' => ['evening'],
+            'motivation' => 'I want to help',
+            'testingExperience' => 'None',
+            'bugDescriptionAbility' => 'I can do it',
+            'technicalKnowledge' => 'Some',
+            'accessibilityNeed' => 'none',
+            'assistiveTools' => [],
+            'devices' => [],
+            'browsers' => [],
+            'testingTypes' => [],
+            'consentAt' => new \DateTimeImmutable(),
+            'privacyNoticeVersion' => '2026-07-26',
+        ]);
 
         self::assertSame($user, $profile->getUser());
         self::assertSame('pending', $profile->getStatus());
@@ -49,16 +49,16 @@ final class BetaTestEntitiesTest extends TestCase
     {
         $user = $this->createMock(User::class);
         $campaign = new BetaCampaign('Campaign', 'Desc');
-        $bugReport = new BugReport(
-            $user,
-            $campaign,
-            'A bug',
-            'Bug description',
-            'Expected behavior',
-            'Actual behavior',
-            'high',
-            'https://example.com'
-        );
+        $bugReport = new BugReport([
+            'reporter' => $user,
+            'campaign' => $campaign,
+            'title' => 'A bug',
+            'description' => 'Bug description',
+            'expectedBehavior' => 'Expected behavior',
+            'actualBehavior' => 'Actual behavior',
+            'severity' => 'high',
+            'pageUrl' => 'https://example.com',
+        ]);
 
         self::assertSame($user, $bugReport->getReporter());
         self::assertSame($campaign, $bugReport->getCampaign());

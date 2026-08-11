@@ -8,5 +8,5 @@ interface RatingPersistencePort
 {
     public function persist(object $entity): void;
 
-    public function commit(): void;
+    public function flush(): void;
 }

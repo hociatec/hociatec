@@ -44,8 +44,8 @@ class CreateBrandController extends AbstractController
             $brand = $this->brandService->create($input->name);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY);
-        } catch (CatalogOperationException $exception) {
-            return ApiResponse::internalError($exception->getMessage());
+        } catch (CatalogOperationException) {
+            return ApiResponse::internalError();
         }
 
         return ApiResponse::created($this->catalogFormatter->formatBrand($brand), 'La marque a bien été créée.');

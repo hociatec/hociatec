@@ -15,26 +15,28 @@ final readonly class ProductAdminListQueryMapper
     public function fromRequest(Request $request): ProductAdminListQuery
     {
         return new ProductAdminListQuery(
-            max(1, $request->query->getInt('page', 1)),
-            max(1, min(self::MAX_PER_PAGE, $request->query->getInt('perPage', self::DEFAULT_PER_PAGE))),
-            $this->string($request->query->get('category')),
-            $this->string($request->query->get('search')),
-            $this->boolean($request, 'featured'),
-            $this->choice($request->query->get('sellingType'), ['sale', 'rental']),
-            $this->price($request->query->get('minPrice')),
-            $this->price($request->query->get('maxPrice')),
-            'low' === $this->string($request->query->get('stock')),
-            $this->choice($request->query->get('sort'), [
-                'relevance',
-                'price_asc',
-                'price_desc',
-                'release_year_desc',
-                'release_year_asc',
-                'name_desc',
-                'stock_desc',
-                'stock_asc',
-                'created_desc',
-            ]),
+            [
+                'page' => max(1, $request->query->getInt('page', 1)),
+                'perPage' => max(1, min(self::MAX_PER_PAGE, $request->query->getInt('perPage', self::DEFAULT_PER_PAGE))),
+                'categorySlug' => $this->string($request->query->get('category')),
+                'search' => $this->string($request->query->get('search')),
+                'featured' => $this->boolean($request, 'featured'),
+                'sellingType' => $this->choice($request->query->get('sellingType'), ['sale', 'rental']),
+                'minPriceCents' => $this->price($request->query->get('minPrice')),
+                'maxPriceCents' => $this->price($request->query->get('maxPrice')),
+                'lowStock' => 'low' === $this->string($request->query->get('stock')),
+                'sort' => $this->choice($request->query->get('sort'), [
+                    'relevance',
+                    'price_asc',
+                    'price_desc',
+                    'release_year_desc',
+                    'release_year_asc',
+                    'name_desc',
+                    'stock_desc',
+                    'stock_asc',
+                    'created_desc',
+                ]),
+            ],
         );
     }
 

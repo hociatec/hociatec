@@ -81,20 +81,20 @@ final class ProductCatalogRulesTest extends TestCase
         int $priceCents,
         int $stock,
     ): ProductCoreWriteData {
-        return new ProductCoreWriteData(
-            $name,
-            $sku,
-            null,
-            $description,
-            $shortDescription,
-            $priceCents,
-            $stock,
-            true,
-            false,
-            new Category('Phones', 'phones'),
-            null,
-            'sale',
-            null,
-        );
+        return new ProductCoreWriteData([
+            'name' => $name,
+            'sku' => $sku,
+            'slug' => null,
+            'description' => $description,
+            'shortDescription' => $shortDescription,
+            'priceCents' => $priceCents,
+            'stock' => $stock,
+            'isPublished' => true,
+            'isFeaturedHome' => false,
+            'category' => new Category('Phones', 'phones'),
+            'imageAlt' => null,
+            'sellingType' => 'sale',
+            'brand' => null,
+        ]);
     }
 }

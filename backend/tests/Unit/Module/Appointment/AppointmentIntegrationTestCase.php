@@ -115,7 +115,7 @@ abstract class AppointmentIntegrationTestCase extends TestCase
                 {
                 }
 
-                public function commit(): void
+                public function flush(): void
                 {
                     throw new \RuntimeException('storage down');
                 }

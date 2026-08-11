@@ -45,7 +45,7 @@ final class StripeWebhookService
             $received = new StripeWebhookEvent($eventId, $type);
             try {
                 $this->persistence->save($received);
-                $this->persistence->commit();
+                $this->persistence->flush();
             } catch (UniqueConstraintViolationException) {
                 $received = $this->events->findOneByStripeEventId($eventId);
                 if ($received?->isProcessed()) {
@@ -75,12 +75,12 @@ final class StripeWebhookService
                 ],
             };
             $received?->markProcessed();
-            $this->persistence->commit();
+            $this->persistence->flush();
 
             return ['eventId' => $eventId] + $result;
         } catch (\RuntimeException $exception) {
             $received?->markFailed($exception->getMessage());
-            $this->persistence->commit();
+            $this->persistence->flush();
             throw $exception;
         }
     }

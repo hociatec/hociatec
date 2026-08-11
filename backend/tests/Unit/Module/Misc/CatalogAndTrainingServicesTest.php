@@ -33,7 +33,7 @@ final class CatalogAndTrainingServicesTest extends TestCase
         $entityManager->expects(self::once())->method('remove')->with($entity);
 
         $persistence->save($entity);
-        $persistence->commit();
+        $persistence->flush();
         $persistence->delete($entity);
     }
 
@@ -220,19 +220,19 @@ final class CatalogAndTrainingServicesTest extends TestCase
         $writer->save($training);
         $writer->delete($training);
 
-        $input = new TrainingInput(
-            ' Formation Réseau ',
-            null,
-            ' Court ',
-            ' Objectif ',
-            ' Audience ',
-            ' Infra & Cloud ',
-            10,
-            2500,
-            ['remote', 'invalid'],
-            [' Intro ', ' ', ' Atelier '],
-            false,
-        );
+        $input = new TrainingInput([
+            'title' => ' Formation Réseau ',
+            'slug' => null,
+            'shortDescription' => ' Court ',
+            'objective' => ' Objectif ',
+            'audience' => ' Audience ',
+            'category' => ' Infra & Cloud ',
+            'durationMinutes' => 10,
+            'priceCents' => 2500,
+            'availableFormats' => ['remote', 'invalid'],
+            'roadmap' => [' Intro ', ' ', ' Atelier '],
+            'isActive' => false,
+        ]);
 
         $writer->apply($training, $input);
 
@@ -296,19 +296,19 @@ final class CatalogAndTrainingServicesTest extends TestCase
         self::assertSame(['onsite'], $training->getAvailableFormats());
         self::assertCount(0, $training->getRoadmapItems());
 
-        $writer->apply($training, new TrainingInput(
-            'Titre brut',
-            null,
-            null,
-            null,
-            null,
-            null,
-            90,
-            2200,
-            [],
-            [],
-            true,
-        ));
+        $writer->apply($training, new TrainingInput([
+            'title' => 'Titre brut',
+            'slug' => null,
+            'shortDescription' => null,
+            'objective' => null,
+            'audience' => null,
+            'category' => null,
+            'durationMinutes' => 90,
+            'priceCents' => 2200,
+            'availableFormats' => [],
+            'roadmap' => [],
+            'isActive' => true,
+        ]));
 
         self::assertSame(['onsite'], $training->getAvailableFormats());
 

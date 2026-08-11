@@ -23,9 +23,37 @@ final readonly class TrainingSessionInput
     public ?string $meetingUrl;
     public string $status;
 
-    public function __construct(mixed ...$values)
+    /**
+     * @param array{
+     *   trainingId?: int,
+     *   startsAt?: \DateTimeImmutable,
+     *   endsAt?: \DateTimeImmutable,
+     *   dailyStartTime?: \DateTimeImmutable,
+     *   dailyEndTime?: \DateTimeImmutable,
+     *   includeWeekends?: bool,
+     *   format?: string,
+     *   capacity?: int,
+     *   location?: ?string,
+     *   meetingUrl?: ?string,
+     *   status?: string
+     * }|null $payload
+     */
+    public function __construct(?array $payload = null)
     {
-        $data = $this->mapValues($values);
+        $now = new \DateTimeImmutable();
+        $data = array_replace([
+            'trainingId' => 0,
+            'startsAt' => $now,
+            'endsAt' => $now->modify('+1 day'),
+            'dailyStartTime' => new \DateTimeImmutable('08:00'),
+            'dailyEndTime' => new \DateTimeImmutable('20:00'),
+            'includeWeekends' => true,
+            'format' => 'onsite',
+            'capacity' => 1,
+            'location' => null,
+            'meetingUrl' => null,
+            'status' => 'scheduled',
+        ], $payload ?? []);
         $this->trainingId = (int) $data['trainingId'];
         $this->startsAt = $data['startsAt'];
         $this->endsAt = $data['endsAt'];
@@ -51,49 +79,18 @@ final readonly class TrainingSessionInput
             throw new \InvalidArgumentException('Dates de session invalides.', previous: $exception);
         }
 
-        return new self(
-            is_numeric($payload['trainingId'] ?? null) ? (int) $payload['trainingId'] : 0,
-            $startsAt,
-            $endsAt,
-            $dailyStart,
-            $dailyEnd,
-            is_bool($payload['includeWeekends'] ?? null) ? $payload['includeWeekends'] : true,
-            in_array($payload['format'] ?? null, ['onsite', 'remote'], true) ? $payload['format'] : 'onsite',
-            max(1, is_numeric($payload['capacity'] ?? null) ? (int) $payload['capacity'] : 1),
-            is_string($payload['location'] ?? null) ? trim($payload['location']) : null,
-            is_string($payload['meetingUrl'] ?? null) ? trim($payload['meetingUrl']) : null,
-            is_string($payload['status'] ?? null) && '' !== trim($payload['status']) ? trim($payload['status']) : 'scheduled',
-        );
-    }
-
-    /**
-     * @param array<int|string, mixed> $values
-     *
-     * @return array<string, mixed>
-     */
-    private function mapValues(array $values): array
-    {
-        $now = new \DateTimeImmutable();
-        $keys = ['trainingId', 'startsAt', 'endsAt', 'dailyStartTime', 'dailyEndTime', 'includeWeekends', 'format', 'capacity', 'location', 'meetingUrl', 'status'];
-        $defaults = array_fill_keys($keys, null);
-        $defaults['trainingId'] = 0;
-        $defaults['startsAt'] = $now;
-        $defaults['endsAt'] = $now->modify('+1 day');
-        $defaults['dailyStartTime'] = new \DateTimeImmutable('08:00');
-        $defaults['dailyEndTime'] = new \DateTimeImmutable('20:00');
-        $defaults['includeWeekends'] = true;
-        $defaults['format'] = 'onsite';
-        $defaults['capacity'] = 1;
-        $defaults['status'] = 'scheduled';
-        foreach ($values as $index => $value) {
-            if (!is_int($index)) {
-                continue;
-            }
-            if (isset($keys[$index])) {
-                $defaults[$keys[$index]] = $value;
-            }
-        }
-
-        return array_replace($defaults, array_filter($values, 'is_string', ARRAY_FILTER_USE_KEY));
+        return new self([
+            'trainingId' => is_numeric($payload['trainingId'] ?? null) ? (int) $payload['trainingId'] : 0,
+            'startsAt' => $startsAt,
+            'endsAt' => $endsAt,
+            'dailyStartTime' => $dailyStart,
+            'dailyEndTime' => $dailyEnd,
+            'includeWeekends' => is_bool($payload['includeWeekends'] ?? null) ? $payload['includeWeekends'] : true,
+            'format' => in_array($payload['format'] ?? null, ['onsite', 'remote'], true) ? $payload['format'] : 'onsite',
+            'capacity' => max(1, is_numeric($payload['capacity'] ?? null) ? (int) $payload['capacity'] : 1),
+            'location' => is_string($payload['location'] ?? null) ? trim($payload['location']) : null,
+            'meetingUrl' => is_string($payload['meetingUrl'] ?? null) ? trim($payload['meetingUrl']) : null,
+            'status' => is_string($payload['status'] ?? null) && '' !== trim($payload['status']) ? trim($payload['status']) : 'scheduled',
+        ]);
     }
 }

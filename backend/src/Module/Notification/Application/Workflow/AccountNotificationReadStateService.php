@@ -54,7 +54,7 @@ final readonly class AccountNotificationReadStateService
         $formatted = $this->format($state);
         try {
             $user->setAccountNotificationsSeenSignature(json_encode($formatted, JSON_THROW_ON_ERROR));
-            $this->persistence->commit();
+            $this->persistence->flush();
         } catch (\JsonException|\RuntimeException $exception) {
             throw NotificationOperationException::failed('Impossible de mettre à jour l’état de lecture des notifications.', $exception);
         }
@@ -111,14 +111,17 @@ final readonly class AccountNotificationReadStateService
     /**
      * @return list<string>
      */
-    private function normalize(mixed $keys): array
+    /** @param iterable<mixed>|string|null $keys */
+    private function normalize(iterable|string|null $keys): array
     {
-        if (!is_array($keys)) {
-            return [];
+        if (is_string($keys) || null === $keys) {
+            $items = [];
+        } else {
+            $items = is_array($keys) ? $keys : iterator_to_array($keys, false);
         }
 
         $normalized = [];
-        foreach ($keys as $key) {
+        foreach ($items as $key) {
             if (!is_string($key)) {
                 continue;
             }
@@ -137,7 +140,8 @@ final readonly class AccountNotificationReadStateService
      *
      * @return list<string>
      */
-    private function merge(array $existingKeys, mixed $newKeys): array
+    /** @param list<string> $newKeys */
+    private function merge(array $existingKeys, array $newKeys): array
     {
         return $this->normalize([...$existingKeys, ...$this->normalize($newKeys)]);
     }

@@ -9,6 +9,7 @@ use App\Module\Notification\Application\Writer\CommunicationPreferenceUpdater;
 use App\Module\Notification\Domain\Exception\NotificationOperationException;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -41,9 +42,9 @@ final class CommunicationPreferencesController extends AbstractController
         try {
             $this->updater->update($user, is_array($payload['preferences'] ?? null) ? $payload['preferences'] : []);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), JsonResponse::HTTP_UNPROCESSABLE_ENTITY);
-        } catch (NotificationOperationException $exception) {
-            return ApiResponse::internalError($exception->getMessage());
+            return ApiProblemResponse::fromThrowable($exception, 'Préférences de communication invalides.', JsonResponse::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (NotificationOperationException) {
+            return ApiResponse::internalError();
         }
 
         return ApiResponse::success($this->payload($user), JsonResponse::HTTP_OK, 'Préférences enregistrées.');

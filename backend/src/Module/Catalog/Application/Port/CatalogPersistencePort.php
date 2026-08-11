@@ -8,7 +8,7 @@ interface CatalogPersistencePort
 {
     public function save(object $entity): void;
 
-    public function commit(): void;
+    public function flush(): void;
 
     public function delete(object $entity): void;
 }

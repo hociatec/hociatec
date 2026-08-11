@@ -18,13 +18,18 @@ final class CommunicationPreferences
     }
 
     /** @return list<string> */
-    public static function normalize(mixed $value): array
+    /** @param iterable<string>|string|null $value */
+    public static function normalize(iterable|string|null $value): array
     {
-        $items = is_array($value) ? $value : [];
+        if (is_string($value) || null === $value) {
+            $items = [];
+        } else {
+            $items = is_array($value) ? $value : iterator_to_array($value, false);
+        }
 
         return array_values(array_unique(array_filter(
             $items,
-            static fn (mixed $item): bool => is_string($item) && in_array($item, self::allowed(), true),
+            static fn (string $item): bool => in_array($item, self::allowed(), true),
         )));
     }
 

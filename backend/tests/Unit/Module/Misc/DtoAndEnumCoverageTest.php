@@ -132,9 +132,39 @@ final class DtoAndEnumCoverageTest extends TestCase
         $checkout = CheckoutInput::fromArray(['addressId' => '12']);
         self::assertSame(12, $checkout->addressId);
 
-        $criteria = new ProductSearchCriteria(3, 20, 'phones', 'iphone', true, 'sale', 'Apple', '256Go', '8Go', 'Black', 10000, 20000, true, 'price_desc');
+        $criteria = new ProductSearchCriteria([
+            'page' => 3,
+            'perPage' => 20,
+            'categorySlug' => 'phones',
+            'search' => 'iphone',
+            'onlyFeatured' => true,
+            'sellingType' => 'sale',
+            'brand' => 'Apple',
+            'storageCapacity' => '256Go',
+            'memoryRam' => '8Go',
+            'color' => 'Black',
+            'minPriceCents' => 10000,
+            'maxPriceCents' => 20000,
+            'inStockOnly' => true,
+            'sort' => 'price_desc',
+        ]);
         self::assertSame(40, $criteria->offset());
-        self::assertEquals(new ProductCatalogCriteria('phones', 'iphone', true, 'sale', 'Apple', '256Go', '8Go', 'Black', 10000, 20000, true, 'price_desc', 20, 40), $criteria->criteria());
+        self::assertEquals(new ProductCatalogCriteria([
+            'categorySlug' => 'phones',
+            'search' => 'iphone',
+            'onlyFeatured' => true,
+            'sellingType' => 'sale',
+            'brand' => 'Apple',
+            'storageCapacity' => '256Go',
+            'memoryRam' => '8Go',
+            'color' => 'Black',
+            'minPriceCents' => 10000,
+            'maxPriceCents' => 20000,
+            'inStockOnly' => true,
+            'sort' => 'price_desc',
+            'limit' => 20,
+            'offset' => 40,
+        ]), $criteria->criteria());
 
         $share = ShareProductInput::fromPayload(['email' => '  Ada@Example.COM ']);
         self::assertSame('ada@example.com', $share->email);

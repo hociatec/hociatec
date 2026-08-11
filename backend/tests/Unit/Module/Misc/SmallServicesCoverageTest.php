@@ -81,7 +81,7 @@ final class SmallServicesCoverageTest extends TestCase
         $entityManager->expects(self::once())->method('flush');
         $entityManager->expects(self::once())->method('remove')->with($quote);
         $persistence->save($quote);
-        $persistence->commit();
+        $persistence->flush();
         $persistence->delete($quote);
 
         $entityManager2 = $this->createMock(EntityManagerInterface::class);
@@ -126,7 +126,16 @@ final class SmallServicesCoverageTest extends TestCase
         self::assertSame(Quote::STATUS_SENT, $quote->getStatus());
         self::assertInstanceOf(\DateTimeImmutable::class, $quote->getCreatedEmailSentAt());
 
-        $input = new QuoteItemAddition(null, null, null, null, 2, 20.0, null, 50);
+        $input = new QuoteItemAddition([
+            'name' => null,
+            'unitPriceCents' => null,
+            'description' => null,
+            'unit' => null,
+            'quantity' => 2,
+            'vatRate' => 20.0,
+            'vatRateBps' => null,
+            'discountCents' => 50,
+        ]);
         $workflow->addProductItem($quote, $product, $input);
 
         self::assertCount(2, $quote->getItems());

@@ -234,7 +234,7 @@ final class AdminMarketingControllersTest extends TestCase
                         (new \ReflectionObject($entity))->getProperty('id')->setValue($entity, 77);
                     }
                     public function remove(object $entity): void {}
-                    public function commit(): void {}
+                    public function flush(): void {}
                 },
                 new class implements TransactionManager {
                     public function transactional(\Closure $operation): mixed

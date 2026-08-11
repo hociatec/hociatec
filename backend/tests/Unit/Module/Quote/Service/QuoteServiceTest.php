@@ -37,19 +37,41 @@ final class QuoteServiceTest extends TestCase
         $product = $this->rentalProduct();
         $service = $this->service(number: 'DEV-2026-0002', product: $product);
 
-        $payload = new QuotePayload(
-            ['name' => ' Ada ', 'email' => ' ada@example.com ', 'company' => ' Hociatec ', 'address' => ' Paris '],
-            ' Envoyé ',
-            Money::fromCents(500),
-            Money::fromCents(1500),
-            null,
-            null,
-            null,
-            [
-                new QuoteItemPayload('', 11, null, null, ' Ligne produit ', null, 2, 2000, 100, null),
-                new QuoteItemPayload('', null, 5, null, null, null, 1, 0, 0, null),
+        $payload = new QuotePayload([
+            'customer' => ['name' => ' Ada ', 'email' => ' ada@example.com ', 'company' => ' Hociatec ', 'address' => ' Paris '],
+            'status' => ' Envoyé ',
+            'discount' => Money::fromCents(500),
+            'shipping' => Money::fromCents(1500),
+            'conditions' => null,
+            'validFrom' => null,
+            'validUntil' => null,
+            'items' => [
+                new QuoteItemPayload([
+                    'name' => '',
+                    'productId' => 11,
+                    'serviceId' => null,
+                    'unitPriceCents' => null,
+                    'description' => ' Ligne produit ',
+                    'unit' => null,
+                    'quantity' => 2,
+                    'vatRateBps' => 2000,
+                    'discountCents' => 100,
+                    'type' => null,
+                ]),
+                new QuoteItemPayload([
+                    'name' => '',
+                    'productId' => null,
+                    'serviceId' => 5,
+                    'unitPriceCents' => null,
+                    'description' => null,
+                    'unit' => null,
+                    'quantity' => 1,
+                    'vatRateBps' => 0,
+                    'discountCents' => 0,
+                    'type' => null,
+                ]),
             ],
-        );
+        ]);
 
         $quote = $service->createFromPayload($payload);
         $totals = $service->computeTotals($quote);
@@ -112,16 +134,27 @@ final class QuoteServiceTest extends TestCase
 
         $updated = $service->updateFromPayload(
             $quote,
-            new QuotePayload(
-                ['name' => 'Client'],
-                '   ',
-                Money::fromCents(0),
-                Money::fromCents(0),
-                ' Conditions mises à jour ',
-                '2026-08-01',
-                '2026-08-15',
-                [new QuoteItemPayload('Service', null, null, 5000, ' Desc ', ' heure ', 2, 2000, 300, QuoteItem::TYPE_SERVICE)],
-            ),
+            new QuotePayload([
+                'customer' => ['name' => 'Client'],
+                'status' => '   ',
+                'discount' => Money::fromCents(0),
+                'shipping' => Money::fromCents(0),
+                'conditions' => ' Conditions mises à jour ',
+                'validFrom' => '2026-08-01',
+                'validUntil' => '2026-08-15',
+                'items' => [new QuoteItemPayload([
+                    'name' => 'Service',
+                    'productId' => null,
+                    'serviceId' => null,
+                    'unitPriceCents' => 5000,
+                    'description' => ' Desc ',
+                    'unit' => ' heure ',
+                    'quantity' => 2,
+                    'vatRateBps' => 2000,
+                    'discountCents' => 300,
+                    'type' => QuoteItem::TYPE_SERVICE,
+                ])],
+            ]),
         );
 
         self::assertSame($quote, $updated);

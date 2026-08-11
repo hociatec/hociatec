@@ -10,7 +10,7 @@ interface PrestationPersistencePort
 {
     public function save(Prestation $prestation): void;
 
-    public function commit(): void;
+    public function flush(): void;
 
     public function delete(Prestation $prestation): void;
 }

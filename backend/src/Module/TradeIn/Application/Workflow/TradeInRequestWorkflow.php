@@ -43,7 +43,7 @@ readonly class TradeInRequestWorkflow
             $request->setRib($stored['path'], $stored['originalName'], $stored['size'], $stored['sha256']);
         }
         $this->persistence->save($request);
-        $this->persistence->commit();
+        $this->persistence->flush();
         $this->notifications->sendCreated($request);
 
         return $request;
@@ -57,7 +57,7 @@ readonly class TradeInRequestWorkflow
         }
         $request->setStatus($status);
         $this->persistence->save($request);
-        $this->persistence->commit();
+        $this->persistence->flush();
         if ($previous !== $status) {
             $this->notifications->sendStatusChanged($request);
         }
@@ -70,7 +70,7 @@ readonly class TradeInRequestWorkflow
         }
         $request->setOffer($offerCents, $expiresAt)->setAdminNote($note)->setStatus(TradeInStatus::OFFER_SENT);
         $this->persistence->save($request);
-        $this->persistence->commit();
+        $this->persistence->flush();
         $this->notifications->sendStatusChanged($request);
     }
 

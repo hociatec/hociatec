@@ -44,12 +44,13 @@ class AuthenticationFailureHandler implements AuthenticationFailureHandlerInterf
     private function translateMessage(string $messageKey, array $data): string
     {
         return match ($messageKey) {
-            'Bad credentials.', 'Invalid credentials.' => 'Identifiants invalides.',
-            'Authentication credentials could not be found.' => 'Les identifiants d\'authentification sont introuvables.',
-            'Account is disabled.' => 'Le compte est désactivé.',
-            'Account is locked.' => 'Le compte est bloqué.',
-            'Account has expired.' => 'Le compte a expiré.',
-            'Credentials have expired.' => 'Les identifiants ont expiré.',
+            'Bad credentials.',
+            'Invalid credentials.',
+            'Authentication credentials could not be found.',
+            'Account is disabled.',
+            'Account is locked.',
+            'Account has expired.',
+            'Credentials have expired.' => 'Identifiants invalides.',
             'Too many failed login attempts, please try again later.' => 'Trop de tentatives de connexion échouées, veuillez réessayer plus tard.',
             'Too many failed login attempts, please try again in %minutes% minute.' => sprintf(
                 'Trop de tentatives de connexion échouées, veuillez réessayer dans %s minute.',

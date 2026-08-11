@@ -56,7 +56,7 @@ final class AdminCatalogWriteControllersTest extends TestCase
 
         $failingPersistence = new class implements CatalogPersistencePort {
             public function save(object $entity): void {}
-            public function commit(): void { throw new \RuntimeException('db down'); }
+            public function flush(): void { throw new \RuntimeException('db down'); }
             public function delete(object $entity): void {}
         };
         $failingService = new BrandService($repository, $this->createMock(ProductRepository::class), $failingPersistence);
@@ -116,7 +116,7 @@ final class AdminCatalogWriteControllersTest extends TestCase
 
         $failingPersistence = new class implements CatalogPersistencePort {
             public function save(object $entity): void {}
-            public function commit(): void { throw new \RuntimeException('db down'); }
+            public function flush(): void { throw new \RuntimeException('db down'); }
             public function delete(object $entity): void {}
         };
         $failingService = new CategoryCatalogWorkflow($repository, $failingPersistence);

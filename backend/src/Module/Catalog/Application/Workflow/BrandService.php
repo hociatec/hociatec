@@ -41,7 +41,7 @@ final class BrandService
         $brand = new Brand($normalizedName);
         try {
             $this->persistence->save($brand);
-            $this->persistence->commit();
+            $this->persistence->flush();
         } catch (\RuntimeException $exception) {
             throw CatalogOperationException::failed('Impossible de créer la marque.', $exception);
         }
@@ -57,7 +57,7 @@ final class BrandService
 
         $brand->setName($normalizedName);
         try {
-            $this->persistence->commit();
+            $this->persistence->flush();
         } catch (\RuntimeException $exception) {
             throw CatalogOperationException::failed('Impossible de mettre à jour la marque.', $exception);
         }
@@ -70,7 +70,7 @@ final class BrandService
         try {
             $this->productRepository->clearBrand($brand);
             $this->persistence->delete($brand);
-            $this->persistence->commit();
+            $this->persistence->flush();
         } catch (\RuntimeException $exception) {
             throw CatalogOperationException::failed('Impossible de supprimer la marque.', $exception);
         }

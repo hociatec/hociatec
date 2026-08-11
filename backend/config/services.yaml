@@ -13,6 +13,7 @@ parameters:
     env(BACKUP_ENCRYPTION_KEY_FILE): '/etc/hociatec/backup.key'
     env(METRICS_TOKEN): ''
     env(OUTBOX_ALERT_WEBHOOK_URL): ''
+    env(CLAMSCAN_BINARY): 'clamscan'
 
 services:
     # default configuration for services in *this* file
@@ -82,6 +83,10 @@ services:
         arguments:
             $frontendUrl: '%env(APP_FRONTEND_URL)%'
             $mailerFrom: '%env(MAILER_FROM)%'
+
+    App\Module\TradeIn\Infrastructure\Storage\TradeInPrivateFileStorage:
+        arguments:
+            $clamScanBinary: '%env(CLAMSCAN_BINARY)%'
 
     App\Shared\Infrastructure\Http\CsrfTokenService:
         arguments:

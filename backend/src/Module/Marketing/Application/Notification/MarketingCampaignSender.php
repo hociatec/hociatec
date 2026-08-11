@@ -44,7 +44,7 @@ final readonly class MarketingCampaignSender
 
         $this->transactions->transactional(function () use ($campaign): void {
             $this->persistence->persist($campaign);
-            $this->persistence->commit();
+            $this->persistence->flush();
             $campaignId = $campaign->getId();
             if (!is_int($campaignId)) {
                 throw new \RuntimeException('Impossible de préparer la campagne marketing sans identifiant.');

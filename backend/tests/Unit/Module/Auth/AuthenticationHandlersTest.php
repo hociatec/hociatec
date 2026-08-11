@@ -34,13 +34,21 @@ final class AuthenticationHandlersTest extends AuthIntegrationTestCase
         $dispatcher->expects(self::exactly(11))->method('dispatch')->willReturnArgument(0);
         $failure = new AuthenticationFailureHandler($dispatcher);
 
-        self::assertSame(Response::HTTP_UNAUTHORIZED, $failure->onAuthenticationFailure(Request::create('/'), new AuthenticationException('Bad credentials.'))->getStatusCode());
-        self::assertSame(Response::HTTP_UNAUTHORIZED, $failure->onAuthenticationFailure(Request::create('/'), $this->authException('Invalid credentials.', []))->getStatusCode());
-        self::assertSame(Response::HTTP_UNAUTHORIZED, $failure->onAuthenticationFailure(Request::create('/'), $this->authException('Authentication credentials could not be found.', []))->getStatusCode());
-        self::assertSame(Response::HTTP_UNAUTHORIZED, $failure->onAuthenticationFailure(Request::create('/'), $this->authException('Account is disabled.', []))->getStatusCode());
-        self::assertSame(Response::HTTP_UNAUTHORIZED, $failure->onAuthenticationFailure(Request::create('/'), $this->authException('Account is locked.', []))->getStatusCode());
-        self::assertSame(Response::HTTP_UNAUTHORIZED, $failure->onAuthenticationFailure(Request::create('/'), $this->authException('Account has expired.', []))->getStatusCode());
-        self::assertSame(Response::HTTP_UNAUTHORIZED, $failure->onAuthenticationFailure(Request::create('/'), $this->authException('Credentials have expired.', []))->getStatusCode());
+        foreach ([
+            $this->authException('Bad credentials.', []),
+            $this->authException('Invalid credentials.', []),
+            $this->authException('Authentication credentials could not be found.', []),
+            $this->authException('Account is disabled.', []),
+            $this->authException('Account is locked.', []),
+            $this->authException('Account has expired.', []),
+            $this->authException('Credentials have expired.', []),
+        ] as $exception) {
+            $response = $failure->onAuthenticationFailure(Request::create('/'), $exception);
+            self::assertSame(Response::HTTP_UNAUTHORIZED, $response->getStatusCode());
+            $payload = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+            self::assertSame('Identifiants invalides.', $payload['message']);
+        }
+
         self::assertSame(Response::HTTP_UNAUTHORIZED, $failure->onAuthenticationFailure(Request::create('/'), $this->authException('Too many failed login attempts, please try again later.', []))->getStatusCode());
         self::assertSame(Response::HTTP_UNAUTHORIZED, $failure->onAuthenticationFailure(Request::create('/'), $this->authException('Too many failed login attempts, please try again in %minutes% minute.', ['%minutes%' => 1]))->getStatusCode());
         self::assertSame(Response::HTTP_UNAUTHORIZED, $failure->onAuthenticationFailure(Request::create('/'), $this->authException('Too many failed login attempts, please try again in %minutes% minutes.', ['%minutes%' => 3]))->getStatusCode());

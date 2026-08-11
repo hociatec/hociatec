@@ -19,6 +19,8 @@ use App\Module\News\UI\Controller\PublicApi\ListNewsCommentsController;
 use App\Module\News\UI\Controller\PublicApi\ShowNewsArticleController;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Validation\ConstraintViolationFormatter;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\UnderscoreNamingStrategy;
@@ -31,6 +33,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final class NewsPublicModuleTest extends TestCase
 {
@@ -104,7 +107,7 @@ final class NewsPublicModuleTest extends TestCase
         [$published, , , $user] = $this->seedNews();
         $articles = $this->repository(NewsArticleRepository::class);
         $formatter = new NewsFormatter($this->repository(NewsArticleViewRepository::class));
-        $controller = new CreateNewsCommentController($articles, new NewsCommentWriter(new DoctrineUnitOfWork($this->entityManager())), $formatter);
+        $controller = new CreateNewsCommentController($articles, new NewsCommentWriter(new DoctrineUnitOfWork($this->entityManager())), $formatter, new DtoValidator($this->validator(), new ConstraintViolationFormatter()));
 
         self::assertSame(Response::HTTP_NOT_FOUND, $controller('missing', new Request([], [], [], [], [], [], '{"content":"Bonjour"}'))->getStatusCode());
 
@@ -192,5 +195,12 @@ final class NewsPublicModuleTest extends TestCase
     private function json(\Symfony\Component\HttpFoundation\JsonResponse $response): array
     {
         return json_decode((string) $response->getContent(), true, flags: JSON_THROW_ON_ERROR);
+    }
+
+    private function validator(): ValidatorInterface
+    {
+        return \Symfony\Component\Validator\Validation::createValidatorBuilder()
+            ->enableAttributeMapping()
+            ->getValidator();
     }
 }

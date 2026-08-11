@@ -33,13 +33,13 @@ final readonly class QuoteToOrderConverter
         $order = $this->transactions->transactional(function () use ($quote, $customer) {
             $order = $this->services->createOrder($quote, $customer);
             $this->persistence->persist($order);
-            $this->persistence->commit();
+            $this->persistence->flush();
             if (null === $order->getId()) {
                 throw new \RuntimeException('La commande n\'a pas d\'identifiant après enregistrement.');
             }
 
             $quote->convertToOrder($order->getId(), $order->getNumber());
-            $this->persistence->commit();
+            $this->persistence->flush();
 
             return $order;
         });

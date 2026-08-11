@@ -16,6 +16,6 @@ final readonly class CreateEmailTemplateHandler
     public function create(EmailTemplate $template): void
     {
         $this->persistence->persist($template);
-        $this->persistence->commit();
+        $this->persistence->flush();
     }
 }

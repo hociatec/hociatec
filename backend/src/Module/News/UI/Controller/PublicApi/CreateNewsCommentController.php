@@ -10,8 +10,11 @@ use App\Module\News\Application\Projection\NewsFormatter;
 use App\Module\News\Application\Writer\NewsCommentWriter;
 use App\Module\News\Domain\Exception\NewsOperationException;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Application\Exception\ApiValidationException;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -27,6 +30,7 @@ final class CreateNewsCommentController extends AbstractController
         private readonly NewsArticleRepositoryPort $articles,
         private readonly NewsCommentWriter $writer,
         private readonly NewsFormatter $formatter,
+        private readonly DtoValidator $dtoValidator,
     ) {
     }
 
@@ -42,13 +46,16 @@ final class CreateNewsCommentController extends AbstractController
             return ApiResponse::error('Authentification requise.', JsonResponse::HTTP_UNAUTHORIZED);
         }
 
-        $input = \App\Shared\Infrastructure\Http\JsonRequestInput::decode($request, CreateNewsCommentInput::class);
         try {
+            $input = \App\Shared\Infrastructure\Http\JsonRequestInput::decode($request, CreateNewsCommentInput::class);
+            $this->dtoValidator->validate($input, message: 'Commentaire invalide.');
             $comment = $this->writer->create($article, $user, $input->content);
+        } catch (ApiValidationException $exception) {
+            return ApiProblemResponse::fromThrowable($exception);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), JsonResponse::HTTP_UNPROCESSABLE_ENTITY);
-        } catch (NewsOperationException $exception) {
-            return ApiResponse::internalError($exception->getMessage());
+            return ApiProblemResponse::fromThrowable($exception, 'Commentaire invalide.', JsonResponse::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (NewsOperationException) {
+            return ApiResponse::internalError();
         }
 
         return ApiResponse::createdItem('comment', $this->formatter->comment($comment), 'Commentaire publié.');

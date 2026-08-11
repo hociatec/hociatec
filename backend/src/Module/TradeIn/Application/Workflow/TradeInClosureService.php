@@ -50,7 +50,7 @@ final readonly class TradeInClosureService
             $receipt = $this->receiptRenderer->render($this->receiptHtml($request, $input));
             $request->setReceiptPath($this->files->storeReceipt($receipt));
             $this->persistence->save($request);
-            $this->persistence->commit();
+            $this->persistence->flush();
         });
 
         if ($voucher instanceof Voucher && null !== $request->getUser()) {

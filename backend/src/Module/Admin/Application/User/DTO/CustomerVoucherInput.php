@@ -22,9 +22,32 @@ final readonly class CustomerVoucherInput
     public ?string $endsAt;
     public bool $sendEmail;
 
-    public function __construct(mixed ...$values)
+    /**
+     * @param array{
+     *   name?: string,
+     *   code?: ?string,
+     *   description?: ?string,
+     *   discountType?: string,
+     *   discountValue?: int,
+     *   isActive?: bool,
+     *   startsAt?: ?string,
+     *   endsAt?: ?string,
+     *   sendEmail?: bool
+     * }|null $payload
+     */
+    public function __construct(?array $payload = null)
     {
-        $data = $this->mapValues($values);
+        $data = array_replace([
+            'name' => '',
+            'code' => null,
+            'description' => null,
+            'discountType' => Voucher::TYPE_FIXED_CENTS,
+            'discountValue' => 0,
+            'isActive' => true,
+            'startsAt' => null,
+            'endsAt' => null,
+            'sendEmail' => true,
+        ], $payload ?? []);
         $this->name = (string) $data['name'];
         $this->code = $data['code'];
         $this->description = $data['description'];
@@ -39,32 +62,16 @@ final readonly class CustomerVoucherInput
     /** @param array<string,mixed> $p */
     public static function fromArray(array $p): self
     {
-        return new self(is_string($p['name'] ?? null) ? trim($p['name']) : '', is_string($p['code'] ?? null) ? mb_strtoupper(trim($p['code'])) : null, is_string($p['description'] ?? null) ? trim($p['description']) : null, is_string($p['discountType'] ?? null) ? trim($p['discountType']) : Voucher::TYPE_FIXED_CENTS, is_numeric($p['discountValue'] ?? null) ? (int) $p['discountValue'] : 0, is_bool($p['isActive'] ?? null) ? $p['isActive'] : true, is_string($p['startsAt'] ?? null) ? trim($p['startsAt']) : null, is_string($p['endsAt'] ?? null) ? trim($p['endsAt']) : null, is_bool($p['sendEmail'] ?? null) ? $p['sendEmail'] : true);
-    }
-
-    /**
-     * @param array<int|string, mixed> $values
-     *
-     * @return array<string, mixed>
-     */
-    private function mapValues(array $values): array
-    {
-        $keys = ['name', 'code', 'description', 'discountType', 'discountValue', 'isActive', 'startsAt', 'endsAt', 'sendEmail'];
-        $defaults = array_fill_keys($keys, null);
-        $defaults['name'] = '';
-        $defaults['discountType'] = Voucher::TYPE_FIXED_CENTS;
-        $defaults['discountValue'] = 0;
-        $defaults['isActive'] = true;
-        $defaults['sendEmail'] = true;
-        foreach ($values as $index => $value) {
-            if (!is_int($index)) {
-                continue;
-            }
-            if (isset($keys[$index])) {
-                $defaults[$keys[$index]] = $value;
-            }
-        }
-
-        return array_replace($defaults, array_filter($values, 'is_string', ARRAY_FILTER_USE_KEY));
+        return new self([
+            'name' => is_string($p['name'] ?? null) ? trim($p['name']) : '',
+            'code' => is_string($p['code'] ?? null) ? mb_strtoupper(trim($p['code'])) : null,
+            'description' => is_string($p['description'] ?? null) ? trim($p['description']) : null,
+            'discountType' => is_string($p['discountType'] ?? null) ? trim($p['discountType']) : Voucher::TYPE_FIXED_CENTS,
+            'discountValue' => is_numeric($p['discountValue'] ?? null) ? (int) $p['discountValue'] : 0,
+            'isActive' => is_bool($p['isActive'] ?? null) ? $p['isActive'] : true,
+            'startsAt' => is_string($p['startsAt'] ?? null) ? trim($p['startsAt']) : null,
+            'endsAt' => is_string($p['endsAt'] ?? null) ? trim($p['endsAt']) : null,
+            'sendEmail' => is_bool($p['sendEmail'] ?? null) ? $p['sendEmail'] : true,
+        ]);
     }
 }

@@ -38,8 +38,8 @@ class CreateQuoteController extends AbstractController
 
         try {
             $quote = $this->quoteService->createFromPayload(QuotePayload::fromArray($input->toPayload()));
-        } catch (\InvalidArgumentException|QuoteOperationException|\RuntimeException $exception) {
-            return ApiResponse::internalError($exception->getMessage());
+        } catch (\InvalidArgumentException|QuoteOperationException|\RuntimeException) {
+            return ApiResponse::internalError();
         }
 
         $data = $this->formatter->formatQuote($quote);

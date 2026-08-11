@@ -19,7 +19,7 @@ final readonly class PrestationPersistence implements PrestationPersistencePort
         $this->entityManager->persist($prestation);
     }
 
-    public function commit(): void
+    public function flush(): void
     {
         $this->entityManager->flush();
     }

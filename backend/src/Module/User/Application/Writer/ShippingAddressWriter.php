@@ -20,7 +20,7 @@ final readonly class ShippingAddressWriter
     public function save(ShippingAddress $address): void
     {
         $this->addresses->save($address);
-        $this->unitOfWork->commit();
+        $this->unitOfWork->flush();
     }
 
     public function saveWithDefaultPolicy(User $user, ShippingAddress $address, bool $isDefault): void
@@ -31,18 +31,18 @@ final readonly class ShippingAddressWriter
             $this->addresses->setDefault($user, $address);
         }
 
-        $this->unitOfWork->commit();
+        $this->unitOfWork->flush();
     }
 
     public function delete(ShippingAddress $address): void
     {
         $this->addresses->delete($address);
-        $this->unitOfWork->commit();
+        $this->unitOfWork->flush();
     }
 
     public function setDefault(User $user, ShippingAddress $address): void
     {
         $this->addresses->setDefault($user, $address);
-        $this->unitOfWork->commit();
+        $this->unitOfWork->flush();
     }
 }

@@ -10,14 +10,17 @@ use App\Module\TradeIn\Application\Projection\TradeInFormatter;
 use App\Module\TradeIn\Application\Workflow\TradeInRequestWorkflow;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\RateLimitKeyFactory;
 use App\Shared\Infrastructure\Http\RateLimited;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 
 #[Route('/api/public/trade-ins', name: 'api_public_trade_ins_create', methods: ['POST'])]
 #[RateLimited('public_api')]
@@ -28,6 +31,9 @@ final class CreatePublicTradeInController extends AbstractController
         private readonly DtoValidator $validator,
         private readonly ProductRepositoryPort $products,
         private readonly TradeInFormatter $formatter,
+        private readonly RateLimitKeyFactory $rateLimitKeys,
+        #[Autowire(service: 'limiter.public_api')]
+        private readonly RateLimiterFactory $limiter,
     ) {
     }
 
@@ -45,6 +51,10 @@ final class CreatePublicTradeInController extends AbstractController
             $input = $input->withContact($user->getFirstName(), $user->getLastName(), $user->getEmail(), $user->getPhoneNumber());
         }
         $this->validator->validate($input, message: 'Formulaire de reprise invalide.');
+        $limit = $this->limiter->create($this->rateLimitKeys->forRequest($request, $input->email))->consume(1);
+        if (!$limit->isAccepted()) {
+            return ApiResponse::error('Trop de demandes de reprise. Veuillez réessayer plus tard.', JsonResponse::HTTP_TOO_MANY_REQUESTS);
+        }
         $product = null !== $input->catalogProductId ? $this->products->find($input->catalogProductId) : null;
         if (null !== $input->catalogProductId && (null === $product || !$product->isPublished())) {
             return ApiResponse::error('Produit de catalogue introuvable.', JsonResponse::HTTP_NOT_FOUND);

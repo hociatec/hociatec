@@ -9,11 +9,14 @@ use App\Module\News\Application\Port\NewsArticleRepositoryPort;
 use App\Module\News\Application\Workflow\NewsArticleShareEmailService;
 use App\Shared\Application\Exception\MailDeliveryException;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\RateLimitKeyFactory;
 use App\Shared\Infrastructure\Http\RateLimited;
 use App\Shared\Infrastructure\Validation\DtoValidator;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 
 #[Route('/api/public/news/{slug}/share', name: 'api_public_news_share', methods: ['POST'])]
 #[RateLimited('content_share_public')]
@@ -23,6 +26,9 @@ final readonly class ShareNewsArticleEmailController
         private NewsArticleRepositoryPort $articles,
         private NewsArticleShareEmailService $sharing,
         private DtoValidator $dtoValidator,
+        private RateLimitKeyFactory $rateLimitKeys,
+        #[Autowire(service: 'limiter.content_share_public')]
+        private RateLimiterFactory $limiter,
     ) {
     }
 
@@ -35,6 +41,10 @@ final readonly class ShareNewsArticleEmailController
 
         $input = ShareNewsArticleInput::fromPayload(\App\Shared\Infrastructure\Http\JsonRequestInput::payload($request));
         $this->dtoValidator->validate($input);
+        $limit = $this->limiter->create($this->rateLimitKeys->forRequest($request, $input->email))->consume(1);
+        if (!$limit->isAccepted()) {
+            return ApiResponse::error('Trop de partages d’actualité. Veuillez réessayer plus tard.', JsonResponse::HTTP_TOO_MANY_REQUESTS);
+        }
 
         try {
             $this->sharing->send($article, $input->email);

@@ -6,6 +6,7 @@ namespace App\Module\Order\UI\Controller;
 
 use App\Module\Order\Application\Workflow\CustomerOrderPortalService;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -29,7 +30,7 @@ class CancelMyOrderController extends AbstractController
         try {
             $order = $this->portal->cancelForUser($this->currentUser(), $orderId);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+            return ApiProblemResponse::fromThrowable($exception, 'Annulation de commande impossible.', Response::HTTP_BAD_REQUEST);
         }
         if (null === $order) {
             return ApiResponse::error('Commande introuvable.', Response::HTTP_NOT_FOUND);

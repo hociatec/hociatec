@@ -38,7 +38,7 @@ final readonly class TradeInStoreCreditVoucherIssuer
         ]);
         $voucher->setRecipientUserId($request->getUser()->getId())->setRecipientEmail($request->getEmail());
         $this->unitOfWork->persist($voucher);
-        $this->unitOfWork->commit();
+        $this->unitOfWork->flush();
 
         return $voucher;
     }
@@ -53,7 +53,7 @@ final readonly class TradeInStoreCreditVoucherIssuer
             $this->voucherNotifications->sendCustomerVoucher($request->getUser(), $voucher);
             $voucher->setSentAt(new \DateTimeImmutable());
             $this->unitOfWork->persist($voucher);
-            $this->unitOfWork->commit();
+            $this->unitOfWork->flush();
         } catch (\RuntimeException $exception) {
             $this->logger->error('Impossible d’envoyer l’avoir de reprise.', ['reference' => $request->getReference(), 'exception' => $exception]);
         }

@@ -20,7 +20,7 @@ final readonly class UpdateBetaCampaignHandler
     public function update(BetaCampaign $campaign, UpdateBetaCampaignInput $input): BetaCampaign
     {
         $this->payloadMapper->update($campaign, $input);
-        $this->persistence->commit();
+        $this->persistence->flush();
 
         return $campaign;
     }

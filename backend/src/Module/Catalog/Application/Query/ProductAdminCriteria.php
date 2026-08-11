@@ -17,54 +17,61 @@ final readonly class ProductAdminCriteria
     public int $limit;
     public int $offset;
 
-    public function __construct(mixed ...$values)
+    /**
+     * @param array{
+     *   categorySlug:?string,
+     *   search:?string,
+     *   onlyFeatured:?bool,
+     *   sellingType:?string,
+     *   minPriceCents:?int,
+     *   maxPriceCents:?int,
+     *   lowStockOnly:?bool,
+     *   sort:?string,
+     *   limit:int,
+     *   offset:int
+     * } $payload
+     */
+    public function __construct(?array $payload = null)
     {
-        $data = $this->mapValues($values);
-        $this->categorySlug = $data['categorySlug'];
-        $this->search = $data['search'];
-        $this->onlyFeatured = $data['onlyFeatured'];
-        $this->sellingType = $data['sellingType'];
-        $this->minPriceCents = $data['minPriceCents'];
-        $this->maxPriceCents = $data['maxPriceCents'];
-        $this->lowStockOnly = $data['lowStockOnly'];
-        $this->sort = $data['sort'];
-        $this->limit = (int) $data['limit'];
-        $this->offset = (int) $data['offset'];
+        $payload = array_replace([
+            'categorySlug' => null,
+            'search' => null,
+            'onlyFeatured' => null,
+            'sellingType' => null,
+            'minPriceCents' => null,
+            'maxPriceCents' => null,
+            'lowStockOnly' => null,
+            'sort' => null,
+            'limit' => 100,
+            'offset' => 0,
+        ], $payload ?? []);
+        $this->categorySlug = $payload['categorySlug'];
+        $this->search = $payload['search'];
+        $this->onlyFeatured = $payload['onlyFeatured'];
+        $this->sellingType = $payload['sellingType'];
+        $this->minPriceCents = $payload['minPriceCents'];
+        $this->maxPriceCents = $payload['maxPriceCents'];
+        $this->lowStockOnly = $payload['lowStockOnly'];
+        $this->sort = $payload['sort'];
+        $this->limit = $payload['limit'];
+        $this->offset = $payload['offset'];
     }
 
     public function withoutSortAndPagination(): self
     {
         return new self(
-            categorySlug: $this->categorySlug,
-            search: $this->search,
-            onlyFeatured: $this->onlyFeatured,
-            sellingType: $this->sellingType,
-            minPriceCents: $this->minPriceCents,
-            maxPriceCents: $this->maxPriceCents,
-            lowStockOnly: $this->lowStockOnly,
+            [
+                'categorySlug' => $this->categorySlug,
+                'search' => $this->search,
+                'onlyFeatured' => $this->onlyFeatured,
+                'sellingType' => $this->sellingType,
+                'minPriceCents' => $this->minPriceCents,
+                'maxPriceCents' => $this->maxPriceCents,
+                'lowStockOnly' => $this->lowStockOnly,
+                'sort' => null,
+                'limit' => 100,
+                'offset' => 0,
+            ],
         );
-    }
-
-    /**
-     * @param array<int|string, mixed> $values
-     *
-     * @return array<string, mixed>
-     */
-    private function mapValues(array $values): array
-    {
-        $keys = ['categorySlug', 'search', 'onlyFeatured', 'sellingType', 'minPriceCents', 'maxPriceCents', 'lowStockOnly', 'sort', 'limit', 'offset'];
-        $defaults = array_fill_keys($keys, null);
-        $defaults['limit'] = 100;
-        $defaults['offset'] = 0;
-        foreach ($values as $index => $value) {
-            if (!is_int($index)) {
-                continue;
-            }
-            if (isset($keys[$index])) {
-                $defaults[$keys[$index]] = $value;
-            }
-        }
-
-        return array_replace($defaults, array_filter($values, 'is_string', ARRAY_FILTER_USE_KEY));
     }
 }

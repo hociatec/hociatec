@@ -19,7 +19,7 @@ final readonly class OrderEventPersistence implements OrderEventPersistencePort
         $this->entityManager->persist($event);
     }
 
-    public function commit(): void
+    public function flush(): void
     {
         $this->entityManager->flush();
     }

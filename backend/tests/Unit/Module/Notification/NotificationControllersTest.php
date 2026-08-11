@@ -33,7 +33,7 @@ final class NotificationControllersTest extends TestCase
         $controller = new CommunicationPreferencesController(new CommunicationPreferenceUpdater(new class implements UserPersistencePort {
             public function save(User $user): void {}
             public function remove(User $user): void {}
-            public function commit(): void {}
+            public function flush(): void {}
         }));
         $controller->setContainer($this->controllerContainer($user));
 
@@ -45,6 +45,7 @@ final class NotificationControllersTest extends TestCase
             Response::HTTP_UNPROCESSABLE_ENTITY,
             $controller->update($this->jsonRequest(['preferences' => []], 'PUT'))->getStatusCode(),
         );
+        self::assertStringNotContainsString('Preference', (string) $controller->update($this->jsonRequest(['preferences' => []], 'PUT'))->getContent());
 
         $updatedResponse = $controller->update($this->jsonRequest([
             'preferences' => [CommunicationPreferences::PHONE, CommunicationPreferences::NOTIFICATION],
@@ -59,7 +60,7 @@ final class NotificationControllersTest extends TestCase
         $failingController = new CommunicationPreferencesController(new CommunicationPreferenceUpdater(new class implements UserPersistencePort {
             public function save(User $user): void {}
             public function remove(User $user): void {}
-            public function commit(): void { throw new \RuntimeException('db down'); }
+            public function flush(): void { throw new \RuntimeException('db down'); }
         }));
         $failingController->setContainer($this->controllerContainer($this->user()));
         self::assertSame(
@@ -76,7 +77,7 @@ final class NotificationControllersTest extends TestCase
         $controller = new AccountNotificationsReadStateController(new AccountNotificationReadStateService(new class implements UserPersistencePort {
             public function save(User $user): void {}
             public function remove(User $user): void {}
-            public function commit(): void {}
+            public function flush(): void {}
         }));
         $controller->setContainer($this->controllerContainer($user));
 
@@ -98,7 +99,7 @@ final class NotificationControllersTest extends TestCase
         $failingController = new AccountNotificationsReadStateController(new AccountNotificationReadStateService(new class implements UserPersistencePort {
             public function save(User $user): void {}
             public function remove(User $user): void {}
-            public function commit(): void { throw new \RuntimeException('db down'); }
+            public function flush(): void { throw new \RuntimeException('db down'); }
         }));
         $failingController->setContainer($this->controllerContainer($this->user()));
         self::assertSame(

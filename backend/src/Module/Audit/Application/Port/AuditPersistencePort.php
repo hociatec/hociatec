@@ -10,5 +10,5 @@ interface AuditPersistencePort
 {
     public function save(AuditRequest $audit): void;
 
-    public function commit(): void;
+    public function flush(): void;
 }

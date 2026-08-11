@@ -30,11 +30,11 @@ final class BetaAndTradeInSmallBatchTest extends TestCase
         $this->setId($user, 3);
         $this->entityManager()->persist($user);
 
-        $profile = new BetaTesterProfile($user, ['weekly'], 'motivation', 'advanced', 'high', 'expert', 'none', ['screen-reader'], ['mac'], ['chrome'], ['ui'], new \DateTimeImmutable('2026-07-01T10:00:00+00:00'), '2026-07-26');
+        $profile = new BetaTesterProfile(['user' => $user, 'availability' => ['weekly'], 'motivation' => 'motivation', 'testingExperience' => 'advanced', 'bugDescriptionAbility' => 'high', 'technicalKnowledge' => 'expert', 'accessibilityNeed' => 'none', 'assistiveTools' => ['screen-reader'], 'devices' => ['mac'], 'browsers' => ['chrome'], 'testingTypes' => ['ui'], 'consentAt' => new \DateTimeImmutable('2026-07-01T10:00:00+00:00'), 'privacyNoticeVersion' => '2026-07-26']);
         $this->setId($profile, 8);
         $this->entityManager()->persist($profile);
 
-        $report = new BugReport($user, null, 'Bug', 'Body', null, null, 'low', '/beta');
+        $report = new BugReport(['reporter' => $user, 'campaign' => null, 'title' => 'Bug', 'description' => 'Body', 'expectedBehavior' => null, 'actualBehavior' => null, 'severity' => 'low', 'pageUrl' => '/beta']);
         $this->setId($report, 5);
         $this->entityManager()->persist($report);
         $activity = new BugReportActivity($report, $user, 'created', null, null, 'hello');

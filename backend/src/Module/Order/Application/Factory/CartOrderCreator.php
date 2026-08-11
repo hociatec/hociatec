@@ -57,14 +57,14 @@ final readonly class CartOrderCreator
                 $order = $this->createOrder($user, $address, $summary);
                 $this->lineConverter->addLines($order, $lockedCart);
                 $this->persistence->persist($order);
-                $this->persistence->commit();
+                $this->persistence->flush();
 
                 if (null === $order->getId()) {
                     throw new \InvalidArgumentException('Commande invalide.');
                 }
                 $lockedCart->markConverted($order->getId());
                 $this->persistence->persist($lockedCart);
-                $this->persistence->commit();
+                $this->persistence->flush();
 
                 return $order;
             },

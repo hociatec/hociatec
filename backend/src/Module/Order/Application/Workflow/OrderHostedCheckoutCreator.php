@@ -116,7 +116,7 @@ final readonly class OrderHostedCheckoutCreator
             ->setExpiresAt(isset($session['expires_at']) ? new \DateTimeImmutable('@'.(int) $session['expires_at']) : null);
 
         $this->persistence->persist($checkout);
-        $this->persistence->commit();
+        $this->persistence->flush();
 
         return $checkout;
     }

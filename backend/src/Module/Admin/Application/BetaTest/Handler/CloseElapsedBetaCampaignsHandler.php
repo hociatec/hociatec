@@ -29,7 +29,7 @@ final readonly class CloseElapsedBetaCampaignsHandler
         }
 
         if ($hasClosedCampaign) {
-            $this->persistence->commit();
+            $this->persistence->flush();
         }
     }
 }

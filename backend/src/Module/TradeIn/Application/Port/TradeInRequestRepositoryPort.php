@@ -23,5 +23,8 @@ interface TradeInRequestRepositoryPort
 
     public function countForAdmin(?string $search = null, ?TradeInStatus $status = null): int;
 
+    /** @return list<TradeInRequest> */
+    public function findClosedWithExpiredPrivateDocuments(\DateTimeImmutable $closedBefore, int $limit = 100): array;
+
     public function delete(TradeInRequest $request): void;
 }

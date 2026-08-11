@@ -6,7 +6,9 @@ namespace App\Module\Auth\UI\Controller;
 
 use App\Module\Auth\Application\DTO\ResetPasswordInput;
 use App\Module\Auth\Application\Workflow\PasswordResetService;
+use App\Module\Auth\Application\Workflow\PasswordResetTokenHasher;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\CsrfExempt;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Http\RateLimitKeyFactory;
@@ -33,7 +35,7 @@ class ResetPasswordController extends AbstractController
 
     public function __invoke(string $token, Request $request): JsonResponse
     {
-        if (64 !== strlen($token) || !ctype_xdigit($token)) {
+        if (!PasswordResetTokenHasher::isValidRawToken($token)) {
             return ApiResponse::error('Lien de réinitialisation invalide.', JsonResponse::HTTP_BAD_REQUEST);
         }
 
@@ -60,7 +62,7 @@ class ResetPasswordController extends AbstractController
         try {
             $this->passwordResetService->reset($token, $input->password);
         } catch (\RuntimeException $exception) {
-            return ApiResponse::error($exception->getMessage(), JsonResponse::HTTP_BAD_REQUEST);
+            return ApiProblemResponse::fromThrowable($exception, 'Lien de réinitialisation invalide.', JsonResponse::HTTP_BAD_REQUEST);
         }
 
         return ApiResponse::success([

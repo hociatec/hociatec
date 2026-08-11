@@ -16,6 +16,6 @@ final readonly class DeletePromotionHandler
     public function delete(Promotion $promotion): void
     {
         $this->persistence->remove($promotion);
-        $this->persistence->commit();
+        $this->persistence->flush();
     }
 }

@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\Operations\Projection;
 
+use App\Module\Admin\Application\Operations\DTO\FulfillmentOrderOutput;
+use App\Module\Admin\Application\Operations\DTO\LowStockProductOutput;
+use App\Module\Admin\Application\Operations\DTO\RefundOutput;
 use App\Module\Admin\Application\Operations\DTO\SupportRequestOutput;
+use App\Module\Admin\Application\Operations\DTO\StockMovementOutput;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Domain\Entity\StockMovement;
 use App\Module\Order\Application\Projection\OrderFormatter;
@@ -45,12 +49,11 @@ final readonly class AdminOperationsFormatter
         );
     }
 
-    /** @return array<string, mixed> */
-    public function refund(RefundRequest $refund): array
+    public function refund(RefundRequest $refund): RefundOutput
     {
         $order = $refund->getOrder();
 
-        return [
+        return new RefundOutput([
             'id' => $refund->getId(),
             'order' => ['id' => $order->getId(), 'number' => $order->getNumber()],
             'paymentId' => $refund->getPaymentId(),
@@ -62,15 +65,14 @@ final readonly class AdminOperationsFormatter
             'stripeRefundId' => $refund->getStripeRefundId(),
             'createdAt' => $refund->getCreatedAt()->format(DATE_ATOM),
             'updatedAt' => $refund->getUpdatedAt()->format(DATE_ATOM),
-        ];
+        ]);
     }
 
-    /** @return array<string, mixed> */
-    public function stockMovement(StockMovement $movement): array
+    public function stockMovement(StockMovement $movement): StockMovementOutput
     {
         $product = $movement->getProduct();
 
-        return [
+        return new StockMovementOutput([
             'id' => $movement->getId(),
             'product' => ['id' => $product->getId(), 'name' => $product->getName(), 'sku' => $product->getSku()],
             'delta' => $movement->getDelta(),
@@ -80,26 +82,24 @@ final readonly class AdminOperationsFormatter
             'note' => $movement->getNote(),
             'actor' => $movement->getActor()?->getFullName(),
             'createdAt' => $movement->getCreatedAt()->format(DATE_ATOM),
-        ];
+        ]);
     }
 
-    /** @return array<string, mixed> */
-    public function lowStockProduct(Product $product): array
+    public function lowStockProduct(Product $product): LowStockProductOutput
     {
-        return [
+        return new LowStockProductOutput([
             'id' => $product->getId(),
             'name' => $product->getName(),
             'sku' => $product->getSku(),
             'stock' => $product->getStock(),
             'lowStockThreshold' => $product->getLowStockThreshold(),
             'category' => $product->getCategory()->getName(),
-        ];
+        ]);
     }
 
-    /** @return array<string, mixed> */
-    public function fulfillmentOrder(Order $order): array
+    public function fulfillmentOrder(Order $order): FulfillmentOrderOutput
     {
-        return [
+        return new FulfillmentOrderOutput([
             'id' => $order->getId(),
             'number' => $order->getNumber(),
             'status' => $order->getStatus(),
@@ -129,7 +129,7 @@ final readonly class AdminOperationsFormatter
                 'quantity' => $item->getQuantity(),
             ], $order->getItems()->toArray()),
             'createdAt' => $order->getCreatedAt()->format(DATE_ATOM),
-        ];
+        ]);
     }
 
     /** @return list<array<string, mixed>> */

@@ -31,8 +31,8 @@ final readonly class SendAdminNewsArticleEmailController
             $this->writer->sendPublishedEmails($article);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), JsonResponse::HTTP_BAD_REQUEST);
-        } catch (NewsOperationException $exception) {
-            return ApiResponse::internalError($exception->getMessage());
+        } catch (NewsOperationException) {
+            return ApiResponse::internalError();
         }
 
         return ApiResponse::success(['sent' => true], JsonResponse::HTTP_OK, 'Envoi des e-mails d’actualité planifié.');

@@ -72,7 +72,7 @@ final readonly class CartSessionProvider
 
         $cart = new CartSession($token);
         $this->persistence->persist($cart);
-        $this->persistence->commit();
+        $this->persistence->flush();
 
         return $cart;
     }
@@ -82,7 +82,7 @@ final readonly class CartSessionProvider
         $cart = $this->create();
         $cart->setUser($user);
         $this->persistence->persist($cart);
-        $this->persistence->commit();
+        $this->persistence->flush();
 
         return $cart;
     }

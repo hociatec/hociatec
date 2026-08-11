@@ -22,7 +22,18 @@ final class ProductQueryServiceTest extends TestCase
     {
         $repository = $this->createMock(ProductRepository::class);
         $product = new Product('Phone', 'phone', 'PH-1', 'Desc', 10000, 2, new Category('Phones', 'phones'));
-        $criteria = new ProductAdminCriteria('phones', 'iphone', true, 'rental', 1000, 2000, true, 'price_desc', 25, 50);
+        $criteria = new ProductAdminCriteria([
+            'categorySlug' => 'phones',
+            'search' => 'iphone',
+            'onlyFeatured' => true,
+            'sellingType' => 'rental',
+            'minPriceCents' => 1000,
+            'maxPriceCents' => 2000,
+            'lowStockOnly' => true,
+            'sort' => 'price_desc',
+            'limit' => 25,
+            'offset' => 50,
+        ]);
 
         $repository->expects(self::once())
             ->method('findAllForAdmin')
@@ -71,7 +82,22 @@ final class ProductQueryServiceTest extends TestCase
     {
         $repository = $this->createMock(ProductRepository::class);
         $product = new Product('Phone', 'phone', 'PH-1', 'Desc', 10000, 2, new Category('Phones', 'phones'));
-        $criteria = new ProductCatalogCriteria('phones', 'iphone', false, 'sale', 'apple', '256 Go', '8 Go', 'Noir', 1500, 3000, true, 'newest', 12, 24);
+        $criteria = new ProductCatalogCriteria([
+            'categorySlug' => 'phones',
+            'search' => 'iphone',
+            'onlyFeatured' => false,
+            'sellingType' => 'sale',
+            'brand' => 'apple',
+            'storageCapacity' => '256 Go',
+            'memoryRam' => '8 Go',
+            'color' => 'Noir',
+            'minPriceCents' => 1500,
+            'maxPriceCents' => 3000,
+            'inStockOnly' => true,
+            'sort' => 'newest',
+            'limit' => 12,
+            'offset' => 24,
+        ]);
 
         $repository->expects(self::once())
             ->method('findPublished')

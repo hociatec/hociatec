@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Appointment\UI\Controller\Client;
 
-use App\Module\Appointment\Application\Workflow\AppointmentService;
-use App\Module\Appointment\Domain\Entity\Appointment;
-use App\Module\User\Domain\Entity\User;
+use App\Module\Appointment\Application\Workflow\CustomerAppointmentPortalService;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -19,7 +18,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 class ListMyAppointmentsController extends AbstractController
 {
-    public function __construct(private readonly AppointmentService $appointmentService)
+    use AuthenticatedDomainUserTrait;
+
+    public function __construct(private readonly CustomerAppointmentPortalService $portal)
     {
     }
 
@@ -27,38 +28,17 @@ class ListMyAppointmentsController extends AbstractController
     {
         $request ??= new Request();
         $pagination = RequestQueryMapper::pagination($request, 10, 50);
-        /** @var User $user */
-        $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
-
-        $appointments = $this->appointmentService->getPaginatedAppointmentsForUser($user, limit: $pagination->perPage, offset: $pagination->offset());
-        $totals = $this->appointmentService->countAppointmentsForUser($user);
+        $result = $this->portal->listForUser($this->currentUser(), $pagination->perPage, $pagination->offset());
 
         return ApiResponse::success([
-            'upcoming' => array_map($this->mapAppointment(...), $appointments['upcoming']),
-            'past' => array_map($this->mapAppointment(...), $appointments['past']),
+            'upcoming' => $result['upcoming'],
+            'past' => $result['past'],
             'meta' => [
                 'page' => $pagination->page,
                 'perPage' => $pagination->perPage,
-                'upcomingTotal' => $totals['upcoming'],
-                'pastTotal' => $totals['past'],
+                'upcomingTotal' => $result['upcomingTotal'],
+                'pastTotal' => $result['pastTotal'],
             ],
         ]);
-    }
-
-    /** @return array<string, mixed> */
-    private function mapAppointment(Appointment $appointment): array
-    {
-        return [
-            'id' => $appointment->getId(),
-            'startAt' => $appointment->getStartAt()->format(DATE_ATOM),
-            'endAt' => $appointment->getEndAt()->format(DATE_ATOM),
-            'status' => $appointment->getStatusLabel(),
-            'prestation' => [
-                'id' => $appointment->getPrestation()->getId(),
-                'name' => $appointment->getPrestation()->getName(),
-                'durationMinutes' => $appointment->getPrestation()->getDurationMinutes(),
-                'priceCents' => $appointment->getPrestation()->getPriceCents(),
-            ],
-        ];
     }
 }

@@ -40,7 +40,7 @@ final readonly class StripePaymentIntentFailedHandler
         $checkout->markFailed($paymentIntentId, $paymentStatus ?? 'requires_payment_method', $type, $failureCode, $failureMessage);
         $this->sessionExpirer->expire($checkout);
         $this->persistence->persist($checkout);
-        $this->persistence->commit();
+        $this->persistence->flush();
 
         return ['type' => $type, 'sessionId' => $checkout->getStripeSessionId()];
     }

@@ -18,7 +18,7 @@ final readonly class DoctrineOperationsPersistence implements OperationsPersiste
         $this->entityManager->persist($entity);
     }
 
-    public function commit(): void
+    public function flush(): void
     {
         $this->entityManager->flush();
     }

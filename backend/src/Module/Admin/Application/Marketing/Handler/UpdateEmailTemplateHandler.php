@@ -15,6 +15,6 @@ final readonly class UpdateEmailTemplateHandler
 
     public function update(EmailTemplate $template): void
     {
-        $this->persistence->commit();
+        $this->persistence->flush();
     }
 }

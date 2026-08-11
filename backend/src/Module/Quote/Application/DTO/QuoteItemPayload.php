@@ -17,9 +17,34 @@ final readonly class QuoteItemPayload
     public int $discountCents;
     public ?string $type;
 
-    public function __construct(mixed ...$values)
+    /**
+     * @param array{
+     *   name?: string,
+     *   productId?: ?int,
+     *   serviceId?: ?int,
+     *   unitPriceCents?: ?int,
+     *   description?: ?string,
+     *   unit?: ?string,
+     *   quantity?: int,
+     *   vatRateBps?: int,
+     *   discountCents?: int,
+     *   type?: ?string
+     * }|null $payload
+     */
+    public function __construct(?array $payload = null)
     {
-        $data = $this->mapValues($values);
+        $data = array_replace([
+            'name' => '',
+            'productId' => null,
+            'serviceId' => null,
+            'unitPriceCents' => null,
+            'description' => null,
+            'unit' => null,
+            'quantity' => 1,
+            'vatRateBps' => 0,
+            'discountCents' => 0,
+            'type' => null,
+        ], $payload ?? []);
         $this->name = (string) $data['name'];
         $this->productId = $data['productId'];
         $this->serviceId = $data['serviceId'];
@@ -35,42 +60,17 @@ final readonly class QuoteItemPayload
     /** @param array<string,mixed> $payload */
     public static function fromArray(array $payload): self
     {
-        return new self(
-            is_string($payload['name'] ?? null) ? trim($payload['name']) : '',
-            is_numeric($payload['productId'] ?? null) ? (int) $payload['productId'] : null,
-            is_numeric($payload['serviceId'] ?? null) ? (int) $payload['serviceId'] : null,
-            is_numeric($payload['unitPriceCents'] ?? null) ? (int) $payload['unitPriceCents'] : null,
-            is_string($payload['description'] ?? null) ? trim($payload['description']) : null,
-            is_string($payload['unit'] ?? null) ? trim($payload['unit']) : null,
-            max(1, is_numeric($payload['quantity'] ?? null) ? (int) $payload['quantity'] : 1),
-            max(0, is_numeric($payload['vatRateBps'] ?? null) ? (int) $payload['vatRateBps'] : 0),
-            max(0, is_numeric($payload['discountCents'] ?? null) ? (int) $payload['discountCents'] : 0),
-            is_string($payload['type'] ?? null) ? trim($payload['type']) : null,
-        );
-    }
-
-    /**
-     * @param array<int|string, mixed> $values
-     *
-     * @return array<string, mixed>
-     */
-    private function mapValues(array $values): array
-    {
-        $keys = ['name', 'productId', 'serviceId', 'unitPriceCents', 'description', 'unit', 'quantity', 'vatRateBps', 'discountCents', 'type'];
-        $defaults = array_fill_keys($keys, null);
-        $defaults['name'] = '';
-        $defaults['quantity'] = 1;
-        $defaults['vatRateBps'] = 0;
-        $defaults['discountCents'] = 0;
-        foreach ($values as $index => $value) {
-            if (!is_int($index)) {
-                continue;
-            }
-            if (isset($keys[$index])) {
-                $defaults[$keys[$index]] = $value;
-            }
-        }
-
-        return array_replace($defaults, array_filter($values, 'is_string', ARRAY_FILTER_USE_KEY));
+        return new self([
+            'name' => is_string($payload['name'] ?? null) ? trim($payload['name']) : '',
+            'productId' => is_numeric($payload['productId'] ?? null) ? (int) $payload['productId'] : null,
+            'serviceId' => is_numeric($payload['serviceId'] ?? null) ? (int) $payload['serviceId'] : null,
+            'unitPriceCents' => is_numeric($payload['unitPriceCents'] ?? null) ? (int) $payload['unitPriceCents'] : null,
+            'description' => is_string($payload['description'] ?? null) ? trim($payload['description']) : null,
+            'unit' => is_string($payload['unit'] ?? null) ? trim($payload['unit']) : null,
+            'quantity' => max(1, is_numeric($payload['quantity'] ?? null) ? (int) $payload['quantity'] : 1),
+            'vatRateBps' => max(0, is_numeric($payload['vatRateBps'] ?? null) ? (int) $payload['vatRateBps'] : 0),
+            'discountCents' => max(0, is_numeric($payload['discountCents'] ?? null) ? (int) $payload['discountCents'] : 0),
+            'type' => is_string($payload['type'] ?? null) ? trim($payload['type']) : null,
+        ]);
     }
 }

@@ -26,7 +26,7 @@ final readonly class CommunicationPreferenceUpdater
         $user->setCommunicationPreferences($preferences);
 
         try {
-            $this->persistence->commit();
+            $this->persistence->flush();
         } catch (\RuntimeException $exception) {
             throw NotificationOperationException::failed('Impossible d’enregistrer les préférences de communication.', $exception);
         }

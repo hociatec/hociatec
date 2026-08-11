@@ -36,7 +36,7 @@ Pour les clients consommateurs, les garanties légales applicables demeurent cel
         $quote = new Quote($this->numberGenerator->generate());
         try {
             $this->persistence->save($quote);
-            $this->persistence->commit();
+            $this->persistence->flush();
         } catch (\RuntimeException $exception) {
             throw QuoteOperationException::failed('Impossible de créer le devis.', $exception);
         }
@@ -50,7 +50,7 @@ Pour les clients consommateurs, les garanties légales applicables demeurent cel
         $this->hydrator->hydrate($quote, $payload);
         try {
             $this->persistence->save($quote);
-            $this->persistence->commit();
+            $this->persistence->flush();
         } catch (\RuntimeException $exception) {
             throw QuoteOperationException::failed('Impossible de créer le devis.', $exception);
         }
@@ -62,7 +62,7 @@ Pour les clients consommateurs, les garanties légales applicables demeurent cel
     {
         $this->hydrator->hydrate($quote, $payload, true);
         try {
-            $this->persistence->commit();
+            $this->persistence->flush();
         } catch (\RuntimeException $exception) {
             throw QuoteOperationException::failed('Impossible de mettre à jour le devis.', $exception);
         }
@@ -99,7 +99,7 @@ Pour les clients consommateurs, les garanties légales applicables demeurent cel
 
         try {
             $this->persistence->save($copy);
-            $this->persistence->commit();
+            $this->persistence->flush();
         } catch (\RuntimeException $exception) {
             throw QuoteOperationException::failed('Impossible de dupliquer le devis.', $exception);
         }
@@ -111,7 +111,7 @@ Pour les clients consommateurs, les garanties légales applicables demeurent cel
     {
         try {
             $this->persistence->delete($quote);
-            $this->persistence->commit();
+            $this->persistence->flush();
         } catch (\RuntimeException $exception) {
             throw QuoteOperationException::failed('Impossible de supprimer le devis.', $exception);
         }

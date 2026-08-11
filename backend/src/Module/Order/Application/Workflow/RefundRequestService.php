@@ -28,7 +28,7 @@ final readonly class RefundRequestService
             ->setCurrencyCode($data->currencyCode);
 
         $this->persistence->persist($refund);
-        $this->persistence->commit();
+        $this->persistence->flush();
 
         return $refund;
     }
@@ -48,7 +48,7 @@ final readonly class RefundRequestService
             $refund->setInternalNotes($data->internalNotes);
         }
 
-        $this->persistence->commit();
+        $this->persistence->flush();
 
         return $refund;
     }

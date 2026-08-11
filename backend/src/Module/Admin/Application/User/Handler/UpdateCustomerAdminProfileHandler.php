@@ -24,6 +24,6 @@ final readonly class UpdateCustomerAdminProfileHandler
             ->setAdminTags($input->adminTags);
 
         $this->users->save($user);
-        $this->unitOfWork->commit();
+        $this->unitOfWork->flush();
     }
 }

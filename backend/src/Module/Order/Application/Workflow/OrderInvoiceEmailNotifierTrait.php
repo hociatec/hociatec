@@ -35,7 +35,7 @@ trait OrderInvoiceEmailNotifierTrait
 
         $this->sendScenario($order, 'order_invoice_issued');
         $order->setInvoiceEmailSentAt(new \DateTimeImmutable());
-        $this->persistence->commit();
+        $this->persistence->flush();
         $this->events->log($order, null, $force ? 'email_resent' : 'email_sent', $force ? 'Email client renvoyé: facture disponible.' : 'Email client envoyé: facture disponible.');
 
         return true;

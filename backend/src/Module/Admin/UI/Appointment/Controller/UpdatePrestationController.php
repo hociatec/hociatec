@@ -60,8 +60,8 @@ class UpdatePrestationController extends AbstractController
             $prestation = $this->prestationService->update($prestation, $input->name, $input->durationMinutes, $priceCents);
         } catch (\InvalidArgumentException $exception) {
             return ApiResponse::error($exception->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY);
-        } catch (AppointmentOperationException $exception) {
-            return ApiResponse::internalError($exception->getMessage());
+        } catch (AppointmentOperationException) {
+            return ApiResponse::internalError();
         }
 
         return ApiResponse::success([

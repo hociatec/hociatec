@@ -19,9 +19,35 @@ final readonly class ProductVariantCopyData
     public int $priceCents;
     public int $position;
 
-    public function __construct(mixed ...$values)
+    /**
+     * @param array{
+     *   template?: Product,
+     *   baseName?: string,
+     *   baseSku?: string,
+     *   baseSlug?: ?string,
+     *   variantGroup?: string,
+     *   color?: ?string,
+     *   storageCapacity?: ?string,
+     *   stock?: int,
+     *   priceCents?: ?int,
+     *   position?: int
+     * }|null $payload
+     */
+    public function __construct(?array $payload = null)
     {
-        $data = $this->mapValues($values);
+        $data = array_replace([
+            'template' => null,
+            'baseName' => '',
+            'baseSku' => '',
+            'baseSlug' => null,
+            'variantGroup' => '',
+            'color' => null,
+            'storageCapacity' => null,
+            'stock' => 0,
+            'priceCents' => null,
+            'position' => 1,
+        ], $payload ?? []);
+
         $this->template = $data['template'];
         $this->baseName = (string) $data['baseName'];
         $this->baseSku = (string) $data['baseSku'];
@@ -32,39 +58,5 @@ final readonly class ProductVariantCopyData
         $this->stock = (int) $data['stock'];
         $this->priceCents = null !== $data['priceCents'] ? (int) $data['priceCents'] : $this->template->getPriceCents();
         $this->position = (int) $data['position'];
-    }
-
-    /**
-     * @param array<int|string, mixed> $values
-     *
-     * @return array<string, mixed>
-     */
-    private function mapValues(array $values): array
-    {
-        $keys = ['template', 'baseName', 'baseSku', 'baseSlug', 'variantGroup', 'color', 'storageCapacity', 'stock', 'priceCents', 'position'];
-        $defaults = array_fill_keys($keys, null);
-        $defaults['stock'] = 0;
-        $defaults['priceCents'] = null;
-        $defaults['position'] = 1;
-        foreach ($values as $index => $value) {
-            if (!is_int($index)) {
-                continue;
-            }
-            if (isset($keys[$index])) {
-                $defaults[$keys[$index]] = $value;
-            }
-        }
-
-        if (
-            array_key_exists(8, $values)
-            && !array_key_exists(9, $values)
-            && !array_key_exists('priceCents', $values)
-            && !array_key_exists('position', $values)
-        ) {
-            $defaults['position'] = (int) $values[8];
-            $defaults['priceCents'] = null;
-        }
-
-        return array_replace($defaults, array_filter($values, 'is_string', ARRAY_FILTER_USE_KEY));
     }
 }

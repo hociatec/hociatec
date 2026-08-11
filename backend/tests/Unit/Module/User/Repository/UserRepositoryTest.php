@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Module\User\Repository;
 
 use App\Module\Order\Domain\Entity\Order;
+use App\Module\Auth\Application\Workflow\PasswordResetTokenHasher;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
 use Doctrine\DBAL\DriverManager;
@@ -41,7 +42,7 @@ final class UserRepositoryTest extends TestCase
             ->setIsVerified(true)
             ->setCommunicationPreferences(['news_email'])
             ->setVerificationToken('verify-ada')
-            ->setPasswordResetToken('reset-ada')
+            ->setPasswordResetToken(PasswordResetTokenHasher::hash('reset-ada'))
             ->setAdminTags(['vip', ' enterprise ']);
         $grace
             ->setIsVerified(true)
@@ -79,7 +80,8 @@ final class UserRepositoryTest extends TestCase
         self::assertFalse($repository->existsByEmailExcludingUser('ada@example.com', $ada->getId() ?? 0));
         self::assertSame($ada->getId(), $repository->findOneByVerificationTokens('verify-ada', 'missing')?->getId());
         self::assertSame($grace->getId(), $repository->findOneByVerificationTokens('missing', 'legacy-verify')?->getId());
-        self::assertSame($ada->getId(), $repository->findOneByPasswordResetToken('reset-ada')?->getId());
+        self::assertSame($ada->getId(), $repository->findOneByPasswordResetTokens(PasswordResetTokenHasher::hash('reset-ada'), 'missing')?->getId());
+        self::assertSame($ada->getId(), $repository->findOneByPasswordResetTokens('missing', PasswordResetTokenHasher::hash('reset-ada'))?->getId());
         self::assertSame([$admin->getId()], array_map(static fn (User $u): ?int => $u->getId(), $repository->findAdmins()));
         self::assertEqualsCanonicalizing(
             [$admin->getId(), $ada->getId()],

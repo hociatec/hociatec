@@ -16,6 +16,6 @@ final readonly class DeleteEmailTemplateHandler
     public function delete(EmailTemplate $template): void
     {
         $this->persistence->remove($template);
-        $this->persistence->commit();
+        $this->persistence->flush();
     }
 }

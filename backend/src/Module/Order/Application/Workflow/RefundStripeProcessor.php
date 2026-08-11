@@ -57,7 +57,7 @@ final readonly class RefundStripeProcessor
                 throw new \InvalidArgumentException('Ce remboursement est déjà en cours ou a déjà été traité.');
             }
             $locked->setStatus(RefundRequest::STATUS_PROCESSING);
-            $this->persistence->commit();
+            $this->persistence->flush();
 
             return $locked;
         });
@@ -75,13 +75,13 @@ final readonly class RefundStripeProcessor
             );
         } catch (ExternalServiceException|\JsonException $exception) {
             $refund->setStatus($previousStatus);
-            $this->persistence->commit();
+            $this->persistence->flush();
             throw new \InvalidArgumentException('Stripe a refusé le remboursement.', previous: $exception);
         }
 
         $stripeRefundId = is_string($stripeRefund['id'] ?? null) ? $stripeRefund['id'] : null;
         $refund->setStripeRefundId($stripeRefundId)->setStatus(RefundRequest::STATUS_PROCESSED);
-        $this->persistence->commit();
+        $this->persistence->flush();
 
         return ['refund' => $refund, 'stripeRefund' => $stripeRefund];
     }

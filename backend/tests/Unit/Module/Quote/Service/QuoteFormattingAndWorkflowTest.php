@@ -188,7 +188,16 @@ final class QuoteFormattingAndWorkflowTest extends TestCase
         $this->entityManager->expects(self::once())->method('flush');
 
         $workflow = new QuoteWorkflowService(new QuotePersistence($this->entityManager));
-        $workflow->addProductItem($quote, $product, new QuoteItemAddition(null, null, ' ', null, 2, 5.5, null, null));
+        $workflow->addProductItem($quote, $product, new QuoteItemAddition([
+            'name' => null,
+            'unitPriceCents' => null,
+            'description' => ' ',
+            'unit' => null,
+            'quantity' => 2,
+            'vatRate' => 5.5,
+            'vatRateBps' => null,
+            'discountCents' => null,
+        ]));
 
         $item = $quote->getItems()->first();
         self::assertInstanceOf(QuoteItem::class, $item);

@@ -19,7 +19,7 @@ final readonly class AuditPersistence implements AuditPersistencePort
         $this->entityManager->persist($audit);
     }
 
-    public function commit(): void
+    public function flush(): void
     {
         $this->entityManager->flush();
     }

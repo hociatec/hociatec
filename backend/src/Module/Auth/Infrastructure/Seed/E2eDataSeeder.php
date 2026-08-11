@@ -348,21 +348,21 @@ class E2eDataSeeder
         /** @var BetaTesterProfile|null $profile */
         $profile = $this->entityManager->getRepository(BetaTesterProfile::class)->findOneBy(['user' => $user]);
         if (!$profile instanceof BetaTesterProfile) {
-            $profile = new BetaTesterProfile(
-                $user,
-                ['weekdays'],
-                'Profil bêta E2E seedé pour valider le parcours complet.',
-                'none',
-                'basic',
-                'none',
-                'none',
-                ['none'],
-                ['windows'],
-                ['chrome'],
-                ['bugs'],
-                new \DateTimeImmutable('2026-08-10 09:00:00'),
-                '2026-07-26',
-            );
+            $profile = new BetaTesterProfile([
+                'user' => $user,
+                'availability' => ['weekdays'],
+                'motivation' => 'Profil bêta E2E seedé pour valider le parcours complet.',
+                'testingExperience' => 'none',
+                'bugDescriptionAbility' => 'basic',
+                'technicalKnowledge' => 'none',
+                'accessibilityNeed' => 'none',
+                'assistiveTools' => ['none'],
+                'devices' => ['windows'],
+                'browsers' => ['chrome'],
+                'testingTypes' => ['bugs'],
+                'consentAt' => new \DateTimeImmutable('2026-08-10 09:00:00'),
+                'privacyNoticeVersion' => '2026-07-26',
+            ]);
             $this->entityManager->persist($profile);
         } else {
             $profile->update(
