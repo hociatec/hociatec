@@ -53,3 +53,11 @@ Ces classes restent acceptables tant qu'elles orchestrent ces workflows uniques.
 - `Product` est découpé par objets embarqués et traits pour pricing, inventaire, publication, galerie, caractéristiques et avis.
 
 Si l'une de ces entités dépasse son sous-domaine actuel, extraire d'abord un objet de valeur ou un service de domaine dans le module propriétaire.
+
+## Exceptions techniques contrôlées
+
+Les exceptions suivantes existent encore et doivent rester limitées, explicites et revues régulièrement :
+
+- le bridge Symfony Security (`SymfonySecurityUser`, `EmailUserProvider`, fusion de panier après login) conserve une adaptation infrastructure couplée à `Auth` et `User`.
+
+Toute nouvelle dépendance vers `UI` ou `Infrastructure` d’un autre module doit être refusée hors de cette liste.

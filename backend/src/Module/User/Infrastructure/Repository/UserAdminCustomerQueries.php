@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\User\Infrastructure\Repository;
 
 use App\Module\Order\Domain\Entity\Order;
+use App\Shared\Infrastructure\Persistence\LikeSearchHelper;
 use Doctrine\ORM\QueryBuilder;
 
 trait UserAdminCustomerQueries
@@ -93,8 +94,8 @@ trait UserAdminCustomerQueries
 
     private function applyAdminCustomerSearch(QueryBuilder $qb, ?string $search): void
     {
-        $normalizedSearch = trim((string) $search);
-        if ('' === $normalizedSearch) {
+        $searchPattern = LikeSearchHelper::containsPattern($search);
+        if (null === $searchPattern) {
             return;
         }
 
@@ -109,6 +110,6 @@ trait UserAdminCustomerQueries
                     'LOWER(o.number) LIKE LOWER(:search)',
                 )
             )
-            ->setParameter('search', '%'.$normalizedSearch.'%');
+            ->setParameter('search', $searchPattern);
     }
 }

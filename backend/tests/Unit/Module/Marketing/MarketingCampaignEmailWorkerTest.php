@@ -16,9 +16,9 @@ use App\Module\Marketing\Infrastructure\Repository\DoctrineMarketingRecipientCon
 use App\Module\Marketing\Infrastructure\Repository\EmailCampaignRecipientRepository;
 use App\Module\Notification\Application\Workflow\CommunicationPreferences;
 use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Shared\Application\Mail\EmailSender;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 
 final class MarketingCampaignEmailWorkerTest extends MarketingIntegrationTestCase
@@ -34,7 +34,7 @@ final class MarketingCampaignEmailWorkerTest extends MarketingIntegrationTestCas
         $em->persist($recipient);
         $em->flush();
 
-        $mailer = $this->createMock(MailerInterface::class);
+        $mailer = $this->createMock(EmailSender::class);
         $mailer->expects(self::once())
             ->method('send')
             ->with(self::callback(static fn (Email $email): bool => 'Bonjour Ada' === $email->getSubject()));

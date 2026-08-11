@@ -8,6 +8,7 @@ use App\Module\News\Application\Port\NewsArticleRepositoryPort;
 use App\Module\News\Domain\Entity\NewsArticle;
 use App\Shared\Application\LockMode as ApplicationLockMode;
 use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
+use App\Shared\Infrastructure\Persistence\LikeSearchHelper;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
@@ -91,10 +92,10 @@ final class NewsArticleRepository extends ServiceEntityRepository implements New
             ->setParameter('published', true)
             ->setParameter('now', new \DateTimeImmutable());
 
-        $search = trim((string) $search);
-        if ('' !== $search) {
+        $searchPattern = LikeSearchHelper::containsPattern($search, true);
+        if (null !== $searchPattern) {
             $qb->andWhere('LOWER(a.title) LIKE LOWER(:search) OR LOWER(a.excerpt) LIKE LOWER(:search) OR LOWER(a.content) LIKE LOWER(:search) OR LOWER(a.category) LIKE LOWER(:search)')
-                ->setParameter('search', '%'.$search.'%');
+                ->setParameter('search', $searchPattern);
         }
 
         return $qb;
@@ -103,10 +104,10 @@ final class NewsArticleRepository extends ServiceEntityRepository implements New
     private function adminQuery(?string $search): \Doctrine\ORM\QueryBuilder
     {
         $qb = $this->createQueryBuilder('a');
-        $search = trim((string) $search);
-        if ('' !== $search) {
+        $searchPattern = LikeSearchHelper::containsPattern($search, true);
+        if (null !== $searchPattern) {
             $qb->andWhere('LOWER(a.title) LIKE LOWER(:search) OR LOWER(a.excerpt) LIKE LOWER(:search) OR LOWER(a.content) LIKE LOWER(:search) OR LOWER(a.category) LIKE LOWER(:search)')
-                ->setParameter('search', '%'.$search.'%');
+                ->setParameter('search', $searchPattern);
         }
 
         return $qb;

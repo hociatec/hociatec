@@ -27,6 +27,7 @@ use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Clock\MockClock;
 use Symfony\Component\Validator\Validation;
 
 final class AppointmentServicesTest extends TestCase
@@ -162,6 +163,7 @@ final class AppointmentServicesTest extends TestCase
             new ChangeAppointmentStatusHandler(new AppointmentStatusWorkflow(), $this->persistence),
             $this->persistence,
             new DoctrineTransactionManager($this->entityManager),
+            new MockClock('2026-08-11T08:00:00+00:00'),
         );
 
         $this->entityManager->expects(self::once())
@@ -191,6 +193,7 @@ final class AppointmentServicesTest extends TestCase
             new ChangeAppointmentStatusHandler(new AppointmentStatusWorkflow(), $this->persistence),
             $this->persistence,
             new DoctrineTransactionManager($this->entityManager),
+            new MockClock('2026-08-11T08:00:00+00:00'),
         );
 
         $this->expectException(InvalidAppointmentSlotException::class);
@@ -223,6 +226,7 @@ final class AppointmentServicesTest extends TestCase
             new ChangeAppointmentStatusHandler(new AppointmentStatusWorkflow(), $this->persistence),
             $this->persistence,
             new DoctrineTransactionManager($this->entityManager),
+            new MockClock('2026-08-11T08:00:00+00:00'),
         );
 
         $result = $service->getAppointmentsForUser($user);
@@ -242,6 +246,7 @@ final class AppointmentServicesTest extends TestCase
             new ChangeAppointmentStatusHandler(new AppointmentStatusWorkflow(), $this->persistence),
             $this->persistence,
             new DoctrineTransactionManager($this->entityManager),
+            new MockClock('2026-08-11T08:00:00+00:00'),
         );
         $appointment = $this->createFutureAppointment();
 

@@ -17,10 +17,17 @@ final class LibreTranslateClient
         'https://translate.argosopentech.com/translate',
     ];
     private const REQUEST_TIMEOUT_SECONDS = 2.5;
+    private const MAX_ATTEMPTS_PER_ENDPOINT = 2;
+    private const CIRCUIT_BREAKER_FAILURE_THRESHOLD = 2;
+    private const CIRCUIT_BREAKER_COOLDOWN_SECONDS = 60;
     private const ALLOWED_LANGUAGES = ['fr', 'en'];
 
     /** @var array<string, string> */
     private array $cache = [];
+    /** @var array<string, int> */
+    private array $endpointFailures = [];
+    /** @var array<string, \DateTimeImmutable> */
+    private array $endpointBlockedUntil = [];
 
     public function __construct(
         private readonly HttpClientInterface $httpClient,
@@ -58,6 +65,10 @@ final class LibreTranslateClient
 
         $translated = null;
         foreach ($endpoints as $endpoint) {
+            if ($this->isCircuitOpen($endpoint)) {
+                continue;
+            }
+
             $translated = $this->requestTranslation(
                 $endpoint,
                 $text,
@@ -131,40 +142,92 @@ final class LibreTranslateClient
             $payload['api_key'] = $apiKey;
         }
 
-        try {
-            $response = $this->httpClient->request('POST', $endpoint, [
-                'headers' => ['Content-Type' => 'application/json'],
-                'json' => $payload,
-                'timeout' => self::REQUEST_TIMEOUT_SECONDS,
-                'max_duration' => self::REQUEST_TIMEOUT_SECONDS + 1.0,
-            ]);
+        for ($attempt = 1; $attempt <= self::MAX_ATTEMPTS_PER_ENDPOINT; ++$attempt) {
+            try {
+                $response = $this->httpClient->request('POST', $endpoint, [
+                    'headers' => ['Content-Type' => 'application/json'],
+                    'json' => $payload,
+                    'timeout' => self::REQUEST_TIMEOUT_SECONDS,
+                    'max_duration' => self::REQUEST_TIMEOUT_SECONDS + 1.0,
+                ]);
 
-            if (200 !== $response->getStatusCode()) {
-                return null;
-            }
+                $statusCode = $response->getStatusCode();
+                if (200 !== $statusCode) {
+                    $this->markFailure($endpoint);
 
-            $data = $response->toArray(false);
+                    if ($this->isRetryableStatusCode($statusCode) && $attempt < self::MAX_ATTEMPTS_PER_ENDPOINT) {
+                        continue;
+                    }
 
-            if (isset($data['translations'])
-                && is_array($data['translations'])
-                && count($data['translations']) > 0
-            ) {
-                $first = $data['translations'][0];
-                if (is_array($first) && isset($first['translatedText']) && is_string($first['translatedText'])) {
-                    return trim((string) $first['translatedText']);
+                    return null;
+                }
+
+                $this->clearFailure($endpoint);
+                $data = $response->toArray(false);
+
+                if (isset($data['translations'])
+                    && is_array($data['translations'])
+                    && count($data['translations']) > 0
+                ) {
+                    $first = $data['translations'][0];
+                    if (is_array($first) && isset($first['translatedText']) && is_string($first['translatedText'])) {
+                        return trim((string) $first['translatedText']);
+                    }
+                }
+
+                $translatedText = null;
+                if (isset($data['translatedText']) && is_string($data['translatedText'])) {
+                    $translatedText = (string) $data['translatedText'];
+                } elseif (isset($data['translated_text']) && is_string($data['translated_text'])) {
+                    $translatedText = (string) $data['translated_text'];
+                }
+
+                return null === $translatedText ? null : trim($translatedText);
+            } catch (TransportExceptionInterface|DecodingExceptionInterface|ClientExceptionInterface|RedirectionExceptionInterface|ServerExceptionInterface) {
+                $this->markFailure($endpoint);
+
+                if ($attempt < self::MAX_ATTEMPTS_PER_ENDPOINT) {
+                    continue;
                 }
             }
-
-            $translatedText = null;
-            if (isset($data['translatedText']) && is_string($data['translatedText'])) {
-                $translatedText = (string) $data['translatedText'];
-            } elseif (isset($data['translated_text']) && is_string($data['translated_text'])) {
-                $translatedText = (string) $data['translated_text'];
-            }
-
-            return null === $translatedText ? null : trim($translatedText);
-        } catch (TransportExceptionInterface|DecodingExceptionInterface|ClientExceptionInterface|RedirectionExceptionInterface|ServerExceptionInterface) {
-            return null;
         }
+
+        return null;
+    }
+
+    private function isCircuitOpen(string $endpoint): bool
+    {
+        $blockedUntil = $this->endpointBlockedUntil[$endpoint] ?? null;
+        if (!$blockedUntil instanceof \DateTimeImmutable) {
+            return false;
+        }
+
+        if ($blockedUntil > new \DateTimeImmutable()) {
+            return true;
+        }
+
+        unset($this->endpointBlockedUntil[$endpoint], $this->endpointFailures[$endpoint]);
+
+        return false;
+    }
+
+    private function markFailure(string $endpoint): void
+    {
+        $failures = ($this->endpointFailures[$endpoint] ?? 0) + 1;
+        $this->endpointFailures[$endpoint] = $failures;
+
+        if ($failures >= self::CIRCUIT_BREAKER_FAILURE_THRESHOLD) {
+            $this->endpointBlockedUntil[$endpoint] = new \DateTimeImmutable(sprintf('+%d seconds', self::CIRCUIT_BREAKER_COOLDOWN_SECONDS));
+        }
+    }
+
+    private function clearFailure(string $endpoint): void
+    {
+        unset($this->endpointFailures[$endpoint], $this->endpointBlockedUntil[$endpoint]);
+    }
+
+    private function isRetryableStatusCode(int $statusCode): bool
+    {
+        return 429 === $statusCode || $statusCode >= 500;
     }
 }

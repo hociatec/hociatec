@@ -22,6 +22,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Clock\MockClock;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 
@@ -42,7 +43,7 @@ final class NotificationControllersTest extends TestCase
         self::assertNotEmpty($show['data']['choices']);
 
         self::assertSame(
-            Response::HTTP_UNPROCESSABLE_ENTITY,
+            Response::HTTP_BAD_REQUEST,
             $controller->update($this->jsonRequest(['preferences' => []], 'PUT'))->getStatusCode(),
         );
         self::assertStringNotContainsString('Preference', (string) $controller->update($this->jsonRequest(['preferences' => []], 'PUT'))->getContent());
@@ -177,7 +178,7 @@ final class NotificationControllersTest extends TestCase
             }
         };
 
-        return new AccountNotificationProvider($events, $formatter, [$computed]);
+        return new AccountNotificationProvider($events, $formatter, [$computed], new MockClock('2026-08-11T10:00:00+00:00'));
     }
 
     private function user(array $preferences = [CommunicationPreferences::EMAIL]): User

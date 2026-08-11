@@ -10,6 +10,7 @@ use App\Module\Notification\Application\Projection\AccountNotificationFormatter;
 use App\Module\Notification\Application\Workflow\CommunicationPreferences;
 use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
 use App\Module\User\Domain\Entity\User;
+use Psr\Clock\ClockInterface;
 
 final readonly class AccountNotificationProvider
 {
@@ -20,6 +21,7 @@ final readonly class AccountNotificationProvider
         private AccountNotificationEventRepositoryPort $events,
         private AccountNotificationFormatter $formatter,
         private iterable $computedProviders,
+        private ClockInterface $clock,
     ) {
     }
 
@@ -69,7 +71,7 @@ final readonly class AccountNotificationProvider
      */
     private function buildComputedNotifications(User $user): array
     {
-        $now = new \DateTimeImmutable();
+        $now = $this->clock->now();
         $notifications = [];
 
         foreach ($this->computedProviders as $provider) {

@@ -18,6 +18,7 @@ use App\Module\Promotion\Domain\Entity\Promotion;
 use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
 use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Clock\MockClock;
 
 final class PromotionEngineTest extends TestCase
 {
@@ -140,6 +141,7 @@ final class PromotionEngineTest extends TestCase
             new CartSubtotalCalculator(),
             new PromotionDiscountCalculator(),
             new PromotionEligibilityPolicy(),
+            new MockClock('2026-08-11T10:00:00+00:00'),
         );
     }
 }

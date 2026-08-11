@@ -22,6 +22,7 @@ use App\Module\Promotion\Application\Projection\PromotionFormatter;
 use App\Module\Promotion\Application\Writer\PromotionDataApplier;
 use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use Symfony\Component\Clock\MockClock;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -49,6 +50,7 @@ final class AdminPromotionControllersTest extends AdminModuleIntegrationTestCase
             new CartSubtotalCalculator(),
             new PromotionDiscountCalculator(),
             new PromotionEligibilityPolicy(),
+            new MockClock('2026-08-11T10:00:00+00:00'),
         )))()->getStatusCode());
         self::assertSame(Response::HTTP_OK, (new ListPromotionsController($repository, $formatter))(Request::create('/?page=1&perPage=5'))->getStatusCode());
         self::assertSame(Response::HTTP_NOT_FOUND, (new GetPromotionController($repository, $formatter))(999)->getStatusCode());

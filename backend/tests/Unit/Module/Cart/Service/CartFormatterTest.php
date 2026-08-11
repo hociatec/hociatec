@@ -16,6 +16,7 @@ use App\Module\Voucher\Application\Calculator\VoucherEngine;
 use App\Module\Voucher\Infrastructure\Repository\VoucherRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Clock\MockClock;
 
 final class CartFormatterTest extends TestCase
 {
@@ -34,6 +35,7 @@ final class CartFormatterTest extends TestCase
                 new \App\Module\Promotion\Application\Calculator\CartSubtotalCalculator(),
                 new \App\Module\Promotion\Application\Calculator\PromotionDiscountCalculator(),
                 new \App\Module\Promotion\Application\Policy\PromotionEligibilityPolicy(),
+                new MockClock('2026-08-11T10:00:00+00:00'),
             ),
             new VoucherEngine(new VoucherRepository($registry), new \App\Module\Voucher\Application\Projection\VoucherFormatter()),
             new CatalogFormatter(),
@@ -75,7 +77,7 @@ final class CartFormatterTest extends TestCase
                 ->setEndsAt(new \DateTimeImmutable('+1 day')),
         ]);
 
-        $voucherRepository = $this->createMock(\App\Module\Voucher\Infrastructure\Repository\VoucherLookupInterface::class);
+        $voucherRepository = $this->createMock(\App\Module\Voucher\Application\Port\VoucherLookupPort::class);
         $voucherRepository->method('findOneByCode')->with('VOUCHER8')->willReturn(
             (new \App\Module\Voucher\Domain\Entity\Voucher('Voucher 8', 'VOUCHER8', \App\Module\Voucher\Domain\Entity\Voucher::TYPE_FIXED_CENTS, 8000))
                 ->setStartsAt(new \DateTimeImmutable('-1 day'))
@@ -90,6 +92,7 @@ final class CartFormatterTest extends TestCase
                 new \App\Module\Promotion\Application\Calculator\CartSubtotalCalculator(),
                 new \App\Module\Promotion\Application\Calculator\PromotionDiscountCalculator(),
                 new \App\Module\Promotion\Application\Policy\PromotionEligibilityPolicy(),
+                new MockClock('2026-08-11T10:00:00+00:00'),
             ),
             new VoucherEngine($voucherRepository, new \App\Module\Voucher\Application\Projection\VoucherFormatter()),
             new CatalogFormatter(),

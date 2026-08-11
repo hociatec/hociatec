@@ -31,6 +31,7 @@ use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Clock\MockClock;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Messenger\Envelope;
@@ -128,7 +129,7 @@ final class AdminNewsControllersTest extends TestCase
         $bus = $this->createMock(AsyncMessageDispatcher::class);
         $bus->method('dispatch')->willReturnCallback(static fn (object $message): null => null);
 
-        return new NewsArticleWriter(new DoctrineUnitOfWork($this->entityManager()), $users, $bus);
+        return new NewsArticleWriter(new DoctrineUnitOfWork($this->entityManager()), $users, $bus, new MockClock('2026-08-11T10:00:00+00:00'));
     }
 
     private function failingWriter(): NewsArticleWriter
@@ -141,7 +142,7 @@ final class AdminNewsControllersTest extends TestCase
         $users->method('findNewsEmailSubscribers')->willReturn([]);
         $bus = $this->createMock(AsyncMessageDispatcher::class);
 
-        return new NewsArticleWriter($persistence, $users, $bus);
+        return new NewsArticleWriter($persistence, $users, $bus, new MockClock('2026-08-11T10:00:00+00:00'));
     }
 
     private function failingSendWriter(): NewsArticleWriter
@@ -152,7 +153,7 @@ final class AdminNewsControllersTest extends TestCase
         $bus = $this->createMock(AsyncMessageDispatcher::class);
         $bus->method('dispatch')->willThrowException(new \RuntimeException('queue down'));
 
-        return new NewsArticleWriter($persistence, $users, $bus);
+        return new NewsArticleWriter($persistence, $users, $bus, new MockClock('2026-08-11T10:00:00+00:00'));
     }
 
     private function persistUser(string $email = 'news-admin@example.test'): User

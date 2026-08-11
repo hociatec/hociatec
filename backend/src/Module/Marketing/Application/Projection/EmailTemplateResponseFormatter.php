@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Module\Marketing\UI\Http;
+namespace App\Module\Marketing\Application\Projection;
 
 use App\Module\Marketing\Application\Security\EmailTemplatePreviewSanitizer;
 use App\Module\Marketing\Domain\Entity\EmailTemplate;

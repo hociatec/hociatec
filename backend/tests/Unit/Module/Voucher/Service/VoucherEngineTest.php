@@ -10,8 +10,8 @@ use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\User\Domain\Entity\User;
 use App\Module\Voucher\Application\Calculator\VoucherEngine;
+use App\Module\Voucher\Application\Port\VoucherLookupPort;
 use App\Module\Voucher\Domain\Entity\Voucher;
-use App\Module\Voucher\Infrastructure\Repository\VoucherLookupInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Clock\MockClock;
 
@@ -19,7 +19,7 @@ final class VoucherEngineTest extends TestCase
 {
     public function testCalculateForSubtotalHandlesNoCodeInvalidAndIneligibleCodes(): void
     {
-        $repository = $this->createMock(VoucherLookupInterface::class);
+        $repository = $this->createMock(VoucherLookupPort::class);
         $repository->method('findOneByCode')->willReturnCallback(function (string $code): ?Voucher {
             return match (mb_strtoupper(trim($code))) {
                 'DISABLED' => $this->voucher('Disabled', 'disabled', Voucher::TYPE_FIXED_CENTS, 1000)->setIsActive(false),
@@ -47,7 +47,7 @@ final class VoucherEngineTest extends TestCase
         $user = new User('Ada@example.com', 'Ada', 'Lovelace', new \DateTimeImmutable('1990-01-01'), '0102030405', 'female');
         $this->setEntityId($user, 42);
 
-        $repository = $this->createMock(VoucherLookupInterface::class);
+        $repository = $this->createMock(VoucherLookupPort::class);
         $repository->method('findOneByCode')->willReturnCallback(function (string $code): ?Voucher {
             return match (mb_strtoupper(trim($code))) {
                 'PERCENT20' => $this->voucher('Percent', 'PERCENT20', Voucher::TYPE_PERCENT, 20),
@@ -108,7 +108,7 @@ final class VoucherEngineTest extends TestCase
         $cart->addItem(new CartItem($cart, $rentalProduct, 2, 3));
         $cart->setVoucherCode('voucher10');
 
-        $repository = $this->createMock(VoucherLookupInterface::class);
+        $repository = $this->createMock(VoucherLookupPort::class);
         $repository->method('findOneByCode')->with('VOUCHER10')->willReturn(
             $this->voucher('Voucher 10', 'VOUCHER10', Voucher::TYPE_FIXED_CENTS, 10000)
         );
@@ -137,7 +137,7 @@ final class VoucherEngineTest extends TestCase
 
         $user = new User('ada@example.com', 'Ada', 'Lovelace', new \DateTimeImmutable('1990-01-01'), '0102030405', 'female');
 
-        $repository = $this->createMock(VoucherLookupInterface::class);
+        $repository = $this->createMock(VoucherLookupPort::class);
         $repository->method('findOneByCode')->willReturnCallback(function (string $code): ?Voucher {
             return match (mb_strtoupper(trim($code))) {
                 'DIRECT' => $this->voucher('Direct', 'DIRECT', Voucher::TYPE_FIXED_CENTS, 1500),
@@ -169,7 +169,7 @@ final class VoucherEngineTest extends TestCase
 
     public function testComputeDiscountAmountReturnsZeroForNonPositiveSubtotal(): void
     {
-        $engine = new VoucherEngine($this->createMock(VoucherLookupInterface::class), new \App\Module\Voucher\Application\Projection\VoucherFormatter());
+        $engine = new VoucherEngine($this->createMock(VoucherLookupPort::class), new \App\Module\Voucher\Application\Projection\VoucherFormatter());
         $method = new \ReflectionMethod($engine, 'computeDiscountAmount');
         $method->setAccessible(true);
 
@@ -180,7 +180,7 @@ final class VoucherEngineTest extends TestCase
 
     public function testCalculateForSubtotalRejectsNegativeSubtotal(): void
     {
-        $engine = new VoucherEngine($this->createMock(VoucherLookupInterface::class), new \App\Module\Voucher\Application\Projection\VoucherFormatter());
+        $engine = new VoucherEngine($this->createMock(VoucherLookupPort::class), new \App\Module\Voucher\Application\Projection\VoucherFormatter());
 
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Le sous-total ne peut pas etre negatif.');
@@ -191,7 +191,7 @@ final class VoucherEngineTest extends TestCase
     public function testVoucherDateBoundariesAreInclusive(): void
     {
         $now = new \DateTimeImmutable('2026-08-01 12:00:00');
-        $repository = $this->createMock(VoucherLookupInterface::class);
+        $repository = $this->createMock(VoucherLookupPort::class);
         $repository->method('findOneByCode')->willReturnCallback(function (string $code) use ($now): ?Voucher {
             return match ($code) {
                 'STARTS_NOW' => $this->voucher('Starts now', 'STARTS_NOW', Voucher::TYPE_FIXED_CENTS, 1000)
@@ -218,7 +218,7 @@ final class VoucherEngineTest extends TestCase
         $this->setPrivateProperty($item, 'quantity', 0);
         $cart->addItem($item);
 
-        $engine = new VoucherEngine($this->createMock(VoucherLookupInterface::class), new \App\Module\Voucher\Application\Projection\VoucherFormatter());
+        $engine = new VoucherEngine($this->createMock(VoucherLookupPort::class), new \App\Module\Voucher\Application\Projection\VoucherFormatter());
 
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('La quantite doit etre superieure ou egale a 1.');
@@ -236,7 +236,7 @@ final class VoucherEngineTest extends TestCase
         $this->setPrivateProperty($item, 'rentalMonths', 0);
         $cart->addItem($item);
 
-        $engine = new VoucherEngine($this->createMock(VoucherLookupInterface::class), new \App\Module\Voucher\Application\Projection\VoucherFormatter());
+        $engine = new VoucherEngine($this->createMock(VoucherLookupPort::class), new \App\Module\Voucher\Application\Projection\VoucherFormatter());
 
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('La duree de location doit etre superieure ou egale a 1 mois.');

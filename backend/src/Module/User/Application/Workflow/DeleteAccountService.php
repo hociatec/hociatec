@@ -16,6 +16,7 @@ final readonly class DeleteAccountService
     public function __construct(
         private OrderRepositoryPort $orders,
         private RefreshTokenRevocationService $refreshTokenRevocations,
+        private UserPersonalDataAnonymizer $anonymizer,
         private UserPersistencePort $persistence,
         private TransactionManager $transactions,
     ) {
@@ -29,6 +30,14 @@ final readonly class DeleteAccountService
 
         $this->transactions->transactional(function () use ($user): void {
             $this->refreshTokenRevocations->revokeAllForUser($user);
+
+            if ($this->anonymizer->shouldRetainHistory($user)) {
+                $this->anonymizer->anonymize($user);
+                $this->persistence->flush();
+
+                return;
+            }
+
             $this->persistence->remove($user);
             $this->persistence->flush();
         });

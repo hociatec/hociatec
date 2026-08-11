@@ -9,6 +9,7 @@ use App\Module\News\Application\Message\NewsArticlePublishedEmailMessage;
 use App\Module\News\Domain\Entity\NewsArticle;
 use App\Module\News\Domain\Exception\NewsOperationException;
 use App\Module\User\Application\Port\UserRepositoryPort;
+use Psr\Clock\ClockInterface;
 use App\Shared\Application\Messaging\AsyncMessageDispatcher;
 use App\Shared\Application\UnitOfWork;
 
@@ -18,6 +19,7 @@ final readonly class NewsArticleWriter
         private UnitOfWork $persistence,
         private UserRepositoryPort $users,
         private AsyncMessageDispatcher $bus,
+        private ClockInterface $clock,
     ) {
     }
 
@@ -104,7 +106,7 @@ final readonly class NewsArticleWriter
         }
 
         if (null === $input->publishedAt || '' === $input->publishedAt) {
-            return new \DateTimeImmutable();
+            return $this->clock->now();
         }
 
         try {

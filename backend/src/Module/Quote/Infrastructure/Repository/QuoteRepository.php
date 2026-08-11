@@ -8,6 +8,7 @@ use App\Module\Quote\Application\Port\QuoteRepositoryPort;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Shared\Application\LockMode as ApplicationLockMode;
 use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
+use App\Shared\Infrastructure\Persistence\LikeSearchHelper;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
@@ -150,9 +151,10 @@ class QuoteRepository extends ServiceEntityRepository implements QuoteRepository
     {
         $qb = $this->createQueryBuilder('q');
 
-        if (null !== $search && '' !== trim($search)) {
+        $searchPattern = LikeSearchHelper::containsPattern($search);
+        if (null !== $searchPattern) {
             $qb->andWhere('q.number LIKE :term OR q.customerName LIKE :term OR q.customerEmail LIKE :term')
-                ->setParameter('term', '%'.trim($search).'%');
+                ->setParameter('term', $searchPattern);
         }
 
         if (null !== $statusCode) {

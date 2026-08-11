@@ -32,6 +32,7 @@ use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Clock\MockClock;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -91,6 +92,7 @@ abstract class AppointmentIntegrationTestCase extends TestCase
             new ChangeAppointmentStatusHandler(new AppointmentStatusWorkflow(), $persistence),
             $persistence,
             new DoctrineTransactionManager($this->entityManager()),
+            new MockClock('2026-08-11T10:00:00+00:00'),
         );
     }
 

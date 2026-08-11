@@ -10,6 +10,7 @@ use App\Module\TradeIn\Domain\Enum\TradeInStatus;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\LockMode as ApplicationLockMode;
 use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
+use App\Shared\Infrastructure\Persistence\LikeSearchHelper;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
@@ -87,8 +88,9 @@ final class TradeInRequestRepository extends ServiceEntityRepository implements 
     private function createAdminQuery(?string $search = null, ?TradeInStatus $status = null): \Doctrine\ORM\QueryBuilder
     {
         $qb = $this->createQueryBuilder('r');
-        if (null !== $search && '' !== trim($search)) {
-            $qb->andWhere('r.reference LIKE :search OR r.email LIKE :search OR r.productName LIKE :search')->setParameter('search', '%'.trim($search).'%');
+        $searchPattern = LikeSearchHelper::containsPattern($search);
+        if (null !== $searchPattern) {
+            $qb->andWhere('r.reference LIKE :search OR r.email LIKE :search OR r.productName LIKE :search')->setParameter('search', $searchPattern);
         }
         if (null !== $status) {
             $qb->andWhere('r.status = :status')->setParameter('status', $status);

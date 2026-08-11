@@ -8,6 +8,7 @@ use App\Module\Catalog\Application\Port\CategoryRepositoryPort;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Shared\Application\LockMode as ApplicationLockMode;
 use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
+use App\Shared\Infrastructure\Persistence\LikeSearchHelper;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
@@ -128,14 +129,13 @@ class CategoryRepository extends ServiceEntityRepository implements CategoryRepo
 
     private function applyAdminSearch(\Doctrine\ORM\QueryBuilder $qb, ?string $search): void
     {
-        $term = null === $search ? '' : trim(mb_strtolower($search));
-
-        if ('' === $term) {
+        $pattern = LikeSearchHelper::containsPattern($search, true);
+        if (null === $pattern) {
             return;
         }
 
         $qb
             ->andWhere('LOWER(c.name) LIKE :search OR LOWER(c.slug) LIKE :search')
-            ->setParameter('search', sprintf('%%%s%%', $term));
+            ->setParameter('search', $pattern);
     }
 }

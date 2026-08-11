@@ -25,6 +25,7 @@ use App\Module\Promotion\Domain\Entity\Promotion;
 use App\Module\Promotion\Infrastructure\Repository\PromotionRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Clock\MockClock;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Validator\Validation;
 
@@ -124,6 +125,7 @@ final class AdminControllerBatchTest extends TestCase
             new \App\Module\Promotion\Application\Calculator\CartSubtotalCalculator(),
             new \App\Module\Promotion\Application\Calculator\PromotionDiscountCalculator(),
             new \App\Module\Promotion\Application\Policy\PromotionEligibilityPolicy(),
+            new MockClock('2026-08-11T10:00:00+00:00'),
         );
         $audiences = new ListPromotionAudiencesController($promotionEngine);
         $audiencesPayload = json_decode((string) $audiences()->getContent(), true, 512, JSON_THROW_ON_ERROR);

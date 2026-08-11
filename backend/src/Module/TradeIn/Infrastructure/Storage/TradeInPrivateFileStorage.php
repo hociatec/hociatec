@@ -11,6 +11,7 @@ use Symfony\Component\Process\Process;
 final readonly class TradeInPrivateFileStorage implements TradeInPrivateFileStoragePort
 {
     private const MAX_RIB_BYTES = 5_242_880;
+    private const ANTIVIRUS_TIMEOUT_SECONDS = 20;
 
     public function __construct(private string $projectDir, private ?string $clamScanBinary = null)
     {
@@ -155,6 +156,7 @@ final readonly class TradeInPrivateFileStorage implements TradeInPrivateFileStor
         }
 
         $process = new Process([$binary, '--no-summary', '--infected', $absolutePath]);
+        $process->setTimeout(self::ANTIVIRUS_TIMEOUT_SECONDS);
         $process->run();
 
         if (0 === $process->getExitCode()) {

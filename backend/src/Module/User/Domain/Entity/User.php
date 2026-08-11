@@ -328,6 +328,28 @@ class User implements SecurityUserIdentity
         return $this->updatedAt;
     }
 
+    public function anonymize(string $email): self
+    {
+        $this->setEmail($email);
+        $this->setFirstName('Deleted');
+        $this->setLastName('User');
+        $this->setBirthDate(new \DateTimeImmutable('1970-01-01'));
+        $this->setPhoneNumber('0000000000');
+        $this->setGender('na');
+        $this->setRoles(['ROLE_USER']);
+        $this->setIsVerified(false);
+        $this->setVerificationToken(null);
+        $this->setVerificationTokenExpiresAt(null);
+        $this->setPasswordResetToken(null);
+        $this->setPasswordResetTokenExpiresAt(null);
+        $this->setAdminNotes(null);
+        $this->setAdminTags([]);
+        $this->setCommunicationPreferences([]);
+        $this->setAccountNotificationsSeenSignature(null);
+
+        return $this;
+    }
+
     #[ORM\PrePersist]
     public function onPrePersist(): void
     {

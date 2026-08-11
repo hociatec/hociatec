@@ -196,6 +196,18 @@ class TradeInRequest
         $this->updatedAt = new \DateTimeImmutable();
     }
 
+    public function anonymizePersonalData(): self
+    {
+        $this->firstName = 'Deleted';
+        $this->lastName = 'User';
+        $this->email = 'deleted@privacy.invalid';
+        $this->phone = '0000000000';
+        $this->serialNumber = null;
+        $this->description = '[deleted]';
+
+        return $this;
+    }
+
     private function extractUserId(?User $user): ?int
     {
         return $user?->getId();

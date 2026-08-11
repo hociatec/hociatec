@@ -12,8 +12,8 @@ use App\Module\Cart\Infrastructure\Repository\CartSessionRepository;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Voucher\Application\Calculator\VoucherEngine;
+use App\Module\Voucher\Application\Port\VoucherLookupPort;
 use App\Module\Voucher\Domain\Entity\Voucher;
-use App\Module\Voucher\Infrastructure\Repository\VoucherLookupInterface;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
@@ -85,9 +85,9 @@ final class CartVoucherServiceTest extends TestCase
         );
     }
 
-    private function voucherLookup(?Voucher $voucher): VoucherLookupInterface
+    private function voucherLookup(?Voucher $voucher): VoucherLookupPort
     {
-        return new class($voucher) implements VoucherLookupInterface {
+        return new class($voucher) implements VoucherLookupPort {
             public function __construct(private readonly ?Voucher $voucher)
             {
             }

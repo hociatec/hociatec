@@ -10,6 +10,7 @@ use App\Module\Audit\Domain\Entity\AuditType;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\LockMode as ApplicationLockMode;
 use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
+use App\Shared\Infrastructure\Persistence\LikeSearchHelper;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
@@ -86,11 +87,11 @@ class AuditRequestRepository extends ServiceEntityRepository implements AuditReq
     private function createAdminListQueryBuilder(array $filters): \Doctrine\ORM\QueryBuilder
     {
         $qb = $this->createQueryBuilder('a');
-        $search = trim((string) ($filters['search'] ?? ''));
-        if ('' !== $search) {
+        $searchPattern = LikeSearchHelper::containsPattern($filters['search'] ?? null, true);
+        if (null !== $searchPattern) {
             $qb
                 ->andWhere('LOWER(a.number) LIKE :search OR LOWER(a.targetUrl) LIKE :search')
-                ->setParameter('search', '%'.mb_strtolower($search).'%');
+                ->setParameter('search', $searchPattern);
         }
 
         $status = (string) ($filters['status'] ?? '');

@@ -7,16 +7,29 @@ namespace App\Tests\Unit\Module\User\Controller;
 use App\Module\Auth\Application\Workflow\RefreshTokenRevocationService;
 use App\Module\Auth\Infrastructure\Repository\RefreshTokenRepository;
 use App\Module\Order\Infrastructure\Repository\OrderRepository;
+use App\Module\Quote\Application\Port\QuoteRepositoryPort;
+use App\Module\Quote\Domain\Entity\Quote;
+use App\Module\TradeIn\Application\Port\TradeInRequestRepositoryPort;
+use App\Module\TradeIn\Domain\Entity\TradeInRequest;
+use App\Module\TradeIn\Domain\ValueObject\TradeInApplicant;
+use App\Module\TradeIn\Domain\ValueObject\TradeInEstimate;
+use App\Module\TradeIn\Domain\ValueObject\TradeInProductCondition;
+use App\Module\TradeIn\Domain\ValueObject\TradeInProductIdentity;
+use App\Module\TradeIn\Domain\ValueObject\TradeInProductSnapshot;
+use App\Module\TradeIn\Domain\ValueObject\TradeInPurchase;
 use App\Module\User\Application\Exception\ActivationEmailDeliveryException;
 use App\Module\User\Application\Exception\InvalidBirthDateException;
 use App\Module\User\Application\Exception\InvalidCurrentPasswordException;
 use App\Module\User\Application\Exception\InvalidProfilePasswordException;
 use App\Module\User\Application\Exception\UserAlreadyExistsException;
+use App\Module\User\Application\Port\UserPersistencePort;
+use App\Module\User\Application\Provider\PersonalDataExportProvider;
 use App\Module\User\Application\Projection\UserProfileFormatter;
 use App\Module\User\Application\Workflow\CustomerAddressBookService;
 use App\Module\User\Application\Workflow\DeleteAccountService;
 use App\Module\User\Application\Workflow\RegisterUserService;
 use App\Module\User\Application\Workflow\UpdateProfileService;
+use App\Module\User\Application\Workflow\UserPersonalDataAnonymizer;
 use App\Module\User\Domain\Entity\ShippingAddress;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Persistence\UserPersistence;
@@ -24,10 +37,12 @@ use App\Module\User\Infrastructure\Repository\ShippingAddressRepository;
 use App\Module\User\UI\Controller\Address\CreateAddressController;
 use App\Module\User\UI\Controller\Address\UpdateAddressController;
 use App\Module\User\UI\Controller\DeleteAccountController;
+use App\Module\User\UI\Controller\ExportMyPersonalDataController;
 use App\Module\User\UI\Controller\RegisterController;
 use App\Module\User\UI\Controller\UpdateProfileController;
 use App\Module\User\UI\Http\RegistrationRateLimiter;
 use App\Shared\Infrastructure\Doctrine\DoctrineTransactionManager;
+use App\Shared\Infrastructure\Http\AttachmentResponseFactory;
 use App\Shared\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Doctrine\ORM\EntityManagerInterface;
@@ -186,12 +201,37 @@ final class UserRemainingControllersTest extends TestCase
 
         $orders = $this->getMockBuilder(OrderRepository::class)
             ->disableOriginalConstructor()
-            ->onlyMethods(['hasActiveForUser'])
+            ->onlyMethods(['hasActiveForUser', 'countByUser', 'findByUser'])
             ->getMock();
         $orders->expects(self::exactly(3))
             ->method('hasActiveForUser')
             ->with($user)
             ->willReturnOnConsecutiveCalls(false, true, false);
+        $orders->expects(self::once())
+            ->method('countByUser')
+            ->with($user)
+            ->willReturn(0);
+        $orders->expects(self::never())
+            ->method('findByUser')
+            ->with($user, 1000);
+
+        $tradeIns = $this->createMock(TradeInRequestRepositoryPort::class);
+        $tradeIns->expects(self::once())
+            ->method('countByUser')
+            ->with($user)
+            ->willReturn(0);
+        $tradeIns->expects(self::never())
+            ->method('findByUser')
+            ->with($user, 1000);
+
+        $quotes = $this->createMock(QuoteRepositoryPort::class);
+        $quotes->expects(self::once())
+            ->method('countByCustomerEmail')
+            ->with('ada@example.com')
+            ->willReturn(0);
+        $quotes->expects(self::never())
+            ->method('findByCustomerEmail')
+            ->with('ada@example.com', 1000);
 
         $refreshTokens = $this->getMockBuilder(RefreshTokenRepository::class)
             ->disableOriginalConstructor()
@@ -216,12 +256,13 @@ final class UserRemainingControllersTest extends TestCase
 
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects(self::once())->method('error');
-        $delete = new class($orders, $refreshTokens, new UserPersistence($entityManager), new DoctrineTransactionManager($entityManager), $logger, $user) extends DeleteAccountController {
-            public function __construct(OrderRepository $orders, RefreshTokenRepository $refreshTokens, UserPersistence $persistence, DoctrineTransactionManager $transactions, LoggerInterface $logger, private User $user)
+        $delete = new class($orders, $tradeIns, $quotes, $refreshTokens, new UserPersistence($entityManager), new DoctrineTransactionManager($entityManager), $logger, $user) extends DeleteAccountController {
+            public function __construct(OrderRepository $orders, TradeInRequestRepositoryPort $tradeIns, QuoteRepositoryPort $quotes, RefreshTokenRepository $refreshTokens, UserPersistence $persistence, DoctrineTransactionManager $transactions, LoggerInterface $logger, private User $user)
             {
                 parent::__construct(new DeleteAccountService(
                     $orders,
                     new RefreshTokenRevocationService($refreshTokens),
+                    new UserPersonalDataAnonymizer($orders, $tradeIns, $quotes, $persistence),
                     $persistence,
                     $transactions,
                 ), $logger);
@@ -298,6 +339,118 @@ final class UserRemainingControllersTest extends TestCase
             'Si l’adresse e-mail peut être utilisée, vous recevrez les instructions de vérification associées.',
             json_decode((string) $createdResponse->getContent(), true, 512, JSON_THROW_ON_ERROR)['message'],
         );
+    }
+
+    public function testUserPersonalDataAnonymizerRewritesUserAndSnapshots(): void
+    {
+        $user = $this->user();
+        $this->setId($user, 44);
+
+        $order = new \App\Module\Order\Domain\Entity\Order('ORD-44', $user);
+        $order
+            ->setBillingName('Ada Lovelace')
+            ->setBillingEmail('ada@example.com')
+            ->setBillingAddress('1 Rue A')
+            ->setBillingPostalCode('75001')
+            ->setBillingCity('Paris')
+            ->setShippingName('Ada Lovelace')
+            ->setShippingAddress('1 Rue A')
+            ->setShippingPostalCode('75001')
+            ->setShippingCity('Paris');
+
+        $quote = (new Quote('QUO-44'))
+            ->setCustomerName('Ada Lovelace')
+            ->setCustomerEmail('ada@example.com')
+            ->setCustomerCompany('Analytical Engine')
+            ->setCustomerAddress('1 Rue A');
+
+        $tradeIn = new TradeInRequest(
+            'TRD-44',
+            $user,
+            new TradeInApplicant('Ada', 'Lovelace', 'ada@example.com', '0102030405'),
+            new TradeInProductSnapshot(
+                new TradeInProductIdentity('Phones', 'iPhone'),
+                new TradeInPurchase(50000, 2024),
+                new TradeInProductCondition('good', true, true, true, 'Excellent condition'),
+            ),
+            new TradeInEstimate(10000, 15000, null, null),
+            new \DateTimeImmutable('2026-08-10T10:00:00+00:00'),
+        );
+
+        $orders = $this->createMock(OrderRepository::class);
+        $orders->expects(self::once())->method('findByUser')->with($user, 1000)->willReturn([$order]);
+
+        $tradeIns = $this->createMock(TradeInRequestRepositoryPort::class);
+        $tradeIns->expects(self::once())->method('findByUser')->with($user, 1000)->willReturn([$tradeIn]);
+
+        $quotes = $this->createMock(QuoteRepositoryPort::class);
+        $quotes->expects(self::once())->method('findByCustomerEmail')->with('ada@example.com', 1000)->willReturn([$quote]);
+
+        $persistence = $this->createMock(UserPersistencePort::class);
+        $persistence->expects(self::once())->method('save')->with($user);
+
+        (new UserPersonalDataAnonymizer($orders, $tradeIns, $quotes, $persistence))->anonymize($user);
+
+        self::assertSame('deleted+user-44@privacy.invalid', $user->getEmail());
+        self::assertSame('Deleted', $user->getFirstName());
+        self::assertSame('Deleted user', $order->getBillingName());
+        self::assertNull($order->getBillingEmail());
+        self::assertSame('Deleted user', $quote->getCustomerName());
+        self::assertNull($quote->getCustomerEmail());
+        self::assertSame('Deleted', $tradeIn->getFirstName());
+        self::assertSame('[deleted]', $tradeIn->getDescription());
+    }
+
+    public function testExportMyPersonalDataControllerBuildsJsonAttachment(): void
+    {
+        $user = $this->user();
+        $this->setId($user, 21);
+
+        $addressRepository = $this->getMockBuilder(ShippingAddressRepository::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['findDefaultForUser', 'findFirstForUser'])
+            ->getMock();
+        $addressRepository->expects(self::once())->method('findDefaultForUser')->with($user)->willReturn(null);
+        $addressRepository->expects(self::once())->method('findFirstForUser')->with($user)->willReturn(null);
+
+        $orders = $this->getMockBuilder(OrderRepository::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['findByUser'])
+            ->getMock();
+        $orders->expects(self::once())->method('findByUser')->with($user, 1000)->willReturn([]);
+
+        $tradeIns = $this->createMock(TradeInRequestRepositoryPort::class);
+        $tradeIns->expects(self::once())->method('findByUser')->with($user, 1000)->willReturn([]);
+
+        $quotes = $this->createMock(QuoteRepositoryPort::class);
+        $quotes->expects(self::once())->method('findByCustomerEmail')->with('ada@example.com', 1000)->willReturn([]);
+
+        $controller = new class(
+            new PersonalDataExportProvider(new UserProfileFormatter($addressRepository), $orders, $tradeIns, $quotes),
+            new AttachmentResponseFactory(),
+            $user,
+        ) extends ExportMyPersonalDataController {
+            public function __construct(PersonalDataExportProvider $exports, AttachmentResponseFactory $attachments, private User $user)
+            {
+                parent::__construct($exports, $attachments);
+            }
+
+            protected function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface
+            {
+                return new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($this->user);
+            }
+        };
+
+        $response = $controller();
+        self::assertSame(200, $response->getStatusCode());
+        self::assertStringContainsString('attachment;', (string) $response->headers->get('Content-Disposition'));
+        self::assertSame('no-store, private', $response->headers->get('Cache-Control'));
+
+        $payload = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame('ada@example.com', $payload['account']['email']);
+        self::assertSame([], $payload['orders']);
+        self::assertSame([], $payload['tradeIns']);
+        self::assertSame([], $payload['quotes']);
     }
 
     private function user(): User

@@ -15,6 +15,7 @@ use App\Shared\Infrastructure\Http\CsrfProtectionSubscriber;
 use App\Shared\Infrastructure\Http\CsrfTokenService;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Http\JsonRequestInput;
+use App\Shared\Infrastructure\Http\PrivateApiCacheControlSubscriber;
 use App\Shared\Infrastructure\Http\RateLimited;
 use App\Shared\Infrastructure\Http\RateLimitKeyFactory;
 use App\Shared\Infrastructure\Http\RateLimitSubscriber;
@@ -167,6 +168,58 @@ final class HttpInfrastructureTest extends TestCase
         $nonApiResponse = new Response();
         $subscriber->onKernelResponse(new ResponseEvent($kernel, Request::create('http://example.test/admin'), HttpKernelInterface::MAIN_REQUEST, $nonApiResponse));
         self::assertFalse($nonApiResponse->headers->has('X-Content-Type-Options'));
+    }
+
+    public function testPrivateApiCacheControlSubscriberMarksAuthenticatedApiResponsesAsNonCacheable(): void
+    {
+        $kernel = $this->createMock(HttpKernelInterface::class);
+        $user = new User('ada@example.com', 'Ada', 'Lovelace', new \DateTimeImmutable('1990-01-01'), '0102030405', 'female');
+        $subscriber = new PrivateApiCacheControlSubscriber(new Security(new class($user) implements ContainerInterface {
+            public function __construct(private readonly User $user)
+            {
+            }
+
+            public function get(string $id): mixed
+            {
+                if ('security.token_storage' === $id) {
+                    return new class($this->user) implements \Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface {
+                        public function __construct(private readonly User $user)
+                        {
+                        }
+
+                        public function getToken(): ?\Symfony\Component\Security\Core\Authentication\Token\TokenInterface
+                        {
+                            return new \Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken(
+                                new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($this->user),
+                                'main',
+                                ['ROLE_USER'],
+                            );
+                        }
+
+                        public function setToken(?\Symfony\Component\Security\Core\Authentication\Token\TokenInterface $token = null): void
+                        {
+                        }
+                    };
+                }
+
+                throw new \RuntimeException('Unexpected service '.$id);
+            }
+
+            public function has(string $id): bool
+            {
+                return 'security.token_storage' === $id;
+            }
+        }));
+
+        $response = new Response();
+        $subscriber->onKernelResponse(new ResponseEvent($kernel, Request::create('/api/auth/me'), HttpKernelInterface::MAIN_REQUEST, $response));
+        self::assertSame('no-store, private', $response->headers->get('Cache-Control'));
+        self::assertSame('no-cache', $response->headers->get('Pragma'));
+        self::assertSame('0', $response->headers->get('Expires'));
+
+        $publicResponse = new Response();
+        $subscriber->onKernelResponse(new ResponseEvent($kernel, Request::create('/public'), HttpKernelInterface::MAIN_REQUEST, $publicResponse));
+        self::assertNotSame('no-store, private', $publicResponse->headers->get('Cache-Control'));
     }
 
     public function testCsrfProtectionDoesNotExemptLogoutRoute(): void

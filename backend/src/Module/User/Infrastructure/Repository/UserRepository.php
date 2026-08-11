@@ -8,6 +8,7 @@ use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\LockMode as ApplicationLockMode;
 use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
+use App\Shared\Infrastructure\Persistence\LikeSearchHelper;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
@@ -141,11 +142,11 @@ class UserRepository extends ServiceEntityRepository implements UserRepositoryPo
             ->setMaxResults(max(1, min(100, $limit)))
             ->setFirstResult(max(0, $offset));
 
-        $normalizedSearch = trim($search);
-        if ('' !== $normalizedSearch) {
+        $searchPattern = LikeSearchHelper::containsPattern($search);
+        if (null !== $searchPattern) {
             $qb
                 ->andWhere('LOWER(u.identity.email) LIKE LOWER(:search) OR LOWER(u.identity.firstName) LIKE LOWER(:search) OR LOWER(u.identity.lastName) LIKE LOWER(:search)')
-                ->setParameter('search', '%'.$normalizedSearch.'%');
+                ->setParameter('search', $searchPattern);
         }
 
         return $qb->getQuery()->getResult();
@@ -155,11 +156,11 @@ class UserRepository extends ServiceEntityRepository implements UserRepositoryPo
     {
         $qb = $this->createQueryBuilder('u')->select('COUNT(u.id)');
 
-        $normalizedSearch = trim($search);
-        if ('' !== $normalizedSearch) {
+        $searchPattern = LikeSearchHelper::containsPattern($search);
+        if (null !== $searchPattern) {
             $qb
                 ->andWhere('LOWER(u.identity.email) LIKE LOWER(:search) OR LOWER(u.identity.firstName) LIKE LOWER(:search) OR LOWER(u.identity.lastName) LIKE LOWER(:search)')
-                ->setParameter('search', '%'.$normalizedSearch.'%');
+                ->setParameter('search', $searchPattern);
         }
 
         return (int) $qb->getQuery()->getSingleScalarResult();

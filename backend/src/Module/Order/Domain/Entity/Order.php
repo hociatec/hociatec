@@ -155,6 +155,21 @@ class Order
         return $this->updatedAt;
     }
 
+    public function anonymizePersonalData(): self
+    {
+        $this->setBillingName('Deleted user');
+        $this->setBillingEmail(null);
+        $this->setBillingAddress(null);
+        $this->setBillingPostalCode(null);
+        $this->setBillingCity(null);
+        $this->setShippingName('Deleted user');
+        $this->setShippingAddress(null);
+        $this->setShippingPostalCode(null);
+        $this->setShippingCity(null);
+
+        return $this;
+    }
+
     #[ORM\PreUpdate]
     public function touch(): void
     {

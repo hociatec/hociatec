@@ -8,6 +8,7 @@ use App\Module\Catalog\Application\Port\BrandRepositoryPort;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Shared\Application\LockMode as ApplicationLockMode;
 use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
+use App\Shared\Infrastructure\Persistence\LikeSearchHelper;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
@@ -85,14 +86,13 @@ class BrandRepository extends ServiceEntityRepository implements BrandRepository
 
     private function applySearch(\Doctrine\ORM\QueryBuilder $qb, ?string $search): void
     {
-        $term = null === $search ? '' : trim(mb_strtolower($search));
-
-        if ('' === $term) {
+        $pattern = LikeSearchHelper::containsPattern($search, true);
+        if (null === $pattern) {
             return;
         }
 
         $qb
             ->andWhere('LOWER(b.name) LIKE :search')
-            ->setParameter('search', sprintf('%%%s%%', $term));
+            ->setParameter('search', $pattern);
     }
 }

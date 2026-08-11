@@ -30,6 +30,7 @@ use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Clock\MockClock;
 
 final class NotificationAndLoyaltyServicesTest extends TestCase
 {
@@ -56,7 +57,7 @@ final class NotificationAndLoyaltyServicesTest extends TestCase
             ['key' => 'computed', 'label' => 'Computed', 'message' => 'Body', 'to' => '/mon-espace', 'type' => 'info', 'createdAt' => '2026-07-29T10:00:00+00:00'],
         ]);
 
-        $provider = new AccountNotificationProvider($eventRepository, $formatter, [$computedProvider]);
+        $provider = new AccountNotificationProvider($eventRepository, $formatter, [$computedProvider], new MockClock('2026-07-29T10:00:00+00:00'));
         $notifications = $provider->provideForUser($user);
 
         self::assertCount(2, $notifications);

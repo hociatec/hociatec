@@ -8,8 +8,8 @@ use App\Module\Admin\Application\BetaTest\Handler\CloseElapsedBetaCampaignsHandl
 use App\Module\BetaTest\Application\Port\BetaCampaignRepositoryPort;
 use App\Module\BetaTest\Application\Port\BetaTesterProfileRepositoryPort;
 use App\Module\BetaTest\Application\Port\BugReportRepositoryPort;
+use App\Module\BetaTest\Application\Projection\BugReportResponseFormatter;
 use App\Module\BetaTest\Domain\Enum\BetaTesterStatus;
-use App\Module\BetaTest\UI\Http\BugReportResponseFormatter;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

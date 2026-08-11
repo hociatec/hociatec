@@ -33,7 +33,7 @@ final class ProfileAndCampaignControllersTest extends BetaTestIntegrationTestCas
         $persistence = new DoctrineUnitOfWork($em);
 
         $profileService = new BetaTesterProfileService($persistence, new MockClock('2026-07-26'));
-        $list = new ListBetaCampaignsController($profiles, new BetaCampaignProvider($campaigns, $persistence), new BetaCampaignResponseFormatter());
+        $list = new ListBetaCampaignsController($profiles, new BetaCampaignProvider($campaigns, $persistence, new MockClock('2026-08-11T10:00:00+00:00')), new BetaCampaignResponseFormatter());
         $list->setContainer($this->container(null));
         self::assertSame(Response::HTTP_UNAUTHORIZED, $list()->getStatusCode());
         $list->setContainer($this->container($user));
@@ -56,8 +56,8 @@ final class ProfileAndCampaignControllersTest extends BetaTestIntegrationTestCas
         self::assertInstanceOf(BetaTesterProfile::class, $profile);
         $profile->setStatus(BetaTesterProfile::STATUS_ACCEPTED);
 
-        $active = (new BetaCampaign('Active', 'Desc', new \DateTimeImmutable('-1 day'), new \DateTimeImmutable('+1 day')))->setStatus(BetaCampaign::STATUS_ACTIVE);
-        $closed = (new BetaCampaign('Closed', 'Desc', new \DateTimeImmutable('-3 days'), new \DateTimeImmutable('-1 day')))->setStatus(BetaCampaign::STATUS_ACTIVE);
+        $active = (new BetaCampaign('Active', 'Desc', new \DateTimeImmutable('2026-08-10T10:00:00+00:00'), new \DateTimeImmutable('2026-08-12T10:00:00+00:00')))->setStatus(BetaCampaign::STATUS_ACTIVE);
+        $closed = (new BetaCampaign('Closed', 'Desc', new \DateTimeImmutable('2026-08-08T10:00:00+00:00'), new \DateTimeImmutable('2026-08-10T10:00:00+00:00')))->setStatus(BetaCampaign::STATUS_ACTIVE);
         $em->persist($active);
         $em->persist($closed);
         $em->flush();

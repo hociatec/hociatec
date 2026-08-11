@@ -9,6 +9,7 @@ use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\LockMode as ApplicationLockMode;
 use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
+use App\Shared\Infrastructure\Persistence\LikeSearchHelper;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
@@ -62,9 +63,10 @@ final class BetaTesterProfileRepository extends ServiceEntityRepository implemen
             ->join('p.user', 'u')
             ->addSelect('u');
 
-        if ('' !== trim($search)) {
+        $searchPattern = LikeSearchHelper::containsPattern($search, true);
+        if (null !== $searchPattern) {
             $qb->andWhere('LOWER(u.identity.firstName) LIKE :search OR LOWER(u.identity.lastName) LIKE :search OR LOWER(u.identity.email) LIKE :search')
-                ->setParameter('search', '%'.mb_strtolower(trim($search)).'%');
+                ->setParameter('search', $searchPattern);
         }
 
         if ('' !== trim($status)) {

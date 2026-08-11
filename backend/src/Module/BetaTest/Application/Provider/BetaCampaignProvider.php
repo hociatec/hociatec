@@ -7,6 +7,7 @@ namespace App\Module\BetaTest\Application\Provider;
 use App\Module\BetaTest\Application\Port\BetaCampaignRepositoryPort;
 use App\Module\BetaTest\Domain\Entity\BetaCampaign;
 use App\Module\BetaTest\Domain\Enum\BetaCampaignStatus;
+use Psr\Clock\ClockInterface;
 use App\Shared\Application\UnitOfWork;
 
 final readonly class BetaCampaignProvider
@@ -14,6 +15,7 @@ final readonly class BetaCampaignProvider
     public function __construct(
         private BetaCampaignRepositoryPort $campaigns,
         private UnitOfWork $persistence,
+        private ClockInterface $clock,
     ) {
     }
 
@@ -22,7 +24,7 @@ final readonly class BetaCampaignProvider
      */
     public function openCampaigns(int $limit = 20, int $offset = 0): array
     {
-        $now = new \DateTimeImmutable();
+        $now = $this->clock->now();
         $this->closeElapsedActiveCampaigns($now);
 
         return $this->campaigns->findOpenForReports($now, $limit, $offset);
@@ -30,7 +32,7 @@ final readonly class BetaCampaignProvider
 
     public function countOpenCampaigns(): int
     {
-        $now = new \DateTimeImmutable();
+        $now = $this->clock->now();
         $this->closeElapsedActiveCampaigns($now);
 
         return $this->campaigns->countOpenForReports($now);

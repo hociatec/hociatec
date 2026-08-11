@@ -27,7 +27,7 @@ use App\Module\BetaTest\Infrastructure\Repository\BetaCampaignRepository;
 use App\Module\BetaTest\Infrastructure\Repository\BetaTesterProfileRepository;
 use App\Module\BetaTest\Infrastructure\Repository\BugReportRepository;
 use App\Module\BetaTest\Infrastructure\Storage\BetaAttachmentStorage;
-use App\Module\BetaTest\UI\Http\BugReportResponseFormatter;
+use App\Module\BetaTest\Application\Projection\BugReportResponseFormatter;
 use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
 use App\Module\Notification\Domain\Entity\AccountNotificationEvent;
 use App\Module\Notification\Infrastructure\Repository\AccountNotificationEventRepository;

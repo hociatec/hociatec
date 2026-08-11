@@ -37,6 +37,7 @@ use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Clock\MockClock;
 
 final class ComputedNotificationProvidersTest extends TestCase
 {
@@ -223,6 +224,7 @@ final class ComputedNotificationProvidersTest extends TestCase
             new ChangeAppointmentStatusHandler(new AppointmentStatusWorkflow(), new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class))),
             new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class)),
             new DoctrineTransactionManager($this->createMock(EntityManagerInterface::class)),
+            new MockClock('2026-08-11T10:00:00+00:00'),
         );
     }
 

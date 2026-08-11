@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Catalog\Infrastructure\Repository;
 
 use App\Module\Catalog\Application\Query\ProductCatalogCriteria;
+use App\Shared\Infrastructure\Persistence\LikeSearchHelper;
 use Doctrine\ORM\QueryBuilder;
 
 trait ProductCatalogFilterQueries
@@ -58,7 +59,11 @@ trait ProductCatalogFilterQueries
             return;
         }
 
-        $normalizedSearch = mb_strtolower(trim($search));
+        $normalizedSearch = LikeSearchHelper::lowered($search);
+        $searchPattern = LikeSearchHelper::containsPattern($search, true);
+        if (null === $searchPattern) {
+            return;
+        }
         $qb
             ->andWhere(
                 $qb->expr()->orX(
@@ -70,7 +75,7 @@ trait ProductCatalogFilterQueries
                     'LOWER(c.name) LIKE LOWER(:search)'
                 )
             )
-            ->setParameter('search', sprintf('%%%s%%', $normalizedSearch));
+            ->setParameter('search', $searchPattern);
 
         if ($withSort && 'relevance' === $sort) {
             $this->addRelevanceScoreSelect($qb, $normalizedSearch);

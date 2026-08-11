@@ -12,6 +12,7 @@ use App\Module\Appointment\Application\Port\WorkingDayConfigurationRepositoryPor
 use App\Module\Appointment\Domain\Entity\Appointment;
 use App\Module\Appointment\Domain\Entity\Prestation;
 use App\Module\User\Domain\Entity\User;
+use Psr\Clock\ClockInterface;
 use App\Shared\Application\TransactionManager;
 use App\Shared\Application\UnitOfWork;
 
@@ -24,12 +25,13 @@ final class AppointmentService
         private readonly ChangeAppointmentStatusHandler $changeAppointmentStatus,
         private readonly UnitOfWork $persistence,
         private readonly TransactionManager $transactions,
+        private readonly ClockInterface $clock,
     ) {
     }
 
     public function book(User $user, Prestation $prestation, \DateTimeImmutable $startAt): Appointment
     {
-        $now = new \DateTimeImmutable();
+        $now = $this->clock->now();
 
         if ($startAt < $now) {
             throw new InvalidAppointmentSlotException('Ce créneau n\'est plus disponible.');
@@ -64,7 +66,7 @@ final class AppointmentService
     public function getAppointmentsForUser(User $user, ?\DateTimeImmutable $now = null, int $limit = 20, int $offset = 0): array
     {
         $appointments = $this->appointmentRepository->findForUser($user, limit: $limit, offset: $offset);
-        $now ??= new \DateTimeImmutable();
+        $now ??= $this->clock->now();
 
         $future = [];
         $past = [];
@@ -88,7 +90,7 @@ final class AppointmentService
      */
     public function getPaginatedAppointmentsForUser(User $user, ?\DateTimeImmutable $now = null, int $limit = 20, int $offset = 0): array
     {
-        $now ??= new \DateTimeImmutable();
+        $now ??= $this->clock->now();
 
         return [
             'upcoming' => $this->appointmentRepository->findUpcomingForUser($user, $now, $limit, $offset),
@@ -99,7 +101,7 @@ final class AppointmentService
     /** @return array{upcoming:int,past:int} */
     public function countAppointmentsForUser(User $user, ?\DateTimeImmutable $now = null): array
     {
-        $now ??= new \DateTimeImmutable();
+        $now ??= $this->clock->now();
 
         return [
             'upcoming' => $this->appointmentRepository->countUpcomingForUser($user, $now),

@@ -94,7 +94,7 @@ namespace App\Tests\Unit\Module\Admin\Payment {
             StripeCurlTestState::$nextHandle = 1;
 
             try {
-                $client->retrieveCheckoutSession('cs_test_network');
+                $client->createRefund(['payment_intent' => 'pi_test_network']);
                 self::fail('Expected cURL failure.');
             } catch (ExternalServiceException $exception) {
                 self::assertStringContainsString('network down', $exception->getMessage());
@@ -109,7 +109,7 @@ namespace App\Tests\Unit\Module\Admin\Payment {
             ]];
             StripeCurlTestState::$nextHandle = 1;
             try {
-                $client->retrieveCheckoutSession('cs_test_json');
+                $client->createRefund(['payment_intent' => 'pi_test_json']);
                 self::fail('Expected invalid JSON failure.');
             } catch (ExternalServiceException $exception) {
                 self::assertSame('Stripe a retourné une réponse invalide.', $exception->getMessage());
@@ -162,7 +162,7 @@ namespace App\Tests\Unit\Module\Admin\Payment {
             ]];
             StripeCurlTestState::$nextHandle = 1;
             try {
-                $client->retrievePaymentIntent('pi_scalar');
+                $client->createRefund(['payment_intent' => 'pi_scalar']);
                 self::fail('Expected non-object JSON failure.');
             } catch (ExternalServiceException $exception) {
                 self::assertSame('Stripe a retourné une réponse JSON non objet.', $exception->getMessage());
@@ -263,6 +263,48 @@ namespace App\Tests\Unit\Module\Admin\Payment {
             self::assertSame(12900, $details['paymentIntent']['amount']);
             self::assertSame('eur', $details['paymentIntent']['currency']);
             self::assertSame('card_declined', $details['paymentIntent']['lastPaymentError']['code']);
+        }
+
+        public function testStripeApiClientRetriesOnlyRetryableRequests(): void
+        {
+            $client = new StripeApiClient('sk_test_retry');
+            StripeCurlTestState::$handles = [
+                1 => [
+                    'options' => [],
+                    'response' => false,
+                    'status' => 0,
+                    'error' => 'temporary network issue',
+                ],
+                2 => [
+                    'options' => [],
+                    'response' => json_encode(['id' => 'cs_retry_ok'], JSON_THROW_ON_ERROR),
+                    'status' => 200,
+                    'error' => '',
+                ],
+            ];
+            StripeCurlTestState::$nextHandle = 1;
+
+            $payload = $client->retrieveCheckoutSession('cs_retry');
+            self::assertSame('cs_retry_ok', $payload['id']);
+            self::assertContains('X-Hociatec-Retry-Attempt: 2', StripeCurlTestState::$handles[2]['options'][\CURLOPT_HTTPHEADER]);
+
+            StripeCurlTestState::$handles = [
+                1 => [
+                    'options' => [],
+                    'response' => false,
+                    'status' => 0,
+                    'error' => 'temporary network issue',
+                ],
+            ];
+            StripeCurlTestState::$nextHandle = 1;
+
+            try {
+                $client->createRefund(['payment_intent' => 'pi_no_retry']);
+                self::fail('Expected non-idempotent request to fail without retry.');
+            } catch (ExternalServiceException $exception) {
+                self::assertStringContainsString('temporary network issue', $exception->getMessage());
+                self::assertCount(1, StripeCurlTestState::$handles);
+            }
         }
 
         private function payment(): OrderCheckoutSession

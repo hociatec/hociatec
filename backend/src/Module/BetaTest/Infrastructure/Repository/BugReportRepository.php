@@ -10,6 +10,7 @@ use App\Module\BetaTest\Domain\Entity\BugReport;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\LockMode as ApplicationLockMode;
 use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
+use App\Shared\Infrastructure\Persistence\LikeSearchHelper;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
@@ -154,10 +155,11 @@ final class BugReportRepository extends ServiceEntityRepository implements BugRe
         if (isset($filters['assignedTo'])) {
             $qb->andWhere('r.assignedTo = :assignedTo')->setParameter('assignedTo', $filters['assignedTo']);
         }
-        if (isset($filters['search']) && '' !== $filters['search']) {
+        $searchPattern = LikeSearchHelper::containsPattern($filters['search'] ?? null, true);
+        if (null !== $searchPattern) {
             $qb->leftJoin('r.reporter', 'searchReporter')
                 ->andWhere('LOWER(r.title) LIKE :search OR LOWER(r.description) LIKE :search OR LOWER(searchReporter.identity.email) LIKE :search')
-                ->setParameter('search', '%'.mb_strtolower((string) $filters['search']).'%');
+                ->setParameter('search', $searchPattern);
         }
 
         return $qb;

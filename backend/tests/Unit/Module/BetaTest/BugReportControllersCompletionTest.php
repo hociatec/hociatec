@@ -18,7 +18,7 @@ use App\Module\BetaTest\UI\Controller\ListBugReportCommentsController;
 use App\Module\BetaTest\UI\Controller\ListMyBugReportsController;
 use App\Module\BetaTest\UI\Controller\ShowBugReportController;
 use App\Module\BetaTest\UI\Http\BugReportCommentFormatter;
-use App\Module\BetaTest\UI\Http\BugReportResponseFormatter;
+use App\Module\BetaTest\Application\Projection\BugReportResponseFormatter;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;

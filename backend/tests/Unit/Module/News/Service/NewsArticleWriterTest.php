@@ -13,6 +13,7 @@ use App\Module\User\Infrastructure\Repository\UserRepository;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Clock\MockClock;
 use Symfony\Component\Messenger\Envelope;
 use App\Shared\Application\Messaging\AsyncMessageDispatcher;
 
@@ -48,7 +49,7 @@ final class NewsArticleWriterTest extends TestCase
             }
         };
 
-        $writer = new NewsArticleWriter($persistence, $userRepository, $bus);
+        $writer = new NewsArticleWriter($persistence, $userRepository, $bus, new MockClock('2026-07-29T09:00:00+00:00'));
 
         $created = $writer->create(new NewsArticleInput('Title', 'slug', 'Excerpt', 'Content', 'Guides', true, null));
         self::assertSame('Title', $created->getTitle());
@@ -87,6 +88,7 @@ final class NewsArticleWriterTest extends TestCase
             new DoctrineUnitOfWork($this->createMock(EntityManagerInterface::class)),
             $this->createMock(UserRepository::class),
             $this->createMock(AsyncMessageDispatcher::class),
+            new MockClock('2026-07-29T09:00:00+00:00'),
         );
 
         try {
@@ -108,7 +110,7 @@ final class NewsArticleWriterTest extends TestCase
         $bus = $this->createMock(AsyncMessageDispatcher::class);
         $bus->expects(self::never())->method('dispatch');
 
-        $writer = new NewsArticleWriter(new DoctrineUnitOfWork($entityManager), $users, $bus);
+        $writer = new NewsArticleWriter(new DoctrineUnitOfWork($entityManager), $users, $bus, new MockClock('2026-07-29T12:00:00+00:00'));
 
         $published = $writer->create(new NewsArticleInput(
             'Published',

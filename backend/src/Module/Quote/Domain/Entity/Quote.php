@@ -241,6 +241,16 @@ class Quote
         return $this;
     }
 
+    public function anonymizePersonalData(): self
+    {
+        $this->setCustomerName('Deleted user');
+        $this->setCustomerEmail(null);
+        $this->setCustomerCompany(null);
+        $this->setCustomerAddress(null);
+
+        return $this;
+    }
+
     #[ORM\PreUpdate]
     public function touch(): void
     {

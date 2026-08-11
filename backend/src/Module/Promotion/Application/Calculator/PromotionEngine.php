@@ -10,6 +10,7 @@ use App\Module\Promotion\Application\Port\PromotionRepositoryPort;
 use App\Module\Promotion\Application\Projection\PromotionFormatter;
 use App\Module\Promotion\Application\Provider\PromotionAudienceProvider;
 use App\Module\User\Domain\Entity\User;
+use Psr\Clock\ClockInterface;
 
 final class PromotionEngine
 {
@@ -20,6 +21,7 @@ final class PromotionEngine
         private readonly CartSubtotalCalculator $cartSubtotal,
         private readonly PromotionDiscountCalculator $discounts,
         private readonly PromotionEligibilityPolicy $eligibility,
+        private readonly ClockInterface $clock,
     ) {
     }
 
@@ -56,7 +58,7 @@ final class PromotionEngine
      */
     public function calculateForSubtotal(int $subtotalPriceCents, ?User $user): array
     {
-        $now = new \DateTimeImmutable();
+        $now = $this->clock->now();
         $eligiblePromotions = [];
         $bestAutomaticPromotion = null;
         $bestAutomaticDiscount = 0;

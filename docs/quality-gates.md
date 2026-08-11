@@ -48,3 +48,16 @@ sudo systemctl reload php8.3-fpm
 ```
 
 Vérifier ensuite les routes critiques, l’authentification, les téléchargements privés, les e-mails transactionnels et les sauvegardes.
+
+## Couverture utile minimale
+
+Le projet ne suit pas seulement un pourcentage global. Une mise en production est bloquée si les scénarios critiques suivants ne restent pas couverts par des tests automatisés :
+
+- authentification, rotation et révocation des refresh tokens ;
+- permissions HTTP, ownership client, CSRF et cookies de session ;
+- workflows de paiement Stripe, webhooks, idempotence et retries ;
+- stock, rendez-vous, vouchers, outbox et autres zones sensibles à la concurrence ;
+- sauvegardes, restauration, téléchargements privés et exports admin ;
+- pagination bornée, cache versionné et transitions de statuts métier.
+
+Les suites d’architecture et d’intégration servent de garde-fous sur ces zones. Toute nouvelle feature critique doit rejoindre cette liste avant livraison.

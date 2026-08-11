@@ -6,7 +6,7 @@ namespace App\Module\News\Infrastructure\MessageHandler;
 
 use App\Module\News\Application\Message\NewsArticlePublishedEmailMessage;
 use App\Module\Notification\Application\Notification\UserCommunicationNotifier;
-use App\Module\User\Infrastructure\Repository\UserRepository;
+use App\Module\User\Application\Port\UserRepositoryPort;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
@@ -14,7 +14,7 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 final readonly class SendNewsArticlePublishedEmailHandler
 {
     public function __construct(
-        private UserRepository $users,
+        private UserRepositoryPort $users,
         private UserCommunicationNotifier $notifier,
         private LoggerInterface $logger,
     ) {

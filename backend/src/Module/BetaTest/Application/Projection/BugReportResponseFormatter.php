@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Module\BetaTest\UI\Http;
+namespace App\Module\BetaTest\Application\Projection;
 
 use App\Module\BetaTest\Domain\Entity\BugReport;
 

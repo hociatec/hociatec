@@ -8,7 +8,7 @@ use App\Module\Marketing\Application\Provider\MarketingRecipientContextProvider;
 use App\Module\Marketing\Application\Workflow\MarketingTemplateRenderer;
 use App\Module\Marketing\Domain\Entity\EmailCampaign;
 use App\Module\User\Domain\Entity\User;
-use Symfony\Component\Mailer\MailerInterface;
+use App\Shared\Application\Mail\EmailSender;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 
@@ -17,7 +17,7 @@ final readonly class MarketingCampaignEmailSender
     public function __construct(
         private MarketingRecipientContextProvider $contexts,
         private MarketingTemplateRenderer $renderer,
-        private MailerInterface $mailer,
+        private EmailSender $mailer,
         private string $mailerFrom,
     ) {
     }

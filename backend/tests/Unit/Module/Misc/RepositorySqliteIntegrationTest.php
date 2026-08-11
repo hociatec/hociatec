@@ -18,6 +18,7 @@ use App\Module\Order\Domain\Entity\RefundRequest;
 use App\Module\Order\Domain\Entity\StripeWebhookEvent;
 use App\Module\Order\Infrastructure\Repository\RefundRequestRepository;
 use App\Module\Order\Infrastructure\Repository\StripeWebhookEventRepository;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 
 final class RepositorySqliteIntegrationTest extends RepositoryTestCase
 {
@@ -76,5 +77,17 @@ final class RepositorySqliteIntegrationTest extends RepositoryTestCase
 
         $webhookRepository = $this->repositoryWithEntityManager(StripeWebhookEventRepository::class, $entityManager);
         self::assertSame($webhook->getId(), $webhookRepository->findOneByStripeEventId('evt_1')?->getId());
+    }
+
+    public function testSqliteSchemaEnforcesUniqueWebhookEventIds(): void
+    {
+        $entityManager = $this->repositoryEntityManager();
+        $entityManager->persist(new StripeWebhookEvent('evt_unique', 'checkout.session.completed'));
+        $entityManager->flush();
+
+        $entityManager->persist(new StripeWebhookEvent('evt_unique', 'checkout.session.completed'));
+
+        $this->expectException(UniqueConstraintViolationException::class);
+        $entityManager->flush();
     }
 }
