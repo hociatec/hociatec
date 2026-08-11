@@ -14,4 +14,11 @@ enum Currency: string
         return self::tryFrom(strtoupper(trim($code)))
             ?? throw new \InvalidArgumentException('Code monnaie invalide.');
     }
+
+    public function minorUnitExponent(): int
+    {
+        return match ($this) {
+            self::EUR, self::USD => 2,
+        };
+    }
 }

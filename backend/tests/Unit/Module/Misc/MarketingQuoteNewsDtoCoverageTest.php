@@ -108,7 +108,7 @@ final class MarketingQuoteNewsDtoCoverageTest extends TestCase
             'quantity' => 2,
             'unitPriceCents' => 1000,
             'discountCents' => 50,
-            'vatRate' => 20.0,
+            'vatRate' => '20',
             'vatRateBps' => 2000,
         ], $item->toPayload());
 

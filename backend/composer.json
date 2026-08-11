@@ -80,6 +80,7 @@
         "app:cs-fix": "php-cs-fixer fix --using-cache=no --allow-unsupported-php-version=yes",
         "app:deptrac": "deptrac analyse --no-progress --no-cache",
         "app:lint-container": "APP_ENV=prod php bin/console lint:container",
+        "app:lint-yaml": "php bin/console lint:yaml config --parse-tags",
         "app:test": "php bin/phpunit --testdox",
         "app:phpstan": "APP_ENV=dev APP_DEBUG=1 phpstan analyse --no-progress --memory-limit=1G",
         "app:validate": "composer validate --strict --no-check-publish",
@@ -91,6 +92,7 @@
             "@app:deptrac",
             "@app:phpstan",
             "@app:lint-container",
+            "@app:lint-yaml",
             "@app:test"
         ],
         "post-install-cmd": [

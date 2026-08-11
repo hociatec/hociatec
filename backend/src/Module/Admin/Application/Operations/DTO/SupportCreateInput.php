@@ -8,7 +8,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 final readonly class SupportCreateInput
 {
-    public function __construct(#[Assert\Positive] public int $customerId, #[Assert\NotBlank] public string $subject, #[Assert\Length(max: 100)] public string $reason, public ?string $message, public ?string $internalNotes, #[Assert\Positive] public ?int $orderId)
+    public function __construct(#[Assert\Positive] public int $customerId, #[Assert\NotBlank] #[Assert\Length(max: 255)] public string $subject, #[Assert\Length(max: 100)] public string $reason, #[Assert\Length(max: 5000)] public ?string $message, #[Assert\Length(max: 2000)] public ?string $internalNotes, #[Assert\Positive] public ?int $orderId)
     {
     }
 

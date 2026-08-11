@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\Catalog\Normalizer;
 
+use App\Shared\Domain\ValueObject\DecimalNumber;
+
 final class ProductFormValueNormalizer
 {
     private function __construct()
@@ -39,14 +41,9 @@ final class ProductFormValueNormalizer
 
     public static function priceToCents(mixed $value): int
     {
-        if (is_int($value) || is_float($value)) {
-            return (int) round($value * 100);
-        }
-        if (is_string($value)) {
-            $normalized = str_replace(',', '.', trim($value));
-            if (is_numeric($normalized)) {
-                return (int) round((float) $normalized * 100);
-            }
+        $cents = DecimalNumber::toScaledInt($value, 2);
+        if (null !== $cents) {
+            return $cents;
         }
 
         return -1;

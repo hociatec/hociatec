@@ -22,6 +22,8 @@ use App\Module\News\Infrastructure\Repository\NewsCommentRepository;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Validation\ConstraintViolationFormatter;
+use App\Shared\Infrastructure\Validation\DtoValidator;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\UnderscoreNamingStrategy;
@@ -33,6 +35,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Messenger\Envelope;
 use App\Shared\Application\Messaging\AsyncMessageDispatcher;
+use Symfony\Component\Validator\Validation;
 
 final class AdminNewsControllersTest extends TestCase
 {
@@ -62,21 +65,21 @@ final class AdminNewsControllersTest extends TestCase
         self::assertSame(404, (new GetAdminNewsArticleController($this->articles(), $formatter))(999)->getStatusCode());
         self::assertSame('Existing', $this->payload((new GetAdminNewsArticleController($this->articles(), $formatter))((int) $article->getId()))['data']['article']['title']);
 
-        $create = new CreateAdminNewsArticleController($writer, $formatter);
+        $create = new CreateAdminNewsArticleController($writer, $formatter, $this->validator());
         self::assertSame(400, $create($this->jsonRequest(['title' => '', 'slug' => '', 'excerpt' => '', 'content' => '']))->getStatusCode());
         self::assertSame(400, $create($this->jsonRequest($this->articlePayload('Created', 'created', true) + ['publishedAt' => '2026-99-99T10:00:00+00:00']))->getStatusCode());
         $created = $create($this->jsonRequest($this->articlePayload('Created', 'created', true)));
         self::assertSame(201, $created->getStatusCode());
         self::assertSame('Created', $this->payload($created)['data']['article']['title']);
-        self::assertSame(500, (new CreateAdminNewsArticleController($this->failingWriter(), $formatter))($this->jsonRequest($this->articlePayload('Fail', 'fail', true)))->getStatusCode());
+        self::assertSame(500, (new CreateAdminNewsArticleController($this->failingWriter(), $formatter, $this->validator()))($this->jsonRequest($this->articlePayload('Fail', 'fail', true)))->getStatusCode());
 
-        $update = new UpdateAdminNewsArticleController($this->articles(), $writer, $formatter);
+        $update = new UpdateAdminNewsArticleController($this->articles(), $writer, $formatter, $this->validator());
         self::assertSame(404, $update(999, $this->jsonRequest([]))->getStatusCode());
         self::assertSame(400, $update((int) $article->getId(), $this->jsonRequest($this->articlePayload('Updated', 'updated', true) + ['publishedAt' => '2026-99-99T10:00:00+00:00'], 'PUT'))->getStatusCode());
         $updated = $update((int) $article->getId(), $this->jsonRequest($this->articlePayload('Updated', 'updated', false), 'PUT'));
         self::assertSame(200, $updated->getStatusCode());
         self::assertFalse($this->payload($updated)['data']['article']['isPublished']);
-        self::assertSame(500, (new UpdateAdminNewsArticleController($this->articles(), $this->failingWriter(), $formatter))((int) $article->getId(), $this->jsonRequest($this->articlePayload('Fail update', 'fail-update', true), 'PUT'))->getStatusCode());
+        self::assertSame(500, (new UpdateAdminNewsArticleController($this->articles(), $this->failingWriter(), $formatter, $this->validator()))((int) $article->getId(), $this->jsonRequest($this->articlePayload('Fail update', 'fail-update', true), 'PUT'))->getStatusCode());
 
         $send = new SendAdminNewsArticleEmailController($this->articles(), $writer);
         self::assertSame(404, $send(999)->getStatusCode());
@@ -132,7 +135,7 @@ final class AdminNewsControllersTest extends TestCase
     {
         $persistence = $this->createMock(\App\Shared\Application\UnitOfWork::class);
         $persistence->method('persist')->willThrowException(new \RuntimeException('db down'));
-        $persistence->method('commit')->willThrowException(new \RuntimeException('db down'));
+        $persistence->method('flush')->willThrowException(new \RuntimeException('db down'));
 
         $users = $this->createMock(UserRepository::class);
         $users->method('findNewsEmailSubscribers')->willReturn([]);
@@ -215,6 +218,14 @@ final class AdminNewsControllersTest extends TestCase
     private function views(): NewsArticleViewRepository
     {
         return new NewsArticleViewRepository($this->registry());
+    }
+
+    private function validator(): DtoValidator
+    {
+        return new DtoValidator(
+            Validation::createValidatorBuilder()->enableAttributeMapping()->getValidator(),
+            new ConstraintViolationFormatter(),
+        );
     }
 
     /** @param array<string,mixed> $payload */

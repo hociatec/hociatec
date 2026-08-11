@@ -12,6 +12,7 @@ use App\Module\TradeIn\Domain\ValueObject\TradeInPurchase;
 use App\Module\TradeIn\Domain\ValueObject\TradeInTechnicalIdentity;
 use App\Shared\Application\Text\Slugifier;
 use App\Shared\Domain\ValueObject\Currency;
+use App\Shared\Domain\ValueObject\DecimalNumber;
 use App\Shared\Domain\ValueObject\Money;
 use PHPUnit\Framework\TestCase;
 
@@ -76,8 +77,10 @@ final class AdditionalValueObjectClosureTest extends TestCase
 
         self::assertSame(Currency::EUR, $eur->currency());
         self::assertSame('EUR', $eur->currencyCode());
+        self::assertSame(2, Currency::EUR->minorUnitExponent());
         self::assertSame(Currency::USD, $usd->currency());
         self::assertSame('USD', $usd->currencyCode());
+        self::assertSame(2, Currency::USD->minorUnitExponent());
         self::assertFalse($eur->equals($usd));
 
         try {
@@ -93,6 +96,30 @@ final class AdditionalValueObjectClosureTest extends TestCase
         } catch (\InvalidArgumentException $exception) {
             self::assertSame('Les montants doivent utiliser la même monnaie.', $exception->getMessage());
         }
+    }
+
+    public function testDecimalNumberParsesPricesAndPercentagesWithoutFloatMath(): void
+    {
+        self::assertSame(1250, DecimalNumber::toScaledInt('12,50', 2));
+        self::assertSame(1055, DecimalNumber::toScaledInt('10.55', 2));
+        self::assertSame(550, DecimalNumber::toScaledInt('5,5', 2));
+        self::assertSame(-550, DecimalNumber::toScaledInt('-5,5', 2));
+        self::assertSame(1000, DecimalNumber::toScaledInt(10, 2));
+        self::assertNull(DecimalNumber::toScaledInt('bad', 2));
+    }
+
+    public function testMoneyOnlySupportsExplicitCurrenciesWithDeclaredMinorUnits(): void
+    {
+        $eur = Money::fromCents(1234, 'EUR');
+        $usd = Money::fromCents(5678, 'usd');
+
+        self::assertSame('EUR', $eur->currencyCode());
+        self::assertSame(2, $eur->currency()->minorUnitExponent());
+        self::assertSame('USD', $usd->currencyCode());
+        self::assertSame(2, $usd->currency()->minorUnitExponent());
+
+        $this->expectException(\InvalidArgumentException::class);
+        Currency::fromCode('JPY');
     }
 
     public function testSlugifierTraitCoversNormalizationFallbackAndMojibakeRepair(): void

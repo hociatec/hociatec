@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\Quote\DTO;
 
+use App\Shared\Domain\ValueObject\DecimalNumber;
 use Symfony\Component\Validator\Constraints as Assert;
 
 final readonly class QuoteProductItemInput
@@ -20,7 +21,7 @@ final readonly class QuoteProductItemInput
     #[Assert\PositiveOrZero]
     public ?int $discountCents;
     #[Assert\PositiveOrZero]
-    public ?float $vatRate;
+    public ?string $vatRate;
     #[Assert\PositiveOrZero]
     public ?int $vatRateBps;
 
@@ -33,7 +34,7 @@ final readonly class QuoteProductItemInput
      *   unit?: ?string,
      *   unitPriceCents?: ?int,
      *   discountCents?: ?int,
-     *   vatRate?: ?float,
+     *   vatRate?: ?string,
      *   vatRateBps?: ?int
      * }|null $payload
      */
@@ -57,7 +58,7 @@ final readonly class QuoteProductItemInput
         $this->unit = $data['unit'];
         $this->unitPriceCents = $data['unitPriceCents'];
         $this->discountCents = $data['discountCents'];
-        $this->vatRate = null !== $data['vatRate'] ? (float) $data['vatRate'] : null;
+        $this->vatRate = is_scalar($data['vatRate']) ? trim((string) $data['vatRate']) : null;
         $this->vatRateBps = $data['vatRateBps'];
     }
 
@@ -72,7 +73,9 @@ final readonly class QuoteProductItemInput
             'unit' => is_string($payload['unit'] ?? null) ? trim($payload['unit']) : null,
             'unitPriceCents' => is_numeric($payload['unitPriceCents'] ?? null) ? (int) $payload['unitPriceCents'] : null,
             'discountCents' => is_numeric($payload['discountCents'] ?? null) ? (int) $payload['discountCents'] : null,
-            'vatRate' => is_numeric($payload['vatRate'] ?? null) ? (float) $payload['vatRate'] : null,
+            'vatRate' => null !== DecimalNumber::toScaledInt($payload['vatRate'] ?? null, 2)
+                ? trim((string) $payload['vatRate'])
+                : null,
             'vatRateBps' => is_numeric($payload['vatRateBps'] ?? null) ? (int) $payload['vatRateBps'] : null,
         ]);
     }

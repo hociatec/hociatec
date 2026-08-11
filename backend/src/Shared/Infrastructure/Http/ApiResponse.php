@@ -80,6 +80,62 @@ final class ApiResponse
         ], $status);
     }
 
+    /**
+     * @param array<string, mixed>|list<string> $details
+     */
+    public static function badRequest(string $message = 'Requête invalide.', array $details = [], ?string $code = null): JsonResponse
+    {
+        return self::error($message, JsonResponse::HTTP_BAD_REQUEST, $details, $code ?? 'BAD_REQUEST');
+    }
+
+    /**
+     * @param array<string, mixed>|list<string> $details
+     */
+    public static function unauthorized(string $message = 'Authentification requise.', array $details = [], ?string $code = null): JsonResponse
+    {
+        return self::error($message, JsonResponse::HTTP_UNAUTHORIZED, $details, $code ?? 'UNAUTHORIZED');
+    }
+
+    /**
+     * @param array<string, mixed>|list<string> $details
+     */
+    public static function forbidden(string $message = 'Accès interdit.', array $details = [], ?string $code = null): JsonResponse
+    {
+        return self::error($message, JsonResponse::HTTP_FORBIDDEN, $details, $code ?? 'FORBIDDEN');
+    }
+
+    /**
+     * @param array<string, mixed>|list<string> $details
+     */
+    public static function notFound(string $message = 'Ressource introuvable.', array $details = [], ?string $code = null): JsonResponse
+    {
+        return self::error($message, JsonResponse::HTTP_NOT_FOUND, $details, $code ?? 'NOT_FOUND');
+    }
+
+    /**
+     * @param array<string, mixed>|list<string> $details
+     */
+    public static function conflict(string $message = 'Conflit métier.', array $details = [], ?string $code = null): JsonResponse
+    {
+        return self::error($message, JsonResponse::HTTP_CONFLICT, $details, $code ?? 'CONFLICT');
+    }
+
+    /**
+     * @param array<string, mixed>|list<string> $details
+     */
+    public static function unprocessable(string $message = 'Requête impossible.', array $details = [], ?string $code = null): JsonResponse
+    {
+        return self::error($message, JsonResponse::HTTP_UNPROCESSABLE_ENTITY, $details, $code ?? 'UNPROCESSABLE_ENTITY');
+    }
+
+    /**
+     * @param array<string, mixed>|list<string> $details
+     */
+    public static function validation(string $message = 'Validation des données échouée.', array $details = [], ?string $code = null): JsonResponse
+    {
+        return self::unprocessable($message, $details, $code ?? 'VALIDATION_ERROR');
+    }
+
     public static function internalError(string $message = 'Une erreur interne est survenue.'): JsonResponse
     {
         unset($message);

@@ -9,6 +9,7 @@ use App\Module\Quote\Application\DTO\QuoteItemAddition;
 use App\Module\Quote\Application\Port\QuotePersistencePort;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Entity\QuoteItem;
+use App\Shared\Domain\ValueObject\DecimalNumber;
 
 final readonly class QuoteWorkflowService
 {
@@ -47,7 +48,7 @@ final readonly class QuoteWorkflowService
             ->setQuantity($input->quantity);
 
         if (null !== $input->vatRate) {
-            $item->setVatRateBps((int) round($input->vatRate * 100));
+            $item->setVatRateBps(DecimalNumber::toScaledInt($input->vatRate, 2) ?? 0);
         } elseif (null !== $input->vatRateBps) {
             $item->setVatRateBps($input->vatRateBps);
         }

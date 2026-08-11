@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Catalog\Mapper;
 
 use App\Module\Admin\Application\Catalog\DTO\ProductAdminListQuery;
+use App\Shared\Domain\ValueObject\DecimalNumber;
 use Symfony\Component\HttpFoundation\Request;
 
 final readonly class ProductAdminListQueryMapper
@@ -66,10 +67,12 @@ final readonly class ProductAdminListQueryMapper
 
     private function price(mixed $value): ?int
     {
-        if (null === $value || '' === $value || !is_numeric($value)) {
+        if (null === $value || '' === $value) {
             return null;
         }
 
-        return max(0, (int) round((float) $value * 100));
+        $cents = DecimalNumber::toScaledInt($value, 2);
+
+        return null === $cents ? null : max(0, $cents);
     }
 }

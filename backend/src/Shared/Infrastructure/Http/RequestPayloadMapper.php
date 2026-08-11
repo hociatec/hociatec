@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Shared\Infrastructure\Http;
 
+use App\Shared\Domain\ValueObject\DecimalNumber;
+
 final class RequestPayloadMapper
 {
     private function __construct()
@@ -44,20 +46,9 @@ final class RequestPayloadMapper
 
     public static function priceCents(mixed $price): int
     {
-        if (is_int($price)) {
-            return $price * 100;
-        }
-
-        if (is_float($price)) {
-            return (int) round($price * 100);
-        }
-
-        if (is_string($price)) {
-            $normalized = str_replace(',', '.', trim($price));
-
-            if (is_numeric($normalized)) {
-                return (int) round((float) $normalized * 100);
-            }
+        $cents = DecimalNumber::toScaledInt($price, 2);
+        if (null !== $cents) {
+            return $cents;
         }
 
         if ('' === trim((string) $price)) {

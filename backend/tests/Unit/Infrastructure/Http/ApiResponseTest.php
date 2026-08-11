@@ -118,4 +118,23 @@ final class ApiResponseTest extends TestCase
             'details' => [],
         ], json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR));
     }
+
+    public function testConvenienceErrorHelpersExposeStableCodes(): void
+    {
+        $responses = [
+            [ApiResponse::badRequest('bad'), 'BAD_REQUEST'],
+            [ApiResponse::unauthorized('auth'), 'UNAUTHORIZED'],
+            [ApiResponse::forbidden('forbidden'), 'FORBIDDEN'],
+            [ApiResponse::notFound('missing'), 'NOT_FOUND'],
+            [ApiResponse::conflict('conflict'), 'CONFLICT'],
+            [ApiResponse::unprocessable('unprocessable'), 'UNPROCESSABLE_ENTITY'],
+            [ApiResponse::validation('invalid', ['email' => 'required']), 'VALIDATION_ERROR'],
+        ];
+
+        foreach ($responses as [$response, $code]) {
+            $payload = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+            self::assertSame($code, $payload['code']);
+            self::assertSame($code, $payload['error']['code']);
+        }
+    }
 }

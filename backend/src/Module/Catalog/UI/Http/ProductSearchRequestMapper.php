@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Catalog\UI\Http;
 
 use App\Module\Catalog\Application\DTO\ProductSearchCriteria;
+use App\Shared\Domain\ValueObject\DecimalNumber;
 use Symfony\Component\HttpFoundation\Request;
 
 final class ProductSearchRequestMapper
@@ -79,12 +80,10 @@ final class ProductSearchRequestMapper
             return null;
         }
 
-        $normalized = is_string($value) ? str_replace(',', '.', trim($value)) : $value;
-        if (!is_numeric($normalized)) {
+        $cents = DecimalNumber::toScaledInt($value, 2);
+        if (null === $cents) {
             return null;
         }
-
-        $cents = (int) round((float) $normalized * 100);
 
         return 0 > $cents ? 0 : $cents;
     }

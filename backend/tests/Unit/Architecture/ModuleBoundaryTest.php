@@ -883,7 +883,35 @@ final class ModuleBoundaryTest extends TestCase
 
         self::assertStringContainsString('UnitOfWork::flush()', $doc);
         self::assertStringContainsString('TransactionManager::transactional()', $doc);
+        self::assertStringContainsString('TransactionSideEffectRegistry::afterCommit()', $doc);
+        self::assertStringContainsString('TransactionSideEffectRegistry::afterRollback()', $doc);
         self::assertStringContainsString('outbox event', $doc);
+    }
+
+    public function testStripeWebhookFlowEnforcesSignatureIdempotenceAndBackendAmounts(): void
+    {
+        $verifier = file_get_contents(__DIR__.'/../../../src/Module/Order/Application/Mapper/StripeWebhookVerifier.php');
+        $service = file_get_contents(__DIR__.'/../../../src/Module/Order/Application/Workflow/StripeWebhookService.php');
+        $entity = file_get_contents(__DIR__.'/../../../src/Module/Order/Domain/Entity/StripeWebhookEvent.php');
+        $orderCheckout = file_get_contents(__DIR__.'/../../../src/Module/Order/Application/Workflow/OrderHostedCheckoutCreator.php');
+        $cartCheckout = file_get_contents(__DIR__.'/../../../src/Module/Order/Application/Workflow/CartHostedCheckoutCreator.php');
+        self::assertIsString($verifier);
+        self::assertIsString($service);
+        self::assertIsString($entity);
+        self::assertIsString($orderCheckout);
+        self::assertIsString($cartCheckout);
+
+        self::assertStringContainsString('hash_hmac(', $verifier);
+        self::assertStringContainsString('Signature Stripe manquante.', $verifier);
+        self::assertStringContainsString('Signature Stripe expirée.', $verifier);
+        self::assertStringContainsString('findOneByStripeEventId', $service);
+        self::assertStringContainsString("'duplicate' => true", $service);
+        self::assertStringContainsString('new StripeWebhookEvent($eventId, $type)', $service);
+        self::assertStringContainsString('#[ORM\\Column(length: 255, unique: true)]', $entity);
+        self::assertStringContainsString("'payment_intent_data' => ['metadata' => \$metadata]", $orderCheckout);
+        self::assertStringContainsString("'unit_amount' => \$order->getTotalPriceCents()", $orderCheckout);
+        self::assertStringContainsString("'payment_intent_data' => ['metadata' => \$metadata]", $cartCheckout);
+        self::assertStringContainsString("'unit_amount' => (int) \$summary['totalPriceCents']", $cartCheckout);
     }
 
     public function testSecureInvoiceStorageCommandDoesNotLoadAllOrders(): void
@@ -916,6 +944,39 @@ final class ModuleBoundaryTest extends TestCase
         self::assertStringContainsString('current()', $provider);
         self::assertStringContainsString('bump($operation)', $invalidator);
         self::assertStringNotContainsString('->clear()', $invalidator);
+    }
+
+    public function testImportantReadQueriesDefineEagerLoadingProjectionAndExplicitBudgets(): void
+    {
+        $catalogPublicQueries = file_get_contents(__DIR__.'/../../../src/Module/Catalog/Infrastructure/Repository/ProductPublicQueries.php');
+        $catalogAdminQueries = file_get_contents(__DIR__.'/../../../src/Module/Catalog/Infrastructure/Repository/ProductAdminQueries.php');
+        $orderAdminQueries = file_get_contents(__DIR__.'/../../../src/Module/Order/Infrastructure/Repository/OrderAdminQueries.php');
+        $checkoutDashboardQueries = file_get_contents(__DIR__.'/../../../src/Module/Order/Infrastructure/Repository/OrderCheckoutSessionDashboardQueries.php');
+        $productSearchMapper = file_get_contents(__DIR__.'/../../../src/Module/Catalog/UI/Http/ProductSearchRequestMapper.php');
+        $adminListMapper = file_get_contents(__DIR__.'/../../../src/Module/Admin/UI/Catalog/Mapper/ProductAdminListQueryMapper.php');
+        $pagination = file_get_contents(__DIR__.'/../../../src/Shared/Infrastructure/Http/Pagination.php');
+        self::assertIsString($catalogPublicQueries);
+        self::assertIsString($catalogAdminQueries);
+        self::assertIsString($orderAdminQueries);
+        self::assertIsString($checkoutDashboardQueries);
+        self::assertIsString($productSearchMapper);
+        self::assertIsString($adminListMapper);
+        self::assertIsString($pagination);
+
+        self::assertStringContainsString('->getQuery()->getArrayResult();', $catalogPublicQueries);
+        self::assertStringContainsString("->join('p.category', 'c')", $catalogPublicQueries);
+        self::assertStringContainsString("->leftJoin('p.brandReference', 'b')", $catalogPublicQueries);
+        self::assertStringContainsString("->addSelect('c', 'b')", $catalogAdminQueries);
+        self::assertStringContainsString("min(100, \$criteria->limit)", $catalogAdminQueries);
+        self::assertStringContainsString("leftJoin('App\\Module\\Order\\Domain\\Entity\\OrderEvent', 'e', 'WITH', 'e.order = o')", $orderAdminQueries);
+        self::assertStringContainsString('COUNT(DISTINCT o.id)', $orderAdminQueries);
+        self::assertStringContainsString('COUNT(s.id) AS total', $checkoutDashboardQueries);
+        self::assertStringContainsString('->setMaxResults($limit)', $checkoutDashboardQueries);
+        self::assertStringContainsString('$perPage > 48', $productSearchMapper);
+        self::assertStringContainsString('DecimalNumber::toScaledInt($value, 2)', $productSearchMapper);
+        self::assertStringContainsString("min(self::MAX_PER_PAGE, \$request->query->getInt('perPage', self::DEFAULT_PER_PAGE))", $adminListMapper);
+        self::assertStringContainsString('DecimalNumber::toScaledInt($value, 2)', $adminListMapper);
+        self::assertStringContainsString('elseif ($perPage > $maxPerPage)', $pagination);
     }
 
     public function testCatalogFormattersAreInjectedInsteadOfCalledStatically(): void

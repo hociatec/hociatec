@@ -48,6 +48,15 @@ Production hardening checklist (Hociatec)
 5) Base de données
 - Créer un utilisateur dédié avec mot de passe fort (pas de root en prod).
 - Sauvegardes: voir tools/backup_db.sh et planifier un cron quotidien + rétention.
+- `BACKUP_ENCRYPTION_KEY_FILE` doit pointer vers un fichier distinct du dossier `var/backups`; la clé séparée du backup ne doit jamais voyager avec l’archive chiffrée.
+- Vérifier que les sauvegardes produites restent chiffrées, avec permissions minimales, et que la rotation journalière/hebdomadaire/mensuelle respecte la politique de rétention décidée côté exploitation.
+
+5ter) Restauration de backup
+- Une restauration complète doit être testée régulièrement; un backup non restaurable n’a aucune valeur opérationnelle.
+- Procédure minimale: copier une archive `.sql.gz.enc`, la déchiffrer avec la clé `BACKUP_ENCRYPTION_KEY_FILE`, la décompresser, puis restaurer dans une base ou table de restauration isolée avant toute utilisation en production.
+- Exemple de vérification hors production: déchiffrer l’archive, confirmer qu’elle contient bien du SQL MySQL attendu, puis importer dans une base temporaire dédiée au drill de restauration.
+- Conserver la preuve du dernier exercice de restauration complète avec date, opérateur, archive testée et résultat.
+- Run a monthly restore drill et rejouer périodiquement la procédure sur une infra de préproduction ou une base jetable.
 
 5bis) Documents sensibles (RIB / justificatifs)
 - Les RIB et justificatifs de reprise sont stockés sous `var/private/trade-ins`, hors `public/`.

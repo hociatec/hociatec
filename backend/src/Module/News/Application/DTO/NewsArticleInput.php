@@ -4,15 +4,27 @@ declare(strict_types=1);
 
 namespace App\Module\News\Application\DTO;
 
+use Symfony\Component\Validator\Constraints as Assert;
+
 final readonly class NewsArticleInput
 {
     public function __construct(
+        #[Assert\NotBlank]
+        #[Assert\Length(max: 180)]
         public string $title,
+        #[Assert\NotBlank]
+        #[Assert\Length(max: 180)]
         public string $slug,
+        #[Assert\NotBlank]
+        #[Assert\Length(max: 1000)]
         public string $excerpt,
+        #[Assert\NotBlank]
+        #[Assert\Length(max: 50000)]
         public string $content,
+        #[Assert\Length(max: 120)]
         public ?string $category,
         public bool $isPublished,
+        #[Assert\Length(max: 40)]
         public ?string $publishedAt,
     ) {
     }

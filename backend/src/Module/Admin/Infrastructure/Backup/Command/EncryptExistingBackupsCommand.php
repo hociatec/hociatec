@@ -23,19 +23,25 @@ final class EncryptExistingBackupsCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $count = 0;
-        foreach ($this->files->legacyPaths() as $sourcePath) {
-            $targetPath = $sourcePath.'.enc';
-            if (!is_file($targetPath)) {
-                $this->encryption->encryptFile($sourcePath, $targetPath);
+        try {
+            $count = 0;
+            foreach ($this->files->legacyPaths() as $sourcePath) {
+                $targetPath = $sourcePath.'.enc';
+                if (!is_file($targetPath)) {
+                    $this->encryption->encryptFile($sourcePath, $targetPath);
+                }
+                if (is_file($targetPath) && unlink($sourcePath)) {
+                    ++$count;
+                }
             }
-            if (is_file($targetPath) && unlink($sourcePath)) {
-                ++$count;
-            }
+
+            $output->writeln(sprintf('<info>%d ancienne(s) sauvegarde(s) chiffrée(s).</info>', $count));
+
+            return Command::SUCCESS;
+        } catch (\RuntimeException $exception) {
+            $output->writeln('<error>'.$exception->getMessage().'</error>');
+
+            return Command::FAILURE;
         }
-
-        $output->writeln(sprintf('<info>%d ancienne(s) sauvegarde(s) chiffrée(s).</info>', $count));
-
-        return Command::SUCCESS;
     }
 }

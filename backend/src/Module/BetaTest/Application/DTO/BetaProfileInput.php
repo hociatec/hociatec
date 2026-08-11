@@ -16,11 +16,15 @@ final readonly class BetaProfileInput
     #[Assert\Length(max: 5000)]
     public string $motivation;
     #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     public string $testingExperience;
     #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     public string $bugDescriptionAbility;
     #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     public string $technicalKnowledge;
+    #[Assert\Length(max: 255)]
     public string $accessibilityNeed;
     /** @var list<string> */
     #[Assert\Count(min: 1)]

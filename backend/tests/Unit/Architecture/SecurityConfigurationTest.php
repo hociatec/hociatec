@@ -385,6 +385,55 @@ final class SecurityConfigurationTest extends TestCase
         self::assertStringContainsString('private const MAX_BYTES = 1_048_576', $jsonPayload);
     }
 
+    public function testObservabilityAndStructuredLoggingContractsAreExplicit(): void
+    {
+        $monolog = Yaml::parseFile(__DIR__.'/../../../config/packages/monolog.yaml');
+        $metricsController = file_get_contents(__DIR__.'/../../../src/Module/System/UI/Controller/MetricsController.php');
+        $metricProvider = file_get_contents(__DIR__.'/../../../src/Module/System/Application/Provider/PrometheusMetricContractProvider.php');
+        $alertPolicy = file_get_contents(__DIR__.'/../../../src/Module/Outbox/Application/OutboxAlertPolicy.php');
+        self::assertIsArray($monolog);
+        self::assertIsString($metricsController);
+        self::assertIsString($metricProvider);
+        self::assertIsString($alertPolicy);
+
+        self::assertSame('monolog.formatter.json', $monolog['when@prod']['monolog']['handlers']['nested']['formatter']);
+        self::assertSame('monolog.formatter.json', $monolog['when@prod']['monolog']['handlers']['deprecation']['formatter']);
+        self::assertStringContainsString("public const HEADER = 'X-Request-Id';", file_get_contents(__DIR__.'/../../../src/Shared/Infrastructure/Http/RequestIdSubscriber.php') ?: '');
+        self::assertStringContainsString('hociatec_http_request_duration_seconds_count', $metricProvider);
+        self::assertStringContainsString('hociatec_http_responses_total{status_class="5xx"}', $metricProvider);
+        self::assertStringContainsString('hociatec_outbox_dead_events', $metricProvider);
+        self::assertStringContainsString('Outbox events reached the dead-letter queue.', $alertPolicy);
+        self::assertStringContainsString('Outbox events are stuck in processing.', $alertPolicy);
+        self::assertStringContainsString('X-Metrics-Token', $metricsController);
+    }
+
+    public function testBackendQualityWorkflowAndComposerScriptsCoverValidationAnalysisAndTests(): void
+    {
+        $workflow = file_get_contents(__DIR__.'/../../../../.github/workflows/backend-quality.yml');
+        $composer = json_decode((string) file_get_contents(__DIR__.'/../../../composer.json'), true, 512, JSON_THROW_ON_ERROR);
+        $phpstan = file_get_contents(__DIR__.'/../../../phpstan.neon');
+        self::assertIsString($workflow);
+        self::assertIsArray($composer);
+        self::assertIsString($phpstan);
+
+        self::assertStringContainsString('composer quality', $workflow);
+        self::assertStringContainsString('cache:warmup', $workflow);
+        self::assertSame('composer validate --strict --no-check-publish', $composer['scripts']['app:validate']);
+        self::assertSame('composer audit --locked', $composer['scripts']['app:audit']);
+        self::assertSame('APP_ENV=prod php bin/console lint:container', $composer['scripts']['app:lint-container']);
+        self::assertSame('php bin/console lint:yaml config --parse-tags', $composer['scripts']['app:lint-yaml']);
+        self::assertStringContainsString('phpstan analyse', $composer['scripts']['app:phpstan']);
+        self::assertSame('php bin/phpunit --testdox', $composer['scripts']['app:test']);
+        self::assertContains('@app:validate', $composer['scripts']['quality']);
+        self::assertContains('@app:audit', $composer['scripts']['quality']);
+        self::assertContains('@app:phpstan', $composer['scripts']['quality']);
+        self::assertContains('@app:lint-container', $composer['scripts']['quality']);
+        self::assertContains('@app:lint-yaml', $composer['scripts']['quality']);
+        self::assertContains('@app:test', $composer['scripts']['quality']);
+        self::assertContains('@app:deptrac', $composer['scripts']['quality']);
+        self::assertStringContainsString('level: 8', $phpstan);
+    }
+
     public function testHighRiskPublicEndpointsUseIdentityAwareRateLimiting(): void
     {
         $expectations = [
@@ -418,8 +467,144 @@ final class SecurityConfigurationTest extends TestCase
             'src/Module/Catalog/Application/DTO/ShareProductInput.php' => ['Assert\\Email', 'Assert\\Length'],
             'src/Module/News/Application/DTO/ShareNewsArticleInput.php' => ['Assert\\Email', 'Assert\\Length'],
             'src/Module/News/Application/DTO/CreateNewsCommentInput.php' => ['Assert\\NotBlank', 'Assert\\Length'],
+            'src/Module/News/Application/DTO/NewsArticleInput.php' => ['Assert\\NotBlank', 'Assert\\Length'],
             'src/Module/TradeIn/Application/DTO/TradeInInput.php' => ['Assert\\NotBlank', 'Assert\\Length', 'Assert\\Choice'],
+            'src/Module/TradeIn/Application/DTO/TradeInConditionInput.php' => ['Assert\\NotBlank', 'Assert\\Length', 'Assert\\Choice'],
+            'src/Module/BetaTest/Application/DTO/BetaProfileInput.php' => ['Assert\\NotBlank', 'Assert\\Length'],
+            'src/Module/Admin/Application/Operations/DTO/SupportCreateInput.php' => ['Assert\\NotBlank', 'Assert\\Length'],
+            'src/Module/Admin/Application/Operations/DTO/SupportUpdateInput.php' => ['Assert\\Length', 'Assert\\Choice'],
+            'src/Module/Admin/Application/Operations/DTO/SupportReplyInput.php' => ['Assert\\NotBlank', 'Assert\\Length', 'Assert\\Choice'],
+            'src/Module/User/Application/DTO/UpdateProfileInput.php' => ['Assert\\Email', 'Assert\\Length'],
             'src/Module/Quote/Application/DTO/QuotePayload.php' => ['Assert\\Callback', 'validateCustomer', 'validateItems'],
+        ];
+
+        $violations = [];
+        foreach ($expectations as $relativePath => $needles) {
+            $source = file_get_contents(__DIR__.'/../../../'.$relativePath);
+            self::assertIsString($source);
+
+            foreach ($needles as $needle) {
+                if (!str_contains($source, $needle)) {
+                    $violations[] = $relativePath.' missing '.$needle;
+                }
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
+    public function testHtmlAndEmailRenderingEscapeUserControlledContent(): void
+    {
+        $paths = [
+            'src/Module/Marketing/Application/Notification/EmailTemplateRenderer.php',
+            'src/Module/Order/Application/Provider/OrderNotificationTemplateRenderer.php',
+            'src/Module/Voucher/Application/Workflow/VoucherNotificationTemplateRenderer.php',
+            'src/Module/TradeIn/Application/Workflow/TradeInClosureService.php',
+            'src/Shared/Infrastructure/Pdf/PdfHtmlFormatter.php',
+            'src/Module/Notification/Application/Notification/UserCommunicationEmailSender.php',
+        ];
+
+        foreach ($paths as $relativePath) {
+            $source = file_get_contents(__DIR__.'/../../../'.$relativePath);
+            self::assertIsString($source);
+            self::assertTrue(
+                str_contains($source, 'htmlspecialchars(') || str_contains($source, '->escape('),
+                $relativePath.' must escape user-controlled HTML output.',
+            );
+        }
+    }
+
+    public function testCriticalPersistenceConstraintsLocksAndObservabilityContractsAreExplicit(): void
+    {
+        $expectations = [
+            'src/Module/Outbox/Infrastructure/Repository/OutboxEventRepository.php' => ['FOR UPDATE SKIP LOCKED', 'recoverStaleProcessing', 'STATUS_PROCESSING'],
+            'src/Module/Outbox/Application/OutboxDispatcher.php' => ['private const MAX_ATTEMPTS = 5', 'recoverStaleProcessing', 'markDead', 'markFailed'],
+            'src/Module/Auth/Application/Outbox/SendPasswordResetEmailHandler.php' => ['hash_equals', "auth.password_reset.'.hash('sha256', \$token)", 'return;'],
+            'src/Module/User/Application/Outbox/SendActivationEmailHandler.php' => ['sendActivationEmail($user, $token, $event->getKey())'],
+            'src/Module/Order/Application/Workflow/RefundStripeProcessor.php' => ['findForUpdate($refundId)', 'transactional(function () use ($refundId)'],
+            'src/Module/Admin/Application/Operations/Workflow/StockOperationsService.php' => ['findForUpdate($productId)', 'transactional(function () use ($productId'],
+            'src/Module/Auth/Infrastructure/Repository/RefreshTokenRepository.php' => ['LockMode::PESSIMISTIC_WRITE', 'findOneBySelectorForUpdate'],
+            'src/Module/Order/Domain/Entity/StripeWebhookEvent.php' => ['unique: true'],
+            'src/Module/Outbox/Domain/Entity/OutboxEvent.php' => ['uniq_outbox_event_key', 'idx_outbox_pending'],
+        ];
+
+        $violations = [];
+        foreach ($expectations as $relativePath => $needles) {
+            $source = file_get_contents(__DIR__.'/../../../'.$relativePath);
+            self::assertIsString($source);
+
+            foreach ($needles as $needle) {
+                if (!str_contains($source, $needle)) {
+                    $violations[] = $relativePath.' missing '.$needle;
+                }
+            }
+        }
+
+        self::assertSame([], $violations);
+    }
+
+    public function testBackupRestoreRetentionEncryptionAndSafeCommandExecutionAreDocumentedAndCovered(): void
+    {
+        $guide = file_get_contents(__DIR__.'/../../../PRODUCTION.md');
+        $backupTest = file_get_contents(__DIR__.'/../Module/Admin/Backup/BackupWorkflowCoverageTest.php');
+        $dumper = file_get_contents(__DIR__.'/../../../src/Module/Admin/Infrastructure/Backup/Dumper/DatabaseBackupDumper.php');
+        $encryption = file_get_contents(__DIR__.'/../../../src/Module/Admin/Application/Backup/Workflow/BackupEncryptionService.php');
+        $storage = file_get_contents(__DIR__.'/../../../src/Module/Admin/Application/Backup/Storage/BackupFileStorage.php');
+        self::assertIsString($guide);
+        self::assertIsString($backupTest);
+        self::assertIsString($dumper);
+        self::assertIsString($encryption);
+        self::assertIsString($storage);
+
+        foreach ([
+            'Restauration de backup',
+            'restauration complète',
+            'BACKUP_ENCRYPTION_KEY_FILE',
+            'clé séparée du backup',
+            'Run a monthly restore drill',
+        ] as $needle) {
+            self::assertStringContainsString($needle, $guide);
+        }
+
+        self::assertStringContainsString("['mysqldump'", $dumper);
+        self::assertStringContainsString('PROCESS_TIMEOUT_SECONDS = 900', $dumper);
+        self::assertStringContainsString('sodium_crypto_secretstream_xchacha20poly1305_init_push', $encryption);
+        self::assertStringContainsString('applyRetention', $storage);
+    }
+
+    public function testSensitiveConsoleCommandsValidateInputsBoundWorkAndNormalizeFailures(): void
+    {
+        $expectations = [
+            'src/Module/Admin/Infrastructure/Backup/Command/RunDueBackupsCommand.php' => [
+                "addOption('force'",
+                "catch (\\RuntimeException \$e)",
+                'return Command::FAILURE;',
+            ],
+            'src/Module/Admin/Infrastructure/Backup/Command/EncryptExistingBackupsCommand.php' => [
+                'legacyPaths()',
+                "catch (\\RuntimeException \$exception)",
+                'return Command::FAILURE;',
+            ],
+            'src/Module/Auth/Infrastructure/Command/RevokeUserRefreshTokensCommand.php' => [
+                "trim((string) \$input->getArgument('email'))",
+                'return Command::INVALID;',
+                'return Command::FAILURE;',
+            ],
+            'src/Module/Auth/Infrastructure/Command/PurgeRefreshTokensCommand.php' => [
+                "addOption('revoked-retention-days'",
+                'max(0, (int) $input->getOption(\'revoked-retention-days\'))',
+            ],
+            'src/Module/TradeIn/Infrastructure/Command/PurgeTradeInPrivateDocumentsCommand.php' => [
+                "addOption('retention-days'",
+                "addOption('limit'",
+                'max(1, (int) $input->getOption(\'limit\'))',
+            ],
+            'src/Module/Order/Infrastructure/Command/SecureInvoiceStorageCommand.php' => [
+                "addOption('batch-size'",
+                'min(1000, (int) $input->getOption(\'batch-size\'))',
+                "preg_match('/^[A-Za-z0-9._-]+\\\\.'",
+                'return Command::FAILURE;',
+            ],
         ];
 
         $violations = [];

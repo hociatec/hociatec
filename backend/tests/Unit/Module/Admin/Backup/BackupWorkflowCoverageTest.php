@@ -269,6 +269,21 @@ final class BackupWorkflowCoverageTest extends TestCase
         self::assertCount(80, $deduplicated['history']);
     }
 
+    public function testEncryptedBackupCanBeDecryptedAndRestoredToSqlPayload(): void
+    {
+        $projectDir = $this->projectDir();
+        $keyFile = $this->keyFile($projectDir);
+        $source = $projectDir.'/var/backups/restore-check.sql.gz';
+        $target = $source.'.enc';
+        $sql = "CREATE TABLE backup_restore_check (id INT PRIMARY KEY);\nINSERT INTO backup_restore_check VALUES (1);\n";
+        file_put_contents($source, gzencode($sql, 9));
+
+        (new BackupEncryptionService($keyFile))->encryptFile($source, $target);
+
+        $restoredArchive = $this->decryptBackup($target, $keyFile);
+        self::assertSame($sql, gzdecode($restoredArchive));
+    }
+
     public function testBackupStateStoreHandlesInvalidJsonAndOutputScheduleVariants(): void
     {
         $projectDir = $this->projectDir();
@@ -323,5 +338,46 @@ final class BackupWorkflowCoverageTest extends TestCase
         );
 
         return $path;
+    }
+
+    private function decryptBackup(string $encryptedPath, string $keyFile): string
+    {
+        $payload = file_get_contents($encryptedPath);
+        $encodedKey = file_get_contents($keyFile);
+        self::assertIsString($payload);
+        self::assertIsString($encodedKey);
+        self::assertStringStartsWith("HOCIATEC-BACKUP-V1\n", $payload);
+
+        $payload = substr($payload, strlen("HOCIATEC-BACKUP-V1\n"));
+        self::assertNotFalse($payload);
+
+        $headerLength = SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_HEADERBYTES;
+        $header = substr($payload, 0, $headerLength);
+        $ciphertext = substr($payload, $headerLength);
+        self::assertNotFalse($header);
+        self::assertNotFalse($ciphertext);
+
+        $key = sodium_base642bin(trim($encodedKey), SODIUM_BASE64_VARIANT_ORIGINAL);
+        $state = sodium_crypto_secretstream_xchacha20poly1305_init_pull($header, $key);
+
+        $plaintext = '';
+        $offset = 0;
+        $chunkSize = 1024 * 1024 + SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_ABYTES;
+        $length = strlen($ciphertext);
+
+        while ($offset < $length) {
+            $chunk = substr($ciphertext, $offset, min($chunkSize, $length - $offset));
+            $offset += strlen($chunk);
+            $decrypted = sodium_crypto_secretstream_xchacha20poly1305_pull($state, $chunk);
+            self::assertIsArray($decrypted);
+            [$message, $tag] = $decrypted;
+            $plaintext .= $message;
+
+            if (SODIUM_CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_TAG_FINAL === $tag) {
+                self::assertSame($length, $offset);
+            }
+        }
+
+        return $plaintext;
     }
 }

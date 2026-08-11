@@ -86,6 +86,7 @@ services:
 
     App\Module\TradeIn\Infrastructure\Storage\TradeInPrivateFileStorage:
         arguments:
+            $projectDir: '%kernel.project_dir%'
             $clamScanBinary: '%env(CLAMSCAN_BINARY)%'
 
     App\Shared\Infrastructure\Http\CsrfTokenService:
@@ -347,10 +348,6 @@ services:
     App\Module\System\UI\Controller\MetricsController:
         arguments:
             $metricsToken: '%env(METRICS_TOKEN)%'
-
-    App\Module\TradeIn\Infrastructure\Storage\TradeInPrivateFileStorage:
-        arguments:
-            $projectDir: '%kernel.project_dir%'
 
     App\Module\BetaTest\Application\Port\BetaAttachmentStoragePort:
         alias: App\Module\BetaTest\Infrastructure\Storage\BetaAttachmentStorage

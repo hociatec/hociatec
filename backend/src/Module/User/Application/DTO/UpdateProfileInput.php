@@ -22,6 +22,7 @@ class UpdateProfileInput
 
     #[Assert\NotBlank]
     #[Assert\Email]
+    #[Assert\Length(max: 180)]
     public string $email;
 
     // Address fields removed from profile edition; managed via dedicated endpoints

@@ -7,6 +7,7 @@ namespace App\Module\Admin\UI\Quote\Mapper;
 use App\Module\Admin\Application\Quote\DTO\QuoteServiceFormData;
 use App\Module\Quote\Domain\Entity\ServiceOffering;
 use App\Module\Quote\Domain\Enum\ServiceBillingMode;
+use App\Shared\Domain\ValueObject\DecimalNumber;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -56,17 +57,7 @@ final class QuoteServiceFormMapper
 
     private function priceToCents(mixed $value): int
     {
-        if (is_int($value) || is_float($value)) {
-            return (int) round($value * 100);
-        }
-        if (is_string($value)) {
-            $normalized = str_replace(',', '.', $value);
-            if (is_numeric($normalized)) {
-                return (int) round((float) $normalized * 100);
-            }
-        }
-
-        return -1;
+        return DecimalNumber::toScaledInt($value, 2) ?? -1;
     }
 
     private function vatToBps(mixed $value): int
@@ -75,7 +66,7 @@ final class QuoteServiceFormMapper
             return 0;
         }
 
-        return (int) round(((float) str_replace(',', '.', (string) $value)) * 100);
+        return DecimalNumber::toScaledInt($value, 2) ?? 0;
     }
 
     private function durationValue(mixed $value): ?int
