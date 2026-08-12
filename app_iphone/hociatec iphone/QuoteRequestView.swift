@@ -286,10 +286,12 @@ private struct QuoteAddLineSheet: View {
                             HStack {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(service.title).fontWeight(.semibold)
-                                    Text(service.description)
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                        .lineLimit(2)
+                                    if let description = service.description, !description.isEmpty {
+                                        Text(description)
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                            .lineLimit(2)
+                                    }
                                 }
                                 Spacer()
                                 Text(PriceFormatter.format(cents: service.priceCents))
@@ -378,7 +380,7 @@ private struct QuoteAddLineSheet: View {
         let q = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         guard !q.isEmpty else { return viewModel.services }
         return viewModel.services.filter {
-            $0.title.lowercased().contains(q) || $0.description.lowercased().contains(q)
+            $0.title.lowercased().contains(q) || ($0.description?.lowercased().contains(q) ?? false)
         }
     }
 }

@@ -909,7 +909,9 @@ final class QuoteViewModel: ObservableObject {
     var matchingServices: [QuoteService] {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         guard !query.isEmpty else { return [] }
-        return services.filter { $0.title.lowercased().contains(query) || ($0.description.lowercased().contains(query)) }
+        return services.filter {
+            $0.title.lowercased().contains(query) || ($0.description?.lowercased().contains(query) ?? false)
+        }
     }
     
     var hasServicesLoaded: Bool {
