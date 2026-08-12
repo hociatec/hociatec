@@ -5,6 +5,8 @@ import SwiftUI
 @MainActor
 final class HomeViewModel: ObservableObject {
     @Published var featured: [Product] = []
+    @Published var services: [QuoteService] = []
+    @Published var news: [NewsArticle] = []
     @Published var isLoading = false
     @Published var error: String?
 
@@ -20,7 +22,13 @@ final class HomeViewModel: ObservableObject {
         error = nil
 
         do {
-            featured = try await api.featuredProducts()
+            async let featuredProducts = api.featuredProducts()
+            async let availableServices = api.quoteServices()
+            async let latestArticles = api.latestNews(limit: 3)
+
+            featured = try await featuredProducts
+            services = selectFeaturedServices(from: try await availableServices)
+            news = try await latestArticles
         } catch let err {
             self.error = err.localizedDescription
         }
@@ -38,6 +46,40 @@ final class HomeViewModel: ObservableObject {
             self.error = err.localizedDescription
         }
         isLoading = false
+    }
+
+    private func selectFeaturedServices(from services: [QuoteService], limit: Int = 6) -> [QuoteService] {
+        let explicit = services.filter { $0.isFeaturedHome }
+        if !explicit.isEmpty {
+            return Array(explicit.prefix(limit))
+        }
+
+        let defaultMatches = [
+            "vente de materiel informatique",
+            "reparation d'ordinateurs",
+            "maintenance informatique",
+            "creation de sites web",
+            "formation numerique",
+            "informatique professionnelle"
+        ]
+
+        func normalize(_ value: String?) -> String {
+            (value ?? "")
+                .folding(options: .diacriticInsensitive, locale: .current)
+                .lowercased()
+        }
+
+        return services
+            .compactMap { service -> (QuoteService, Int)? in
+                let title = normalize(service.title)
+                guard let rank = defaultMatches.firstIndex(where: { title.contains($0) }) else {
+                    return nil
+                }
+                return (service, rank)
+            }
+            .sorted { $0.1 < $1.1 }
+            .prefix(limit)
+            .map(\.0)
     }
 }
 

@@ -814,6 +814,17 @@ final class APIClient: ObservableObject {
         )
         return data.items
     }
+
+    func latestNews(limit: Int = 3) async throws -> [NewsArticle] {
+        let data: NewsArticleListData = try await request(
+            path: "api/public/news",
+            query: [
+                URLQueryItem(name: "page", value: "1"),
+                URLQueryItem(name: "perPage", value: String(limit))
+            ]
+        )
+        return Array(data.items.prefix(limit))
+    }
     
     func createQuote(
         name: String,

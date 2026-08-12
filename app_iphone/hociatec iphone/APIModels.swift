@@ -327,8 +327,14 @@ struct AppointmentData: Decodable {
 struct QuoteService: Decodable, Identifiable {
     let id: Int
     let title: String
-    let description: String
+    let description: String?
     let unit: String?
+    let isFeaturedHome: Bool
+    let imageUrl: String?
+    let imageAlt: String?
+    let durationValue: Int?
+    let durationUnit: String?
+    let durationLabel: String?
     let priceCents: Int
     let vatRate: Double
 }
@@ -439,6 +445,32 @@ struct QuoteTotals: Decodable {
 
 struct QuoteServiceList: Decodable {
     let items: [QuoteService]
+}
+
+struct NewsArticle: Decodable, Identifiable {
+    let id: Int
+    let title: String
+    let slug: String
+    let excerpt: String
+    let content: String
+    let category: String?
+    let isPublished: Bool
+    let viewsCount: Int
+    let publishedAt: Date?
+    let createdAt: Date
+    let updatedAt: Date
+}
+
+struct PaginationMeta: Decodable {
+    let page: Int
+    let perPage: Int
+    let total: Int
+    let totalPages: Int
+}
+
+struct NewsArticleListData: Decodable {
+    let items: [NewsArticle]
+    let meta: PaginationMeta
 }
 
 struct ReviewAuthor: Decodable {
