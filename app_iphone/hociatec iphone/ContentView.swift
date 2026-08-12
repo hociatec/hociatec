@@ -468,16 +468,42 @@ private struct NewsDetailView: View {
                 }
             } else if let article {
                 Section {
-                    if let publishedAt = article.publishedAt {
-                        Text("Date de publication : \(newsDateFormatter.string(from: publishedAt))")
-                            .font(.footnote)
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            if let publishedAt = article.publishedAt {
+                                Label(newsDateFormatter.string(from: publishedAt), systemImage: "calendar")
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                            }
+                            if let category = article.category, !category.isEmpty {
+                                Spacer()
+                                Text(category)
+                                    .font(.caption)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(Color(.secondarySystemBackground))
+                                    .clipShape(Capsule())
+                            }
+                        }
+                        Text(article.title)
+                            .font(.title2)
+                            .fontWeight(.bold)
+                        Text(article.excerpt)
                             .foregroundStyle(.secondary)
+#if canImport(UIKit)
+                        ShareLink(
+                            item: newsShareURL(for: article),
+                            subject: Text(article.title),
+                            message: Text(article.excerpt)
+                        ) {
+                            Label("Partager l’actualité", systemImage: "square.and.arrow.up")
+                                .fontWeight(.semibold)
+                        }
+#endif
                     }
-                    Text(article.title)
-                        .font(.title2)
-                        .fontWeight(.bold)
-                    Text(article.excerpt)
-                        .foregroundStyle(.secondary)
+                }
+
+                Section("Contenu") {
                     Text(article.content)
                         .textSelection(.enabled)
                 }
@@ -493,14 +519,17 @@ private struct NewsDetailView: View {
                     } else {
                         ForEach(comments) { comment in
                             VStack(alignment: .leading, spacing: 6) {
-                                Text(comment.author.name)
-                                    .fontWeight(.semibold)
-                                Text(comment.createdAt.formatted(date: .abbreviated, time: .shortened))
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                HStack {
+                                    Text(comment.author.name)
+                                        .fontWeight(.semibold)
+                                    Spacer()
+                                    Text(comment.createdAt.formatted(date: .abbreviated, time: .shortened))
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
                                 Text(comment.content)
                             }
-                            .padding(.vertical, 4)
+                            .padding(.vertical, 6)
                         }
                     }
 
@@ -605,6 +634,10 @@ private struct NewsDetailView: View {
         } catch {
             commentsError = error.localizedDescription
         }
+    }
+
+    private func newsShareURL(for article: NewsArticle) -> URL {
+        URL(string: "https://hociatec.fr/actualites/\(article.slug)") ?? URL(string: "https://hociatec.fr/actualites")!
     }
 }
 
@@ -745,6 +778,19 @@ private struct NewsListView: View {
                             NewsDetailView(api: api, slug: article.slug)
                         } label: {
                             VStack(alignment: .leading, spacing: 6) {
+                                HStack {
+                                    if let publishedAt = article.publishedAt {
+                                        Text(newsDateFormatter.string(from: publishedAt))
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    if let category = article.category, !category.isEmpty {
+                                        Spacer()
+                                        Text(category)
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                }
                                 Text(article.title)
                                     .fontWeight(.semibold)
                                 Text(article.excerpt)
