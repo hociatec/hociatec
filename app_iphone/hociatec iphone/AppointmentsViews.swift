@@ -50,7 +50,7 @@ struct AppointmentBookingView: View {
                 }
             }
 
-            Section("Plage de dates") {
+            Section {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("À partir du")
                         .font(.subheadline)
@@ -62,7 +62,7 @@ struct AppointmentBookingView: View {
                     .foregroundStyle(.secondary)
             }
 
-            Section("Créneaux disponibles") {
+            Section {
                 if viewModel.isLoading && viewModel.slots.isEmpty {
                     ProgressView("Recherche des créneaux...")
                 } else if let error = viewModel.error {
@@ -110,7 +110,7 @@ struct AppointmentBookingView: View {
                 }
             }
         }
-        .navigationTitle("Prendre rendez-vous")
+        .navigationTitle("Rendez-vous")
         .task { await viewModel.initialize(startDate: startDate) }
         .onChangeCompat(viewModel.selectedPrestationId) { _ in
             Task { await viewModel.loadSlots(startDate: startDate) }
@@ -803,7 +803,7 @@ private struct AppointmentConfirmationView: View {
 
     var body: some View {
         Form {
-            Section("Résumé") {
+            Section {
                 if let p = selectedPrestation {
                     LabeledContent("Prestation") { Text(p.name) }
                     LabeledContent("Durée") { Text("\(p.durationMinutes) min") }
@@ -856,7 +856,7 @@ private struct AppointmentConfirmationView: View {
                 .disabled(!account.isLoggedIn || isConfirming)
             }
         }
-        .navigationTitle("Confirmation")
+        .navigationTitle("Récapitulatif")
         .navigationBarTitleDisplayMode(.inline)
     }
 }

@@ -21,7 +21,7 @@ struct QuoteRequestView: View {
                 Section { Label(success, systemImage: "checkmark.seal.fill").foregroundStyle(.green) }
             }
 
-            Section("Client") {
+            Section {
                 TextField("Nom", text: $viewModel.name)
                     .textContentType(.name)
                 TextField("Email", text: $viewModel.email)
@@ -37,7 +37,7 @@ struct QuoteRequestView: View {
                 .disabled(viewModel.isSubmitting)
             }
 
-            Section("Lignes") {
+            Section {
                 if viewModel.items.isEmpty {
                     Text("Ajoutez une ou plusieurs lignes (service, produit, ou ligne libre).")
                         .foregroundStyle(.secondary)
@@ -62,7 +62,7 @@ struct QuoteRequestView: View {
                 .disabled(viewModel.isSubmitting)
             }
 
-            Section("Résumé") {
+            Section {
                 LabeledContent("Total estimé") {
                     Text(PriceFormatter.format(cents: estimatedTotalCents))
                         .fontWeight(.semibold)
@@ -95,7 +95,7 @@ struct QuoteRequestView: View {
                 .disabled(!canSubmit)
             }
         }
-        .navigationTitle("Demander un devis")
+        .navigationTitle("Devis")
         .task { await viewModel.loadServices() }
         .sheet(isPresented: $showingAddLineSheet) {
             QuoteAddLineSheet(viewModel: viewModel)
@@ -169,7 +169,7 @@ private struct QuoteLineEditorView: View {
 
     var body: some View {
         Form {
-            Section("Ligne") {
+            Section {
                 if item.isCustom {
                     TextField("Titre", text: Binding(
                         get: { item.title ?? "" },
@@ -185,11 +185,11 @@ private struct QuoteLineEditorView: View {
                 }
             }
 
-            Section("Quantité") {
+            Section {
                 Stepper("Quantité: \(item.quantity)", value: $item.quantity, in: 1...999)
             }
 
-            Section("Description (optionnel)") {
+            Section {
                 TextEditor(text: $item.description)
                     .frame(minHeight: 120)
             }
@@ -268,7 +268,7 @@ private struct QuoteAddLineSheet: View {
     }
 
     private var serviceSection: some View {
-        Section("Services") {
+        Section {
             if viewModel.isLoadingServices && viewModel.services.isEmpty {
                 ProgressView("Chargement...")
             } else {
@@ -306,7 +306,7 @@ private struct QuoteAddLineSheet: View {
     }
 
     private var productSection: some View {
-        Section("Produits") {
+        Section {
             TextField("Rechercher", text: $searchText)
             HStack {
                 Button("Rechercher") {
@@ -349,7 +349,7 @@ private struct QuoteAddLineSheet: View {
     }
 
     private var customSection: some View {
-        Section("Ligne libre") {
+        Section {
             TextField("Titre", text: $customTitle)
             TextField("Prix unitaire (€)", text: $customUnitPrice)
                 .keyboardType(.decimalPad)
