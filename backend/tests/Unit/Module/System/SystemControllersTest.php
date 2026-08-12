@@ -108,6 +108,8 @@ final class SystemControllersTest extends TestCase
         $sourceResponse->expects(self::once())->method('toArray')->with(false)->willReturn([
             'apps' => [[
                 'versions' => [[
+                    'version' => '1.0.1',
+                    'buildVersion' => '2',
                     'downloadURL' => 'https://github.com/hociatec/hociatec-downloads/releases/download/ios-v1.0.1-b2/hociatec-altstore-v1.0.1-b2.ipa',
                 ]],
             ]],
@@ -127,7 +129,7 @@ final class SystemControllersTest extends TestCase
                     return $sourceResponse;
                 }
 
-                if ('https://github.com/hociatec/hociatec-downloads/releases/download/ios-v1.0.1-b2/hociatec-altstore-v1.0.1-b2.ipa' === $url) {
+                if ('https://github.com/hociatec/hociatec-downloads/releases/download/ios-latest/hociatec-altstore-latest.ipa' === $url) {
                     return $upstream;
                 }
 
@@ -154,6 +156,46 @@ final class SystemControllersTest extends TestCase
 
         self::assertSame(Response::HTTP_NOT_FOUND, $response->getStatusCode());
         self::assertSame('Téléchargement iPhone indisponible.', $payload['message']);
+    }
+
+    public function testDownloadLatestIosAppControllerFallsBackToLatestFilenameWhenSourceOmitsVersionedName(): void
+    {
+        $sourceResponse = $this->createMock(ResponseInterface::class);
+        $sourceResponse->expects(self::once())->method('toArray')->with(false)->willReturn([
+            'apps' => [[
+                'versions' => [[
+                    'version' => '1.0.1',
+                    'buildVersion' => '2',
+                    'downloadURL' => 'https://hociatec.fr/api/public/ios/latest-download',
+                ]],
+            ]],
+        ]);
+
+        $upstream = $this->createMock(ResponseInterface::class);
+        $upstream->expects(self::once())->method('getContent')->willReturn('ipa-bytes');
+        $upstream->expects(self::once())->method('getHeaders')->with(false)->willReturn([
+            'content-type' => ['application/octet-stream'],
+        ]);
+
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $httpClient->expects(self::exactly(2))
+            ->method('request')
+            ->willReturnCallback(static function (string $method, string $url) use ($sourceResponse, $upstream) {
+                if ('https://github.com/hociatec/hociatec-downloads/releases/download/ios-latest/hociatec-altstore-source.json' === $url) {
+                    return $sourceResponse;
+                }
+
+                if ('https://github.com/hociatec/hociatec-downloads/releases/download/ios-latest/hociatec-altstore-latest.ipa' === $url) {
+                    return $upstream;
+                }
+
+                throw new \RuntimeException(sprintf('Unexpected URL %s', $url));
+            });
+
+        $response = (new DownloadLatestIosAppController($httpClient, new AttachmentResponseFactory()))();
+
+        self::assertSame(Response::HTTP_OK, $response->getStatusCode());
+        self::assertStringContainsString('hociatec-altstore-v1.0.1-b2.ipa', (string) $response->headers->get('Content-Disposition'));
     }
 
     public function testLatestIosAltStoreSourceControllerReturnsPublishedJson(): void

@@ -19,6 +19,9 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 #[Route('/api/public/ios/latest-download', name: 'api_public_ios_latest_download', methods: ['GET'])]
 final readonly class DownloadLatestIosAppController
 {
+    private const LATEST_SOURCE_URL = 'https://github.com/hociatec/hociatec-downloads/releases/download/ios-latest/hociatec-altstore-source.json';
+    private const LATEST_IPA_URL = 'https://github.com/hociatec/hociatec-downloads/releases/download/ios-latest/hociatec-altstore-latest.ipa';
+
     public function __construct(
         private HttpClientInterface $httpClient,
         private AttachmentResponseFactory $attachments,
@@ -54,7 +57,7 @@ final readonly class DownloadLatestIosAppController
     private function publishedRelease(): ?array
     {
         try {
-            $payload = $this->httpClient->request('GET', 'https://github.com/hociatec/hociatec-downloads/releases/download/ios-latest/hociatec-altstore-source.json', [
+            $payload = $this->httpClient->request('GET', self::LATEST_SOURCE_URL, [
                 'headers' => ['Accept' => 'application/json'],
                 'timeout' => 30,
                 'max_duration' => 45,
@@ -63,17 +66,32 @@ final readonly class DownloadLatestIosAppController
             return null;
         }
 
-        $downloadUrl = trim((string) ($payload['apps'][0]['versions'][0]['downloadURL'] ?? ''));
-        if ('' === $downloadUrl) {
+        $version = trim((string) ($payload['apps'][0]['versions'][0]['version'] ?? ''));
+        $buildVersion = trim((string) ($payload['apps'][0]['versions'][0]['buildVersion'] ?? ''));
+        $declaredFilename = basename((string) parse_url((string) ($payload['apps'][0]['versions'][0]['downloadURL'] ?? ''), PHP_URL_PATH));
+        $filename = $this->resolveFilename($declaredFilename, $version, $buildVersion);
+
+        if ('' === trim($filename)) {
             return null;
         }
 
-        $filename = basename((string) parse_url($downloadUrl, PHP_URL_PATH));
-        $filename = '' !== trim($filename) ? $filename : 'hociatec-altstore-latest.ipa';
-
         return [
-            'downloadUrl' => $downloadUrl,
+            'downloadUrl' => self::LATEST_IPA_URL,
             'filename' => $filename,
         ];
+    }
+
+    private function resolveFilename(string $declaredFilename, string $version, string $buildVersion): string
+    {
+        $declaredFilename = trim($declaredFilename);
+        if ('' !== $declaredFilename && str_ends_with(strtolower($declaredFilename), '.ipa')) {
+            return $declaredFilename;
+        }
+
+        if ('' !== $version && '' !== $buildVersion) {
+            return sprintf('hociatec-altstore-v%s-b%s.ipa', $version, $buildVersion);
+        }
+
+        return 'hociatec-altstore-latest.ipa';
     }
 }
