@@ -150,13 +150,17 @@ jobs:
             exit 1
           fi
 
-          cp "${IPA_PATH}" "tmp-ios-download/${PUBLIC_IPA_FILENAME}"
+          PUBLIC_IPA_PATH="tmp-ios-download/${PUBLIC_IPA_FILENAME}"
+
+          if [ "${IPA_PATH}" != "${PUBLIC_IPA_PATH}" ]; then
+            cp "${IPA_PATH}" "${PUBLIC_IPA_PATH}"
+          fi
 
           if ! gh release view "${RELEASE_TAG}" --repo "${TARGET_REPOSITORY}" >/dev/null 2>&1; then
             gh release create "${RELEASE_TAG}" --repo "${TARGET_REPOSITORY}" --title "${RELEASE_TITLE}" --notes "${RELEASE_NOTES}"
           fi
 
-          gh release upload "${RELEASE_TAG}" "tmp-ios-download/${PUBLIC_IPA_FILENAME}" --repo "${TARGET_REPOSITORY}" --clobber
+          gh release upload "${RELEASE_TAG}" "${PUBLIC_IPA_PATH}" --repo "${TARGET_REPOSITORY}" --clobber
 
       - name: Publish stable AltStore latest assets
         env:
