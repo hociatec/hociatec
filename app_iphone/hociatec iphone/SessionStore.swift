@@ -7,6 +7,8 @@ final class SessionStore: ObservableObject {
         didSet { persist(value: jwtToken, forKey: Keys.jwt) }
     }
 
+    @Published var csrfToken: String?
+
     @Published var cartToken: String? {
         didSet { persist(value: cartToken, forKey: Keys.cart) }
     }
@@ -44,8 +46,10 @@ final class SessionStore: ObservableObject {
 
     func clearSession() {
         jwtToken = nil
+        csrfToken = nil
         profile = nil
         loginPassword = nil
+        clearAuthCookies()
     }
     
     func storeCredentials(email: String, password: String) {
@@ -72,5 +76,12 @@ final class SessionStore: ObservableObject {
         } else {
             UserDefaults.standard.removeObject(forKey: Keys.profile)
         }
+    }
+
+    private func clearAuthCookies() {
+        let storage = HTTPCookieStorage.shared
+        storage.cookies?
+            .filter { ["hociatec_access", "hociatec_refresh", "hociatec_csrf"].contains($0.name) }
+            .forEach { storage.deleteCookie($0) }
     }
 }

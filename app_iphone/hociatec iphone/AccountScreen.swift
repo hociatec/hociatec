@@ -76,7 +76,9 @@ struct AccountScreen: View {
                 }
 
                 Section("Sécurité") {
-                    Button("Se déconnecter", role: .destructive) { account.logout() }
+                    Button("Se déconnecter", role: .destructive) {
+                        Task { await account.logout() }
+                    }
                     Button(role: .destructive) {
                         showDeleteConfirmation = true
                     } label: {

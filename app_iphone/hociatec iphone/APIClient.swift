@@ -3,7 +3,8 @@ import Combine
 
 /// Client HTTP léger pour l’API hociatec.fr.
 final class APIClient: ObservableObject {
-    let baseURL = URL(string: "https://hociatec.fr")!
+    let baseURL = URL(string: "https://api.hociatec.fr")!
+    private let authenticatedSessionMarker = "__cookie_session__"
 
     private let session: URLSession
     private let decoder: JSONDecoder
@@ -214,18 +215,35 @@ final class APIClient: ObservableObject {
             throw APIError.httpStatus(http.statusCode, "Identifiants incorrects.")
         }
 
-        let tokenResponse = try decoder.decode(LoginResponse.self, from: data)
-        sessionStore.jwtToken = tokenResponse.token
-        return tokenResponse.token
+        sessionStore.jwtToken = authenticatedSessionMarker
+        return authenticatedSessionMarker
     }
 
     func profile() async throws -> UserProfile {
-        let profile: UserProfile = try await request(
+        let authSession: AuthSessionData = try await request(
             path: "api/auth/me",
             authorized: true
         )
+        guard let profile = authSession.profile else {
+            sessionStore.clearSession()
+            throw APIError.httpStatus(401, "Session expirée. Veuillez vous reconnecter.")
+        }
         sessionStore.profile = profile
         return profile
+    }
+
+    func logout() async {
+        do {
+            try await send(
+                path: "api/auth/logout",
+                method: "POST",
+                authorized: false,
+                attachCartToken: false
+            )
+        } catch {
+            // Always clear local state even if server-side logout fails.
+        }
+        sessionStore.clearSession()
     }
 
     func assetURL(for path: String?) -> URL? {
@@ -288,6 +306,21 @@ final class APIClient: ObservableObject {
 
         if !(200..<300).contains(http.statusCode) {
             if let errorPayload = try? decoder.decode(APIErrorPayload.self, from: data) {
+                if http.statusCode == 403,
+                   attempt == 0,
+                   methodRequiresCsrf(method),
+                   (errorPayload.message ?? "").localizedCaseInsensitiveContains("csrf") {
+                    sessionStore.csrfToken = nil
+                    return try await request(
+                        path: path,
+                        method: method,
+                        query: query,
+                        body: body,
+                        authorized: authorized,
+                        attachCartToken: attachCartToken,
+                        attempt: attempt + 1
+                    )
+                }
                 throw APIError.httpStatus(http.statusCode, errorPayload.message ?? "Erreur \(http.statusCode)")
             }
 
@@ -339,10 +372,9 @@ final class APIClient: ObservableObject {
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         }
 
-        // Attach auth token for authorized calls, and also for product reviews (same behavior as the website).
-        let shouldAttachAuth = authorized || path.contains("api/public/catalog/products/") && path.hasSuffix("/reviews")
-        if shouldAttachAuth, let token = sessionStore.jwtToken, !token.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        if requiresCsrf(path: path, method: method) {
+            let csrfToken = try await currentCsrfToken()
+            request.setValue(csrfToken, forHTTPHeaderField: "X-CSRF-Token")
         }
 
         if attachCartToken, let token = sessionStore.cartToken {
@@ -360,6 +392,33 @@ final class APIClient: ObservableObject {
         if let headerToken = response.value(forHTTPHeaderField: "X-Cart-Token"), !headerToken.isEmpty {
             sessionStore.cartToken = headerToken
         }
+    }
+
+    private func currentCsrfToken() async throws -> String {
+        if let csrfToken = sessionStore.csrfToken,
+           !csrfToken.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return csrfToken
+        }
+
+        let data: CsrfTokenData = try await request(
+            path: "api/csrf-token",
+            authorized: false,
+            attachCartToken: false
+        )
+        sessionStore.csrfToken = data.token
+        return data.token
+    }
+
+    private func requiresCsrf(path: String, method: String) -> Bool {
+        guard methodRequiresCsrf(method), path.hasPrefix("api/") else {
+            return false
+        }
+
+        return !["api/auth/login", "api/auth/register", "api/auth/refresh"].contains(path)
+    }
+
+    private func methodRequiresCsrf(_ method: String) -> Bool {
+        !["GET", "HEAD", "OPTIONS"].contains(method.uppercased())
     }
     
     private func refreshAuthTokenIfPossible() async -> Bool {
@@ -430,14 +489,13 @@ final class APIClient: ObservableObject {
     }
     
     func checkout() async throws -> OrderSummary {
-        // Backend returns the order directly in `data` for this endpoint (no `order` wrapper).
-        let order: OrderSummary = try await request(
+        let data: OrderData = try await request(
             path: "api/orders/checkout",
             method: "POST",
             authorized: true,
             attachCartToken: true
         )
-        return order
+        return data.order
     }
     
     func sendContact(
@@ -516,7 +574,7 @@ final class APIClient: ObservableObject {
         birthDate: String,
         phoneNumber: String,
         gender: String
-    ) async throws -> UserProfile {
+    ) async throws {
         let body: [String: Any] = [
             "email": email,
             "password": password,
@@ -528,14 +586,13 @@ final class APIClient: ObservableObject {
             "gender": gender
         ]
         
-        let profile: UserProfile = try await request(
+        try await send(
             path: "api/auth/register",
             method: "POST",
             body: body,
             authorized: false,
             attachCartToken: false
         )
-        return profile
     }
     
     // MARK: - Appointments
@@ -650,6 +707,21 @@ final class APIClient: ObservableObject {
 
         if !(200..<300).contains(http.statusCode) {
             if let errorPayload = try? decoder.decode(APIErrorPayload.self, from: data) {
+                if http.statusCode == 403,
+                   attempt == 0,
+                   methodRequiresCsrf(method),
+                   (errorPayload.message ?? "").localizedCaseInsensitiveContains("csrf") {
+                    sessionStore.csrfToken = nil
+                    return try await send(
+                        path: path,
+                        method: method,
+                        query: query,
+                        body: body,
+                        authorized: authorized,
+                        attachCartToken: attachCartToken,
+                        attempt: attempt + 1
+                    )
+                }
                 throw APIError.httpStatus(http.statusCode, errorPayload.message ?? "Erreur \(http.statusCode)")
             }
             throw APIError.httpStatus(http.statusCode, "Erreur \(http.statusCode)")
@@ -738,7 +810,7 @@ final class APIClient: ObservableObject {
     
     func quoteServices() async throws -> [QuoteService] {
         let data: QuoteServiceList = try await request(
-            path: "api/public/quotes/services"
+            path: "api/public/services"
         )
         return data.items
     }

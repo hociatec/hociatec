@@ -190,6 +190,54 @@ struct LoginResponse: Decodable {
     let token: String
 }
 
+struct AuthSessionData: Decodable {
+    let authenticated: Bool
+    let id: Int?
+    let email: String?
+    let firstName: String?
+    let lastName: String?
+    let roles: [String]?
+    let address: String?
+    let postalCode: String?
+    let city: String?
+    let birthDate: String?
+    let phoneNumber: String?
+    let gender: String?
+
+    var profile: UserProfile? {
+        guard authenticated,
+              let id,
+              let email,
+              let firstName,
+              let lastName,
+              let roles,
+              let birthDate,
+              let phoneNumber
+        else {
+            return nil
+        }
+
+        return UserProfile(
+            id: id,
+            email: email,
+            firstName: firstName,
+            lastName: lastName,
+            roles: roles,
+            address: address,
+            postalCode: postalCode,
+            city: city,
+            birthDate: birthDate,
+            phoneNumber: phoneNumber,
+            gender: gender,
+            addresses: nil
+        )
+    }
+}
+
+struct CsrfTokenData: Decodable {
+    let token: String
+}
+
 struct UserProfile: Codable, Identifiable {
     let id: Int
     let email: String

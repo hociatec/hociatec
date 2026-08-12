@@ -511,7 +511,7 @@ final class AccountViewModel: ObservableObject {
         error = nil
         do {
             try await api.deleteAccount()
-            logout()
+            await logout()
         } catch let err {
             self.error = err.localizedDescription
         }
@@ -530,9 +530,10 @@ final class AccountViewModel: ObservableObject {
     ) async -> Bool {
         isLoading = true
         error = nil
+        statusMessage = nil
         let birthISO = AccountViewModel.birthDateFormatter.string(from: birthDate)
         do {
-            _ = try await api.register(
+            try await api.register(
                 email: email,
                 password: password,
                 confirmPassword: confirmPassword,
@@ -542,12 +543,8 @@ final class AccountViewModel: ObservableObject {
                 phoneNumber: phoneNumber,
                 gender: normalizedGender(gender)
             )
-            session.storeCredentials(email: email, password: password)
-            _ = try await api.login(email: email, password: password)
-            let profile = try await api.profile()
-            self.apply(profile: profile)
-            session.profile = profile
-            await loadAddresses()
+            session.loginEmail = email
+            statusMessage = "Compte créé. Vérifiez votre e-mail pour activer le compte avant de vous connecter."
             isLoading = false
             return true
         } catch let err {
@@ -620,10 +617,11 @@ final class AccountViewModel: ObservableObject {
         isLoading = false
     }
 
-    func logout() {
-        session.clearSession()
+    func logout() async {
+        await api.logout()
         profile = nil
         error = nil
+        statusMessage = nil
         password = ""
         addresses = []
         gender = "autre"
