@@ -71,6 +71,7 @@ jobs:
     env:
       IPA_BASENAME: hociatec-altstore
       PROJECT_PATH: app_iphone/hociatec iphone.xcodeproj
+      PROJECT_FILE: app_iphone/hociatec iphone.xcodeproj/project.pbxproj
       SCHEME: hociatec iphone
 
     steps:
@@ -79,7 +80,6 @@ jobs:
       - name: Read app version metadata
         id: app_meta
         run: |
-          PROJECT_FILE="${PROJECT_PATH}"
           APP_VERSION="$(sed -nE 's/.*MARKETING_VERSION = ([^;]+);/\1/p' "${PROJECT_FILE}" | head -n 1)"
           APP_BUILD="$(sed -nE 's/.*CURRENT_PROJECT_VERSION = ([^;]+);/\1/p' "${PROJECT_FILE}" | head -n 1)"
           IPA_FILENAME="${IPA_BASENAME}-v${APP_VERSION}-b${APP_BUILD}.ipa"
