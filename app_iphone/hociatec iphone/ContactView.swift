@@ -16,7 +16,7 @@ struct ContactView: View {
 
     var body: some View {
         Form {
-            Section("Coordonnées") {
+            Section {
                 LabeledContent("Nom complet") {
                     TextField("", text: $name)
                         .textInputAutocapitalization(.words)
@@ -115,4 +115,3 @@ struct ContactView: View {
         UIAccessibility.post(notification: .announcement, argument: message)
     }
 }
-

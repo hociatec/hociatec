@@ -52,7 +52,7 @@ struct AddressesView: View {
                 }
             }
             
-            Section(header: Text("Ajouter une nouvelle adresse")) {
+            Section {
                 TextField("Libellé", text: $newLabel)
                     .disabled(account.isLoading)
                 TextField("Adresse", text: $newAddress)
