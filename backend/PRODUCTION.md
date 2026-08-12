@@ -109,9 +109,16 @@ Production hardening checklist (Hociatec)
   sudo cp ../deploy/systemd/hociatec-messenger.service /etc/systemd/system/
   sudo systemctl daemon-reload
   sudo systemctl enable --now hociatec-messenger
+- Installer aussi le dispatcher Outbox pour les emails d'activation et autres evenements Outbox:
+  sudo cp ../deploy/systemd/hociatec-outbox-dispatch.service /etc/systemd/system/
+  sudo cp ../deploy/systemd/hociatec-outbox-dispatch.timer /etc/systemd/system/
+  sudo systemctl daemon-reload
+  sudo systemctl enable --now hociatec-outbox-dispatch.timer
 - Vérifier les files:
   APP_ENV=prod php bin/console messenger:stats
   APP_ENV=prod php bin/console messenger:failed:show --stats
+- Verifier aussi l'Outbox:
+  APP_ENV=prod php bin/console app:outbox:dispatch --limit=20
 - Relancer les messages échoués après correction:
   APP_ENV=prod php bin/console messenger:failed:retry
 
@@ -134,7 +141,7 @@ Production hardening checklist (Hociatec)
 - En production, installer les dépendances backend avec `composer install --no-dev --classmap-authoritative --no-interaction --prefer-dist`.
 - Générer l’environnement compilé avec `composer dump-env prod`.
 - Chauffer le cache avant remise en service avec `APP_ENV=prod APP_DEBUG=0 php bin/console cache:warmup`.
-- Ne jamais remettre le trafic avant validation des migrations, du cache et du worker Messenger.
+- Ne jamais remettre le trafic avant validation des migrations, du cache, du worker Messenger et du timer Outbox.
 
 12ter) Rollback
 - Conserver l’artefact applicatif précédent et la version exacte du lockfile déployé pour permettre un retour arrière rapide.
@@ -152,7 +159,7 @@ Production hardening checklist (Hociatec)
 - Stripe: créer d’abord les nouveaux secrets (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_REFUND_WEBHOOK_SECRET`) dans le dashboard Stripe, mettre à jour l’environnement du backend, redéployer, puis faire un test webhook avant de supprimer les anciens secrets.
 - Base de données: créer d’abord un nouvel utilisateur applicatif avec les mêmes droits minimaux, mettre à jour `DATABASE_URL`, valider les connexions, puis seulement retirer l’ancien compte.
 - Mailer/SMTP/API email: créer une nouvelle clé ou un nouveau mot de passe applicatif, mettre à jour `MAILER_DSN`, tester `mailer:test`, puis révoquer l’ancien identifiant.
-- Après chaque rotation: exécuter `composer dump-env prod`, `APP_ENV=prod APP_DEBUG=0 php bin/console cache:clear`, redémarrer les workers Messenger et vérifier `tools/production_check.sh`.
+- Après chaque rotation: exécuter `composer dump-env prod`, `APP_ENV=prod APP_DEBUG=0 php bin/console cache:clear`, redémarrer les workers Messenger, vérifier le timer Outbox et contrôler `tools/production_check.sh`.
 
 11bis) Incident response
 - En cas de compromission JWT, régénérer la paire de clés, redéployer, invalider les sessions refresh concernées et surveiller les tentatives de réauthentification anormales.
