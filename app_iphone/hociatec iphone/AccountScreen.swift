@@ -92,7 +92,7 @@ struct AccountScreen: View {
                     }
                 }
             } else {
-                Section("Connexion") {
+                Section {
                     TextField("Email", text: $account.email)
                         .textInputAutocapitalization(.never)
                         .keyboardType(.emailAddress)
@@ -113,8 +113,19 @@ struct AccountScreen: View {
                     }
                     .disabled(account.isLoading)
                 }
+
                 Section {
-                    NavigationLink("Créer un compte") { RegisterView(account: account) }
+                    NavigationLink {
+                        RegisterView(account: account)
+                    } label: {
+                        HStack {
+                            Text("Pas encore de compte ?")
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                            Text("Créer un compte")
+                                .fontWeight(.semibold)
+                        }
+                    }
                 }
             }
         }

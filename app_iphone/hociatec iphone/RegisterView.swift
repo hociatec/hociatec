@@ -18,7 +18,7 @@ struct RegisterView: View {
     
     var body: some View {
         Form {
-            Section(header: Text("Informations personnelles")) {
+            Section {
                 TextField("Prénom", text: $firstName)
                 TextField("Nom", text: $lastName)
                 DatePicker("Date de naissance", selection: $birthDate, displayedComponents: .date)
@@ -31,10 +31,11 @@ struct RegisterView: View {
                     .keyboardType(.phonePad)
             }
             
-            Section(header: Text("Connexion")) {
+            Section {
                 TextField("Email", text: $email)
                     .keyboardType(.emailAddress)
-                    .autocapitalization(.none)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
                 SecureField("Mot de passe", text: $password)
                 SecureField("Confirmer mot de passe", text: $confirmPassword)
             }
@@ -73,6 +74,6 @@ struct RegisterView: View {
                 }
             }
         }
-        .navigationTitle("Créer un compte")
+        .navigationTitle("Inscription")
     }
 }
