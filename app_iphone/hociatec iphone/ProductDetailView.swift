@@ -72,9 +72,42 @@ struct ProductDetailView: View {
                 }
 
                 VStack(alignment: .leading, spacing: 8) {
+                    Text(product.name)
+                        .font(.title2)
+                        .fontWeight(.bold)
+                    HStack(spacing: 10) {
+                        Label(product.category.name, systemImage: "tag")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                        if let average = reviewsAverage, reviewsTotal > 0 {
+                            HStack(spacing: 4) {
+                                Image(systemName: "star.fill")
+                                    .foregroundStyle(.yellow)
+                                Text(String(format: "%.1f", average))
+                                    .font(.footnote)
+                                    .fontWeight(.semibold)
+                                Text("(\(reviewsTotal))")
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
                     Text(product.shortDescription)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
+                }
+
+                HStack(spacing: 12) {
+                    productHighlightCard(
+                        title: "Disponibilité",
+                        value: product.stock > 0 ? "En stock" : "Indisponible",
+                        detail: "\(stockLimit) unité(s)"
+                    )
+                    productHighlightCard(
+                        title: "Référence",
+                        value: product.sku,
+                        detail: product.sellingType.label
+                    )
                 }
 
                 Section("Informations") {
@@ -86,6 +119,12 @@ struct ProductDetailView: View {
                             .foregroundColor(product.stock > 0 ? .primary : .red)
                     }
                     priceRow
+                    if let createdAt = product.createdAt {
+                        LabeledContent("Ajouté le", value: DateFormatters.frDay.string(from: createdAt))
+                    }
+                    if let updatedAt = product.updatedAt {
+                        LabeledContent("Mis à jour le", value: DateFormatters.frDay.string(from: updatedAt))
+                    }
                 }
 
                 Section("Description") {
@@ -162,6 +201,22 @@ struct ProductDetailView: View {
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel(reviewsTotal > 0 ? "Voir tous les avis (\(reviewsTotal))" : "Voir tous les avis")
+
+                        if reviews.count < reviewsTotal {
+                            Button {
+                                Task { await loadReviews(page: nextReviewsPage) }
+                            } label: {
+                                if isLoadingReviews {
+                                    ProgressView()
+                                        .frame(maxWidth: .infinity)
+                                } else {
+                                    Text("Charger plus d’avis")
+                                        .fontWeight(.semibold)
+                                        .frame(maxWidth: .infinity)
+                                }
+                            }
+                            .disabled(isLoadingReviews)
+                        }
                     }
                 }
 
@@ -344,6 +399,10 @@ struct ProductDetailView: View {
         max(1, cart.cart?.items.first(where: { $0.product.id == product.id })?.rentalMonths ?? rentalMonths)
     }
 
+    private var nextReviewsPage: Int {
+        max(2, (reviews.count / max(1, reviewsPerPage)) + 1)
+    }
+
     private var placeholder: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 12)
@@ -429,6 +488,24 @@ private extension ProductDetailView {
             }
         }
         .accessibilityLabel(String(format: "Note moyenne %.1f sur 5", average))
+    }
+
+    func productHighlightCard(title: String, value: String, detail: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Text(value)
+                .font(.headline)
+                .fontWeight(.semibold)
+            Text(detail)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(14)
+        .background(Color(.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 14))
     }
     
     private func refreshFavorite() async {
