@@ -68,6 +68,9 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     runs-on: macos-latest
     needs: quality
+    concurrency:
+      group: ios-build-${{ github.ref }}
+      cancel-in-progress: true
     env:
       IPA_BASENAME: hociatec-altstore
       PROJECT_PATH: app_iphone/hociatec iphone.xcodeproj
@@ -80,8 +83,23 @@ jobs:
       - name: Read app version metadata
         id: app_meta
         run: |
-          APP_VERSION="$(sed -nE 's/.*MARKETING_VERSION = ([^;]+);/\1/p' "${PROJECT_FILE}" | head -n 1)"
-          APP_BUILD="$(sed -nE 's/.*CURRENT_PROJECT_VERSION = ([^;]+);/\1/p' "${PROJECT_FILE}" | head -n 1)"
+          APP_VERSION="$(sed -nE 's/.*MARKETING_VERSION = "?([^";]+)"?;.*/\1/p' "${PROJECT_FILE}" | head -n 1)"
+          APP_BUILD="$(sed -nE 's/.*CURRENT_PROJECT_VERSION = "?([^";]+)"?;.*/\1/p' "${PROJECT_FILE}" | head -n 1)"
+
+          if [ -z "${APP_VERSION}" ] || [ -z "${APP_BUILD}" ]; then
+            BUILD_SETTINGS="$(xcodebuild -project "${PROJECT_PATH}" -scheme "${SCHEME}" -showBuildSettings 2>/dev/null || true)"
+            if [ -z "${APP_VERSION}" ]; then
+              APP_VERSION="$(printf '%s\n' "${BUILD_SETTINGS}" | sed -nE 's/^[[:space:]]*MARKETING_VERSION = (.+)$/\1/p' | head -n 1)"
+            fi
+            if [ -z "${APP_BUILD}" ]; then
+              APP_BUILD="$(printf '%s\n' "${BUILD_SETTINGS}" | sed -nE 's/^[[:space:]]*CURRENT_PROJECT_VERSION = (.+)$/\1/p' | head -n 1)"
+            fi
+          fi
+
+          APP_VERSION="${APP_VERSION%\"}"
+          APP_VERSION="${APP_VERSION#\"}"
+          APP_BUILD="${APP_BUILD%\"}"
+          APP_BUILD="${APP_BUILD#\"}"
           IPA_FILENAME="${IPA_BASENAME}-v${APP_VERSION}-b${APP_BUILD}.ipa"
 
           if [ -z "${APP_VERSION}" ] || [ -z "${APP_BUILD}" ]; then

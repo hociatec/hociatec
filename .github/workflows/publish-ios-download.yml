@@ -26,6 +26,9 @@ jobs:
         (github.event.workflow_run.head_branch == 'main' || github.event.workflow_run.head_branch == 'master')
       )
     runs-on: ubuntu-latest
+    concurrency:
+      group: ios-publish-latest
+      cancel-in-progress: true
 
     steps:
       - uses: actions/checkout@v5
