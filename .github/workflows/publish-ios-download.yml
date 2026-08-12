@@ -275,22 +275,7 @@ jobs:
                   tmp-ios-published/hociatec-altstore-source.json \
                   "${APP_VERSION}" \
                   "${APP_BUILD}" \
-                && python3 - <<'PY'
-import json
-import os
-
-source_path = "tmp-ios-published/hociatec-altstore-source.json"
-expected_url = os.environ["DOWNLOAD_URL_EXPECTED"]
-
-with open(source_path, "r", encoding="utf-8") as fh:
-    payload = json.load(fh)
-
-download_url = payload["apps"][0]["versions"][0]["downloadURL"]
-if download_url != expected_url:
-    raise SystemExit(
-        f"Le downloadURL publie n'est pas encore a jour: {download_url} != {expected_url}"
-    )
-PY
+                && python3 -c "import json, os; payload = json.load(open('tmp-ios-published/hociatec-altstore-source.json', 'r', encoding='utf-8')); download_url = payload['apps'][0]['versions'][0]['downloadURL']; expected_url = os.environ['DOWNLOAD_URL_EXPECTED']; raise SystemExit(f'Le downloadURL publie n\\'est pas encore a jour: {download_url} != {expected_url}') if download_url != expected_url else None"
               then
                 break
               fi
