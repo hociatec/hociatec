@@ -1104,7 +1104,7 @@ final class TradeInViewModel: ObservableObject {
             error = "Vous devez accepter le traitement de la demande."
             return false
         }
-        guard let ribData, let ribFileName, !ribData.isEmpty else {
+        guard let selectedRibData = ribData, let ribFileName, !selectedRibData.isEmpty else {
             error = "Ajoutez votre RIB en PDF."
             return false
         }
@@ -1138,7 +1138,7 @@ final class TradeInViewModel: ObservableObject {
             let created = try await api.createTradeIn(
                 payload: payload,
                 ribFilename: ribFileName,
-                ribData: ribData
+                ribData: selectedRibData
             )
             successMessage = "Demande enregistrée (\(created.reference))."
             ribData = nil
