@@ -306,6 +306,7 @@ private let newsDateFormatter: DateFormatter = {
 private struct ServiceDetailView: View {
     let api: APIClient
     let serviceID: Int
+    @EnvironmentObject private var account: AccountViewModel
     @State private var service: QuoteService?
     @State private var isLoading = false
     @State private var error: String?
@@ -343,23 +344,54 @@ private struct ServiceDetailView: View {
                     } else {
                         servicePlaceholder
                     }
+
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(service.title)
+                            .font(.title2)
+                            .fontWeight(.bold)
+                        Text(service.description?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+                            ? (service.description ?? "")
+                            : "Les informations détaillées de ce service seront précisées avec votre besoin.")
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.top, 8)
                 }
 
                 Section {
-                    Text(
-                        service.description?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
-                        ? (service.description ?? "")
-                        : "Les informations détaillées de ce service seront précisées avec votre besoin."
-                    )
+                    HStack(spacing: 12) {
+                        serviceFactCard(
+                            title: "Base tarifaire",
+                            value: PriceFormatter.format(cents: service.priceCents)
+                        )
+                        serviceFactCard(
+                            title: "Facturation",
+                            value: serviceBillingModeLabel(service.unit)
+                        )
+                    }
+                    HStack(spacing: 12) {
+                        serviceFactCard(
+                            title: "Durée estimée",
+                            value: service.durationLabel ?? "Sur étude"
+                        )
+                        serviceFactCard(
+                            title: "TVA",
+                            value: "\(Int(service.vatRate.rounded())) %"
+                        )
+                    }
                 }
 
-                Section("Informations") {
-                    LabeledContent("Base tarifaire") {
-                        Text(PriceFormatter.format(cents: service.priceCents))
-                            .fontWeight(.semibold)
+                Section("Actions") {
+                    NavigationLink {
+                        QuoteRequestView(api: api, account: account)
+                    } label: {
+                        Label("Demander un devis", systemImage: "doc.badge.plus")
                     }
-                    LabeledContent("Facturation", value: serviceBillingModeLabel(service.unit))
-                    LabeledContent("Durée estimée", value: service.durationLabel ?? "Sur étude")
+
+                    NavigationLink {
+                        AppointmentBookingView(api: api)
+                    } label: {
+                        Label("Prendre rendez-vous", systemImage: "calendar.badge.plus")
+                    }
                 }
             }
         }
@@ -377,6 +409,21 @@ private struct ServiceDetailView: View {
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, minHeight: 180)
+    }
+
+    private func serviceFactCard(title: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Text(value)
+                .font(.headline)
+                .fontWeight(.semibold)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(14)
+        .background(Color(.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 14))
     }
 
     private func load() async {
@@ -601,6 +648,15 @@ private struct ServicesCatalogView: View {
                                 if let description = service.description, !description.isEmpty {
                                     Text(description)
                                         .lineLimit(2)
+                                        .foregroundStyle(.secondary)
+                                }
+                                HStack {
+                                    Text(PriceFormatter.format(cents: service.priceCents))
+                                        .font(.footnote)
+                                        .fontWeight(.semibold)
+                                    Spacer()
+                                    Text(service.durationLabel ?? "Sur étude")
+                                        .font(.footnote)
                                         .foregroundStyle(.secondary)
                                 }
                             }
