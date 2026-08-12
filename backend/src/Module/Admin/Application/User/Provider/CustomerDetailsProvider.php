@@ -30,7 +30,7 @@ final readonly class CustomerDetailsProvider
     /**
      * @return array<string, mixed>|null
      */
-    public function details(int $userId, string $orderStatus = 'all', int $orderPage = 1, int $orderPerPage = 10): ?array
+    public function details(int $userId, string $orderStatus = 'all', int $orderPage = 1, int $orderPerPage = 10, ?string $orderQuery = null): ?array
     {
         $user = $this->users->find($userId);
         if (null === $user) {
@@ -53,9 +53,9 @@ final readonly class CustomerDetailsProvider
             }
         }
 
-        $ordersTotal = $this->orders->countForUserList($user, $orderStatus);
+        $ordersTotal = $this->orders->countForUserList($user, $orderStatus, $orderQuery);
         $ordersOffset = ($orderPage - 1) * $orderPerPage;
-        $orders = $this->orders->findForUserList($user, $orderStatus, $orderPerPage, $ordersOffset);
+        $orders = $this->orders->findForUserList($user, $orderStatus, $orderQuery, $orderPerPage, $ordersOffset);
         $ordersTotalPages = max(1, (int) ceil($ordersTotal / $orderPerPage));
         $orderCounts = $this->orders->countStatusBucketsForUser($user);
 
@@ -93,6 +93,7 @@ final readonly class CustomerDetailsProvider
                 ],
                 'stats' => $orderCounts,
                 'filter' => $orderStatus,
+                'query' => null !== $orderQuery ? trim($orderQuery) : '',
             ],
             'vouchers' => array_map(
                 fn ($voucher): array => $this->voucherFormatter->formatVoucher($voucher),

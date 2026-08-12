@@ -1,1 +1,0 @@
-24. **Analyser les classes et interfaces inutilisées** : avec plus de 1 100 fichiers PHP, supprimer régulièrement le code mort.

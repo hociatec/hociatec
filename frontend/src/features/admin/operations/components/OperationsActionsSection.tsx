@@ -14,10 +14,13 @@ import { OperationsStockCard } from './OperationsStockCard';
 import { OperationsQuickActionsCard } from './OperationsQuickActionsCard';
 import type { PaginationMeta } from '@/shared/types/api';
 
+type OperationsActionsMode = 'all' | 'support' | 'refunds';
+
 export const OperationsActionsSection = ({
   bulkForm,
   fulfillmentMeta,
   fulfillmentOrders,
+  mode = 'all',
   setFulfillmentPage,
   quoteConversionMessage,
   quoteConversionStatus,
@@ -42,6 +45,7 @@ export const OperationsActionsSection = ({
   bulkForm: BulkForm;
   fulfillmentMeta: PaginationMeta;
   fulfillmentOrders: FulfillmentOrderDto[];
+  mode?: OperationsActionsMode;
   setFulfillmentPage: Dispatch<SetStateAction<number>>;
   quoteConversionMessage: string | null;
   quoteConversionStatus: 'idle' | 'loading' | 'error';
@@ -63,6 +67,30 @@ export const OperationsActionsSection = ({
   submitSupport: () => void;
   supportForm: SupportForm;
 }) => {
+  if (mode === 'support') {
+    return (
+      <section className="mb-8 grid gap-6">
+        <OperationsSupportCard
+          supportForm={supportForm}
+          setSupportForm={setSupportForm}
+          submitSupport={submitSupport}
+        />
+      </section>
+    );
+  }
+
+  if (mode === 'refunds') {
+    return (
+      <section className="mb-8 grid gap-6">
+        <OperationsRefundCard
+          refundForm={refundForm}
+          setRefundForm={setRefundForm}
+          submitRefund={submitRefund}
+        />
+      </section>
+    );
+  }
+
   return (
     <section className="mb-8 grid gap-6 xl:grid-cols-2">
       <OperationsShippingQueue fulfillmentMeta={fulfillmentMeta} fulfillmentOrders={fulfillmentOrders} setFulfillmentPage={setFulfillmentPage} shippingForms={shippingForms} setShippingForms={setShippingForms} submitShipOrder={submitShipOrder} />

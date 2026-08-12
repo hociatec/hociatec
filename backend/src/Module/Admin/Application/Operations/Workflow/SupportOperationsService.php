@@ -48,7 +48,7 @@ final readonly class SupportOperationsService
         }
 
         $order = null !== $data->orderId ? $this->orders->find($data->orderId) : null;
-        $support = $this->supportService->create($customer, $data, $order instanceof Order ? $order : null);
+        $support = $this->supportService->create($customer, $data, $order instanceof Order ? $order : null, []);
 
         return $this->formatter->supportRequest($support);
     }
@@ -67,6 +67,11 @@ final readonly class SupportOperationsService
         $support = $this->supportService->reply($support, $data);
 
         return $this->formatter->supportRequest($support);
+    }
+
+    public function show(int $supportId): SupportRequestOutput
+    {
+        return $this->formatter->supportRequest($this->findSupport($supportId));
     }
 
     private function findSupport(int $supportId): SupportRequest

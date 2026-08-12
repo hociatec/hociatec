@@ -26,9 +26,9 @@ interface OrderRepositoryPort
     public function countByUser(User $user): int;
 
     /** @return list<Order> */
-    public function findForUserList(User $user, ?string $status, int $limit, int $offset): array;
+    public function findForUserList(User $user, ?string $status, ?string $search, int $limit, int $offset): array;
 
-    public function countForUserList(User $user, ?string $status): int;
+    public function countForUserList(User $user, ?string $status, ?string $search): int;
 
     /** @return array{all:int,open:int,delivered:int,cancelled:int} */
     public function countStatusBucketsForUser(User $user): array;

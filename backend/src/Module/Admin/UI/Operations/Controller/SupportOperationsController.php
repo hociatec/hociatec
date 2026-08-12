@@ -12,11 +12,14 @@ use App\Module\Admin\Application\Operations\Workflow\SupportOperationsService;
 use App\Module\Support\Application\DTO\SupportCreateData;
 use App\Module\Support\Application\DTO\SupportReplyData;
 use App\Module\Support\Application\DTO\SupportUpdateData;
+use App\Module\Support\Application\Workflow\SupportAttachmentAccessService;
 use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\AttachmentResponseFactory;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use App\Shared\Infrastructure\Validation\DtoValidator;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -27,7 +30,12 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_OPERATIONS')]
 final readonly class SupportOperationsController
 {
-    public function __construct(private SupportOperationsService $support, private DtoValidator $validator)
+    public function __construct(
+        private SupportOperationsService $support,
+        private DtoValidator $validator,
+        private AttachmentResponseFactory $attachments,
+        private SupportAttachmentAccessService $attachmentAccess,
+    )
     {
     }
 
@@ -59,6 +67,18 @@ final readonly class SupportOperationsController
         return ApiResponse::createdItem('item', $item);
     }
 
+    #[Route('/{id}', name: 'api_admin_operations_support_show', methods: ['GET'])]
+    public function show(int $id): JsonResponse
+    {
+        try {
+            $item = $this->support->show($id);
+        } catch (OperationsResourceNotFoundException $exception) {
+            return ApiProblemResponse::fromThrowable($exception, 'Demande de support introuvable.', Response::HTTP_NOT_FOUND);
+        }
+
+        return ApiResponse::successItem('item', $item);
+    }
+
     #[Route('/{id}', name: 'api_admin_operations_support_update', methods: ['PATCH'])]
     public function update(int $id, Request $request): JsonResponse
     {
@@ -79,7 +99,10 @@ final readonly class SupportOperationsController
     public function reply(int $id, Request $request): JsonResponse
     {
         try {
-            $input = \App\Shared\Infrastructure\Http\JsonRequestInput::decode($request, SupportReplyInput::class);
+            $payload = $request->isMethod('POST') && str_contains((string) $request->headers->get('Content-Type'), 'multipart/form-data')
+                ? $request->request->all()
+                : \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
+            $input = SupportReplyInput::fromArray($payload);
             $this->validator->validate($input);
             $item = $this->support->reply($id, new SupportReplyData($input->message, $input->subject, $input->status));
         } catch (OperationsResourceNotFoundException $exception) {
@@ -91,5 +114,23 @@ final readonly class SupportOperationsController
         }
 
         return ApiResponse::success(['sent' => true, 'item' => $item]);
+    }
+
+    #[Route('/{id}/attachments/{name}', name: 'api_admin_operations_support_attachment', methods: ['GET'])]
+    public function downloadAttachment(int $id, string $name): BinaryFileResponse|JsonResponse
+    {
+        try {
+            $path = $this->attachmentAccess->pathForAdmin($id, $name);
+        } catch (OperationsResourceNotFoundException $exception) {
+            return ApiProblemResponse::fromThrowable($exception, 'Demande SAV introuvable.', Response::HTTP_NOT_FOUND);
+        }
+
+        if (null === $path) {
+            return ApiResponse::error('Pièce jointe introuvable.', Response::HTTP_NOT_FOUND);
+        }
+
+        $contentType = mime_content_type($path) ?: 'application/octet-stream';
+
+        return $this->attachments->createBinaryFile($path, $name, $contentType);
     }
 }

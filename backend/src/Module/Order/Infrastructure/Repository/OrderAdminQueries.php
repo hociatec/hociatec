@@ -88,7 +88,7 @@ trait OrderAdminQueries
         $searchPattern = LikeSearchHelper::containsPattern($search, true);
         if (null !== $searchPattern) {
             $qb
-                ->andWhere('LOWER(o.number) LIKE :search OR LOWER(COALESCE(o.billing.email, \'\')) LIKE :search OR LOWER(COALESCE(o.billing.name, \'\')) LIKE :search OR LOWER(u.email) LIKE :search OR LOWER(u.identity.firstName) LIKE :search OR LOWER(u.identity.lastName) LIKE :search OR LOWER(CONCAT(u.identity.firstName, \' \', u.identity.lastName)) LIKE :search')
+                ->andWhere('LOWER(o.number) LIKE :search OR LOWER(COALESCE(o.billing.billingEmail, \'\')) LIKE :search OR LOWER(COALESCE(o.billing.billingName, \'\')) LIKE :search OR LOWER(u.email) LIKE :search OR LOWER(u.identity.firstName) LIKE :search OR LOWER(u.identity.lastName) LIKE :search OR LOWER(CONCAT(u.identity.firstName, \' \', u.identity.lastName)) LIKE :search')
                 ->setParameter('search', $searchPattern);
         }
 

@@ -22,6 +22,13 @@ export const fetchSupportRequests = async (page = 1, perPage = 10): Promise<Pagi
   return unwrap(data, 'Impossible de charger les demandes SAV');
 };
 
+export const fetchSupportRequestById = async (id: number): Promise<SupportRequestDto> => {
+  const { data } = await httpClient.get<ApiResponse<{ item: SupportRequestDto }>>(
+    `/api/admin/operations/support-requests/${id}`,
+  );
+  return unwrap(data, 'Impossible de charger la demande SAV').item;
+};
+
 export const createSupportRequest = async (payload: {
   customerId: number;
   orderId?: number | null;

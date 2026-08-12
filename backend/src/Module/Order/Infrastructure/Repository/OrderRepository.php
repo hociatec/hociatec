@@ -9,6 +9,7 @@ use App\Module\Order\Domain\Entity\Order;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\LockMode as ApplicationLockMode;
 use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
+use App\Shared\Infrastructure\Persistence\LikeSearchHelper;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\LockMode;
 use Doctrine\Persistence\ManagerRegistry;
@@ -100,10 +101,10 @@ class OrderRepository extends ServiceEntityRepository implements OrderRepository
     /**
      * @return list<Order>
      */
-    public function findForUserList(User $user, ?string $status, int $limit, int $offset): array
+    public function findForUserList(User $user, ?string $status, ?string $search, int $limit, int $offset): array
     {
         /** @var list<Order> $orders */
-        $orders = $this->createUserListQuery($user, $status)
+        $orders = $this->createUserListQuery($user, $status, $search)
             ->orderBy('o.createdAt', 'DESC')
             ->setFirstResult(max(0, $offset))
             ->setMaxResults(max(1, min(100, $limit)))
@@ -113,9 +114,9 @@ class OrderRepository extends ServiceEntityRepository implements OrderRepository
         return $orders;
     }
 
-    public function countForUserList(User $user, ?string $status): int
+    public function countForUserList(User $user, ?string $status, ?string $search): int
     {
-        return (int) $this->createUserListQuery($user, $status)
+        return (int) $this->createUserListQuery($user, $status, $search)
             ->select('COUNT(DISTINCT o.id)')
             ->getQuery()
             ->getSingleScalarResult();
@@ -125,9 +126,9 @@ class OrderRepository extends ServiceEntityRepository implements OrderRepository
     public function countStatusBucketsForUser(User $user): array
     {
         $all = $this->countByUser($user);
-        $open = $this->countForUserList($user, 'open');
-        $delivered = $this->countForUserList($user, Order::STATUS_DELIVERED);
-        $cancelled = $this->countForUserList($user, Order::STATUS_CANCELLED);
+        $open = $this->countForUserList($user, 'open', null);
+        $delivered = $this->countForUserList($user, Order::STATUS_DELIVERED, null);
+        $cancelled = $this->countForUserList($user, Order::STATUS_CANCELLED, null);
 
         return [
             'all' => $all,
@@ -150,7 +151,7 @@ class OrderRepository extends ServiceEntityRepository implements OrderRepository
             ->getOneOrNullResult();
     }
 
-    private function createUserListQuery(User $user, ?string $status): \Doctrine\ORM\QueryBuilder
+    private function createUserListQuery(User $user, ?string $status, ?string $search): \Doctrine\ORM\QueryBuilder
     {
         $qb = $this->createQueryBuilder('o')
             ->addSelect('i', 'p')
@@ -158,6 +159,13 @@ class OrderRepository extends ServiceEntityRepository implements OrderRepository
             ->leftJoin('i.product', 'p')
             ->andWhere('o.user = :user')
             ->setParameter('user', $user);
+
+        $searchPattern = LikeSearchHelper::containsPattern($search, true);
+        if (null !== $searchPattern) {
+            $qb
+                ->andWhere('LOWER(o.number) LIKE :search OR LOWER(COALESCE(i.productName, \'\')) LIKE :search OR LOWER(COALESCE(i.productSku, \'\')) LIKE :search OR LOWER(COALESCE(o.billing.billingName, \'\')) LIKE :search OR LOWER(COALESCE(o.billing.billingEmail, \'\')) LIKE :search')
+                ->setParameter('search', $searchPattern);
+        }
 
         if (null === $status || '' === $status || 'all' === $status) {
             return $qb;

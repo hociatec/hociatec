@@ -1,0 +1,623 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		E5796F962EE9A50700E14DFC /* RatingStars.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5796F952EE9A50700E14DFC /* RatingStars.swift */; };
+		E5F6792A2EEA71D300BCB489 /* FavoritesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5F679292EEA71D300BCB489 /* FavoritesScreen.swift */; };
+		E6001A0F2EF1000000000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E6001A1D2EF1000000000001 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		E51666A22EE475CC00708A53 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E516668A2EE475CB00708A53 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E51666912EE475CB00708A53;
+			remoteInfo = "hociatec iphone";
+		};
+		E51666AC2EE475CC00708A53 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E516668A2EE475CB00708A53 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E51666912EE475CB00708A53;
+			remoteInfo = "hociatec iphone";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		E51666922EE475CB00708A53 /* hociatec iphone.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "hociatec iphone.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E51666A12EE475CC00708A53 /* hociatec iphoneTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "hociatec iphoneTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E51666AB2EE475CC00708A53 /* hociatec iphoneUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "hociatec iphoneUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E5796F952EE9A50700E14DFC /* RatingStars.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RatingStars.swift; sourceTree = "<group>"; };
+		E5F679292EEA71D300BCB489 /* FavoritesScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesScreen.swift; sourceTree = "<group>"; };
+		E6001A002EF1000000000001 /* hociatec iphone/ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "hociatec iphone/ContentView.swift"; sourceTree = "<group>"; };
+		E6001A102EF1000000000001 /* hociatec iphone/AddressDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "hociatec iphone/AddressDetailView.swift"; sourceTree = "<group>"; };
+		E6001A112EF1000000000001 /* hociatec iphone/AddressFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "hociatec iphone/AddressFormView.swift"; sourceTree = "<group>"; };
+		E6001A122EF1000000000001 /* hociatec iphone/APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "hociatec iphone/APIClient.swift"; sourceTree = "<group>"; };
+		E6001A132EF1000000000001 /* hociatec iphone/APIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "hociatec iphone/APIModels.swift"; sourceTree = "<group>"; };
+		E6001A142EF1000000000001 /* hociatec iphone/AppContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "hociatec iphone/AppContainer.swift"; sourceTree = "<group>"; };
+		E6001A152EF1000000000001 /* hociatec iphone/AppLanguageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "hociatec iphone/AppLanguageManager.swift"; sourceTree = "<group>"; };
+		E6001A162EF1000000000001 /* hociatec iphone/AppointmentsViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "hociatec iphone/AppointmentsViews.swift"; sourceTree = "<group>"; };
+		E6001A172EF1000000000001 /* hociatec iphone/Formatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "hociatec iphone/Formatting.swift"; sourceTree = "<group>"; };
+		E6001A182EF1000000000001 /* hociatec iphone/hociatec_iphoneApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "hociatec iphone/hociatec_iphoneApp.swift"; sourceTree = "<group>"; };
+		E6001A192EF1000000000001 /* hociatec iphone/Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "hociatec iphone/Item.swift"; sourceTree = "<group>"; };
+		E6001A1A2EF1000000000001 /* hociatec iphone/ProductDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "hociatec iphone/ProductDetailView.swift"; sourceTree = "<group>"; };
+		E6001A1B2EF1000000000001 /* hociatec iphone/SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "hociatec iphone/SessionStore.swift"; sourceTree = "<group>"; };
+		E6001A1C2EF1000000000001 /* hociatec iphone/ViewModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "hociatec iphone/ViewModels.swift"; sourceTree = "<group>"; };
+		E6001A1D2EF1000000000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		E51666942EE475CB00708A53 /* hociatec iphone */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "hociatec iphone";
+			sourceTree = "<group>";
+		};
+		E51666A42EE475CC00708A53 /* hociatec iphoneTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "hociatec iphoneTests";
+			sourceTree = "<group>";
+		};
+		E51666AE2EE475CC00708A53 /* hociatec iphoneUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "hociatec iphoneUITests";
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		E516668F2EE475CB00708A53 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E516669E2EE475CC00708A53 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E51666A82EE475CC00708A53 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		E51666892EE475CB00708A53 = {
+			isa = PBXGroup;
+			children = (
+				E51666942EE475CB00708A53 /* hociatec iphone */,
+				E51666A42EE475CC00708A53 /* hociatec iphoneTests */,
+				E51666AE2EE475CC00708A53 /* hociatec iphoneUITests */,
+				E51666932EE475CB00708A53 /* Products */,
+				E5796F952EE9A50700E14DFC /* RatingStars.swift */,
+				E6001A002EF1000000000001 /* hociatec iphone/ContentView.swift */,
+				E6001A102EF1000000000001 /* hociatec iphone/AddressDetailView.swift */,
+				E6001A112EF1000000000001 /* hociatec iphone/AddressFormView.swift */,
+				E6001A122EF1000000000001 /* hociatec iphone/APIClient.swift */,
+				E6001A132EF1000000000001 /* hociatec iphone/APIModels.swift */,
+				E6001A142EF1000000000001 /* hociatec iphone/AppContainer.swift */,
+				E6001A152EF1000000000001 /* hociatec iphone/AppLanguageManager.swift */,
+				E6001A162EF1000000000001 /* hociatec iphone/AppointmentsViews.swift */,
+				E6001A172EF1000000000001 /* hociatec iphone/Formatting.swift */,
+				E6001A182EF1000000000001 /* hociatec iphone/hociatec_iphoneApp.swift */,
+				E6001A192EF1000000000001 /* hociatec iphone/Item.swift */,
+				E6001A1A2EF1000000000001 /* hociatec iphone/ProductDetailView.swift */,
+				E6001A1B2EF1000000000001 /* hociatec iphone/SessionStore.swift */,
+				E6001A1C2EF1000000000001 /* hociatec iphone/ViewModels.swift */,
+				E6001A1D2EF1000000000001 /* Assets.xcassets */,
+				E5F679292EEA71D300BCB489 /* FavoritesScreen.swift */,
+			);
+			sourceTree = "<group>";
+		};
+		E51666932EE475CB00708A53 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E51666922EE475CB00708A53 /* hociatec iphone.app */,
+				E51666A12EE475CC00708A53 /* hociatec iphoneTests.xctest */,
+				E51666AB2EE475CC00708A53 /* hociatec iphoneUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		E51666912EE475CB00708A53 /* hociatec iphone */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E51666B52EE475CC00708A53 /* Build configuration list for PBXNativeTarget "hociatec iphone" */;
+			buildPhases = (
+				E516668E2EE475CB00708A53 /* Sources */,
+				E516668F2EE475CB00708A53 /* Frameworks */,
+				E51666902EE475CB00708A53 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				E51666942EE475CB00708A53 /* hociatec iphone */,
+			);
+			name = "hociatec iphone";
+			packageProductDependencies = (
+			);
+			productName = "hociatec iphone";
+			productReference = E51666922EE475CB00708A53 /* hociatec iphone.app */;
+			productType = "com.apple.product-type.application";
+		};
+		E51666A02EE475CC00708A53 /* hociatec iphoneTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E51666B82EE475CC00708A53 /* Build configuration list for PBXNativeTarget "hociatec iphoneTests" */;
+			buildPhases = (
+				E516669D2EE475CC00708A53 /* Sources */,
+				E516669E2EE475CC00708A53 /* Frameworks */,
+				E516669F2EE475CC00708A53 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E51666A32EE475CC00708A53 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				E51666A42EE475CC00708A53 /* hociatec iphoneTests */,
+			);
+			name = "hociatec iphoneTests";
+			packageProductDependencies = (
+			);
+			productName = "hociatec iphoneTests";
+			productReference = E51666A12EE475CC00708A53 /* hociatec iphoneTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		E51666AA2EE475CC00708A53 /* hociatec iphoneUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E51666BB2EE475CC00708A53 /* Build configuration list for PBXNativeTarget "hociatec iphoneUITests" */;
+			buildPhases = (
+				E51666A72EE475CC00708A53 /* Sources */,
+				E51666A82EE475CC00708A53 /* Frameworks */,
+				E51666A92EE475CC00708A53 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E51666AD2EE475CC00708A53 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				E51666AE2EE475CC00708A53 /* hociatec iphoneUITests */,
+			);
+			name = "hociatec iphoneUITests";
+			packageProductDependencies = (
+			);
+			productName = "hociatec iphoneUITests";
+			productReference = E51666AB2EE475CC00708A53 /* hociatec iphoneUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		E516668A2EE475CB00708A53 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2610;
+				LastUpgradeCheck = 2610;
+				TargetAttributes = {
+					E51666912EE475CB00708A53 = {
+						CreatedOnToolsVersion = 26.1.1;
+					};
+					E51666A02EE475CC00708A53 = {
+						CreatedOnToolsVersion = 26.1.1;
+						TestTargetID = E51666912EE475CB00708A53;
+					};
+					E51666AA2EE475CC00708A53 = {
+						CreatedOnToolsVersion = 26.1.1;
+						TestTargetID = E51666912EE475CB00708A53;
+					};
+				};
+			};
+			buildConfigurationList = E516668D2EE475CB00708A53 /* Build configuration list for PBXProject "hociatec iphone" */;
+			developmentRegion = fr;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				fr,
+				Base,
+			);
+			mainGroup = E51666892EE475CB00708A53;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = E51666932EE475CB00708A53 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				E51666912EE475CB00708A53 /* hociatec iphone */,
+				E51666A02EE475CC00708A53 /* hociatec iphoneTests */,
+				E51666AA2EE475CC00708A53 /* hociatec iphoneUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		E51666902EE475CB00708A53 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E6001A0F2EF1000000000001 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E516669F2EE475CC00708A53 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E51666A92EE475CC00708A53 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		E516668E2EE475CB00708A53 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E5796F962EE9A50700E14DFC /* RatingStars.swift in Sources */,
+				E5F6792A2EEA71D300BCB489 /* FavoritesScreen.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E516669D2EE475CC00708A53 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E51666A72EE475CC00708A53 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		E51666A32EE475CC00708A53 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E51666912EE475CB00708A53 /* hociatec iphone */;
+			targetProxy = E51666A22EE475CC00708A53 /* PBXContainerItemProxy */;
+		};
+		E51666AD2EE475CC00708A53 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E51666912EE475CB00708A53 /* hociatec iphone */;
+			targetProxy = E51666AC2EE475CC00708A53 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		E51666B32EE475CC00708A53 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		E51666B42EE475CC00708A53 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		E51666B62EE475CC00708A53 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 88ZLF6AH8Y;
+				ENABLE_PREVIEWS = YES;
+				EXCLUDED_SOURCE_FILE_NAMES = "*.xcassets";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "hociatec.hociatec-iphone";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		E51666B72EE475CC00708A53 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 88ZLF6AH8Y;
+				ENABLE_PREVIEWS = YES;
+				EXCLUDED_SOURCE_FILE_NAMES = "*.xcassets";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "hociatec.hociatec-iphone";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		E51666B92EE475CC00708A53 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "hociatec.hociatec-iphoneTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/hociatec iphone.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/hociatec iphone";
+			};
+			name = Debug;
+		};
+		E51666BA2EE475CC00708A53 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "hociatec.hociatec-iphoneTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/hociatec iphone.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/hociatec iphone";
+			};
+			name = Release;
+		};
+		E51666BC2EE475CC00708A53 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "hociatec.hociatec-iphoneUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "hociatec iphone";
+			};
+			name = Debug;
+		};
+		E51666BD2EE475CC00708A53 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "hociatec.hociatec-iphoneUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "hociatec iphone";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		E516668D2EE475CB00708A53 /* Build configuration list for PBXProject "hociatec iphone" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E51666B32EE475CC00708A53 /* Debug */,
+				E51666B42EE475CC00708A53 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E51666B52EE475CC00708A53 /* Build configuration list for PBXNativeTarget "hociatec iphone" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E51666B62EE475CC00708A53 /* Debug */,
+				E51666B72EE475CC00708A53 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E51666B82EE475CC00708A53 /* Build configuration list for PBXNativeTarget "hociatec iphoneTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E51666B92EE475CC00708A53 /* Debug */,
+				E51666BA2EE475CC00708A53 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E51666BB2EE475CC00708A53 /* Build configuration list for PBXNativeTarget "hociatec iphoneUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E51666BC2EE475CC00708A53 /* Debug */,
+				E51666BD2EE475CC00708A53 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = E516668A2EE475CB00708A53 /* Project object */;
+}

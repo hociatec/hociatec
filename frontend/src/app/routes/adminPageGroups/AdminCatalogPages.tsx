@@ -24,3 +24,7 @@ export const ProductFormPage = lazyPage(
   () => import('@/features/admin/catalog/pages/ProductFormPage'),
   'ProductFormPage',
 );
+export const AdminStockOperationsPage = lazyPage(
+  () => import('@/features/admin/operations/pages/AdminStockOperationsPage'),
+  'AdminStockOperationsPage',
+);

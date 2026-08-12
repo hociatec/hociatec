@@ -15,7 +15,26 @@ import type { PaginationMeta } from '@/shared/types/api';
 
 const emptyMeta = (page: number): PaginationMeta => ({ page, perPage: 10, total: 0, totalPages: 1 });
 
-export const useAdminOperationsData = () => {
+export type AdminOperationsDataScope = Partial<{
+  overview: boolean;
+  support: boolean;
+  refunds: boolean;
+  stock: boolean;
+  emails: boolean;
+  fulfillment: boolean;
+}>;
+
+const defaultScope: Required<AdminOperationsDataScope> = {
+  overview: true,
+  support: true,
+  refunds: true,
+  stock: true,
+  emails: true,
+  fulfillment: true,
+};
+
+export const useAdminOperationsData = (scope: AdminOperationsDataScope = {}) => {
+  const enabledScope = { ...defaultScope, ...scope };
   const [supportPage, setSupportPage] = useState(1);
   const [refundsPage, setRefundsPage] = useState(1);
   const [stockPage, setStockPage] = useState(1);
@@ -24,57 +43,71 @@ export const useAdminOperationsData = () => {
   const overviewQuery = useQuery({
     queryKey: adminOperationsQueryKeys.overview(),
     queryFn: fetchOperationsOverview,
+    enabled: enabledScope.overview,
   });
   const supportQuery = useQuery({
     queryKey: adminOperationsQueryKeys.support(supportPage),
     queryFn: () => fetchSupportRequests(supportPage, 10),
+    enabled: enabledScope.support,
   });
   const refundsQuery = useQuery({
     queryKey: adminOperationsQueryKeys.refunds(refundsPage),
     queryFn: () => fetchRefunds(refundsPage, 10),
+    enabled: enabledScope.refunds,
   });
   const stockQuery = useQuery({
     queryKey: adminOperationsQueryKeys.stock(stockPage),
     queryFn: () => fetchStockMovements(stockPage, 10),
+    enabled: enabledScope.stock,
   });
   const emailsQuery = useQuery({
     queryKey: adminOperationsQueryKeys.emails(emailsPage),
     queryFn: () => fetchEmailLogs(emailsPage, 10),
+    enabled: enabledScope.emails,
   });
   const fulfillmentQuery = useQuery({
     queryKey: adminOperationsQueryKeys.fulfillment(fulfillmentPage),
     queryFn: () => fetchFulfillmentOrders(fulfillmentPage, 10),
+    enabled: enabledScope.fulfillment,
   });
 
   const refresh = useCallback(async () => {
     await Promise.all([
-      overviewQuery.refetch(),
-      supportQuery.refetch(),
-      refundsQuery.refetch(),
-      stockQuery.refetch(),
-      emailsQuery.refetch(),
-      fulfillmentQuery.refetch(),
+      enabledScope.overview ? overviewQuery.refetch() : Promise.resolve(),
+      enabledScope.support ? supportQuery.refetch() : Promise.resolve(),
+      enabledScope.refunds ? refundsQuery.refetch() : Promise.resolve(),
+      enabledScope.stock ? stockQuery.refetch() : Promise.resolve(),
+      enabledScope.emails ? emailsQuery.refetch() : Promise.resolve(),
+      enabledScope.fulfillment ? fulfillmentQuery.refetch() : Promise.resolve(),
     ]);
-  }, [emailsQuery, fulfillmentQuery, overviewQuery, refundsQuery, stockQuery, supportQuery]);
+  }, [emailsQuery, enabledScope, fulfillmentQuery, overviewQuery, refundsQuery, stockQuery, supportQuery]);
+
+  const activeQueries = [
+    enabledScope.overview ? overviewQuery : null,
+    enabledScope.support ? supportQuery : null,
+    enabledScope.refunds ? refundsQuery : null,
+    enabledScope.stock ? stockQuery : null,
+    enabledScope.emails ? emailsQuery : null,
+    enabledScope.fulfillment ? fulfillmentQuery : null,
+  ].filter((query): query is NonNullable<typeof query> => query !== null);
+
   const status: 'loading' | 'error' | 'success' =
-    overviewQuery.isLoading ||
-    supportQuery.isLoading ||
-    refundsQuery.isLoading ||
-    stockQuery.isLoading ||
-    emailsQuery.isLoading ||
-    fulfillmentQuery.isLoading
-    ? 'loading'
-    : overviewQuery.error ||
-        supportQuery.error ||
-        refundsQuery.error ||
-        stockQuery.error ||
-        emailsQuery.error ||
-        fulfillmentQuery.error
-      ? 'error'
-      : 'success';
+    activeQueries.some((query) => query.isLoading)
+      ? 'loading'
+      : activeQueries.some((query) => query.error)
+        ? 'error'
+        : 'success';
+
+  const firstError =
+    (enabledScope.overview ? overviewQuery.error : null) ??
+    (enabledScope.support ? supportQuery.error : null) ??
+    (enabledScope.refunds ? refundsQuery.error : null) ??
+    (enabledScope.stock ? stockQuery.error : null) ??
+    (enabledScope.emails ? emailsQuery.error : null) ??
+    (enabledScope.fulfillment ? fulfillmentQuery.error : null);
 
   return {
-    overview: overviewQuery.data ?? null,
+    overview: enabledScope.overview ? overviewQuery.data ?? null : null,
     support: supportQuery.data?.items ?? [],
     supportMeta: supportQuery.data?.meta ?? emptyMeta(supportPage),
     setSupportPage,
@@ -91,20 +124,7 @@ export const useAdminOperationsData = () => {
     fulfillmentMeta: fulfillmentQuery.data?.meta ?? emptyMeta(fulfillmentPage),
     setFulfillmentPage,
     status,
-    message:
-      overviewQuery.error
-        ? getHttpErrorMessage(overviewQuery.error, 'Erreur de chargement.')
-        : supportQuery.error
-          ? getHttpErrorMessage(supportQuery.error, 'Erreur de chargement.')
-          : refundsQuery.error
-            ? getHttpErrorMessage(refundsQuery.error, 'Erreur de chargement.')
-            : stockQuery.error
-              ? getHttpErrorMessage(stockQuery.error, 'Erreur de chargement.')
-              : emailsQuery.error
-                ? getHttpErrorMessage(emailsQuery.error, 'Erreur de chargement.')
-                : fulfillmentQuery.error
-                  ? getHttpErrorMessage(fulfillmentQuery.error, 'Erreur de chargement.')
-                  : null,
+    message: firstError ? getHttpErrorMessage(firstError, 'Erreur de chargement.') : null,
     refresh,
   };
 };

@@ -36,3 +36,11 @@ export const PaymentDetailPage = lazyPage(
   () => import('@/features/admin/payments/pages/PaymentDetailPage'),
   'PaymentDetailPage',
 );
+export const AdminFulfillmentOperationsPage = lazyPage(
+  () => import('@/features/admin/operations/pages/AdminFulfillmentOperationsPage'),
+  'AdminFulfillmentOperationsPage',
+);
+export const AdminBulkActionsPage = lazyPage(
+  () => import('@/features/admin/operations/pages/AdminBulkActionsPage'),
+  'AdminBulkActionsPage',
+);

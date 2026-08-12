@@ -178,7 +178,12 @@ export const fetchAdminCustomers = async (
 
 export const fetchAdminCustomerById = async (
   customerId: number,
-  params: { orderStatus?: 'all' | 'open' | 'delivered' | 'cancelled'; orderPage?: number; orderPerPage?: number } = {},
+  params: {
+    orderStatus?: 'all' | 'open' | 'delivered' | 'cancelled';
+    orderPage?: number;
+    orderPerPage?: number;
+    orderQuery?: string;
+  } = {},
 ): Promise<{
   customer: AdminCustomerDetailDto;
   addresses: AdminCustomerAddressDto[];
@@ -199,6 +204,7 @@ export const fetchAdminCustomerById = async (
         meta: PaginationMeta;
         stats: AdminCustomerOrdersStatsDto;
         filter: 'all' | 'open' | 'delivered' | 'cancelled';
+        query?: string;
       };
       vouchers: AdminCustomerVoucherDto[];
     }>

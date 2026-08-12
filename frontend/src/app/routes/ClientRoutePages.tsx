@@ -40,6 +40,10 @@ export const MyOrdersPage = lazyPage(
   () => import('@/features/orders/pages/MyOrdersPage'),
   'MyOrdersPage',
 );
+export const MySupportRequestsPage = lazyPage(
+  () => import('@/features/support/pages/MySupportRequestsPage'),
+  'MySupportRequestsPage',
+);
 export const OrderDetailPage = lazyPage(
   () => import('@/features/orders/pages/OrderDetailPage'),
   'OrderDetailPage',

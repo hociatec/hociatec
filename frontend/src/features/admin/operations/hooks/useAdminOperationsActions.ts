@@ -13,7 +13,7 @@ import { adminOperationsQueryKeys } from '@/features/admin/operations/queryKeys'
 import { parseNullableInteger, parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 const emptySupportForm: SupportForm = { customerId: '', orderId: '', subject: '', reason: 'other', message: '', internalNotes: '' };
-const emptyRefundForm: RefundForm = { orderId: '', amountCents: '', reason: '', internalNotes: '' };
+const emptyRefundForm: RefundForm = { customerId: '', orderId: '', amountCents: '', reason: '', internalNotes: '' };
 const emptyStockForm: StockForm = { productId: '', delta: '', reason: 'adjustment', note: '' };
 const emptyBulkForm: BulkForm = { orderIds: '', status: 'confirmed' };
 const emptyShippingForm = { carrier: '', trackingNumber: '', trackingUrl: '' };

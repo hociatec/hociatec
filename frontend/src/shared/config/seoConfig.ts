@@ -3,7 +3,7 @@ export const CONTACT_EMAIL = 'contact@hociatec.fr';
 
 export const DEFAULT_SEO = {
   siteName: 'Hociatec',
-  title: 'Hociatec — Informatique, réparation et services numériques',
+  title: 'Informatique, réparation et services numériques',
   description:
     "Vente de matériel informatique, réparation d'ordinateurs, maintenance informatique, création de site internet, assistance informatique et formation numérique.",
   locale: 'fr_FR',
@@ -35,64 +35,64 @@ export const PUBLIC_STATIC_ROUTE_SEO: StaticRouteSeo[] = [
   },
   {
     path: '/contact',
-    title: 'Contact — Hociatec',
+    title: 'Contact',
     description:
       'Contactez Hociatec pour une réparation, une assistance informatique, un devis ou une question sur le catalogue.',
   },
   {
     path: '/services',
-    title: 'Services — Hociatec',
+    title: 'Services',
     description:
       'Découvrez le catalogue de services Hociatec avec les détails, la durée estimée et la base tarifaire de chaque offre.',
   },
   {
     path: '/formations',
-    title: 'Formations — Hociatec',
+    title: 'Formations',
     description:
       'Découvrez les formations Hociatec pour progresser sur les usages numériques, la bureautique et les outils informatiques.',
   },
   {
     path: '/catalogue/vente',
-    title: 'Vente — Catalogue Hociatec',
+    title: 'Vente — Catalogue',
     description:
       'Parcourez les produits informatiques Hociatec disponibles à la vente avec filtres, recherche et disponibilité.',
   },
   {
     path: '/catalogue/location',
-    title: 'Location — Catalogue Hociatec',
+    title: 'Location — Catalogue',
     description:
       'Parcourez les produits informatiques Hociatec disponibles à la location avec filtres, recherche et disponibilité.',
   },
   {
     path: '/catalogue/recherche',
-    title: 'Recherche catalogue — Hociatec',
+    title: 'Recherche catalogue',
     description: 'Recherchez rapidement un produit informatique dans le catalogue Hociatec.',
     robots: PRIVATE_ROBOTS_CONTENT,
   },
   {
     path: '/recherche',
-    title: 'Recherche — Hociatec',
+    title: 'Recherche',
     description: 'Recherchez rapidement un produit, un service ou une formation Hociatec.',
     robots: PRIVATE_ROBOTS_CONTENT,
   },
   {
     path: '/legal/cgu',
-    title: 'Conditions générales d’utilisation — Hociatec',
+    title: 'Conditions générales d’utilisation',
     description: 'Consultez les conditions générales d’utilisation du site Hociatec.',
   },
   {
     path: '/legal/cgv',
-    title: 'Conditions générales de vente — Hociatec',
+    title: 'Conditions générales de vente',
     description: 'Consultez les conditions générales de vente applicables aux offres Hociatec.',
   },
   {
     path: '/legal/confidentialite',
-    title: 'Politique de confidentialité — Hociatec',
+    title: 'Politique de confidentialité',
     description: 'Consultez la politique de confidentialité et de protection des données Hociatec.',
   },
   {
     path: '/legal/mentions-legales',
-    title: 'Mentions légales — Hociatec',
+    title: 'Mentions légales',
     description: 'Consultez les mentions légales du site Hociatec.',
   },
 ];

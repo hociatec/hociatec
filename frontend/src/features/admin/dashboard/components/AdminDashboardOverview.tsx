@@ -25,7 +25,7 @@ export const AdminDashboardOverview = ({ dashboard }: AdminDashboardOverviewProp
           <p className="text-sm text-stone-400">Les points qui demandent une action immédiate.</p>
         </div>
       </div>
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
         <AdminDashboardPriorityLink
           to="/admin/orders?status=pending"
           label="Commandes à traiter"
@@ -51,13 +51,16 @@ export const AdminDashboardOverview = ({ dashboard }: AdminDashboardOverviewProp
           helper="Voir les produits"
         />
         <AdminDashboardPriorityLink
-          to="/admin/operations"
-          label="SAV / remboursements"
-          value={
-            (dashboard.metrics.supportOpenCount ?? 0) +
-            (dashboard.metrics.refundsPendingCount ?? 0)
-          }
-          helper="Ouvrir exploitation"
+          to="/admin/customers/support"
+          label="SAV ouverts"
+          value={dashboard.metrics.supportOpenCount ?? 0}
+          helper="Ouvrir le SAV"
+        />
+        <AdminDashboardPriorityLink
+          to="/admin/customers/refunds"
+          label="Remboursements"
+          value={dashboard.metrics.refundsPendingCount ?? 0}
+          helper="Traiter les demandes"
         />
       </div>
     </section>

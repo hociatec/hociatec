@@ -18,12 +18,15 @@ use App\Module\Order\Infrastructure\Repository\OrderRepository;
 use App\Module\Support\Application\DTO\SupportCreateData;
 use App\Module\Support\Application\DTO\SupportReplyData;
 use App\Module\Support\Application\DTO\SupportUpdateData;
+use App\Module\Support\Application\Workflow\SupportAttachmentAccessService;
 use App\Module\Support\Domain\Entity\SupportRequest;
+use App\Module\Support\Infrastructure\Storage\SupportAttachmentStorage;
 use App\Module\Support\Infrastructure\Repository\SupportRequestRepository;
 use App\Module\User\Application\Workflow\AdminCustomerEmailService;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
+use App\Shared\Infrastructure\Http\AttachmentResponseFactory;
 use App\Shared\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Doctrine\DBAL\DriverManager;
@@ -77,6 +80,18 @@ final class SupportOperationsServiceTest extends TestCase
         self::assertSame(SupportRequest::STATUS_IN_PROGRESS, $updated['status']);
         self::assertSame('Nouveau sujet', $updated['subject']);
         self::assertSame('nouvelle note', $updated['internalNotes']);
+        self::assertCount(5, $updated['timeline']);
+        self::assertSame('customer_message', $updated['timeline'][0]['type']);
+        self::assertSame('internal_note', $updated['timeline'][1]['type']);
+        self::assertSame('subject_change', $updated['timeline'][2]['type']);
+        self::assertSame('Sujet mis à jour', $updated['timeline'][2]['subject']);
+        self::assertStringContainsString('Ancien sujet : Produit casse', (string) $updated['timeline'][2]['message']);
+        self::assertStringContainsString('Nouveau sujet : Nouveau sujet', (string) $updated['timeline'][2]['message']);
+        self::assertSame('internal_note', $updated['timeline'][3]['type']);
+        self::assertSame('Note interne mise à jour', $updated['timeline'][3]['subject']);
+        self::assertSame('nouvelle note', $updated['timeline'][3]['message']);
+        self::assertSame('internal', $updated['timeline'][3]['visibility']);
+        self::assertSame('status_change', $updated['timeline'][4]['type']);
 
         $replied = $service->reply($supportId, new SupportReplyData('  Bonjour client  ', null, null));
         self::assertSame(SupportRequest::STATUS_WAITING_CUSTOMER, $replied['status']);
@@ -118,7 +133,18 @@ final class SupportOperationsServiceTest extends TestCase
     public function testControllerMapsSupportOperationsResponses(): void
     {
         [$customer] = $this->seedCustomerAndOrder();
-        $controller = new SupportOperationsController($this->supportService(), $this->dtoValidator());
+        $controller = new SupportOperationsController(
+            $this->supportService(),
+            $this->dtoValidator(),
+            new AttachmentResponseFactory(),
+            new SupportAttachmentAccessService(
+                $this->repository(SupportRequestRepository::class),
+                new SupportAttachmentStorage(
+                    dirname(__DIR__, 5),
+                    $this->createMock(LoggerInterface::class),
+                ),
+            ),
+        );
 
         $list = $controller->list();
         self::assertSame(Response::HTTP_OK, $list->getStatusCode());

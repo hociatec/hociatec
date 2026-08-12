@@ -25,7 +25,8 @@ final class ShowCustomerController extends AbstractController
         $orderStatus = (string) $request->query->get('orderStatus', 'all');
         $orderPage = max(1, (int) $request->query->get('orderPage', 1));
         $orderPerPage = max(1, min(100, (int) $request->query->get('orderPerPage', 10)));
-        $details = $this->customers->details($userId, $orderStatus, $orderPage, $orderPerPage);
+        $orderQuery = trim((string) $request->query->get('orderQuery', ''));
+        $details = $this->customers->details($userId, $orderStatus, $orderPage, $orderPerPage, '' !== $orderQuery ? $orderQuery : null);
         if (null === $details) {
             return ApiResponse::error('Client introuvable.', JsonResponse::HTTP_NOT_FOUND);
         }

@@ -7,6 +7,7 @@ export type SupportForm = {
   internalNotes: string;
 };
 export type RefundForm = {
+  customerId: string;
   orderId: string;
   amountCents: string;
   reason: string;

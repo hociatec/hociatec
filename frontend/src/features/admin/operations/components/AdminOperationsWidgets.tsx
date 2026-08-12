@@ -21,28 +21,17 @@ export const operationsUi = {
 export { ActionCard, Field, List };
 
 export const OperationsHeader = ({
+  description,
   message,
-  onRefresh,
   status,
 }: {
+  description: string;
   message: string | null;
-  onRefresh: () => void;
   status: 'loading' | 'error' | 'success';
 }) => (
   <div className="mb-6 rounded-xl border border-brand-100 bg-white p-5 shadow-sm">
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-      <div className="max-w-3xl">
-        <h1 className="text-2xl font-semibold text-brand-900">
-          Ce qui demande une action aujourd’hui
-        </h1>
-        <p className="mt-2 text-sm leading-6 text-stone-600">
-          Cette page regroupe les tâches de suivi : SAV, remboursements manuels, corrections de
-          stock, exports CSV, emails transactionnels et actions groupées sur les commandes.
-        </p>
-      </div>
-      <button className={operationsSecondaryActionClass} type="button" onClick={onRefresh}>
-        Actualiser
-      </button>
+    <div className="max-w-3xl">
+      <p className="text-sm leading-6 text-stone-600">{description}</p>
     </div>
 
     {message && (
@@ -158,14 +147,6 @@ export const OperationsPriorities = ({
 
 export const OperationsExports = ({ exportLabels }: { exportLabels: Record<string, string> }) => (
   <section className={operationsCardClass}>
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-      <div>
-        <h2 className="text-lg font-semibold text-brand-900">Exports CSV</h2>
-        <p className="text-sm text-stone-500">
-          Télécharge les données pour contrôle, comptabilité ou reporting.
-        </p>
-      </div>
-    </div>
     <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {['orders', 'customers', 'products', 'quotes', 'refunds', 'support'].map((resource) => (
         <a

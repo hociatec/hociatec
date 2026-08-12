@@ -6,6 +6,7 @@ import type {
   SupportRequestDto,
 } from '@/features/admin/operations/api';
 import { operationsUi } from '@/features/admin/operations/components/AdminOperationsWidgets';
+import { Field } from '@/features/admin/operations/components/AdminOperationsWidgets';
 import type { SupportReplies } from './operationsTypes';
 
 const { inputClass, secondaryActionClass } = operationsUi;
@@ -24,17 +25,19 @@ export const SupportRequestAction = ({
   updateSupportStatus: (supportId: number, status: string) => void;
 }) => (
   <div className="space-y-2">
-    <select
-      className={inputClass}
-      value={item.status}
-      onChange={(event) => updateSupportStatus(item.id, event.target.value)}
-    >
-      <option value="new">Nouveau</option>
-      <option value="in_progress">En cours</option>
-      <option value="waiting_customer">En attente client</option>
-      <option value="resolved">Résolu</option>
-      <option value="refused">Refusé</option>
-    </select>
+    <Field label="Changer le statut">
+      <select
+        className={inputClass}
+        value={item.status}
+        onChange={(event) => updateSupportStatus(item.id, event.target.value)}
+      >
+        <option value="new">Nouveau</option>
+        <option value="in_progress">En cours</option>
+        <option value="waiting_customer">En attente client</option>
+        <option value="resolved">Résolu</option>
+        <option value="refused">Refusé</option>
+      </select>
+    </Field>
     <input
       className={inputClass}
       placeholder="Sujet réponse client"

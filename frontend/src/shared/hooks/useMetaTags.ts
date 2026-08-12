@@ -51,6 +51,7 @@ export const useMetaTags = (opts: MetaTagsOptions = {}) => {
       twitterCard: opts.twitterCard ?? DEFAULT_SEO.twitterCard,
       twitterSite: opts.twitterSite,
     };
+    const formattedTitle = formatDocumentTitle(resolved.title);
 
     const upsertMeta = (attribute: 'name' | 'property', key: string, value?: string) => {
       if (!value) return;
@@ -96,11 +97,11 @@ export const useMetaTags = (opts: MetaTagsOptions = {}) => {
 
     ensureCanonical();
 
-    document.title = formatDocumentTitle(resolved.title);
+    document.title = formattedTitle;
 
     upsertMeta('name', 'description', resolved.description);
     upsertMeta('name', 'robots', resolved.robots);
-    upsertMeta('property', 'og:title', resolved.title);
+    upsertMeta('property', 'og:title', formattedTitle);
     upsertMeta('property', 'og:description', resolved.description);
     upsertMeta('property', 'og:type', resolved.type);
     upsertMeta('property', 'og:url', canonicalUrl);
@@ -110,7 +111,7 @@ export const useMetaTags = (opts: MetaTagsOptions = {}) => {
     upsertMeta('property', 'og:locale', resolved.locale);
 
     upsertMeta('name', 'twitter:card', resolved.twitterCard);
-    upsertMeta('name', 'twitter:title', resolved.title);
+    upsertMeta('name', 'twitter:title', formattedTitle);
     upsertMeta('name', 'twitter:description', resolved.description);
     upsertMeta('name', 'twitter:image', resolved.imageUrl);
     upsertMeta('name', 'twitter:image:alt', resolved.imageAlt);

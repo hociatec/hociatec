@@ -39,15 +39,15 @@ export const ActionCard = ({
   warning,
   children,
 }: {
-  title: string;
-  description: string;
+  title?: string;
+  description?: string;
   warning?: string;
   children: ReactNode;
 }) => (
   <div className={operationsCardClass}>
     <div className="mb-4">
-      <h2 className="text-lg font-semibold text-brand-900">{title}</h2>
-      <p className="mt-1 text-sm leading-6 text-stone-600">{description}</p>
+      {title ? <h2 className="text-lg font-semibold text-brand-900">{title}</h2> : null}
+      {description ? <p className="mt-1 text-sm leading-6 text-stone-600">{description}</p> : null}
       {warning && (
         <p className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">
           {warning}
@@ -82,13 +82,13 @@ export const List = ({
   meta,
   onPageChange,
 }: {
-  title: string;
-  items: Array<{ key: string | number; title: string; meta: string; action?: ReactNode }>;
+  title?: string;
+  items: Array<{ key: string | number; title: ReactNode; meta: ReactNode; action?: ReactNode }>;
   meta: PaginationMeta;
   onPageChange: (updater: (page: number) => number) => void;
 }) => (
     <div className={operationsCardClass}>
-      <h2 className="text-lg font-semibold">{title}</h2>
+      {title ? <h2 className="text-lg font-semibold">{title}</h2> : null}
       <div className="mt-4 space-y-3">
         {items.length === 0 ? (
           <p className="text-sm text-stone-500">Aucun élément.</p>

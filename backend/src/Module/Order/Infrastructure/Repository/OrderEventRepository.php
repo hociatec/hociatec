@@ -40,7 +40,7 @@ final class OrderEventRepository extends ServiceEntityRepository implements Orde
     }
 
     /** @param array<string, mixed> $criteria */
-    public function count(array $criteria): int
+    public function count(array $criteria = []): int
     {
         return (int) parent::count($criteria);
     }

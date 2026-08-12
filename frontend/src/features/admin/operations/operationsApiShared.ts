@@ -3,6 +3,26 @@ import axios from 'axios';
 import { createApiError, unwrapApiData } from '@/shared/lib/responseHelpers';
 import { type ApiResponse } from '@/shared/types/api';
 
+export interface SupportTimelineEntryDto {
+  id: string;
+  type: string;
+  actor: string;
+  visibility: string;
+  authorLabel: string;
+  subject?: string | null;
+  message?: string | null;
+  status?: string | null;
+  statusLabel?: string | null;
+  attachments?: Array<{
+    name: string;
+    originalName: string;
+    contentType: string;
+    size: number;
+    uploadedAt: string;
+  }>;
+  createdAt: string;
+}
+
 export interface SupportRequestDto {
   id: number;
   status: string;
@@ -13,6 +33,16 @@ export interface SupportRequestDto {
   internalNotes?: string | null;
   customer: { id: number; name: string; email: string };
   order?: { id: number; number: string } | null;
+  attachments: Array<{
+    name: string;
+    originalName: string;
+    contentType: string;
+    size: number;
+    uploadedAt: string;
+  }>;
+  awaitingReplyFrom?: 'admin' | 'customer' | null;
+  awaitingReplyLabel?: string | null;
+  timeline: SupportTimelineEntryDto[];
   createdAt: string;
   updatedAt: string;
   resolvedAt?: string | null;

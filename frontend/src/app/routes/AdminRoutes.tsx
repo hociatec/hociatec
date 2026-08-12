@@ -4,6 +4,7 @@ import { AdminRoute } from '@/features/admin/publicApi';
 import { ProtectedRoute } from '@/features/auth/publicApi';
 import { PrivateRouteMeta } from '@/shared/components/seo/PrivateRouteMeta';
 import {
+  AdminStockOperationsPage,
   BrandFormPage,
   BrandsListPage,
   CategoriesListPage,
@@ -14,8 +15,8 @@ import {
 import {
   AdminBackupsPage,
   AdminDashboardPage,
+  AdminExportsPage,
   AdminLayout,
-  AdminOperationsPage,
   AdminUiCatalogPage,
 } from './adminPageGroups/AdminCorePages';
 import {
@@ -23,8 +24,14 @@ import {
   AdminCustomerVoucherPage,
   AdminCustomersListPage,
   AdminLoyaltyPage,
+  AdminRefundRequestCreatePage,
+  AdminRefundRequestsListPage,
+  AdminSupportRequestCreatePage,
+  AdminSupportRequestDetailPage,
+  AdminSupportRequestsListPage,
 } from './adminPageGroups/AdminCustomerPages';
 import {
+  AdminTransactionalEmailLogsPage,
   AdminNewsFormPage,
   AdminNewsListPage,
   MarketingCampaignFormPage,
@@ -40,6 +47,8 @@ import {
   VouchersPage,
 } from './adminPageGroups/AdminPromotionPages';
 import {
+  AdminBulkActionsPage,
+  AdminFulfillmentOperationsPage,
   AdminOrderDetailPage,
   AdminQuoteDetailPage,
   OrdersListPage,
@@ -87,8 +96,8 @@ export const adminRoutes: AppRouteDefinition = {
   element: adminElement,
   children: [
     { index: true, element: <AdminDashboardPage /> },
-    { path: 'operations', element: <AdminOperationsPage /> },
     { path: 'backups', element: <AdminBackupsPage /> },
+    { path: 'exports', element: <AdminExportsPage /> },
     { path: 'ui-catalog', element: <AdminUiCatalogPage /> },
     {
       path: 'trainings',
@@ -120,6 +129,7 @@ export const adminRoutes: AppRouteDefinition = {
         { path: 'categories', children: [{ index: true, element: <CategoriesListPage /> }, { path: 'new', element: <CategoryFormPage /> }, { path: ':categoryId/edit', element: <CategoryFormPage /> }] },
         { path: 'brands', children: [{ index: true, element: <BrandsListPage /> }, { path: 'new', element: <BrandFormPage /> }, { path: ':brandId/edit', element: <BrandFormPage /> }] },
         { path: 'products', children: [{ index: true, element: <ProductsListPage /> }, { path: 'new', element: <ProductFormPage /> }, { path: ':productId/edit', element: <ProductFormPage /> }] },
+        { path: 'stock', element: <AdminStockOperationsPage /> },
       ],
     },
     {
@@ -132,9 +142,29 @@ export const adminRoutes: AppRouteDefinition = {
       ],
     },
     { path: 'services', children: [{ index: true, element: <ServicesListPage /> }, { path: 'new', element: <ServiceFormPage /> }, { path: ':serviceId/edit', element: <ServiceFormPage /> }] },
-    { path: 'orders', children: [{ index: true, element: <OrdersListPage /> }, { path: ':orderId', element: <AdminOrderDetailPage /> }] },
+    {
+      path: 'orders',
+      children: [
+        { index: true, element: <OrdersListPage /> },
+        { path: 'fulfillment', element: <AdminFulfillmentOperationsPage /> },
+        { path: 'bulk-actions', element: <AdminBulkActionsPage /> },
+        { path: ':orderId', element: <AdminOrderDetailPage /> },
+      ],
+    },
     { path: 'payments', children: [{ index: true, element: <PaymentsListPage /> }, { path: ':paymentId', element: <PaymentDetailPage /> }] },
-    { path: 'customers', children: [{ index: true, element: <AdminCustomersListPage /> }, { path: ':customerId', element: <AdminCustomerDetailPage /> }, { path: ':customerId/vouchers/new', element: <AdminCustomerVoucherPage /> }] },
+    {
+      path: 'customers',
+      children: [
+        { index: true, element: <AdminCustomersListPage /> },
+        { path: 'support', element: <AdminSupportRequestsListPage /> },
+        { path: 'support/new', element: <AdminSupportRequestCreatePage /> },
+        { path: 'support/:supportId', element: <AdminSupportRequestDetailPage /> },
+        { path: 'refunds', element: <AdminRefundRequestsListPage /> },
+        { path: 'refunds/new', element: <AdminRefundRequestCreatePage /> },
+        { path: ':customerId', element: <AdminCustomerDetailPage /> },
+        { path: ':customerId/vouchers/new', element: <AdminCustomerVoucherPage /> },
+      ],
+    },
     { path: 'loyalty', element: <AdminLoyaltyPage /> },
     { path: 'news', children: [{ index: true, element: <AdminNewsListPage /> }, { path: 'new', element: <AdminNewsFormPage /> }, { path: ':newsId/edit', element: <AdminNewsFormPage /> }] },
     {
@@ -145,7 +175,16 @@ export const adminRoutes: AppRouteDefinition = {
         { path: 'templates', children: [{ index: true, element: <MarketingTemplatesListPage /> }, { path: 'new', element: <MarketingTemplateFormPage /> }, { path: ':templateId', element: <MarketingTemplateDetailPage /> }, { path: ':templateId/edit', element: <MarketingTemplateFormPage /> }] },
       ],
     },
-    { path: 'transactional-emails', children: [{ index: true, element: <MarketingTemplatesListPage /> }, { path: 'new', element: <MarketingTemplateFormPage /> }, { path: ':templateId', element: <MarketingTemplateDetailPage /> }, { path: ':templateId/edit', element: <MarketingTemplateFormPage /> }] },
+    {
+      path: 'transactional-emails',
+      children: [
+        { index: true, element: <MarketingTemplatesListPage /> },
+        { path: 'logs', element: <AdminTransactionalEmailLogsPage /> },
+        { path: 'new', element: <MarketingTemplateFormPage /> },
+        { path: ':templateId', element: <MarketingTemplateDetailPage /> },
+        { path: ':templateId/edit', element: <MarketingTemplateFormPage /> },
+      ],
+    },
     { path: 'promotions', children: [{ index: true, element: <PromotionsListPage /> }, { path: 'new', element: <PromotionFormPage /> }, { path: ':promotionId/edit', element: <PromotionFormPage /> }] },
     { path: 'vouchers', children: [{ index: true, element: <VouchersPage /> }, { path: 'new', element: <VoucherFormPage /> }, { path: ':voucherId/edit', element: <VoucherFormPage /> }] },
     { path: 'audits', children: [{ index: true, element: <AdminAuditsListPage /> }, { path: ':auditId', element: <AdminAuditDetailPage /> }] },

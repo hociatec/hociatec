@@ -41,6 +41,7 @@ export const DashboardAccessLinks = () => {
 
   const destinations: DashboardDestination[] = [
     { icon: <Package />, title: 'Commandes', to: '/orders/me' },
+    { icon: <MessageSquareText />, title: 'SAV', to: '/support/me' },
     { icon: <FileText />, title: 'Devis', to: '/quotes/me' },
     { icon: <CalendarDays />, title: 'Rendez-vous', to: '/appointments/me' },
     { icon: <GraduationCap />, title: 'Formations', to: '/trainings/me' },

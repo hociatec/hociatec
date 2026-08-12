@@ -50,7 +50,11 @@ class SupportRequest
 
     /** @var list<array<string, mixed>> */
     #[ORM\Column(type: 'json')]
-    private array $attachments = [];
+    private ?array $attachments = [];
+
+    /** @var list<array<string, mixed>> */
+    #[ORM\Column(type: 'json')]
+    private ?array $timeline = [];
 
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
@@ -164,13 +168,13 @@ class SupportRequest
     /** @return list<array<string, mixed>> */
     public function getAttachments(): array
     {
-        return $this->attachments;
+        return is_array($this->attachments) ? array_values($this->attachments) : [];
     }
 
     /** @param list<array<string, mixed>> $attachments */
     public function setAttachments(array $attachments): self
     {
-        $this->attachments = $attachments;
+        $this->attachments = array_values($attachments);
 
         return $this;
     }
@@ -178,6 +182,30 @@ class SupportRequest
     public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
+    }
+
+    /** @return list<array<string, mixed>> */
+    public function getTimeline(): array
+    {
+        return is_array($this->timeline) ? array_values($this->timeline) : [];
+    }
+
+    /** @param list<array<string, mixed>> $timeline */
+    public function setTimeline(array $timeline): self
+    {
+        $this->timeline = array_values($timeline);
+
+        return $this;
+    }
+
+    /** @param array<string, mixed> $entry */
+    public function appendTimelineEntry(array $entry): self
+    {
+        $timeline = $this->getTimeline();
+        $timeline[] = $entry;
+        $this->timeline = $timeline;
+
+        return $this;
     }
 
     public function getUpdatedAt(): \DateTimeImmutable

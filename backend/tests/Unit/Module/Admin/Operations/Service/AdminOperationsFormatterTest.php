@@ -98,6 +98,61 @@ final class AdminOperationsFormatterTest extends TestCase
         self::assertSame('Email failed custom', $this->invokeEmailScenarioLabel($formatter, 'email_failed_custom'));
     }
 
+    public function testSupportFormatterIgnoresMalformedLegacyTimelineAndAttachments(): void
+    {
+        $entityManager = $this->entityManager();
+        [$formatter, $user] = $this->seedMinimalFormatter($entityManager);
+
+        $support = new SupportRequest($user, 'Legacy');
+        $support
+            ->setMessage('Message legacy')
+            ->setAttachments([
+                'bad-entry',
+                ['name' => 'doc.pdf', 'originalName' => 'Document.pdf', 'contentType' => 'application/pdf', 'size' => 42, 'uploadedAt' => '2026-08-12T15:00:00+00:00'],
+                ['name' => ' ', 'originalName' => 'Ignored.pdf'],
+            ])
+            ->setTimeline([
+                'bad-entry',
+                ['visibility' => 'internal', 'type' => 'internal_note', 'authorLabel' => 'Admin'],
+                ['id' => 'ok', 'type' => 'customer_reply', 'actor' => 'customer', 'visibility' => 'customer', 'authorLabel' => 'Ada Lovelace', 'subject' => 'Sujet', 'message' => 'Bonjour', 'attachments' => ['bad-attachment'], 'createdAt' => '2026-08-12T15:00:00+00:00'],
+            ]);
+
+        $payload = $formatter->supportRequest($support);
+
+        self::assertCount(1, $payload['attachments']);
+        self::assertSame('doc.pdf', $payload['attachments'][0]['name']);
+        self::assertCount(3, $payload['timeline']);
+        self::assertContains('customer_message', array_column($payload['timeline'], 'type'));
+        self::assertContains('internal_note', array_column($payload['timeline'], 'type'));
+        $customerReply = array_values(array_filter($payload['timeline'], static fn (array $entry): bool => ($entry['id'] ?? null) === 'ok'))[0];
+        self::assertSame([], $customerReply['attachments']);
+    }
+
+    public function testSupportFormatterBackfillsLegacyAdminReplyForCustomerTimeline(): void
+    {
+        $entityManager = $this->entityManager();
+        [$formatter, $user] = $this->seedMinimalFormatter($entityManager);
+
+        $support = new SupportRequest($user, 'Produit endommagé');
+        $support
+            ->setMessage('Le produit ne s’allume plus.')
+            ->setInternalNotes("Diagnostic en cours\n[12/08/2026 14:53] Réponse envoyée au client : Réponse SAV #1")
+            ->setStatus(SupportRequest::STATUS_WAITING_CUSTOMER);
+
+        $payload = $formatter->customerSupportRequest($support);
+
+        self::assertCount(2, $payload['timeline']);
+        self::assertContains('customer_message', array_column($payload['timeline'], 'type'));
+        self::assertContains('admin_reply', array_column($payload['timeline'], 'type'));
+        $adminReply = array_values(array_filter($payload['timeline'], static fn (array $entry): bool => $entry['type'] === 'admin_reply'))[0];
+        self::assertSame('Réponse SAV #1', $adminReply['subject']);
+        self::assertNull($adminReply['message']);
+
+        $adminPayload = $formatter->supportRequest($support);
+        self::assertCount(3, $adminPayload['timeline']);
+        self::assertContains('internal_note', array_column($adminPayload['timeline'], 'type'));
+    }
+
     /**
      * @return array{AdminOperationsFormatter,User,Product,Order,SupportRequest,RefundRequest,StockMovement,OrderEvent}
      */
@@ -194,6 +249,27 @@ final class AdminOperationsFormatterTest extends TestCase
         $this->entityManager = $entityManager;
 
         return $entityManager;
+    }
+
+    /**
+     * @return array{AdminOperationsFormatter,User}
+     */
+    private function seedMinimalFormatter(EntityManager $entityManager): array
+    {
+        $user = new User('ada@example.test', 'Ada', 'Lovelace', new \DateTimeImmutable('1990-01-01'), '0102030405', 'female');
+        $user->setPassword('hashed');
+        $entityManager->persist($user);
+        $entityManager->flush();
+
+        $formatter = new AdminOperationsFormatter(
+            new \App\Module\Admin\Application\Operations\Projection\AdminOperationsEmailLogFormatter(
+                $this->repository(OrderRepository::class, $entityManager),
+                $this->repository(OrderEventRepository::class, $entityManager),
+            ),
+            \App\Tests\Support\OrderFormatterFactory::create(),
+        );
+
+        return [$formatter, $user];
     }
 
     /**

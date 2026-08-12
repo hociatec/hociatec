@@ -28,3 +28,7 @@ export const MarketingTemplateFormPage = lazyPage(
   () => import('@/features/admin/marketing/pages/MarketingTemplateFormPage'),
   'MarketingTemplateFormPage',
 );
+export const AdminTransactionalEmailLogsPage = lazyPage(
+  () => import('@/features/admin/operations/pages/AdminTransactionalEmailLogsPage'),
+  'AdminTransactionalEmailLogsPage',
+);

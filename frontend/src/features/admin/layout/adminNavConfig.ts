@@ -31,6 +31,8 @@ export const adminNavGroups: AdminNavGroup[] = [
     icon: ShoppingCart,
     links: [
       { to: '/admin/orders', label: 'Commandes' },
+      { to: '/admin/orders/fulfillment', label: 'Expéditions' },
+      { to: '/admin/orders/bulk-actions', label: 'Actions groupées' },
       { to: '/admin/payments', label: 'Paiements' },
       { to: '/admin/quotes', label: 'Devis' },
       { to: '/admin/trade-ins', label: 'Reprises matériel' },
@@ -61,6 +63,7 @@ export const adminNavGroups: AdminNavGroup[] = [
     icon: Package,
     links: [
       { to: '/admin/catalog/products', label: 'Tous les produits' },
+      { to: '/admin/catalog/stock', label: 'Stock' },
       { to: '/admin/catalog/categories', label: 'Catégories' },
       { to: '/admin/catalog/brands', label: 'Marques' },
       { to: '/admin/promotions', label: 'Promotions' },
@@ -73,6 +76,10 @@ export const adminNavGroups: AdminNavGroup[] = [
     icon: Users,
     links: [
       { to: '/admin/customers', label: 'Liste des clients' },
+      { to: '/admin/customers/support', label: 'Demandes SAV' },
+      { to: '/admin/customers/support/new', label: 'Créer un SAV' },
+      { to: '/admin/customers/refunds', label: 'Demandes remboursement' },
+      { to: '/admin/customers/refunds/new', label: 'Créer un remboursement' },
       { to: '/admin/loyalty', label: 'Fidélité' },
     ],
   },
@@ -118,6 +125,7 @@ export const adminNavGroups: AdminNavGroup[] = [
     links: [
       { to: '/admin/marketing', label: 'Campagnes' },
       { to: '/admin/marketing/templates', label: 'Modèles e-mail' },
+      { to: '/admin/transactional-emails/logs', label: 'Emails transactionnels' },
     ],
   },
   {
@@ -125,7 +133,7 @@ export const adminNavGroups: AdminNavGroup[] = [
     label: 'Système',
     icon: Settings,
     links: [
-      { to: '/admin/operations', label: 'Opérations' },
+      { to: '/admin/exports', label: 'Exports CSV' },
       { to: '/admin/backups', label: 'Sauvegardes et maintenance' },
       { to: '/admin/ui-catalog', label: 'Catalogue UI' },
     ],

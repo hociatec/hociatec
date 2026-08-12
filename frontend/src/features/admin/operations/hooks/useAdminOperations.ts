@@ -1,8 +1,8 @@
 import { useAdminOperationsActions } from './useAdminOperationsActions';
-import { useAdminOperationsData } from './useAdminOperationsData';
+import { type AdminOperationsDataScope, useAdminOperationsData } from './useAdminOperationsData';
 
-export const useAdminOperations = () => {
-  const data = useAdminOperationsData();
+export const useAdminOperations = (scope: AdminOperationsDataScope = {}) => {
+  const data = useAdminOperationsData(scope);
   const actions = useAdminOperationsActions(data.refresh);
   const failedEmails = data.overview?.emails.failedCount ?? 0;
   const hasPriorities = Boolean(
