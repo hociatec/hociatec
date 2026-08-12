@@ -859,6 +859,54 @@ final class APIClient: ObservableObject {
             attachCartToken: false
         )
     }
+
+    // MARK: - Trade-ins
+
+    func tradeInMetadata() async throws -> TradeInMetadata {
+        try await request(
+            path: "api/public/trade-ins/metadata",
+            authorized: false,
+            attachCartToken: false
+        )
+    }
+
+    func createTradeIn(
+        payload: TradeInRequestPayload,
+        ribFilename: String,
+        ribData: Data
+    ) async throws -> TradeInSummary {
+        let fields: [String: String] = [
+            "firstName": payload.firstName,
+            "lastName": payload.lastName,
+            "email": payload.email,
+            "phone": payload.phone,
+            "category": payload.category,
+            "productName": payload.productName,
+            "purchasePriceCents": String(payload.purchasePriceCents),
+            "purchaseYear": String(payload.purchaseYear),
+            "brand": payload.brand ?? "",
+            "model": payload.model ?? "",
+            "serialNumber": payload.serialNumber ?? "",
+            "conditionGrade": payload.conditionGrade,
+            "functional": payload.functional ? "1" : "0",
+            "hasAccessories": payload.hasAccessories ? "1" : "0",
+            "hasProofOfPurchase": payload.hasProofOfPurchase ? "1" : "0",
+            "description": payload.description,
+            "catalogProductId": payload.catalogProductId.map(String.init) ?? "",
+            "consent": payload.consent ? "1" : "0"
+        ]
+
+        return try await multipartRequest(
+            path: "api/trade-ins",
+            fields: fields,
+            fileFieldName: "rib",
+            filename: ribFilename,
+            mimeType: "application/pdf",
+            fileData: ribData,
+            authorized: true,
+            attachCartToken: false
+        )
+    }
     
     // MARK: - Favorites
 
@@ -908,5 +956,160 @@ final class APIClient: ObservableObject {
             attachCartToken: false
         )
         return resp.removed
+    }
+
+    private func multipartRequest<T: Decodable>(
+        path: String,
+        fields: [String: String],
+        fileFieldName: String,
+        filename: String,
+        mimeType: String,
+        fileData: Data,
+        authorized: Bool,
+        attachCartToken: Bool,
+        attempt: Int = 0
+    ) async throws -> T {
+        let boundary = "Boundary-\(UUID().uuidString)"
+        let (data, response) = try await rawMultipartRequest(
+            path: path,
+            fields: fields,
+            fileFieldName: fileFieldName,
+            filename: filename,
+            mimeType: mimeType,
+            fileData: fileData,
+            boundary: boundary,
+            authorized: authorized,
+            attachCartToken: attachCartToken
+        )
+
+        guard let http = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+
+        captureCartToken(from: http)
+
+        if http.statusCode == 401, authorized, attempt == 0 {
+            if await refreshAuthTokenIfPossible() {
+                return try await multipartRequest(
+                    path: path,
+                    fields: fields,
+                    fileFieldName: fileFieldName,
+                    filename: filename,
+                    mimeType: mimeType,
+                    fileData: fileData,
+                    authorized: authorized,
+                    attachCartToken: attachCartToken,
+                    attempt: attempt + 1
+                )
+            }
+        }
+
+        if !(200..<300).contains(http.statusCode) {
+            if let errorPayload = try? decoder.decode(APIErrorPayload.self, from: data) {
+                if http.statusCode == 403,
+                   attempt == 0,
+                   (errorPayload.message ?? "").localizedCaseInsensitiveContains("csrf") {
+                    sessionStore.csrfToken = nil
+                    return try await multipartRequest(
+                        path: path,
+                        fields: fields,
+                        fileFieldName: fileFieldName,
+                        filename: filename,
+                        mimeType: mimeType,
+                        fileData: fileData,
+                        authorized: authorized,
+                        attachCartToken: attachCartToken,
+                        attempt: attempt + 1
+                    )
+                }
+                throw APIError.httpStatus(http.statusCode, errorPayload.message ?? "Erreur \(http.statusCode)")
+            }
+            throw APIError.httpStatus(http.statusCode, "Erreur \(http.statusCode)")
+        }
+
+        do {
+            let envelope = try decoder.decode(APIEnvelope<T>.self, from: data)
+            return envelope.data
+        } catch {
+            throw APIError.decoding
+        }
+    }
+
+    private func rawMultipartRequest(
+        path: String,
+        fields: [String: String],
+        fileFieldName: String,
+        filename: String,
+        mimeType: String,
+        fileData: Data,
+        boundary: String,
+        authorized: Bool,
+        attachCartToken: Bool
+    ) async throws -> (Data, URLResponse) {
+        let url = baseURL.appendingPathComponent(path)
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+
+        if requiresCsrf(path: path, method: "POST") {
+            let csrfToken = try await currentCsrfToken()
+            request.setValue(csrfToken, forHTTPHeaderField: "X-CSRF-Token")
+        }
+
+        if attachCartToken, let token = sessionStore.cartToken {
+            request.setValue(token, forHTTPHeaderField: "X-Cart-Token")
+        }
+
+        request.httpBody = buildMultipartBody(
+            fields: fields,
+            fileFieldName: fileFieldName,
+            filename: filename,
+            mimeType: mimeType,
+            fileData: fileData,
+            boundary: boundary
+        )
+
+        do {
+            return try await session.data(for: request)
+        } catch {
+            throw APIError.transport(error)
+        }
+    }
+
+    private func buildMultipartBody(
+        fields: [String: String],
+        fileFieldName: String,
+        filename: String,
+        mimeType: String,
+        fileData: Data,
+        boundary: String
+    ) -> Data {
+        var body = Data()
+        let lineBreak = "\r\n"
+
+        for key in fields.keys.sorted() {
+            let value = fields[key] ?? ""
+            body.append("--\(boundary)\(lineBreak)")
+            body.append("Content-Disposition: form-data; name=\"\(key)\"\(lineBreak)\(lineBreak)")
+            body.append("\(value)\(lineBreak)")
+        }
+
+        body.append("--\(boundary)\(lineBreak)")
+        body.append("Content-Disposition: form-data; name=\"\(fileFieldName)\"; filename=\"\(filename)\"\(lineBreak)")
+        body.append("Content-Type: \(mimeType)\(lineBreak)\(lineBreak)")
+        body.append(fileData)
+        body.append(lineBreak)
+        body.append("--\(boundary)--\(lineBreak)")
+
+        return body
+    }
+}
+
+private extension Data {
+    mutating func append(_ string: String) {
+        if let data = string.data(using: .utf8) {
+            append(data)
+        }
     }
 }

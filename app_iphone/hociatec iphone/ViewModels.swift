@@ -1001,6 +1001,180 @@ final class QuoteViewModel: ObservableObject {
 }
 
 @MainActor
+final class TradeInViewModel: ObservableObject {
+    @Published var categories: [TradeInOption] = []
+    @Published var conditions: [TradeInOption] = []
+    @Published var selectedCategory: String = ""
+    @Published var selectedCondition: String = ""
+    @Published var productName: String = ""
+    @Published var brand: String = ""
+    @Published var model: String = ""
+    @Published var serialNumber: String = ""
+    @Published var purchasePrice: String = ""
+    @Published var purchaseYear: String = ""
+    @Published var phone: String = ""
+    @Published var description: String = ""
+    @Published var functional: Bool = true
+    @Published var hasAccessories: Bool = false
+    @Published var hasProofOfPurchase: Bool = false
+    @Published var consent: Bool = false
+    @Published var ribFileName: String?
+    @Published var ribData: Data?
+    @Published var isLoading = false
+    @Published var isSubmitting = false
+    @Published var error: String?
+    @Published var successMessage: String?
+
+    private let api: APIClient
+    private let account: AccountViewModel
+
+    init(api: APIClient, account: AccountViewModel) {
+        self.api = api
+        self.account = account
+        self.phone = account.profile?.phoneNumber ?? account.phoneNumber
+    }
+
+    func loadMetadata() async {
+        guard !isLoading else { return }
+        isLoading = true
+        error = nil
+        defer { isLoading = false }
+
+        do {
+            let metadata = try await api.tradeInMetadata()
+            categories = metadata.categories
+            conditions = metadata.conditions
+            if selectedCategory.isEmpty {
+                selectedCategory = metadata.categories.first?.value ?? ""
+            }
+            if selectedCondition.isEmpty {
+                selectedCondition = metadata.conditions.first?.value ?? ""
+            }
+        } catch {
+            self.error = error.localizedDescription
+        }
+    }
+
+    func setRib(fileName: String, data: Data) {
+        ribFileName = fileName
+        ribData = data
+    }
+
+    func submit() async -> Bool {
+        let trimmedProductName = productName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedPhone = phone.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedDescription = description.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedBrand = brand.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedModel = model.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedSerial = serialNumber.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard let profile = account.profile else {
+            error = "Connectez-vous avant d’envoyer une reprise."
+            return false
+        }
+        guard !selectedCategory.isEmpty else {
+            error = "Choisissez une catégorie."
+            return false
+        }
+        guard !selectedCondition.isEmpty else {
+            error = "Choisissez un état."
+            return false
+        }
+        guard !trimmedProductName.isEmpty else {
+            error = "Renseignez le produit."
+            return false
+        }
+        guard let purchasePriceCents = TradeInMoneyParser.cents(from: purchasePrice) else {
+            error = "Renseignez un prix d’achat valide."
+            return false
+        }
+        guard let purchaseYearValue = Int(purchaseYear), (1980...2100).contains(purchaseYearValue) else {
+            error = "Renseignez une année d’achat valide."
+            return false
+        }
+        guard !trimmedPhone.isEmpty else {
+            error = "Renseignez votre téléphone."
+            return false
+        }
+        guard !trimmedDescription.isEmpty else {
+            error = "Décrivez l’état du produit."
+            return false
+        }
+        guard consent else {
+            error = "Vous devez accepter le traitement de la demande."
+            return false
+        }
+        guard let ribData, let ribFileName, !ribData.isEmpty else {
+            error = "Ajoutez votre RIB en PDF."
+            return false
+        }
+
+        isSubmitting = true
+        error = nil
+        successMessage = nil
+        defer { isSubmitting = false }
+
+        do {
+            let payload = TradeInRequestPayload(
+                firstName: profile.firstName,
+                lastName: profile.lastName,
+                email: profile.email,
+                phone: trimmedPhone,
+                category: selectedCategory,
+                productName: trimmedProductName,
+                purchasePriceCents: purchasePriceCents,
+                purchaseYear: purchaseYearValue,
+                brand: trimmedBrand.isEmpty ? nil : trimmedBrand,
+                model: trimmedModel.isEmpty ? nil : trimmedModel,
+                serialNumber: trimmedSerial.isEmpty ? nil : trimmedSerial,
+                conditionGrade: selectedCondition,
+                functional: functional,
+                hasAccessories: hasAccessories,
+                hasProofOfPurchase: hasProofOfPurchase,
+                description: trimmedDescription,
+                catalogProductId: nil,
+                consent: true
+            )
+            let created = try await api.createTradeIn(
+                payload: payload,
+                ribFilename: ribFileName,
+                ribData: ribData
+            )
+            successMessage = "Demande enregistrée (\(created.reference))."
+            ribData = nil
+            self.ribFileName = nil
+            productName = ""
+            brand = ""
+            model = ""
+            serialNumber = ""
+            purchasePrice = ""
+            purchaseYear = ""
+            description = ""
+            hasAccessories = false
+            hasProofOfPurchase = false
+            consent = false
+            return true
+        } catch {
+            self.error = error.localizedDescription
+            return false
+        }
+    }
+}
+
+private enum TradeInMoneyParser {
+    static func cents(from input: String) -> Int? {
+        let cleaned = input
+            .replacingOccurrences(of: "€", with: "")
+            .replacingOccurrences(of: " ", with: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: ",", with: ".")
+        guard !cleaned.isEmpty else { return nil }
+        guard let value = Double(cleaned), value >= 0 else { return nil }
+        return Int((value * 100).rounded())
+    }
+}
+
+@MainActor
 final class MyQuotesViewModel: ObservableObject {
     @Published var quotes: [QuoteSummary] = []
     @Published var isLoading = false
