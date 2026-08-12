@@ -1006,6 +1006,9 @@ final class TradeInViewModel: ObservableObject {
     @Published var conditions: [TradeInOption] = []
     @Published var selectedCategory: String = ""
     @Published var selectedCondition: String = ""
+    @Published var firstName: String = ""
+    @Published var lastName: String = ""
+    @Published var email: String = ""
     @Published var productName: String = ""
     @Published var brand: String = ""
     @Published var model: String = ""
@@ -1031,6 +1034,9 @@ final class TradeInViewModel: ObservableObject {
     init(api: APIClient, account: AccountViewModel) {
         self.api = api
         self.account = account
+        self.firstName = account.profile?.firstName ?? account.firstName
+        self.lastName = account.profile?.lastName ?? account.lastName
+        self.email = account.profile?.email ?? account.email
         self.phone = account.profile?.phoneNumber ?? account.phoneNumber
     }
 
@@ -1061,6 +1067,9 @@ final class TradeInViewModel: ObservableObject {
     }
 
     func submit() async -> Bool {
+        let trimmedFirstName = firstName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedLastName = lastName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedProductName = productName.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedPhone = phone.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedDescription = description.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -1068,8 +1077,16 @@ final class TradeInViewModel: ObservableObject {
         let trimmedModel = model.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedSerial = serialNumber.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        guard let profile = account.profile else {
-            error = "Connectez-vous avant d’envoyer une reprise."
+        guard !trimmedFirstName.isEmpty else {
+            error = "Renseignez votre prénom."
+            return false
+        }
+        guard !trimmedLastName.isEmpty else {
+            error = "Renseignez votre nom."
+            return false
+        }
+        guard !trimmedEmail.isEmpty, trimmedEmail.contains("@") else {
+            error = "Renseignez un e-mail valide."
             return false
         }
         guard !selectedCategory.isEmpty else {
@@ -1116,9 +1133,9 @@ final class TradeInViewModel: ObservableObject {
 
         do {
             let payload = TradeInRequestPayload(
-                firstName: profile.firstName,
-                lastName: profile.lastName,
-                email: profile.email,
+                firstName: trimmedFirstName,
+                lastName: trimmedLastName,
+                email: trimmedEmail,
                 phone: trimmedPhone,
                 category: selectedCategory,
                 productName: trimmedProductName,
@@ -1138,7 +1155,8 @@ final class TradeInViewModel: ObservableObject {
             let created = try await api.createTradeIn(
                 payload: payload,
                 ribFilename: ribFileName,
-                ribData: selectedRibData
+                ribData: selectedRibData,
+                authorized: account.isLoggedIn
             )
             successMessage = "Demande enregistrée (\(created.reference))."
             ribData = nil

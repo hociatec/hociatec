@@ -114,31 +114,23 @@ private struct HomeScreen: View {
 
     var body: some View {
         List {
-            Section("Accès rapides") {
-                if account.isLoggedIn {
-                    NavigationLink {
-                        AppointmentBookingView(api: container.api)
-                    } label: {
-                        Label("Prendre rendez-vous", systemImage: "calendar.badge.plus")
-                    }
+            Section {
+                NavigationLink {
+                    AppointmentBookingView(api: container.api)
+                } label: {
+                    Label("Rendez-vous", systemImage: "calendar.badge.plus")
+                }
 
-                    NavigationLink {
-                        TradeInRequestView(api: container.api, account: account)
-                    } label: {
-                        Label("Demander une reprise", systemImage: "arrow.triangle.2.circlepath")
-                    }
+                NavigationLink {
+                    TradeInRequestView(api: container.api, account: account)
+                } label: {
+                    Label("Reprise", systemImage: "arrow.triangle.2.circlepath")
+                }
 
-                    NavigationLink {
-                        QuoteRequestView(api: container.api, account: account)
-                    } label: {
-                        Label("Demander un devis", systemImage: "doc.badge.plus")
-                    }
-                } else {
-                    Button {
-                        selectedTab = 3
-                    } label: {
-                        Label("Se connecter pour accéder aux services", systemImage: "person")
-                    }
+                NavigationLink {
+                    QuoteRequestView(api: container.api, account: account)
+                } label: {
+                    Label("Devis", systemImage: "doc.badge.plus")
                 }
             }
 
@@ -261,6 +253,14 @@ private struct TradeInRequestView: View {
             }
 
             Section("Contact") {
+                TextField("Prénom", text: $viewModel.firstName)
+                    .textInputAutocapitalization(.words)
+                TextField("Nom", text: $viewModel.lastName)
+                    .textInputAutocapitalization(.words)
+                TextField("E-mail", text: $viewModel.email)
+                    .keyboardType(.emailAddress)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
                 TextField("Téléphone", text: $viewModel.phone)
                     .keyboardType(.phonePad)
             }
@@ -304,7 +304,7 @@ private struct TradeInRequestView: View {
                 .disabled(viewModel.isSubmitting)
             }
         }
-        .navigationTitle("Demander une reprise")
+        .navigationTitle("Reprise")
         .task { await viewModel.loadMetadata() }
         .fileImporter(
             isPresented: $showingFileImporter,

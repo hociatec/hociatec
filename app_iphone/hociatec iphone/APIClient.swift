@@ -873,7 +873,8 @@ final class APIClient: ObservableObject {
     func createTradeIn(
         payload: TradeInRequestPayload,
         ribFilename: String,
-        ribData: Data
+        ribData: Data,
+        authorized: Bool
     ) async throws -> TradeInSummary {
         let fields: [String: String] = [
             "firstName": payload.firstName,
@@ -897,13 +898,13 @@ final class APIClient: ObservableObject {
         ]
 
         return try await multipartRequest(
-            path: "api/trade-ins",
+            path: authorized ? "api/trade-ins" : "api/public/trade-ins",
             fields: fields,
             fileFieldName: "rib",
             filename: ribFilename,
             mimeType: "application/pdf",
             fileData: ribData,
-            authorized: true,
+            authorized: authorized,
             attachCartToken: false
         )
     }

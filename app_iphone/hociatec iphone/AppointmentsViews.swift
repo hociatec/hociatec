@@ -20,7 +20,7 @@ struct AppointmentBookingView: View {
         Form {
             if !account.isLoggedIn {
                 Section {
-                    Text("Connectez-vous pour finaliser la réservation d’un créneau.")
+                    Text("Vous pouvez choisir une prestation et un créneau sans compte. La connexion est requise seulement pour confirmer.")
                         .foregroundStyle(.secondary)
                 }
             }
@@ -96,7 +96,6 @@ struct AppointmentBookingView: View {
                                             .foregroundStyle(.secondary)
                                     }
                                 }
-                                .disabled(!account.isLoggedIn)
                             }
                         }
                         .padding(.vertical, 6)
