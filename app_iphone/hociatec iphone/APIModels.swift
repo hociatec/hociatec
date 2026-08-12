@@ -473,6 +473,27 @@ struct NewsArticleListData: Decodable {
     let meta: PaginationMeta
 }
 
+struct NewsArticleData: Decodable {
+    let article: NewsArticle
+}
+
+struct NewsCommentAuthor: Decodable {
+    let id: Int
+    let name: String
+}
+
+struct NewsComment: Decodable, Identifiable {
+    let id: Int
+    let content: String
+    let createdAt: Date
+    let author: NewsCommentAuthor
+}
+
+struct NewsCommentListData: Decodable {
+    let items: [NewsComment]
+    let meta: PaginationMeta
+}
+
 struct ReviewAuthor: Decodable {
     let id: Int
     let displayName: String

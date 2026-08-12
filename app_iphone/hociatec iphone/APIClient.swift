@@ -825,6 +825,31 @@ final class APIClient: ObservableObject {
         )
         return Array(data.items.prefix(limit))
     }
+
+    func newsArticle(slug: String) async throws -> NewsArticle {
+        let encodedSlug = slug.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? slug
+        let data: NewsArticleData = try await request(
+            path: "api/public/news/\(encodedSlug)"
+        )
+        return data.article
+    }
+
+    func newsComments(slug: String, page: Int = 1, perPage: Int = 10) async throws -> NewsCommentListData {
+        let encodedSlug = slug.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? slug
+        try await request(
+            path: "api/public/news/\(encodedSlug)/comments",
+            query: [
+                URLQueryItem(name: "page", value: String(page)),
+                URLQueryItem(name: "perPage", value: String(perPage))
+            ]
+        )
+    }
+
+    func publicService(id: Int) async throws -> QuoteService {
+        try await request(
+            path: "api/public/services/\(id)"
+        )
+    }
     
     func createQuote(
         name: String,

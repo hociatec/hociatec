@@ -146,27 +146,31 @@ private struct HomeScreen: View {
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(home.services.prefix(6)) { service in
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(service.title)
-                                .fontWeight(.semibold)
-                            if let description = service.description, !description.isEmpty {
-                                Text(description)
-                                    .lineLimit(2)
-                                    .foregroundStyle(.secondary)
-                            }
-                            HStack {
-                                Text(PriceFormatter.format(cents: service.priceCents))
-                                    .font(.footnote)
+                        NavigationLink {
+                            ServiceDetailView(api: container.api, serviceID: service.id)
+                        } label: {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(service.title)
                                     .fontWeight(.semibold)
-                                Spacer()
-                                if let durationLabel = service.durationLabel, !durationLabel.isEmpty {
-                                    Text(durationLabel)
-                                        .font(.footnote)
+                                if let description = service.description, !description.isEmpty {
+                                    Text(description)
+                                        .lineLimit(2)
                                         .foregroundStyle(.secondary)
                                 }
+                                HStack {
+                                    Text(PriceFormatter.format(cents: service.priceCents))
+                                        .font(.footnote)
+                                        .fontWeight(.semibold)
+                                    Spacer()
+                                    if let durationLabel = service.durationLabel, !durationLabel.isEmpty {
+                                        Text(durationLabel)
+                                            .font(.footnote)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                }
                             }
+                            .padding(.vertical, 4)
                         }
-                        .padding(.vertical, 4)
                     }
                 }
             }
@@ -187,7 +191,7 @@ private struct HomeScreen: View {
                             // Navigate to detail
                             ProductDetailView(
                                 product: product,
-                                imageURL: nil,
+                                imageURL: container.api.assetURL(for: product.imageUrl),
                                 cart: container.cart,
                                 selectedTab: .constant(0)
                             )
@@ -233,27 +237,31 @@ private struct HomeScreen: View {
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(home.news) { article in
-                        VStack(alignment: .leading, spacing: 6) {
-                            HStack {
-                                if let publishedAt = article.publishedAt {
-                                    Text(newsDateFormatter.string(from: publishedAt))
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
+                        NavigationLink {
+                            NewsDetailView(api: container.api, slug: article.slug)
+                        } label: {
+                            VStack(alignment: .leading, spacing: 6) {
+                                HStack {
+                                    if let publishedAt = article.publishedAt {
+                                        Text(newsDateFormatter.string(from: publishedAt))
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    if let category = article.category, !category.isEmpty {
+                                        Spacer()
+                                        Text(category)
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
                                 }
-                                if let category = article.category, !category.isEmpty {
-                                    Spacer()
-                                    Text(category)
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
+                                Text(article.title)
+                                    .fontWeight(.semibold)
+                                Text(article.excerpt)
+                                    .lineLimit(3)
+                                    .foregroundStyle(.secondary)
                             }
-                            Text(article.title)
-                                .fontWeight(.semibold)
-                            Text(article.excerpt)
-                                .lineLimit(3)
-                                .foregroundStyle(.secondary)
+                            .padding(.vertical, 4)
                         }
-                        .padding(.vertical, 4)
                     }
                 }
             }
@@ -270,6 +278,244 @@ private let newsDateFormatter: DateFormatter = {
     formatter.timeStyle = .none
     return formatter
 }()
+
+private struct ServiceDetailView: View {
+    let api: APIClient
+    let serviceID: Int
+    @State private var service: QuoteService?
+    @State private var isLoading = false
+    @State private var error: String?
+
+    var body: some View {
+        List {
+            if isLoading && service == nil {
+                Section {
+                    ProgressView("Chargement du service...")
+                        .frame(maxWidth: .infinity, alignment: .center)
+                }
+            } else if let error {
+                Section {
+                    Text(error).foregroundStyle(.red)
+                }
+            } else if let service {
+                Section {
+                    if let imageURL = api.assetURL(for: service.imageUrl) {
+                        AsyncImage(url: imageURL) { phase in
+                            switch phase {
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(maxWidth: .infinity, maxHeight: 220)
+                                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                            case .failure:
+                                servicePlaceholder
+                            default:
+                                ProgressView()
+                                    .frame(maxWidth: .infinity, minHeight: 180)
+                            }
+                        }
+                        .listRowInsets(EdgeInsets())
+                    } else {
+                        servicePlaceholder
+                    }
+                }
+
+                Section {
+                    Text(
+                        service.description?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+                        ? (service.description ?? "")
+                        : "Les informations détaillées de ce service seront précisées avec votre besoin."
+                    )
+                }
+
+                Section("Informations") {
+                    LabeledContent("Base tarifaire") {
+                        Text(PriceFormatter.format(cents: service.priceCents))
+                            .fontWeight(.semibold)
+                    }
+                    LabeledContent("Facturation", value: serviceBillingModeLabel(service.unit))
+                    LabeledContent("Durée estimée", value: service.durationLabel ?? "Sur étude")
+                }
+            }
+        }
+        .navigationTitle(service?.title ?? "Service")
+        .navigationBarTitleDisplayMode(.inline)
+        .task { await load() }
+    }
+
+    private var servicePlaceholder: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.gray.opacity(0.08))
+            Image(systemName: "wrench.and.screwdriver")
+                .font(.system(size: 42))
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, minHeight: 180)
+    }
+
+    private func load() async {
+        guard !isLoading else { return }
+        isLoading = true
+        error = nil
+        defer { isLoading = false }
+
+        do {
+            service = try await api.publicService(id: serviceID)
+        } catch {
+            self.error = error.localizedDescription
+        }
+    }
+}
+
+private struct NewsDetailView: View {
+    let api: APIClient
+    let slug: String
+    @State private var article: NewsArticle?
+    @State private var comments: [NewsComment] = []
+    @State private var commentsPage = 1
+    @State private var commentsTotalPages = 1
+    @State private var isLoading = false
+    @State private var isLoadingComments = false
+    @State private var error: String?
+    @State private var commentsError: String?
+
+    var body: some View {
+        List {
+            if isLoading && article == nil {
+                Section {
+                    ProgressView("Chargement de l’actualité...")
+                        .frame(maxWidth: .infinity, alignment: .center)
+                }
+            } else if let error {
+                Section {
+                    Text(error).foregroundStyle(.red)
+                }
+            } else if let article {
+                Section {
+                    if let publishedAt = article.publishedAt {
+                        Text("Date de publication : \(newsDateFormatter.string(from: publishedAt))")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                    Text(article.title)
+                        .font(.title2)
+                        .fontWeight(.bold)
+                    Text(article.excerpt)
+                        .foregroundStyle(.secondary)
+                    Text(article.content)
+                        .textSelection(.enabled)
+                }
+
+                Section("Commentaires") {
+                    if let commentsError {
+                        Text(commentsError).foregroundStyle(.red)
+                    } else if isLoadingComments && comments.isEmpty {
+                        ProgressView("Chargement des commentaires...")
+                    } else if comments.isEmpty {
+                        Text("Aucun commentaire pour le moment.")
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(comments) { comment in
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(comment.author.name)
+                                    .fontWeight(.semibold)
+                                Text(comment.createdAt.formatted(date: .abbreviated, time: .shortened))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                Text(comment.content)
+                            }
+                            .padding(.vertical, 4)
+                        }
+                    }
+
+                    if commentsTotalPages > 1 {
+                        HStack {
+                            Button("Précédents") {
+                                guard commentsPage > 1 else { return }
+                                commentsPage -= 1
+                                Task { await loadComments() }
+                            }
+                            .disabled(commentsPage <= 1 || isLoadingComments)
+                            Spacer()
+                            Text("\(commentsPage)/\(commentsTotalPages)")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                            Button("Suivants") {
+                                guard commentsPage < commentsTotalPages else { return }
+                                commentsPage += 1
+                                Task { await loadComments() }
+                            }
+                            .disabled(commentsPage >= commentsTotalPages || isLoadingComments)
+                        }
+                    }
+                }
+            }
+        }
+        .navigationTitle(article?.title ?? "Actualité")
+        .navigationBarTitleDisplayMode(.inline)
+        .task {
+            await loadArticle()
+            await loadComments()
+        }
+    }
+
+    private func loadArticle() async {
+        guard !isLoading else { return }
+        isLoading = true
+        error = nil
+        defer { isLoading = false }
+
+        do {
+            article = try await api.newsArticle(slug: slug)
+        } catch {
+            self.error = error.localizedDescription
+        }
+    }
+
+    private func loadComments() async {
+        guard !isLoadingComments else { return }
+        isLoadingComments = true
+        commentsError = nil
+        defer { isLoadingComments = false }
+
+        do {
+            let data = try await api.newsComments(slug: slug, page: commentsPage, perPage: 10)
+            comments = data.items
+            commentsTotalPages = max(1, data.meta.totalPages)
+        } catch {
+            self.commentsError = error.localizedDescription
+        }
+    }
+}
+
+private func serviceBillingModeLabel(_ value: String?) -> String {
+    let normalized = (value ?? "")
+        .folding(options: .diacriticInsensitive, locale: .current)
+        .trimmingCharacters(in: .whitespacesAndNewlines)
+        .lowercased()
+
+    switch normalized {
+    case "", "prix fixe":
+        return "Prix fixe"
+    case "heure", "horaire":
+        return "Horaire"
+    case "jour":
+        return "À la journée"
+    case "intervention":
+        return "Par intervention"
+    case "audit":
+        return "Audit"
+    case "installation":
+        return "Installation"
+    case "maintenance":
+        return "Maintenance"
+    default:
+        return value?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false ? (value ?? "Prix fixe") : "Prix fixe"
+    }
+}
 
 private struct BannerView: View {
     let message: String
