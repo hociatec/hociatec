@@ -7,14 +7,20 @@ namespace App\Tests\Unit\Module\System;
 use App\Module\Outbox\Application\OutboxEventStore;
 use App\Module\Outbox\Application\OutboxMetrics;
 use App\Module\System\Application\Provider\PrometheusMetricContractProvider;
+use App\Module\System\UI\Controller\DownloadLatestIosAppController;
 use App\Module\System\UI\Controller\HealthController;
+use App\Module\System\UI\Controller\LatestIosAltStoreSourceController;
 use App\Module\System\UI\Controller\MetricsController;
+use App\Shared\Infrastructure\Http\AttachmentResponseFactory;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception as DbalException;
 use Doctrine\DBAL\Result;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 final class SystemControllersTest extends TestCase
 {
@@ -94,6 +100,91 @@ final class SystemControllersTest extends TestCase
         );
 
         self::assertSame(Response::HTTP_FORBIDDEN, $denied->getStatusCode());
+    }
+
+    public function testDownloadLatestIosAppControllerReturnsAttachmentFromPublishedSource(): void
+    {
+        $sourceResponse = $this->createMock(ResponseInterface::class);
+        $sourceResponse->expects(self::once())->method('toArray')->with(false)->willReturn([
+            'apps' => [[
+                'versions' => [[
+                    'downloadURL' => 'https://github.com/hociatec/hociatec-downloads/releases/download/ios-v1.0.1-b2/hociatec-altstore-v1.0.1-b2.ipa',
+                ]],
+            ]],
+        ]);
+
+        $upstream = $this->createMock(ResponseInterface::class);
+        $upstream->expects(self::once())->method('getContent')->willReturn('ipa-bytes');
+        $upstream->expects(self::once())->method('getHeaders')->with(false)->willReturn([
+            'content-type' => ['application/octet-stream'],
+        ]);
+
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $httpClient->expects(self::exactly(2))
+            ->method('request')
+            ->willReturnCallback(static function (string $method, string $url) use ($sourceResponse, $upstream) {
+                if ('https://github.com/hociatec/hociatec-downloads/releases/download/ios-latest/hociatec-altstore-source.json' === $url) {
+                    return $sourceResponse;
+                }
+
+                if ('https://github.com/hociatec/hociatec-downloads/releases/download/ios-v1.0.1-b2/hociatec-altstore-v1.0.1-b2.ipa' === $url) {
+                    return $upstream;
+                }
+
+                throw new \RuntimeException(sprintf('Unexpected URL %s', $url));
+            });
+
+        $response = (new DownloadLatestIosAppController($httpClient, new AttachmentResponseFactory()))();
+
+        self::assertSame(Response::HTTP_OK, $response->getStatusCode());
+        self::assertSame('ipa-bytes', $response->getContent());
+        self::assertSame('application/octet-stream', $response->headers->get('Content-Type'));
+        self::assertStringContainsString('attachment;', (string) $response->headers->get('Content-Disposition'));
+        self::assertStringContainsString('hociatec-altstore-v1.0.1-b2.ipa', (string) $response->headers->get('Content-Disposition'));
+    }
+
+    public function testDownloadLatestIosAppControllerReturnsNotFoundWhenSourceIsMissing(): void
+    {
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $httpClient->expects(self::once())->method('request')->willThrowException(new class('down') extends \RuntimeException implements TransportExceptionInterface {
+        });
+
+        $response = (new DownloadLatestIosAppController($httpClient, new AttachmentResponseFactory()))();
+        $payload = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        self::assertSame(Response::HTTP_NOT_FOUND, $response->getStatusCode());
+        self::assertSame('Téléchargement iPhone indisponible.', $payload['message']);
+    }
+
+    public function testLatestIosAltStoreSourceControllerReturnsPublishedJson(): void
+    {
+        $upstream = $this->createMock(ResponseInterface::class);
+        $upstream->expects(self::once())->method('getContent')->willReturn('{"apps":[{"versions":[{"version":"1.0.1"}]}]}');
+
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $httpClient->expects(self::once())
+            ->method('request')
+            ->with('GET', 'https://github.com/hociatec/hociatec-downloads/releases/download/ios-latest/hociatec-altstore-source.json', self::isArray())
+            ->willReturn($upstream);
+
+        $response = (new LatestIosAltStoreSourceController($httpClient))();
+
+        self::assertSame(Response::HTTP_OK, $response->getStatusCode());
+        self::assertSame('{"apps":[{"versions":[{"version":"1.0.1"}]}]}', $response->getContent());
+        self::assertSame('application/json; charset=utf-8', $response->headers->get('Content-Type'));
+    }
+
+    public function testLatestIosAltStoreSourceControllerReturnsBadGatewayWhenUpstreamFails(): void
+    {
+        $httpClient = $this->createMock(HttpClientInterface::class);
+        $httpClient->expects(self::once())->method('request')->willThrowException(new class('down') extends \RuntimeException implements TransportExceptionInterface {
+        });
+
+        $response = (new LatestIosAltStoreSourceController($httpClient))();
+        $payload = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        self::assertSame(Response::HTTP_BAD_GATEWAY, $response->getStatusCode());
+        self::assertSame('Source AltStore iPhone indisponible.', $payload['message']);
     }
 
     private function outboxEvents(): OutboxEventStore

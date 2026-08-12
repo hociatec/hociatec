@@ -29,16 +29,15 @@ const serviceLinks = [
   { path: '/audits/request', label: 'Demander un audit', Icon: ClipboardCheck },
 ] as const;
 
-const iosIpaDownloadPath =
-  'https://github.com/hociatec/hociatec-downloads/releases/download/ios-latest/hociatec-altstore-latest.ipa';
-const altStoreSourcePath =
-  'https://github.com/hociatec/hociatec-downloads/releases/download/ios-latest/hociatec-altstore-source.json';
+const altStoreSourcePath = 'https://hociatec.fr/hociatec-altstore-source.json';
+const iosDownloadProxyPath = 'https://hociatec.fr/api/public/ios/latest-download';
 const altStoreAddSourcePath =
   `altstore://source?url=${encodeURIComponent(altStoreSourcePath)}`;
 
 type AltStoreSourceVersion = {
   version: string;
   buildVersion?: string;
+  downloadURL?: string;
 };
 
 type AltStoreSourceApp = {
@@ -49,10 +48,14 @@ type AltStoreSourcePayload = {
   apps?: AltStoreSourceApp[];
 };
 
-const fetchPublishedIosVersion = async (): Promise<string | null> => {
+type PublishedIosRelease = {
+  version: string;
+  downloadUrl: string;
+};
+
+const fetchPublishedIosRelease = async (): Promise<PublishedIosRelease | null> => {
   const response = await fetch(altStoreSourcePath, {
     method: 'GET',
-    mode: 'cors',
     headers: {
       Accept: 'application/json',
     },
@@ -63,31 +66,40 @@ const fetchPublishedIosVersion = async (): Promise<string | null> => {
   }
 
   const payload = (await response.json()) as AltStoreSourcePayload;
-  const version = payload.apps?.[0]?.versions?.[0]?.version?.trim();
+  const release = payload.apps?.[0]?.versions?.[0];
+  const version = release?.version?.trim();
+  const downloadUrl = release?.downloadURL?.trim();
 
-  return version && version.length > 0 ? version : null;
+  if (!version || version.length === 0 || !downloadUrl || downloadUrl.length === 0) {
+    return null;
+  }
+
+  return {
+    version,
+    downloadUrl,
+  };
 };
 
 export const SiteHeaderNavigation = () => {
   const { pathname } = useLocation();
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
-  const [publishedIosVersion, setPublishedIosVersion] = useState<string | null>(null);
+  const [publishedIosRelease, setPublishedIosRelease] = useState<PublishedIosRelease | null>(null);
   const catalogSummaryRef = useRef<HTMLElement | null>(null);
   const servicesSummaryRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
-    void fetchPublishedIosVersion()
-      .then((version) => {
+    void fetchPublishedIosRelease()
+      .then((release) => {
         if (!cancelled) {
-          setPublishedIosVersion(version);
+          setPublishedIosRelease(release);
         }
       })
       .catch(() => {
         if (!cancelled) {
-          setPublishedIosVersion(null);
+          setPublishedIosRelease(null);
         }
       });
 
@@ -96,9 +108,10 @@ export const SiteHeaderNavigation = () => {
     };
   }, []);
 
-  const iosDownloadLabel = publishedIosVersion
-    ? `Télécharger l'app iPhone (${publishedIosVersion})`
+  const iosDownloadLabel = publishedIosRelease
+    ? `Télécharger l'app iPhone (${publishedIosRelease.version})`
     : "Télécharger l'app iPhone";
+  const iosDownloadPath = publishedIosRelease ? iosDownloadProxyPath : '#';
 
   const closeCatalogMenu = () => {
     setCatalogOpen(false);
@@ -212,11 +225,16 @@ export const SiteHeaderNavigation = () => {
       </a>
 
       <a
-        href={iosIpaDownloadPath}
+        href={iosDownloadPath}
         download="hociatec-altstore-latest.ipa"
         className="site-header__cta"
         rel="noopener noreferrer"
-        target="_blank"
+        aria-disabled={publishedIosRelease ? undefined : true}
+        onClick={(event) => {
+          if (!publishedIosRelease) {
+            event.preventDefault();
+          }
+        }}
       >
         <Download aria-hidden="true" />
         {iosDownloadLabel}
