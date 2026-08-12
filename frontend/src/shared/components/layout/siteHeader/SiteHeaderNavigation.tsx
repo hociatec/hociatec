@@ -1,6 +1,5 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { useLocation, Link } from 'react-router';
 import {
   BriefcaseBusiness,
@@ -73,15 +72,29 @@ export const SiteHeaderNavigation = () => {
   const { pathname } = useLocation();
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
+  const [publishedIosVersion, setPublishedIosVersion] = useState<string | null>(null);
   const catalogSummaryRef = useRef<HTMLElement | null>(null);
   const servicesSummaryRef = useRef<HTMLElement | null>(null);
-  const { data: publishedIosVersion } = useQuery<string | null, Error>({
-    queryKey: ['public', 'ios-app-version'],
-    queryFn: fetchPublishedIosVersion,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
-    retry: 1,
-  });
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void fetchPublishedIosVersion()
+      .then((version) => {
+        if (!cancelled) {
+          setPublishedIosVersion(version);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setPublishedIosVersion(null);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const iosDownloadLabel = publishedIosVersion
     ? `Télécharger l'app iPhone (${publishedIosVersion})`
