@@ -1,14 +1,15 @@
 import { useMemo } from 'react';
 import { useSearchParams } from 'react-router';
+import { useQuery } from '@tanstack/react-query';
 
-import { usePublicTrainingsCatalogData } from '@/features/trainings/hooks/usePublicTrainingsCatalogData';
-import type { TrainingFormat } from '@/features/trainings/api/trainingTypes';
 import { formatEuroCentsRange } from '@/shared/lib/formatters';
 import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 import { clampAtLeast, clampWithin } from '@/shared/lib/number';
+import { getHttpErrorMessage } from '@/shared/lib/httpClient';
+import { fetchPublicTrainingCategories, searchPublicTrainings } from '@/features/trainings/api/trainingsApi';
+import { trainingQueryKeys } from '@/features/trainings/queryKeys';
+import { omitUndefinedProperties } from '@/shared/lib/object';
 import {
-  filterAndSortTrainings,
-  getActiveTrainingCategories,
   normalizeTrainingParam,
   normalizeTrainingSort,
   toNullableNumber,
@@ -18,7 +19,6 @@ import {
 
 export const useTrainingCatalogController = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { trainings, categories, loading, error, retry } = usePublicTrainingsCatalogData();
   const category = normalizeTrainingParam(searchParams.get('category'));
   const query = searchParams.get('q')?.trim() ?? '';
   const format = normalizeTrainingParam(searchParams.get('format'));
@@ -28,27 +28,55 @@ export const useTrainingCatalogController = () => {
   const minDuration = toNullableNumber(searchParams.get('minDuration'));
   const maxDuration = toNullableNumber(searchParams.get('maxDuration'));
   const page = parseNullablePositiveInteger(searchParams.get('page')) ?? 1;
+  const catalogQuery = useQuery({
+    queryKey: trainingQueryKeys.publicCatalogSearch({
+      category,
+      format,
+      maxDuration,
+      maxPrice,
+      minDuration,
+      minPrice,
+      page,
+      query,
+      sort,
+    }),
+    queryFn: async ({ signal }) => {
+      const [result, categories] = await Promise.all([
+        searchPublicTrainings(omitUndefinedProperties({
+          q: query || undefined,
+          category: category === ALL ? undefined : category,
+          format: format === ALL ? undefined : format,
+          sort,
+          minPrice: minPrice ?? undefined,
+          maxPrice: maxPrice ?? undefined,
+          minDuration: minDuration ?? undefined,
+          maxDuration: maxDuration ?? undefined,
+          page,
+          perPage: PER_PAGE,
+          signal,
+        })),
+        fetchPublicTrainingCategories({ signal }),
+      ]);
 
-  const availableCategories = useMemo(() => getActiveTrainingCategories(categories, trainings), [categories, trainings]);
+      return { result, categories };
+    },
+  });
+  const trainings = catalogQuery.data?.result.items ?? [];
+  const categories = catalogQuery.data?.categories ?? [];
+  const meta = catalogQuery.data?.result.meta ?? { page, perPage: PER_PAGE, total: 0, totalPages: 1 };
+
+  const availableCategories = useMemo(() => categories.filter((item) => item.isActive), [categories]);
   const categoryOptions = useMemo(() => [
     { value: ALL, label: 'Toutes les catégories' },
-    ...availableCategories.map((item) => ({ value: item.slug, label: `${item.name} (${trainings.filter((training) => training.category === item.slug).length})` })),
-  ], [availableCategories, trainings]);
+    ...availableCategories.map((item) => ({ value: item.slug, label: item.name })),
+  ], [availableCategories]);
   const formatOptions = useMemo(() => {
-    const formats = new Map<string, string>();
-    trainings.forEach((training) => training.availableFormatDetails.forEach(({ value, label }) => formats.set(value, label)));
-
     return [
       { value: ALL, label: 'Tous les formats' },
-      ...Array.from(formats, ([value, label]) => ({
-        value,
-        label: `${label} (${trainings.filter((training) => training.availableFormats.includes(value as TrainingFormat)).length})`,
-      })),
+      { value: 'onsite', label: 'Présentiel' },
+      { value: 'remote', label: 'Distanciel' },
     ];
-  }, [trainings]);
-  const categoryName = (slug: string) =>
-    trainings.find((training) => training.category === slug)?.categoryDetails?.name ?? '';
-  const filteredTrainings = useMemo(() => filterAndSortTrainings(trainings, { category, format, query, sort, minPrice, maxPrice, minDuration, maxDuration }, categoryName), [category, format, maxDuration, maxPrice, minDuration, minPrice, query, sort, trainings, categories]);
+  }, []);
 
   const updateParam = (key: string, value: string | null) => {
     const next = new URLSearchParams(searchParams);
@@ -64,14 +92,40 @@ export const useTrainingCatalogController = () => {
     setSearchParams(next, { replace: true });
   };
   const resetFilters = () => setSearchParams(new URLSearchParams(), { replace: true });
-  const totalPages = clampAtLeast(Math.ceil(filteredTrainings.length / PER_PAGE), 1);
-  const currentPage = clampWithin(page, 1, totalPages);
-  const paginatedTrainings = filteredTrainings.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE);
-  const resultSummary = query ? `${filteredTrainings.length} formation${filteredTrainings.length > 1 ? 's' : ''} pour "${query}"` : `${filteredTrainings.length} formation${filteredTrainings.length > 1 ? 's' : ''} affichée${filteredTrainings.length > 1 ? 's' : ''}`;
+  const totalPages = clampAtLeast(meta.totalPages, 1);
+  const currentPage = clampWithin(meta.page, 1, totalPages);
+  const paginatedTrainings = trainings;
+  const resultSummary = query ? `${meta.total} formation${meta.total > 1 ? 's' : ''} pour "${query}"` : `${meta.total} formation${meta.total > 1 ? 's' : ''} affichée${meta.total > 1 ? 's' : ''}`;
   const priceValues = trainings.map((training) => training.priceCents);
   const durationValues = trainings.map((training) => training.durationMinutes);
   const priceHint = priceValues.length > 0 ? formatEuroCentsRange(Math.min(...priceValues), Math.max(...priceValues)) : null;
   const durationHint = durationValues.length > 0 ? `${Math.min(...durationValues)} à ${Math.max(...durationValues)} min` : null;
 
-  return { trainings, loading, error, retry, category, format, sort, minPrice, maxPrice, minDuration, maxDuration, categoryOptions, formatOptions, priceHint, durationHint, resultSummary, paginatedTrainings, categoryName, currentPage, totalPages, updateParam, updateRange, resetFilters };
+  return {
+    trainings,
+    total: meta.total,
+    loading: catalogQuery.isLoading,
+    error: catalogQuery.error
+      ? getHttpErrorMessage(catalogQuery.error, 'Impossible de charger les formations.')
+      : null,
+    retry: catalogQuery.refetch,
+    category,
+    format,
+    sort,
+    minPrice,
+    maxPrice,
+    minDuration,
+    maxDuration,
+    categoryOptions,
+    formatOptions,
+    priceHint,
+    durationHint,
+    resultSummary,
+    paginatedTrainings,
+    currentPage,
+    totalPages,
+    updateParam,
+    updateRange,
+    resetFilters,
+  };
 };

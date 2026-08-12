@@ -6,9 +6,11 @@ namespace App\Module\Order\Application\Workflow;
 
 use App\Module\Cart\Application\Workflow\CartSessionWorkflow;
 use App\Module\Cart\Domain\Entity\CartSession;
+use App\Module\Order\Application\Exception\CartAlreadyConvertedException;
 use App\Module\Order\Application\DTO\CartCheckoutResult;
 use App\Module\Order\Application\Exception\CartCheckoutConflictException;
 use App\Module\Order\Application\Exception\CartCheckoutNotFoundException;
+use App\Module\Order\Application\Exception\CheckoutRequestException;
 use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\User\Application\Port\ShippingAddressRepositoryPort;
@@ -36,18 +38,14 @@ final readonly class CartCheckoutService
             return $this->convertedResult($cart, $user);
         }
         if (0 === $cart->getItems()->count()) {
-            throw new \InvalidArgumentException('Le panier est vide.');
+            throw CheckoutRequestException::emptyCart();
         }
 
         $address = $this->resolveAddress($user, $addressId);
         try {
             return CartCheckoutResult::redirect($this->stripe->createHostedCheckout($user, $cart, $address));
-        } catch (\InvalidArgumentException $exception) {
-            if ('Ce panier a deja ete valide.' === $exception->getMessage()) {
-                return $this->convertedResult($cart, $user);
-            }
-
-            throw $exception;
+        } catch (CartAlreadyConvertedException) {
+            return $this->convertedResult($cart, $user);
         }
     }
 
@@ -77,7 +75,7 @@ final readonly class CartCheckoutService
         if (null !== $addressId && $addressId > 0) {
             $address = $this->addresses->findOneForUser($addressId, $user);
             if (!$address instanceof ShippingAddress) {
-                throw new \InvalidArgumentException('Adresse de livraison invalide.');
+                throw CheckoutRequestException::invalidCartShippingAddress();
             }
 
             return $address;
@@ -85,7 +83,7 @@ final readonly class CartCheckoutService
 
         $address = $this->addresses->findFirstForUser($user);
         if (!$address instanceof ShippingAddress) {
-            throw new \InvalidArgumentException('Aucune adresse de livraison trouvée.');
+            throw CheckoutRequestException::missingCartShippingAddress();
         }
 
         return $address;

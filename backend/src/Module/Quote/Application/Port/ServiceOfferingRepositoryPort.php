@@ -14,6 +14,9 @@ interface ServiceOfferingRepositoryPort
     /** @return list<ServiceOffering> */
     public function findPaginated(int $limit, int $offset): array;
 
+    /** @return list<ServiceOffering> */
+    public function findPublic(?string $search, int $limit, int $offset): array;
+
     /**
      * @param array<string, mixed>       $criteria
      * @param array<string, string>|null $orderBy
@@ -24,6 +27,13 @@ interface ServiceOfferingRepositoryPort
 
     /** @param array<string, mixed> $criteria */
     public function count(array $criteria): int;
+
+    /** @return list<ServiceOffering> */
+    public function findForAdmin(?string $search, int $limit, int $offset): array;
+
+    public function countForAdmin(?string $search): int;
+
+    public function countPublic(?string $search): int;
 
     public function countAll(): int;
 

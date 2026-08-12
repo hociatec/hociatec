@@ -1,8 +1,6 @@
 import { type ChangeEvent } from 'react';
 
 import { type ProductFormState, type VariantRowState } from '@/features/admin/catalog/utils/productFormConfig';
-import { PaginationControls } from '@/shared/components/ui/PaginationControls';
-import { ADMIN_PAGE_SIZE, useAdminPagination } from '@/shared/hooks/useAdminPagination';
 
 type FormChangeEvent = ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>;
 
@@ -62,8 +60,6 @@ export const ProductExtraVariantsSection = ({
   onRemove: (index: number) => void;
   onUpdate: (index: number, field: keyof VariantRowState, value: string) => void;
 }) => {
-  const rowsPagination = useAdminPagination(rows, String(rows.length));
-
   return (
     <section className="catalog-form-section">
       <div className="catalog-form-section__header">
@@ -74,9 +70,7 @@ export const ProductExtraVariantsSection = ({
       </div>
 
       <div className="catalog-variants-list">
-        {rowsPagination.paginatedItems.map((row, visibleIndex) => {
-          const index = (rowsPagination.page - 1) * ADMIN_PAGE_SIZE + visibleIndex;
-
+        {rows.map((row, index) => {
           return (
             <div key={`${index}-${row.color}-${row.storageCapacity}`} className="catalog-variant-card">
               <div className="catalog-variant-card__header">
@@ -139,15 +133,6 @@ export const ProductExtraVariantsSection = ({
             </div>
           );
         })}
-
-        <PaginationControls
-          className="mt-3"
-          page={rowsPagination.page}
-          total={rowsPagination.total}
-          totalLabel="variante"
-          totalPages={rowsPagination.totalPages}
-          onPageChange={rowsPagination.setPage}
-        />
 
         <button type="button" className="catalog-admin-actions__edit w-fit" onClick={onAdd}>
           Ajouter une variante

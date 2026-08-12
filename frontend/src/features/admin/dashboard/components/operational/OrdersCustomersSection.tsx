@@ -1,13 +1,8 @@
 import { type AdminDashboardDto } from '@/features/admin/customers/api';
-import { useAdminPagination } from '@/shared/hooks/useAdminPagination';
-import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import { formatEuroCents, formatFrenchDateTime } from '@/shared/lib/formatters';
 import { DashboardCardAction, PanelTitle } from './AdminDashboardShared';
 
 export const OrdersCustomersSection = ({ dashboard }: { dashboard: AdminDashboardDto }) => {
-  const ordersPagination = useAdminPagination(dashboard.recentOrders);
-  const customersPagination = useAdminPagination(dashboard.topCustomers);
-
   return (
   <section className="grid gap-6 xl:grid-cols-3">
     <div className="rounded-2xl border border-brand-700 bg-brand-800/50 p-6 xl:col-span-2">
@@ -18,7 +13,7 @@ export const OrdersCustomersSection = ({ dashboard }: { dashboard: AdminDashboar
         linkLabel="Toutes les commandes"
       />
       <div className="space-y-3">
-        {ordersPagination.paginatedItems.map((order) => (
+        {dashboard.recentOrders.map((order) => (
           <article
             key={order.id}
             className="flex flex-col gap-2 rounded-2xl bg-brand-900/40 p-4 md:flex-row md:items-center md:justify-between"
@@ -41,14 +36,6 @@ export const OrdersCustomersSection = ({ dashboard }: { dashboard: AdminDashboar
           </article>
         ))}
       </div>
-      <PaginationControls
-        className="mt-6 text-stone-300"
-        page={ordersPagination.page}
-        total={ordersPagination.total}
-        totalLabel="commande"
-        totalPages={ordersPagination.totalPages}
-        onPageChange={ordersPagination.setPage}
-      />
     </div>
     <div className="rounded-2xl border border-brand-700 bg-brand-800/50 p-6">
       <PanelTitle
@@ -58,7 +45,7 @@ export const OrdersCustomersSection = ({ dashboard }: { dashboard: AdminDashboar
         linkLabel="Tous les clients"
       />
       <div className="space-y-3">
-        {customersPagination.paginatedItems.map((customer) => (
+        {dashboard.topCustomers.map((customer) => (
           <article key={customer.id} className="rounded-2xl bg-brand-900/40 p-4">
             <div className="font-semibold text-white">
               {customer.firstName} {customer.lastName}
@@ -76,14 +63,6 @@ export const OrdersCustomersSection = ({ dashboard }: { dashboard: AdminDashboar
           </article>
         ))}
       </div>
-      <PaginationControls
-        className="mt-6 text-stone-300"
-        page={customersPagination.page}
-        total={customersPagination.total}
-        totalLabel="client"
-        totalPages={customersPagination.totalPages}
-        onPageChange={customersPagination.setPage}
-      />
     </div>
   </section>
   );

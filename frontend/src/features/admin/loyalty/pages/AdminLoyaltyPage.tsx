@@ -24,17 +24,22 @@ import { adminLoyaltyQueryKeys } from '@/features/admin/loyalty/queryKeys';
 import type { PaginatedResult } from '@/shared/types/api';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { parseNonNegativeInteger } from '@/shared/lib/parsers';
+import { useDebounce } from '@/shared/hooks/useDebounce';
+import { useSearchParams } from 'react-router';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 export const AdminLoyaltyPage = () => {
   const toast = useToast();
   const queryClient = useQueryClient();
-  const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [search, setSearch] = useState(searchParams.get('q') ?? '');
+  const [page, setPage] = useState(parseNullablePositiveInteger(searchParams.get('page')) ?? 1);
   const [selectedCustomer, setSelectedCustomer] = useState<AdminLoyaltyCustomerDto | null>(null);
   const [draftPoints, setDraftPoints] = useState('');
+  const debouncedSearch = useDebounce(search.trim(), 250);
   const customersQuery = useQuery<PaginatedResult<AdminLoyaltyCustomerDto>, Error>({
-    queryKey: [...adminLoyaltyQueryKeys.customers(search), { page }],
-    queryFn: () => fetchAdminLoyaltyCustomers(search, page, 10),
+    queryKey: [...adminLoyaltyQueryKeys.customers(debouncedSearch), { page }],
+    queryFn: () => fetchAdminLoyaltyCustomers(debouncedSearch, page, 10),
   });
   const items = customersQuery.data?.items ?? [];
   const itemsMeta = customersQuery.data?.meta ?? { page, perPage: 10, total: 0, totalPages: 1 };
@@ -43,7 +48,7 @@ export const AdminLoyaltyPage = () => {
       updateAdminLoyaltyCustomer(customerId, points),
     onSuccess: (customer) => {
       queryClient.setQueryData<PaginatedResult<AdminLoyaltyCustomerDto>>(
-        [...adminLoyaltyQueryKeys.customers(search), { page }],
+        [...adminLoyaltyQueryKeys.customers(debouncedSearch), { page }],
         (current) =>
           current
             ? {
@@ -75,7 +80,18 @@ export const AdminLoyaltyPage = () => {
 
   useEffect(() => {
     setPage(1);
-  }, [search]);
+  }, [debouncedSearch]);
+
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (search.trim()) {
+      next.set('q', search.trim());
+    }
+    if (page > 1) {
+      next.set('page', String(page));
+    }
+    setSearchParams(next, { replace: true });
+  }, [page, search, setSearchParams]);
 
   const totals = useMemo(
     () =>
@@ -117,8 +133,8 @@ export const AdminLoyaltyPage = () => {
     <PageContainer size="admin" title="Fidélité">
       <AdminMetricGrid>
         <AdminMetricCard label="Clients affichés" value={itemsMeta.total} />
-        <AdminMetricCard label="Points en circulation" value={formatFrenchNumber(totals.points)} />
-        <AdminMetricCard label="Valeur convertible" value={formatEuroCents(totals.euroCents)} />
+        <AdminMetricCard label="Points sur cette page" value={formatFrenchNumber(totals.points)} />
+        <AdminMetricCard label="Valeur sur cette page" value={formatEuroCents(totals.euroCents)} />
       </AdminMetricGrid>
 
       <div className="mb-5">

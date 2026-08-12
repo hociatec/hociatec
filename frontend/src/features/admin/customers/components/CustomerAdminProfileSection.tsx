@@ -77,7 +77,7 @@ export const CustomerAdminProfileSection = ({
             placeholder="vip, sav, relance, pro..."
           />
           <div className="mt-4 rounded-2xl bg-brand-50 p-4">
-            <div className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">
+            <div className="mb-2 text-sm font-medium text-stone-600">
               Aperçu des tags
             </div>
             <div className="flex min-h-14 flex-wrap gap-2">

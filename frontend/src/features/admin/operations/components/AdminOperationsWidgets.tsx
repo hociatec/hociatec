@@ -1,7 +1,5 @@
 import { type OperationsOverviewDto } from '@/features/admin/operations/api';
 import { LoadingState } from '@/shared/components/ui/page-state';
-import { useAdminPagination } from '@/shared/hooks/useAdminPagination';
-import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import {
   ActionCard,
   Field,
@@ -34,10 +32,7 @@ export const OperationsHeader = ({
   <div className="mb-6 rounded-xl border border-brand-100 bg-white p-5 shadow-sm">
     <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
       <div className="max-w-3xl">
-        <p className="text-sm font-semibold uppercase tracking-wide text-brand-700">
-          Tableau de bord opérationnel
-        </p>
-        <h1 className="mt-2 text-2xl font-semibold text-brand-900">
+        <h1 className="text-2xl font-semibold text-brand-900">
           Ce qui demande une action aujourd’hui
         </h1>
         <p className="mt-2 text-sm leading-6 text-stone-600">
@@ -72,7 +67,6 @@ export const OperationsPriorities = ({
   overview: OperationsOverviewDto;
 }) => {
   const lowStockItems = overview.stock.lowStockItems ?? [];
-  const lowStockPagination = useAdminPagination(lowStockItems);
 
   return (
   <section className="mb-8">
@@ -133,7 +127,7 @@ export const OperationsPriorities = ({
         </p>
       ) : (
         <div className="mt-4 grid gap-3 md:grid-cols-2">
-          {lowStockPagination.paginatedItems.map((product) => (
+          {lowStockItems.map((product) => (
             <a
               key={product.id}
               className="rounded-2xl border border-brand-100 bg-brand-50 p-4 transition hover:border-brand-300 hover:bg-brand-50"
@@ -157,13 +151,6 @@ export const OperationsPriorities = ({
           ))}
         </div>
       )}
-      <PaginationControls
-        page={lowStockPagination.page}
-        total={lowStockPagination.total}
-        totalLabel="produit"
-        totalPages={lowStockPagination.totalPages}
-        onPageChange={lowStockPagination.setPage}
-      />
     </div>
   </section>
   );

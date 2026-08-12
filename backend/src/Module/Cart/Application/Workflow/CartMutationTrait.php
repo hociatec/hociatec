@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Cart\Application\Workflow;
 
+use App\Module\Cart\Application\Exception\CartNotFoundException;
 use App\Module\Cart\Domain\Entity\CartItem;
 use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\Catalog\Domain\Entity\Product;
@@ -14,7 +15,7 @@ trait CartMutationTrait
     {
         $cart = $this->findCartByToken($token);
         if (null === $cart) {
-            throw new \InvalidArgumentException('Panier introuvable.');
+            throw new CartNotFoundException();
         }
 
         $existing = $this->cartItems->resolveExistingItem($cart, $product, $rentalMonths);

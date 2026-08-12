@@ -13,7 +13,6 @@ export const MyAuditsPage = () => {
   return (
     <SiteLayout headerVariant="light">
       <PublicPageShell
-        eyebrow="Mon espace"
         title="Mes audits"
         description="Suivez les demandes d’audit envoyées à Hociatec et consultez leur avancement."
       >

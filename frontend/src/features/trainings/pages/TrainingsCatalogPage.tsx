@@ -21,16 +21,40 @@ export const TrainingsCatalogPage = () => {
   return (
     <SiteLayout headerVariant="light">
       <PublicPageShell
-        eyebrow="Formations Hociatec"
-        title="Formations accompagnées"
+        title="Formations"
         description="Des sessions en présentiel ou en distanciel, animées autour d’une feuille de route pratique."
       >
         {controller.loading ? (
           <LoadingState>Chargement des formations...</LoadingState>
         ) : controller.error ? (
           <ErrorState onAction={() => void controller.retry()}>{controller.error}</ErrorState>
-        ) : controller.trainings.length === 0 ? (
-          <EmptyState>Aucune formation publiée pour le moment.</EmptyState>
+        ) : controller.total === 0 ? (
+          <PublicPageSection className="p-4 sm:p-6">
+            <TrainingCatalogFilters
+              resultSummary={controller.resultSummary}
+              category={controller.category}
+              format={controller.format}
+              sort={controller.sort}
+              minPrice={controller.minPrice}
+              maxPrice={controller.maxPrice}
+              minDuration={controller.minDuration}
+              maxDuration={controller.maxDuration}
+              categoryOptions={controller.categoryOptions}
+              formatOptions={controller.formatOptions}
+              priceHint={controller.priceHint}
+              durationHint={controller.durationHint}
+              updateParam={controller.updateParam}
+              updateRange={controller.updateRange}
+              resetFilters={controller.resetFilters}
+            />
+            <div className="mt-6">
+              <EmptyState>
+                {controller.resultSummary.includes('pour "')
+                  ? 'Aucune formation ne correspond aux filtres actuels.'
+                  : 'Aucune formation publiée pour le moment.'}
+              </EmptyState>
+            </div>
+          </PublicPageSection>
         ) : (
           <>
             <PublicPageSection className="p-4 sm:p-6">
@@ -52,7 +76,7 @@ export const TrainingsCatalogPage = () => {
                 resetFilters={controller.resetFilters}
               />
             </PublicPageSection>
-            <TrainingCatalogGrid trainings={controller.paginatedTrainings} categoryName={controller.categoryName} />
+            <TrainingCatalogGrid trainings={controller.paginatedTrainings} />
             <TrainingCatalogPagination currentPage={controller.currentPage} totalPages={controller.totalPages} updatePage={(nextPage) => controller.updateParam('page', String(nextPage))} />
           </>
         )}

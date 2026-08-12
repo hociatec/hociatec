@@ -48,7 +48,7 @@ export const fetchAdminLoyaltyCustomers = async (
 ): Promise<PaginatedResult<AdminLoyaltyCustomerDto>> => {
   const query = new URLSearchParams();
   if (search.trim() !== '') {
-    query.set('search', search.trim());
+    query.set('q', search.trim());
   }
   query.set('page', String(page));
   query.set('perPage', String(perPage));

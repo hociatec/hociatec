@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\Operations\Exception;
 
-use App\Shared\Application\Exception\ApiProblemException;
+use App\Shared\Application\Exception\AbstractApiProblemException;
 
-final class OperationsResourceNotFoundException extends \RuntimeException implements ApiProblemException
+final class OperationsResourceNotFoundException extends AbstractApiProblemException
 {
-    public function getStatusCode(): int
+    public function __construct(string $message = 'Ressource introuvable.', ?\Throwable $previous = null)
     {
-        return 404;
+        parent::__construct($message, 404, $message, 'RESOURCE_NOT_FOUND', previous: $previous);
     }
 }

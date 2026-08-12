@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Application\Exception;
 
-use App\Shared\Application\Exception\ApiProblemException;
+use App\Shared\Application\Exception\AbstractApiProblemException;
 
-final class CartCheckoutNotFoundException extends \RuntimeException implements ApiProblemException
+final class CartCheckoutNotFoundException extends AbstractApiProblemException
 {
-    public function getStatusCode(): int
+    public function __construct(string $message = 'Ressource de checkout introuvable.', ?string $errorCode = null)
     {
-        return 404;
+        parent::__construct($message, 404, $message, $errorCode ?? 'CHECKOUT_NOT_FOUND');
     }
 }

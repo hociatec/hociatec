@@ -100,7 +100,7 @@ final readonly class ProductFormRequestMapper
         } catch (ProductFormRequestException $exception) {
             throw $exception;
         } catch (\InvalidArgumentException $exception) {
-            throw new ProductFormRequestException($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+            throw ProductFormRequestException::fromInvalidArgument($exception, Response::HTTP_BAD_REQUEST);
         }
     }
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Order\Infrastructure\Repository;
 
 use App\Module\Order\Domain\Entity\Order;
+use App\Shared\Infrastructure\Persistence\LikeSearchHelper;
 
 trait OrderAdminQueries
 {
@@ -54,9 +55,9 @@ trait OrderAdminQueries
     }
 
     /** @return list<Order> */
-    public function findForAdminList(?string $status, ?string $health, int $limit, int $offset): array
+    public function findForAdminList(?string $status, ?string $health, ?string $search, int $limit, int $offset): array
     {
-        $qb = $this->createAdminListQuery($status, $health)
+        $qb = $this->createAdminListQuery($status, $health, $search)
             ->orderBy('o.createdAt', 'DESC')
             ->setFirstResult($offset)
             ->setMaxResults($limit);
@@ -67,20 +68,28 @@ trait OrderAdminQueries
         return $orders;
     }
 
-    public function countForAdminList(?string $status, ?string $health): int
+    public function countForAdminList(?string $status, ?string $health, ?string $search): int
     {
-        return (int) $this->createAdminListQuery($status, $health)
+        return (int) $this->createAdminListQuery($status, $health, $search)
             ->select('COUNT(DISTINCT o.id)')
             ->getQuery()
             ->getSingleScalarResult();
     }
 
-    private function createAdminListQuery(?string $status, ?string $health): \Doctrine\ORM\QueryBuilder
+    private function createAdminListQuery(?string $status, ?string $health, ?string $search): \Doctrine\ORM\QueryBuilder
     {
-        $qb = $this->createQueryBuilder('o');
+        $qb = $this->createQueryBuilder('o')
+            ->leftJoin('o.user', 'u');
 
         if (null !== $status && '' !== $status && 'all' !== $status) {
             $qb->andWhere('o.state.status = :status')->setParameter('status', $status);
+        }
+
+        $searchPattern = LikeSearchHelper::containsPattern($search, true);
+        if (null !== $searchPattern) {
+            $qb
+                ->andWhere('LOWER(o.number) LIKE :search OR LOWER(COALESCE(o.billing.email, \'\')) LIKE :search OR LOWER(COALESCE(o.billing.name, \'\')) LIKE :search OR LOWER(u.email) LIKE :search OR LOWER(u.identity.firstName) LIKE :search OR LOWER(u.identity.lastName) LIKE :search OR LOWER(CONCAT(u.identity.firstName, \' \', u.identity.lastName)) LIKE :search')
+                ->setParameter('search', $searchPattern);
         }
 
         if ('issues' === $health) {

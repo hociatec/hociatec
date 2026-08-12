@@ -8,6 +8,7 @@ use App\Module\Admin\Application\Quote\Handler\CreateQuoteServiceHandler;
 use App\Module\Admin\UI\Quote\Mapper\QuoteServiceFormMapper;
 use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Domain\Exception\QuoteOperationException;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,7 +32,7 @@ final readonly class CreateServiceController
         try {
             $service = $this->createService->create($this->forms->create($request));
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY);
+            return ApiProblemResponse::fromThrowable($exception, 'Création de service invalide.', Response::HTTP_UNPROCESSABLE_ENTITY);
         } catch (QuoteOperationException) {
             return ApiResponse::internalError();
         }

@@ -74,7 +74,6 @@ export const MyTradeInsPage = () => {
   return (
     <SiteLayout headerVariant="light">
       <PublicPageShell
-        eyebrow="Mon espace"
         title="Mes reprises"
         description="Suivez vos demandes de reprise, les estimations reçues et les justificatifs disponibles."
       >

@@ -17,7 +17,7 @@ export const AdminCustomerDetailPage = () => {
   const detail = useAdminCustomerDetail(customerId);
   const { customer, addresses, orders, status, error, orderFilter, adminNotes, adminTagsInput,
     saveState, saveMessage, emailOpen, emailForm, emailSending, emailOnlyView, latestOrder,
-    filteredOrders, parsedTags, setAdminNotes, setAdminTagsInput, setEmailForm, setOrderFilter,
+    ordersMeta, orderStats, parsedTags, setAdminNotes, setAdminTagsInput, setEmailForm, setOrderFilter, setOrderPage,
     closeEmailComposer, toggleEmailComposer, handleSaveAdminProfile, handleSendEmail, applyEmailPreset,
     navigate } = detail;
 
@@ -86,10 +86,12 @@ export const AdminCustomerDetailPage = () => {
           <CustomerSummaryCards customer={customer} />
           <CustomerAddressesSection addresses={addresses} />
           <CustomerOrdersSection
-            filteredOrders={filteredOrders}
             orderFilter={orderFilter}
             orders={orders}
+            ordersMeta={ordersMeta}
+            orderStats={orderStats}
             onOrderFilterChange={setOrderFilter}
+            onOrderPageChange={setOrderPage}
           />
         </div>
       )}

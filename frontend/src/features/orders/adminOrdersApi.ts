@@ -28,7 +28,7 @@ export const fetchAdminOrders = async (
     query.set('health', health);
   }
   if (search.trim() !== '') {
-    query.set('search', search.trim());
+    query.set('q', search.trim());
   }
   if (sort && sort !== 'newest') {
     query.set('sort', sort);

@@ -11,6 +11,7 @@ use App\Module\Catalog\Application\Port\ProductRepositoryPort;
 use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\Catalog\Domain\Exception\CatalogOperationException;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -41,13 +42,9 @@ final readonly class UpdateProductController
             $data = $this->forms->update($request, $product);
             $product = $this->products->update($data->toUpdateCommand($product));
         } catch (ProductFormRequestException $exception) {
-            return ApiResponse::error($exception->getMessage(), $exception->getStatusCode());
+            return ApiProblemResponse::fromThrowable($exception);
         } catch (\InvalidArgumentException|CatalogOperationException $exception) {
-            return ApiResponse::error(
-                'Impossible de mettre à jour le produit.',
-                Response::HTTP_BAD_REQUEST,
-                [$exception->getMessage()],
-            );
+            return ApiProblemResponse::fromThrowable($exception, 'Impossible de mettre à jour le produit.', Response::HTTP_BAD_REQUEST);
         }
 
         return ApiResponse::success($this->catalogFormatter->formatProduct($product, true));

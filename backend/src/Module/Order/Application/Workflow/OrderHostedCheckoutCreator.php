@@ -7,6 +7,7 @@ namespace App\Module\Order\Application\Workflow;
 use App\Module\Order\Application\Port\OrderCheckoutSessionRepositoryPort;
 use App\Module\Order\Application\Provider\StripeCheckoutPayloadProvider;
 use App\Module\Order\Application\Security\CheckoutRedirectUrlValidator;
+use App\Module\Order\Application\Exception\CheckoutRequestException;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Module\User\Domain\Entity\ShippingAddress;
@@ -29,7 +30,7 @@ final readonly class OrderHostedCheckoutCreator
     {
         $orderId = $order->getId();
         if (null === $orderId) {
-            throw new \InvalidArgumentException('Commande invalide.');
+            throw CheckoutRequestException::invalidOrder();
         }
 
         $existing = $this->checkoutSessions->findReusableOpenSessionForOrder($user, $orderId);

@@ -10,6 +10,7 @@ use App\Module\Quote\Application\Port\QuoteRepositoryPort;
 use App\Module\Quote\Application\Workflow\QuoteEmailService;
 use App\Module\Quote\Application\Workflow\QuoteWorkflowService;
 use App\Module\Quote\Domain\Entity\Quote;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Validation\DtoValidator;
@@ -62,9 +63,9 @@ class SendQuoteEmailController extends AbstractController
             $this->validator->validate($input);
             $result = $this->quoteEmailService->send($quote, $input->to?->value());
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+            return ApiProblemResponse::fromThrowable($exception, 'Envoi de devis invalide.', Response::HTTP_BAD_REQUEST);
         } catch (\RuntimeException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_SERVICE_UNAVAILABLE);
+            return ApiProblemResponse::fromThrowable($exception, 'Envoi de devis indisponible.', Response::HTTP_SERVICE_UNAVAILABLE);
         } catch (\LogicException $exception) {
             $this->logger->error('Unexpected quote email send failure.', [
                 'quoteId' => $quote->getId(),

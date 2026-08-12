@@ -49,7 +49,10 @@ final readonly class OperationsOverviewProvider
                 'lowStockItems' => array_map($this->formatter->lowStockProduct(...), $this->products->findLowStock(self::LOW_STOCK_THRESHOLD, 8)),
                 'movements' => array_map($this->formatter->stockMovement(...), $this->stockMovements->findBy([], ['createdAt' => 'DESC'], 8)),
             ],
-            'emails' => ['items' => array_slice($this->formatter->emailLogs(), 0, 8)],
+            'emails' => [
+                'failedCount' => $this->formatter->failedCount(),
+                'items' => array_slice($this->formatter->emailLogs(), 0, 8),
+            ],
             'actions' => [
                 ['label' => 'Exporter les commandes', 'href' => '/api/admin/operations/exports/orders.csv'],
                 ['label' => 'Exporter les clients', 'href' => '/api/admin/operations/exports/customers.csv'],

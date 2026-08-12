@@ -102,7 +102,7 @@ export const TrainingSessionFormPage = () => {
       ),
     onSuccess: (response) => {
       void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.sessions() });
-      void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.overview() });
+      void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.enrollments() });
       setMessage(response.message ?? (isEdit ? 'La session a bien été mise à jour.' : 'La session a bien été créée.'));
       navigateWithDelay('/admin/trainings/sessions');
     },

@@ -33,8 +33,9 @@ final class ListOrdersController extends AbstractController
         $pagination = RequestQueryMapper::pagination($request, 10, 50);
         $statusFilter = RequestQueryMapper::nullableString($request, 'status');
         $healthFilter = RequestQueryMapper::nullableString($request, 'health');
-        $total = $this->orders->countForAdminList($statusFilter, $healthFilter);
-        $orders = $this->orders->findForAdminList($statusFilter, $healthFilter, $pagination->perPage, $pagination->offset());
+        $search = RequestQueryMapper::nullableString($request, 'q');
+        $total = $this->orders->countForAdminList($statusFilter, $healthFilter, $search);
+        $orders = $this->orders->findForAdminList($statusFilter, $healthFilter, $search, $pagination->perPage, $pagination->offset());
         $issueEventsByOrderId = $this->events->findIssueEventsGroupedByOrders($orders);
 
         $items = array_map(

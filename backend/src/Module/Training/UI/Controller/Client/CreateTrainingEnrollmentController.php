@@ -7,6 +7,7 @@ namespace App\Module\Training\UI\Controller\Client;
 use App\Module\Training\Application\Exception\TrainingSessionUnavailableException;
 use App\Module\Training\Application\Projection\TrainingFormatter;
 use App\Module\Training\Application\Workflow\TrainingEnrollmentCheckoutService;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -38,9 +39,9 @@ final class CreateTrainingEnrollmentController extends AbstractController
                 is_string($payload['startsAt'] ?? null) ? $payload['startsAt'] : '',
             );
         } catch (TrainingSessionUnavailableException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_NOT_FOUND);
+            return ApiProblemResponse::fromThrowable($exception, 'Session de formation introuvable.', Response::HTTP_NOT_FOUND);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+            return ApiProblemResponse::fromThrowable($exception, 'Inscription à la formation invalide.', Response::HTTP_BAD_REQUEST);
         } catch (\RuntimeException) {
             return ApiResponse::error('Impossible de finaliser l’inscription à la formation.', Response::HTTP_BAD_REQUEST);
         }

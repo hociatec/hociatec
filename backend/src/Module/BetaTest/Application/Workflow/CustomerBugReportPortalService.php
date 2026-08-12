@@ -25,7 +25,7 @@ final readonly class CustomerBugReportPortalService
     ) {
     }
 
-    /** @return array{items:list<BugReport>, total:int} */
+    /** @return array{items:list<BugReport>, total:int, stats:array{openReports:int,resolvedReports:int,totalReports:int}} */
     public function listForUser(User $user, int $limit, int $offset): array
     {
         /** @var list<BugReport> $reports */
@@ -34,6 +34,7 @@ final readonly class CustomerBugReportPortalService
         return [
             'items' => $reports,
             'total' => $this->reports->countForUser($user),
+            'stats' => $this->reports->dashboardStatsForUser($user),
         ];
     }
 

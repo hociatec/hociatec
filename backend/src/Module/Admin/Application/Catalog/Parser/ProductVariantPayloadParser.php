@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\Application\Catalog\Parser;
 
 use App\Module\Admin\Application\Catalog\Normalizer\ProductFormValueNormalizer;
+use App\Shared\Application\Exception\PublicInvalidArgumentException;
 
 final class ProductVariantPayloadParser
 {
@@ -19,7 +20,7 @@ final class ProductVariantPayloadParser
 
         $decoded = json_decode($value, true);
         if (!is_array($decoded)) {
-            throw new \InvalidArgumentException('Définition des variantes invalide.');
+            throw new PublicInvalidArgumentException('Définition des variantes invalide.');
         }
 
         $variants = [];
@@ -30,14 +31,14 @@ final class ProductVariantPayloadParser
 
             $stock = isset($row['stock']) ? (int) $row['stock'] : 0;
             if ($stock < 0) {
-                throw new \InvalidArgumentException('Le stock des variantes doit être positif.');
+                throw new PublicInvalidArgumentException('Le stock des variantes doit être positif.');
             }
 
             $priceCents = array_key_exists('price', $row)
                 ? ProductFormValueNormalizer::priceToCents($row['price'])
                 : null;
             if (null !== $priceCents && $priceCents < 0) {
-                throw new \InvalidArgumentException('Le prix des variantes est invalide.');
+                throw new PublicInvalidArgumentException('Le prix des variantes est invalide.');
             }
 
             $variant = [

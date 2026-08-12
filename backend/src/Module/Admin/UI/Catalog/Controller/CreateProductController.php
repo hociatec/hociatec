@@ -9,6 +9,7 @@ use App\Module\Admin\UI\Catalog\Mapper\ProductFormRequestMapper;
 use App\Module\Catalog\Application\Handler\ProductWriteHandler;
 use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Module\Catalog\Domain\Exception\CatalogOperationException;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -33,13 +34,9 @@ final readonly class CreateProductController
             $data = $this->forms->create($request);
             $product = $this->products->create($data->toCreateCommand());
         } catch (ProductFormRequestException $exception) {
-            return ApiResponse::error($exception->getMessage(), $exception->getStatusCode());
+            return ApiProblemResponse::fromThrowable($exception);
         } catch (\InvalidArgumentException|CatalogOperationException $exception) {
-            return ApiResponse::error(
-                'Impossible de créer le produit.',
-                Response::HTTP_BAD_REQUEST,
-                [$exception->getMessage()],
-            );
+            return ApiProblemResponse::fromThrowable($exception, 'Impossible de créer le produit.', Response::HTTP_BAD_REQUEST);
         }
 
         return ApiResponse::created($this->catalogFormatter->formatProduct($product, true));

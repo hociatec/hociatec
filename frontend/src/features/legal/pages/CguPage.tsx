@@ -17,7 +17,6 @@ export const CguPage = () => {
     <SiteLayout headerVariant="light">
       <PublicPageShell
         size="medium"
-        eyebrow="Informations légales"
         title="Conditions générales d’utilisation (CGU)"
         description={`Dernière mise à jour: ${CGU_UPDATED_AT}`}
       >

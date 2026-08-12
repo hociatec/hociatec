@@ -64,6 +64,11 @@ final readonly class AdminOperationsEmailLogFormatter
         return $items;
     }
 
+    public function failedCount(): int
+    {
+        return $this->orderEvents->count(['type' => 'email_failed']);
+    }
+
     public function emailScenarioLabel(string $scenario): string
     {
         return match ($scenario) {

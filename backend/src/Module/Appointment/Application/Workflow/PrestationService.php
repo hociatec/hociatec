@@ -7,6 +7,7 @@ namespace App\Module\Appointment\Application\Workflow;
 use App\Module\Appointment\Application\Exception\AppointmentOperationException;
 use App\Module\Appointment\Application\Port\PrestationRepositoryPort;
 use App\Module\Appointment\Domain\Entity\Prestation;
+use App\Shared\Application\Exception\PublicInvalidArgumentException;
 use App\Shared\Application\UnitOfWork;
 
 final class PrestationService
@@ -78,22 +79,22 @@ final class PrestationService
     {
         $name = trim($name);
         if ('' === $name) {
-            throw new \InvalidArgumentException('La prestation doit avoir un nom.');
+            throw new PublicInvalidArgumentException('La prestation doit avoir un nom.', 422, 'UNPROCESSABLE_ENTITY');
         }
         if (mb_strlen($name) > 120) {
-            throw new \InvalidArgumentException('Le nom ne doit pas depasser 120 caracteres.');
+            throw new PublicInvalidArgumentException('Le nom ne doit pas depasser 120 caracteres.', 422, 'UNPROCESSABLE_ENTITY');
         }
         if ($durationMinutes <= 0) {
-            throw new \InvalidArgumentException('La duree doit etre superieure a 0.');
+            throw new PublicInvalidArgumentException('La duree doit etre superieure a 0.', 422, 'UNPROCESSABLE_ENTITY');
         }
         if ($durationMinutes > 8 * 60) {
-            throw new \InvalidArgumentException('La duree ne peut depasser 8 heures.');
+            throw new PublicInvalidArgumentException('La duree ne peut depasser 8 heures.', 422, 'UNPROCESSABLE_ENTITY');
         }
         if ($priceCents < 0) {
-            throw new \InvalidArgumentException('Le prix doit etre positif.');
+            throw new PublicInvalidArgumentException('Le prix doit etre positif.', 422, 'UNPROCESSABLE_ENTITY');
         }
         if ($priceCents > 1000000) {
-            throw new \InvalidArgumentException('Le prix est trop eleve.');
+            throw new PublicInvalidArgumentException('Le prix est trop eleve.', 422, 'UNPROCESSABLE_ENTITY');
         }
     }
 }

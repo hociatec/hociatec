@@ -1,19 +1,25 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 import { fetchPublicProducts, type CatalogProduct } from '@/features/catalog/publicApi';
-import { fetchPublicQuoteServices } from '@/features/quotes/api/quotesApi';
-import type { QuoteServiceDto } from '@/features/quotes/types/quoteTypes';
-import { normalizeSearchText } from '@/shared/lib/searchText';
+import { searchPublicQuoteServices } from '@/features/quotes/api/quotesApi';
 import { useDebounce } from '@/shared/hooks/useDebounce';
+import { omitUndefinedProperties } from '@/shared/lib/object';
 import { quoteQueryKeys } from '@/features/quotes/queryKeys';
 
 export const useQuoteCatalogSearch = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedQuery = useDebounce(searchQuery.trim(), 300);
-  const servicesQuery = useQuery<QuoteServiceDto[], Error>({
-    queryKey: quoteQueryKeys.publicServices(),
-    queryFn: ({ signal }) => fetchPublicQuoteServices({ signal }),
+  const servicesQuery = useQuery({
+    queryKey: quoteQueryKeys.publicServicesSearch(debouncedQuery, 1, 20),
+    queryFn: ({ signal }) =>
+      searchPublicQuoteServices(omitUndefinedProperties({
+        page: 1,
+        perPage: 20,
+        q: debouncedQuery || undefined,
+        signal,
+      })),
+    enabled: debouncedQuery.length >= 2,
   });
   const productsQuery = useQuery<CatalogProduct[], Error>({
     queryKey: quoteQueryKeys.catalogProducts(debouncedQuery),
@@ -21,18 +27,8 @@ export const useQuoteCatalogSearch = () => {
       fetchPublicProducts({ q: debouncedQuery, perPage: 48, sort: 'relevance', signal }),
     enabled: debouncedQuery.length >= 2,
   });
-  const allServices = servicesQuery.data ?? [];
+  const allServices = debouncedQuery.length >= 2 ? (servicesQuery.data?.items ?? []) : [];
   const products = debouncedQuery.length >= 2 ? (productsQuery.data ?? []) : [];
-
-  const filteredServices = useMemo(
-    () => {
-      const term = normalizeSearchText(searchQuery);
-      return allServices
-        .filter((service) => normalizeSearchText(service.title).includes(term))
-        .slice(0, 20);
-    },
-    [allServices, searchQuery],
-  );
 
   return {
     searchQuery,
@@ -40,6 +36,6 @@ export const useQuoteCatalogSearch = () => {
     products,
     productLoading: productsQuery.isFetching,
     allServices,
-    filteredServices,
+    filteredServices: allServices,
   };
 };

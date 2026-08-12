@@ -11,6 +11,7 @@ use App\Module\Appointment\Application\Port\PrestationRepositoryPort;
 use App\Module\Appointment\Application\Projection\AppointmentFormatter;
 use App\Module\Appointment\Application\Workflow\AppointmentService;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Validation\DtoValidator;
@@ -45,7 +46,7 @@ class CreateAppointmentController extends AbstractController
             $input = CreateAppointmentInput::fromArray($payload);
             $this->dtoValidator->validate($input);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error('Donnees de rendez-vous invalides.', Response::HTTP_UNPROCESSABLE_ENTITY, [$exception->getMessage()]);
+            return ApiProblemResponse::fromInvalidArgument($exception, Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $prestation = $this->prestationRepository->find($input->prestationId);
@@ -66,10 +67,14 @@ class CreateAppointmentController extends AbstractController
         try {
             $appointment = $this->appointmentService->book($user, $prestation, $startAt);
         } catch (InvalidAppointmentSlotException|AppointmentOperationException $exception) {
+            $details = $exception instanceof InvalidAppointmentSlotException
+                ? [$exception->publicMessage()]
+                : [$exception->publicDetail()];
+
             return ApiResponse::error(
                 'Impossible de reserver ce creneau.',
                 Response::HTTP_BAD_REQUEST,
-                [$exception->getMessage()]
+                $details
             );
         }
 

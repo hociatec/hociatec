@@ -30,7 +30,7 @@ final class StripeWebhookController extends AbstractController
             $result = $this->webhooks->handle($request->getContent(), $request->headers->get('Stripe-Signature'));
         } catch (\InvalidArgumentException|\RuntimeException $exception) {
             $this->logger->warning('Stripe webhook rejected.', [
-                'error' => $exception->getMessage(),
+                'exception' => $exception,
             ]);
 
             return ApiResponse::error('Webhook Stripe invalide.', Response::HTTP_BAD_REQUEST);

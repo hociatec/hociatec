@@ -7,6 +7,7 @@ namespace App\Module\Admin\UI\TradeIn\Controller;
 use App\Module\TradeIn\Application\DTO\TradeInClosureInput;
 use App\Module\TradeIn\Application\Port\TradeInRequestRepositoryPort;
 use App\Module\TradeIn\Application\Workflow\TradeInClosureService;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -36,7 +37,7 @@ final class CloseTradeInController extends AbstractController
         try {
             $this->closure->close($tradeIn, $input);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_CONFLICT);
+            return ApiProblemResponse::fromThrowable($exception, 'Clôture de reprise impossible.', Response::HTTP_CONFLICT);
         }
 
         return ApiResponse::success(['closed' => true], 200, 'La reprise a été clôturée et le justificatif a été généré.');

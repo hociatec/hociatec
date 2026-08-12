@@ -6,6 +6,7 @@ namespace App\Module\Admin\UI\Operations\Controller;
 
 use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFoundException;
 use App\Module\Admin\Application\Operations\Provider\CustomerTimelineProvider;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -33,7 +34,7 @@ final readonly class CustomerTimelineController
                 $pagination->metadata(count($items)),
             );
         } catch (OperationsResourceNotFoundException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_NOT_FOUND);
+            return ApiProblemResponse::fromThrowable($exception, 'Client introuvable.', Response::HTTP_NOT_FOUND);
         }
     }
 }

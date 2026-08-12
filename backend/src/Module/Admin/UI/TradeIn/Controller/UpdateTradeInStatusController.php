@@ -8,6 +8,7 @@ use App\Module\Admin\Application\TradeIn\DTO\TradeInStatusInput;
 use App\Module\TradeIn\Application\Port\TradeInRequestRepositoryPort;
 use App\Module\TradeIn\Application\Workflow\TradeInRequestWorkflow;
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -40,7 +41,7 @@ final class UpdateTradeInStatusController extends AbstractController
         try {
             $this->service->setStatus($tradeIn, $status);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_CONFLICT);
+            return ApiProblemResponse::fromThrowable($exception, 'Mise à jour du statut impossible.', Response::HTTP_CONFLICT);
         }
 
         return ApiResponse::success(['status' => $status->value], 200, 'Le statut de la demande a été mis à jour.');

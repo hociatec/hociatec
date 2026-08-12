@@ -128,12 +128,13 @@ export const fetchAdminQuoteServices = async (): Promise<QuoteServiceDto[]> =>
 export const fetchAdminQuoteServicesPage = async (
   page = 1,
   perPage = 10,
+  q?: string,
 ): Promise<PaginatedResult<QuoteServiceDto>> => {
   const data = unwrapQuoteApiData(
     (
       await httpClient.get<ApiResponse<{ items: QuoteServiceDto[]; meta: PaginationMeta }>>(
         '/api/admin/services',
-        { params: { page, perPage } },
+        { params: { page, perPage, q } },
       )
     ).data,
   );

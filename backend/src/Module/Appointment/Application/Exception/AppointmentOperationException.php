@@ -10,4 +10,9 @@ final class AppointmentOperationException extends \RuntimeException
     {
         return new self($message, 0, $previous);
     }
+
+    public function publicDetail(): string
+    {
+        return $this->message;
+    }
 }

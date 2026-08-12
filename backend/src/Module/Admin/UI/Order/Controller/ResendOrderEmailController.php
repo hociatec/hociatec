@@ -9,6 +9,7 @@ use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Order\Application\Workflow\OrderEmailScenarioResender;
 use App\Module\Order\Application\Workflow\OrderEventLogger;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -46,7 +47,7 @@ final class ResendOrderEmailController extends AbstractController
         try {
             $sent = $this->resender->resend($order, $scenario);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY);
+            return ApiProblemResponse::fromThrowable($exception, 'Renvoi d’email invalide.', Response::HTTP_UNPROCESSABLE_ENTITY);
         } catch (\RuntimeException) {
             return ApiResponse::internalError('Impossible de renvoyer l’email.');
         }

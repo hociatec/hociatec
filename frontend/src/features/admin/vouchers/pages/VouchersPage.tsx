@@ -1,6 +1,6 @@
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useCallback, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { deleteVoucher, fetchVouchers, type Voucher } from '@/features/admin/vouchers/api';
@@ -14,6 +14,8 @@ import { formatEuroCents } from '@/shared/lib/formatters';
 import { adminVoucherQueryKeys } from '@/features/admin/vouchers/queryKeys';
 import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import type { PaginatedResult } from '@/shared/types/api';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
+import { useEffect } from 'react';
 
 export const VouchersPage = () => {
   useDocumentTitle('Admin - Bons de réduction');
@@ -21,7 +23,8 @@ export const VouchersPage = () => {
   const confirm = useConfirm();
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [page, setPage] = useState(parseNullablePositiveInteger(searchParams.get('page')) ?? 1);
   const vouchersQuery = useQuery<PaginatedResult<Voucher>, Error>({
     queryKey: [...adminVoucherQueryKeys.list(), { page }],
     queryFn: () => fetchVouchers(page, 10),
@@ -42,6 +45,14 @@ export const VouchersPage = () => {
       toast.show(message, { variant: 'error' });
     },
   });
+
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (page > 1) {
+      next.set('page', String(page));
+    }
+    setSearchParams(next, { replace: true });
+  }, [page, setSearchParams]);
 
   const handleDelete = useCallback(
     async (voucherId: number) => {

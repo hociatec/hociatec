@@ -6,7 +6,8 @@ namespace App\Module\Admin\UI\BetaTest\Controller;
 
 use App\Module\Admin\Application\BetaTest\DTO\CreateBetaCampaignInput;
 use App\Module\Admin\Application\BetaTest\Handler\CreateBetaCampaignHandler;
-use App\Shared\Application\Exception\ApiValidationException;
+use App\Shared\Application\Exception\ApiProblemException;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -30,10 +31,14 @@ final class CreateCampaignController extends AbstractController
             $input = \App\Shared\Infrastructure\Http\JsonRequestInput::decode($request, CreateBetaCampaignInput::class);
             $this->validator->validate($input);
             $campaign = $this->createCampaign->create($input);
-        } catch (ApiValidationException $exception) {
-            return ApiResponse::error($exception->getMessage(), $exception->statusCode, $exception->details);
+        } catch (ApiProblemException $exception) {
+            return ApiProblemResponse::fromThrowable($exception, 'Création de campagne invalide.', 422);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), 422);
+            return ApiProblemResponse::fromThrowable($exception, 'Création de campagne invalide.', 422);
+        } catch (\DomainException $exception) {
+            return ApiProblemResponse::fromThrowable($exception, 'Création de campagne invalide.', 422);
+        } catch (\RuntimeException $exception) {
+            return ApiProblemResponse::fromThrowable($exception, 'Création de campagne invalide.', 422);
         }
 
         return ApiResponse::createdItem('id', $campaign->getId(), 'Campagne créée.');

@@ -15,4 +15,9 @@ class InvalidBirthDateException extends \DomainException
     {
         return new self('La date de naissance ne peut pas etre dans le futur.');
     }
+
+    public function fieldError(string $field = 'birthDate'): string
+    {
+        return $field.': '.$this->message;
+    }
 }

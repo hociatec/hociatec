@@ -1,15 +1,11 @@
 import type { OrderDto } from '@/features/orders/publicApi';
 import { formatEuroCents } from '@/shared/lib/formatters';
-import { useAdminPagination } from '@/shared/hooks/useAdminPagination';
-import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 
 type AdminOrderItemsSectionProps = {
   items: OrderDto['items'];
 };
 
 export const AdminOrderItemsSection = ({ items }: AdminOrderItemsSectionProps) => {
-  const itemsPagination = useAdminPagination(items);
-
   return (
     <section className="rounded-xl border border-brand-100 bg-white p-5 shadow-sm">
       <div className="mb-4">
@@ -19,7 +15,7 @@ export const AdminOrderItemsSection = ({ items }: AdminOrderItemsSectionProps) =
         </p>
       </div>
       <div className="space-y-3">
-        {itemsPagination.paginatedItems.map((item) => (
+        {items.map((item) => (
           <div
             key={item.orderItemId}
             className="flex items-center justify-between gap-3 rounded-2xl border border-brand-100 bg-brand-50 p-4"
@@ -36,13 +32,6 @@ export const AdminOrderItemsSection = ({ items }: AdminOrderItemsSectionProps) =
           </div>
         ))}
       </div>
-      <PaginationControls
-        page={itemsPagination.page}
-        total={itemsPagination.total}
-        totalLabel="article"
-        totalPages={itemsPagination.totalPages}
-        onPageChange={itemsPagination.setPage}
-      />
     </section>
   );
 };

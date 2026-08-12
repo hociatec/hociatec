@@ -7,6 +7,7 @@ namespace App\Module\Admin\UI\Voucher\Controller;
 use App\Module\Admin\Application\Voucher\DTO\VoucherInput;
 use App\Module\Voucher\Application\Handler\CreateVoucherHandler;
 use App\Module\Voucher\Application\Projection\VoucherFormatter;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Http\RequestPayloadMapper;
@@ -42,7 +43,7 @@ final class CreateVoucherController extends AbstractController
         try {
             $voucher = $this->createVoucher->create($this->toPayload($input));
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+            return ApiProblemResponse::fromThrowable($exception, 'Création du bon de réduction invalide.', Response::HTTP_BAD_REQUEST);
         }
 
         return ApiResponse::created([

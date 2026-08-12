@@ -7,6 +7,7 @@ namespace App\Module\Admin\UI\Marketing\Controller;
 use App\Module\Admin\Application\Marketing\Writer\EmailTemplateWriter;
 use App\Module\Admin\UI\Marketing\Http\MarketingRequestMapper;
 use App\Module\Marketing\Application\Projection\EmailTemplateResponseFormatter;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -35,7 +36,7 @@ final class CreateTemplateController extends AbstractController
         try {
             $template = $this->writer->create($input);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage());
+            return ApiProblemResponse::fromThrowable($exception, 'Création du modèle impossible.', JsonResponse::HTTP_BAD_REQUEST);
         }
 
         return ApiResponse::createdItem('template', $this->formatter->format($template), 'Le modèle d’e-mail a bien été créé.');

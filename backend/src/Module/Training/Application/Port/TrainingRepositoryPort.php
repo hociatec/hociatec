@@ -35,4 +35,28 @@ interface TrainingRepositoryPort
     public function findActivePaginated(?string $category, int $limit, int $offset): array;
 
     public function countActive(?string $category = null): int;
+
+    /** @return list<Training> */
+    public function findPublicCatalog(
+        ?string $search,
+        ?string $category,
+        ?string $format,
+        ?int $minPriceCents,
+        ?int $maxPriceCents,
+        ?int $minDurationMinutes,
+        ?int $maxDurationMinutes,
+        string $sort,
+        int $limit,
+        int $offset,
+    ): array;
+
+    public function countPublicCatalog(
+        ?string $search,
+        ?string $category,
+        ?string $format,
+        ?int $minPriceCents,
+        ?int $maxPriceCents,
+        ?int $minDurationMinutes,
+        ?int $maxDurationMinutes,
+    ): int;
 }

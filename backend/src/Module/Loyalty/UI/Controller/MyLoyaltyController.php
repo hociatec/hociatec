@@ -8,6 +8,7 @@ use App\Module\Loyalty\Application\Workflow\LoyaltyService;
 use App\Module\Loyalty\Domain\Exception\LoyaltyOperationException;
 use App\Module\User\Domain\Entity\User;
 use App\Module\Voucher\Application\Projection\VoucherFormatter;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -47,7 +48,7 @@ final class MyLoyaltyController extends AbstractController
             $points = (int) ($payload['points'] ?? 0);
             $voucher = $this->loyalty->convertPointsToVoucher($user, $points);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+            return ApiProblemResponse::fromThrowable($exception, 'Conversion de points invalide.', Response::HTTP_BAD_REQUEST);
         } catch (InvalidJsonPayloadException) {
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         } catch (LoyaltyOperationException) {

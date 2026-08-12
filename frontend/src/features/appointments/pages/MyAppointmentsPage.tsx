@@ -178,7 +178,6 @@ export const MyAppointmentsPage = () => {
     <SiteLayout headerVariant="light">
       <PublicPageShell
         size="medium"
-        eyebrow="Mon espace"
         title="Mes rendez-vous"
         description="Retrouvez vos créneaux confirmés, suivez leur statut et gardez un historique clair de vos rendez-vous."
       >

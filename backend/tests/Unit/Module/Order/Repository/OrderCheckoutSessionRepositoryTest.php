@@ -10,6 +10,7 @@ use App\Module\User\Domain\Entity\User;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;
+use Doctrine\ORM\Mapping\UnderscoreNamingStrategy;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
@@ -122,6 +123,7 @@ final class OrderCheckoutSessionRepositoryTest extends TestCase
         }
 
         $config = ORMSetup::createAttributeMetadataConfiguration([__DIR__.'/../../../../../src'], true);
+        $config->setNamingStrategy(new UnderscoreNamingStrategy());
         $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true], $config);
         $entityManager = new EntityManager($connection, $config);
         $tool = new SchemaTool($entityManager);

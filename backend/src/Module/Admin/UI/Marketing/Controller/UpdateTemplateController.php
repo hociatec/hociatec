@@ -8,6 +8,7 @@ use App\Module\Admin\Application\Marketing\Writer\EmailTemplateWriter;
 use App\Module\Admin\UI\Marketing\Http\MarketingRequestMapper;
 use App\Module\Marketing\Application\Port\EmailTemplateRepositoryPort;
 use App\Module\Marketing\Application\Projection\EmailTemplateResponseFormatter;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -43,7 +44,7 @@ final class UpdateTemplateController extends AbstractController
         try {
             $template = $this->writer->update($template, $input);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage());
+            return ApiProblemResponse::fromThrowable($exception, 'Mise à jour du modèle impossible.', JsonResponse::HTTP_BAD_REQUEST);
         }
 
         return ApiResponse::success(['template' => $this->formatter->format($template)], JsonResponse::HTTP_OK, 'Le modèle d’e-mail a bien été mis à jour.');

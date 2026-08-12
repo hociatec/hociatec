@@ -8,6 +8,7 @@ use App\Module\Admin\Application\Voucher\DTO\VoucherInput;
 use App\Module\Voucher\Application\Handler\UpdateVoucherHandler;
 use App\Module\Voucher\Application\Port\VoucherRepositoryPort;
 use App\Module\Voucher\Application\Projection\VoucherFormatter;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Http\RequestPayloadMapper;
@@ -49,7 +50,7 @@ final class UpdateVoucherController extends AbstractController
         try {
             $voucher = $this->updateVoucher->update($voucher, $this->toPayload($input));
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+            return ApiProblemResponse::fromThrowable($exception, 'Mise à jour du bon de réduction invalide.', Response::HTTP_BAD_REQUEST);
         }
 
         return ApiResponse::success([

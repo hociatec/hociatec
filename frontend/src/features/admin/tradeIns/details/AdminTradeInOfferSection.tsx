@@ -26,10 +26,7 @@ export const AdminTradeInOfferSection = ({
   onDelete,
 }: AdminTradeInOfferSectionProps) => (
   <section aria-labelledby="trade-in-action-title" className="rounded-lg border border-brand-200 p-4">
-    <h3
-      id="trade-in-action-title"
-      className="mb-3 text-sm font-semibold uppercase tracking-wide text-stone-600"
-    >
+    <h3 id="trade-in-action-title" className="mb-3 text-base font-semibold text-stone-800">
       Actions administratives
     </h3>
     <div className="space-y-6">

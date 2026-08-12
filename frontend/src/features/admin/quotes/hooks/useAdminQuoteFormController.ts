@@ -3,11 +3,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { fetchAdminProducts, type CatalogProduct } from '@/features/catalog/adminApi';
+import { fetchAdminProductsPage, type CatalogProduct } from '@/features/catalog/adminApi';
 import {
   createAdminQuote,
   fetchAdminQuote,
-  fetchAdminQuoteServices,
+  fetchAdminQuoteServicesPage,
   generateAdminQuotePdf,
   updateAdminQuote,
 } from '@/features/quotes/publicApi';
@@ -22,6 +22,8 @@ import { useToast } from '@/shared/components/ui/toast';
 import { downloadBlob } from '@/shared/lib/downloadFile';
 import { logger } from '@/shared/lib/logger';
 import { adminQuoteQueryKeys } from '@/features/quotes/publicApi';
+import { useDebounce } from '@/shared/hooks/useDebounce';
+import { omitUndefinedProperties } from '@/shared/lib/object';
 import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 import { normalizeSearchText } from '@/shared/lib/searchText';
 
@@ -66,33 +68,45 @@ export const useAdminQuoteFormController = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const debouncedSearchQuery = useDebounce(searchQuery.trim(), 250);
   const formOptionsQuery = useQuery({
     queryKey: adminQuoteQueryKeys.formOptions(quoteId),
     queryFn: async () => {
-      const [services, products, loadedQuote] = await Promise.all([
-        fetchAdminQuoteServices(),
-        fetchAdminProducts(),
+      const [loadedQuote] = await Promise.all([
         isNew || quoteId === null ? Promise.resolve(null) : fetchAdminQuote(quoteId),
       ]);
-      return { services, products, loadedQuote };
+      return { loadedQuote };
     },
   });
-  const services: QuoteServiceDto[] = formOptionsQuery.data?.services ?? [];
-  const products: CatalogProduct[] = formOptionsQuery.data?.products ?? [];
+  const servicesSearchQuery = useQuery({
+    queryKey: [...adminQuoteQueryKeys.services(), { q: debouncedSearchQuery }],
+    queryFn: () => fetchAdminQuoteServicesPage(1, 20, debouncedSearchQuery || undefined),
+    enabled: debouncedSearchQuery.length >= 2,
+  });
+  const productsSearchQuery = useQuery({
+    queryKey: ['admin', 'quotes', 'products-search', { q: debouncedSearchQuery }],
+    queryFn: () =>
+      fetchAdminProductsPage(
+        omitUndefinedProperties({
+          page: 1,
+          perPage: 20,
+          search: debouncedSearchQuery || undefined,
+        }),
+      ),
+    enabled: debouncedSearchQuery.length >= 2,
+  });
+  const services: QuoteServiceDto[] = servicesSearchQuery.data?.items ?? [];
+  const products: CatalogProduct[] = productsSearchQuery.data?.items ?? [];
 
   const trimmedSearchQuery = normalizeSearchText(searchQuery);
-  const filteredServices = useMemo(() => {
-    if (trimmedSearchQuery === '') return [];
-    return services
-      .filter((service) => normalizeSearchText(service.title).includes(trimmedSearchQuery))
-      .slice(0, 20);
-  }, [services, trimmedSearchQuery]);
-  const filteredProducts = useMemo(() => {
-    if (trimmedSearchQuery === '') return [];
-    return products
-      .filter((product) => normalizeSearchText(product.name).includes(trimmedSearchQuery))
-      .slice(0, 20);
-  }, [products, trimmedSearchQuery]);
+  const filteredServices = useMemo(
+    () => (trimmedSearchQuery === '' ? [] : services),
+    [services, trimmedSearchQuery],
+  );
+  const filteredProducts = useMemo(
+    () => (trimmedSearchQuery === '' ? [] : products),
+    [products, trimmedSearchQuery],
+  );
 
   useEffect(() => {
     if (!formOptionsQuery.data) return;

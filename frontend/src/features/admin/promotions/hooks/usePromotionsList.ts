@@ -1,25 +1,29 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useSearchParams } from 'react-router';
 import { deletePromotion, fetchPromotionAudiences, fetchPromotions } from '../api';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { useToast } from '@/shared/components/ui/toast';
 import { adminPromotionQueryKeys } from '@/features/admin/promotions/queryKeys';
-import { normalizeSearchText } from '@/shared/lib/searchText';
+import { useDebounce } from '@/shared/hooks/useDebounce';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 export const usePromotionsList = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const confirm = useConfirm();
   const toast = useToast();
   const queryClient = useQueryClient();
-  const [query, setQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [query, setQuery] = useState(searchParams.get('q') ?? '');
+  const [statusFilter, setStatusFilter] = useState(searchParams.get('status') ?? 'all');
   const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(parseNullablePositiveInteger(searchParams.get('page')) ?? 1);
+  const debouncedQuery = useDebounce(query.trim(), 250);
   const overviewQuery = useQuery({
-    queryKey: [...adminPromotionQueryKeys.overview(), { page }],
+    queryKey: [...adminPromotionQueryKeys.overview(), { page, q: debouncedQuery, status: statusFilter }],
     queryFn: async () => {
       const [promotions, audiences] = await Promise.all([
-        fetchPromotions(page, 10),
+        fetchPromotions(page, 10, debouncedQuery || undefined, statusFilter === 'all' ? undefined : statusFilter),
         fetchPromotionAudiences(),
       ]);
       return { promotions, audiences };
@@ -40,21 +44,23 @@ export const usePromotionsList = () => {
       toast.show(message, { variant: 'error' });
     },
   });
-  const filteredPromotions = useMemo(() => {
-    const term = normalizeSearchText(query);
-    return promotions.filter(
-      (promotion) =>
-        (!term ||
-          normalizeSearchText(promotion.name).includes(term) ||
-          normalizeSearchText(promotion.slug).includes(term)) &&
-        (statusFilter === 'all' ||
-          (statusFilter === 'active' && promotion.isActive) ||
-          (statusFilter === 'inactive' && !promotion.isActive)),
-    );
-  }, [promotions, query, statusFilter]);
+  const filteredPromotions = useMemo(() => promotions, [promotions]);
   useEffect(() => {
     setPage(1);
-  }, [query, statusFilter]);
+  }, [debouncedQuery, statusFilter]);
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (query.trim()) {
+      next.set('q', query.trim());
+    }
+    if (statusFilter !== 'all') {
+      next.set('status', statusFilter);
+    }
+    if (page > 1) {
+      next.set('page', String(page));
+    }
+    setSearchParams(next, { replace: true });
+  }, [page, query, setSearchParams, statusFilter]);
   const handleDelete = async (promotionId: number) => {
     const promotion = promotions.find((item) => item.id === promotionId);
     if (

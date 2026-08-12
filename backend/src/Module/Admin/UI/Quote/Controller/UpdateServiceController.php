@@ -10,6 +10,7 @@ use App\Module\Quote\Application\Port\ServiceOfferingRepositoryPort;
 use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Domain\Entity\ServiceOffering;
 use App\Module\Quote\Domain\Exception\QuoteOperationException;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -39,7 +40,7 @@ final readonly class UpdateServiceController
         try {
             $service = $this->updateService->update($service, $this->forms->update($request, $service));
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY);
+            return ApiProblemResponse::fromThrowable($exception, 'Mise à jour de service invalide.', Response::HTTP_UNPROCESSABLE_ENTITY);
         } catch (QuoteOperationException) {
             return ApiResponse::internalError();
         }

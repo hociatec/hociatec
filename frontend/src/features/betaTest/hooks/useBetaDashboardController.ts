@@ -162,7 +162,7 @@ export const useBetaDashboardController = () => {
     isDeletingProfile: deleteProfileMutation.isPending,
     loadingComments,
     newCommentText,
-    openReports: reports.filter((report) => !['resolved', 'duplicate', 'rejected'].includes(report.status)).length,
+    openReports: reportsResult?.stats.openReports ?? 0,
     postCommentPending: postCommentMutation.isPending,
     profile,
     profileErrorMessage:
@@ -174,7 +174,7 @@ export const useBetaDashboardController = () => {
     profileStatus,
     reportPage,
     reportsMeta,
-    resolvedReports: reports.filter((report) => report.status === 'resolved').length,
+    resolvedReports: reportsResult?.stats.resolvedReports ?? 0,
     selectedCampaign,
     viewedCampaign,
     viewedCampaignCanReport,

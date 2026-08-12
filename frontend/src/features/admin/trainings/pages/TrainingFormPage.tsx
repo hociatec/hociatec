@@ -123,8 +123,10 @@ export const TrainingFormPage = () => {
         isEdit ? safeTrainingId : undefined,
       ),
     onSuccess: (response) => {
-      void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.overview() });
       void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.trainings() });
+      void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.sessions() });
+      void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.enrollments() });
+      void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.categories() });
       setMessage(response.message ?? (isEdit ? 'La formation a bien été mise à jour.' : 'La formation a bien été créée.'));
       navigateWithDelay('/admin/trainings');
     },

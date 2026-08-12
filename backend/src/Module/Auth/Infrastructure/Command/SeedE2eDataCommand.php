@@ -20,6 +20,12 @@ final class SeedE2eDataCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        if (!E2eCommandGuard::isAllowed()) {
+            $output->writeln(sprintf('<error>%s</error>', E2eCommandGuard::denialMessage('app:e2e:seed')));
+
+            return Command::FAILURE;
+        }
+
         $this->seeder->seed();
 
         $output->writeln('<info>E2E users and orders seeded.</info>');

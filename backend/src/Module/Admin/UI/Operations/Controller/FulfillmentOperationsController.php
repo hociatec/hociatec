@@ -8,6 +8,7 @@ use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFound
 use App\Module\Admin\Application\Operations\Workflow\FulfillmentOperationsService;
 use App\Module\Order\Application\DTO\DeliveryInput;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
@@ -47,9 +48,9 @@ final class FulfillmentOperationsController extends AbstractController
             $this->validator->validate($input);
             $order = $this->fulfillment->ship($id, $input, $this->currentAdmin());
         } catch (OperationsResourceNotFoundException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_NOT_FOUND);
+            return ApiProblemResponse::fromThrowable($exception, 'Commande introuvable.', Response::HTTP_NOT_FOUND);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+            return ApiProblemResponse::fromThrowable($exception, 'Expédition invalide.', Response::HTTP_BAD_REQUEST);
         } catch (InvalidJsonPayloadException|\JsonException|\RuntimeException) {
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }

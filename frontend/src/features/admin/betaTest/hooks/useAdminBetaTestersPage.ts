@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useSearchParams } from 'react-router';
 
 import {
   deleteAdminBetaTester,
@@ -12,22 +13,26 @@ import { fetchBetaProfileChoices, formatBetaList, type BetaProfileChoices } from
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { adminBetaQueryKeys } from '@/features/betaTest/publicApi';
 import { omitUndefinedProperties } from '@/shared/lib/object';
+import { useDebounce } from '@/shared/hooks/useDebounce';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 export const useAdminBetaTestersPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const confirm = useConfirm();
   const queryClient = useQueryClient();
-  const [search, setSearch] = useState('');
-  const [status, setStatus] = useState('');
-  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState(searchParams.get('q') ?? '');
+  const [status, setStatus] = useState(searchParams.get('status') ?? '');
+  const [page, setPage] = useState(parseNullablePositiveInteger(searchParams.get('page')) ?? 1);
   const [selectedTester, setSelectedTester] = useState<AdminBetaTesterDto | null>(null);
+  const debouncedSearch = useDebounce(search.trim(), 250);
 
   const testersQuery = useQuery<{ items: AdminBetaTesterDto[]; meta: PaginationMeta }, Error>({
-    queryKey: [...adminBetaQueryKeys.testers(search, status), { page }],
+    queryKey: [...adminBetaQueryKeys.testers(debouncedSearch, status), { page }],
     queryFn: () =>
       fetchAdminBetaTesters(omitUndefinedProperties({
         page,
         perPage: 10,
-        search: search || undefined,
+        q: debouncedSearch || undefined,
         status: status || undefined,
       })),
   });
@@ -37,7 +42,7 @@ export const useAdminBetaTestersPage = () => {
   });
 
   const invalidateTesters = () =>
-    queryClient.invalidateQueries({ queryKey: adminBetaQueryKeys.testers(search, status) });
+    queryClient.invalidateQueries({ queryKey: adminBetaQueryKeys.testers(debouncedSearch, status) });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, nextStatus }: { id: number; nextStatus: string }) =>
@@ -54,7 +59,20 @@ export const useAdminBetaTestersPage = () => {
   const testersPagination = testersQuery.data?.meta ?? { page, perPage: 10, total: 0, totalPages: 1 };
   useEffect(() => {
     setPage(1);
-  }, [search, status]);
+  }, [debouncedSearch, status]);
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (search.trim()) {
+      next.set('q', search.trim());
+    }
+    if (status) {
+      next.set('status', status);
+    }
+    if (page > 1) {
+      next.set('page', String(page));
+    }
+    setSearchParams(next, { replace: true });
+  }, [page, search, setSearchParams, status]);
   const formatChoiceList = (group: string, values: string[]) => {
     const labels = new Map((choices[group] ?? []).map((choice) => [choice.value, choice.label]));
     const readableValues = values.map((value) => labels.get(value) ?? value);

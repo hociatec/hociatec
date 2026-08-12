@@ -4,26 +4,28 @@ declare(strict_types=1);
 
 namespace App\Shared\Application\Exception;
 
-final class ApiValidationException extends \RuntimeException implements ApiProblemException, PublicApiException
+final class ApiValidationException extends AbstractPublicApiException
 {
+    /** @var list<string> */
+    public readonly array $details;
+    public readonly int $statusCode;
+
     /**
      * @param list<string> $details
      */
     public function __construct(
         string $message,
-        public readonly array $details,
-        public readonly int $statusCode = 422,
+        array $details,
+        int $statusCode = 422,
     ) {
-        parent::__construct($message);
-    }
+        $this->details = $details;
+        $this->statusCode = $statusCode;
 
-    public function getStatusCode(): int
-    {
-        return $this->statusCode;
-    }
-
-    public function publicMessage(): string
-    {
-        return $this->getMessage();
+        parent::__construct(
+            $message,
+            $statusCode,
+            errorCode: 'VALIDATION_ERROR',
+            details: $details,
+        );
     }
 }

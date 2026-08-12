@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useSearchParams } from 'react-router';
 import {
   deleteMarketingTemplate,
   fetchMarketingSegments,
@@ -8,23 +9,35 @@ import {
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useConfirm } from '@/shared/components/ui/confirm';
 import { adminMarketingQueryKeys } from '@/features/admin/marketing/queryKeys';
-import { normalizeSearchText } from '@/shared/lib/searchText';
+import { useDebounce } from '@/shared/hooks/useDebounce';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 export const useMarketingTemplatesList = (isTransactionalView: boolean) => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const confirm = useConfirm();
   const queryClient = useQueryClient();
-  const [query, setQuery] = useState('');
-  const [scenarioFilter, setScenarioFilter] = useState('all');
-  const [usageFilter, setUsageFilter] = useState(isTransactionalView ? 'transactional' : 'all');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [page, setPage] = useState(1);
+  const [query, setQuery] = useState(searchParams.get('q') ?? '');
+  const [scenarioFilter, setScenarioFilter] = useState(searchParams.get('scenario') ?? 'all');
+  const [usageFilter, setUsageFilter] = useState(
+    searchParams.get('usage') ?? (isTransactionalView ? 'transactional' : 'all'),
+  );
+  const [statusFilter, setStatusFilter] = useState(searchParams.get('status') ?? 'all');
+  const [page, setPage] = useState(parseNullablePositiveInteger(searchParams.get('page')) ?? 1);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const debouncedQuery = useDebounce(query.trim(), 250);
   const listQuery = useQuery({
-    queryKey: [...adminMarketingQueryKeys.templates(), { page }],
+    queryKey: [...adminMarketingQueryKeys.templates(), { page, query: debouncedQuery, scenario: scenarioFilter, usage: usageFilter, status: statusFilter }],
     queryFn: async () => {
       const [templates, segments] = await Promise.all([
-        fetchMarketingTemplatesPage(page, 10),
+        fetchMarketingTemplatesPage(
+          page,
+          10,
+          debouncedQuery || undefined,
+          scenarioFilter === 'all' ? undefined : scenarioFilter,
+          usageFilter === 'all' ? undefined : usageFilter,
+          statusFilter === 'all' ? undefined : statusFilter,
+        ),
         fetchMarketingSegments('templates'),
       ]);
       return { templates, segments };
@@ -46,26 +59,27 @@ export const useMarketingTemplatesList = (isTransactionalView: boolean) => {
   }, [isTransactionalView]);
   useEffect(() => {
     setPage(1);
-  }, [query, scenarioFilter, usageFilter, statusFilter]);
-  const filteredTemplates = useMemo(() => {
-    const term = normalizeSearchText(query);
-    return templates.filter(
-      (template) =>
-        (!term ||
-          [template.name, template.slug, template.subjectTemplate].some((value) =>
-            normalizeSearchText(value).includes(term),
-          )) &&
-        (scenarioFilter === 'all' || template.scenarioKey === scenarioFilter) &&
-        (usageFilter === 'all' ||
-          (usageFilter === 'transactional' &&
-            segments[template.scenarioKey]?.type === 'transactional') ||
-          (usageFilter === 'campaign' &&
-            segments[template.scenarioKey]?.type !== 'transactional')) &&
-        (statusFilter === 'all' ||
-          (statusFilter === 'active' && template.isActive) ||
-          (statusFilter === 'inactive' && !template.isActive)),
-    );
-  }, [templates, segments, query, scenarioFilter, usageFilter, statusFilter]);
+  }, [debouncedQuery, scenarioFilter, usageFilter, statusFilter]);
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (query.trim()) {
+      next.set('q', query.trim());
+    }
+    if (scenarioFilter !== 'all') {
+      next.set('scenario', scenarioFilter);
+    }
+    if (usageFilter !== 'all') {
+      next.set('usage', usageFilter);
+    }
+    if (statusFilter !== 'all') {
+      next.set('status', statusFilter);
+    }
+    if (page > 1) {
+      next.set('page', String(page));
+    }
+    setSearchParams(next, { replace: true });
+  }, [page, query, scenarioFilter, setSearchParams, statusFilter, usageFilter]);
+  const filteredTemplates = useMemo(() => templates, [templates]);
   const scenarioOptions = useMemo(
     () => [
       { value: 'all', label: 'Tous les scénarios' },

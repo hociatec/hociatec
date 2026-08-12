@@ -17,7 +17,6 @@ export const MentionsPage = () => {
     <SiteLayout headerVariant="light">
       <PublicPageShell
         size="medium"
-        eyebrow="Informations légales"
         title="Mentions légales"
         description={`Dernière mise à jour: ${LEGAL_UPDATED_AT}`}
       >

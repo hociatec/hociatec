@@ -134,6 +134,39 @@ final class BugReportRepository extends ServiceEntityRepository implements BugRe
         ];
     }
 
+    /** @return array{openReports:int,resolvedReports:int,totalReports:int} */
+    public function dashboardStatsForUser(User $user): array
+    {
+        $base = $this->createQueryBuilder('r')
+            ->andWhere('r.reporter = :user')
+            ->setParameter('user', $user);
+
+        $totalReports = (int) (clone $base)
+            ->select('COUNT(r.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $openReports = (int) (clone $base)
+            ->select('COUNT(r.id)')
+            ->andWhere('r.status NOT IN (:closed)')
+            ->setParameter('closed', BugReport::CLOSED_STATUSES)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $resolvedReports = (int) (clone $base)
+            ->select('COUNT(r.id)')
+            ->andWhere('r.status = :status')
+            ->setParameter('status', BugReport::STATUS_RESOLVED)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return [
+            'openReports' => $openReports,
+            'resolvedReports' => $resolvedReports,
+            'totalReports' => $totalReports,
+        ];
+    }
+
     /**
      * @param array<string, mixed> $filters
      *

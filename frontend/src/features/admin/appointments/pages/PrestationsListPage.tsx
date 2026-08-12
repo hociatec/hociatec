@@ -1,7 +1,7 @@
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 
 import { deletePrestation, fetchAdminPrestationsPage } from '@/features/admin/appointments/api';
 import type { Prestation } from '@/features/appointments/publicApi';
@@ -14,12 +14,14 @@ import { formatEuroCents } from '@/shared/lib/formatters';
 import { adminAppointmentQueryKeys } from '@/features/admin/appointments/queryKeys';
 import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import type { PaginatedResult } from '@/shared/types/api';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 export const PrestationsListPage = () => {
   useDocumentTitle('Admin - Motifs de rendez-vous');
 
   const [message, setMessage] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [page, setPage] = useState(parseNullablePositiveInteger(searchParams.get('page')) ?? 1);
   const confirm = useConfirm();
   const queryClient = useQueryClient();
   const prestationsQuery = useQuery<PaginatedResult<Prestation>, Error>({
@@ -40,6 +42,14 @@ export const PrestationsListPage = () => {
     : deleteMutation.error
       ? getHttpErrorMessage(deleteMutation.error, 'Impossible de supprimer la prestation')
       : null;
+
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (page > 1) {
+      next.set('page', String(page));
+    }
+    setSearchParams(next, { replace: true });
+  }, [page, setSearchParams]);
 
   const handleDelete = async (prestationId: number) => {
     const prestation = prestations.find((item) => item.id === prestationId);

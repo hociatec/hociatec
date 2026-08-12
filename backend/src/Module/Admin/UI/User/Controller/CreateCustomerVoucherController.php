@@ -8,6 +8,7 @@ use App\Module\Admin\Application\User\DTO\CustomerVoucherInput;
 use App\Module\Admin\Application\User\Handler\CreateCustomerVoucherHandler as CreateCustomerVoucherForCustomerHandler;
 use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\Voucher\Application\Projection\VoucherFormatter;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Http\RequestPayloadMapper;
@@ -58,7 +59,7 @@ final class CreateCustomerVoucherController extends AbstractController
                 'endsAt' => RequestPayloadMapper::dateOrNull($input->endsAt),
             ]);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+            return ApiProblemResponse::fromThrowable($exception, 'Création du bon d’achat invalide.', Response::HTTP_BAD_REQUEST);
         }
 
         return ApiResponse::created([

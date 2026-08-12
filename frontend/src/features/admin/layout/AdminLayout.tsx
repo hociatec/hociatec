@@ -42,9 +42,8 @@ export const AdminLayout = () => {
       <div className="admin-shell">
         <aside className="admin-shell__sidebar" aria-label="Navigation admin">
           <div className="admin-shell__heading">
-            <span>Back-office</span>
-            <strong>Hociatec</strong>
-            <small>{currentGroup?.label ?? 'Administration'}</small>
+            <strong>Administration</strong>
+            <small>{currentGroup?.label ?? 'Tableau de bord'}</small>
           </div>
           <Link
             to="/admin"

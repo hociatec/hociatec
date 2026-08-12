@@ -81,10 +81,14 @@ export const fetchMarketingTemplates = async (): Promise<MarketingTemplate[]> =>
 export const fetchMarketingTemplatesPage = async (
   page = 1,
   perPage = 10,
+  q?: string,
+  scenario?: string,
+  usage?: string,
+  status?: string,
 ): Promise<PaginatedResult<MarketingTemplate>> => {
   const { data } = await httpClient.get<{ data: { items: MarketingTemplate[]; meta: PaginationMeta } }>(
     '/api/admin/marketing/templates',
-    { params: { page, perPage } },
+    { params: { page, perPage, q, scenario, usage, status } },
   );
   return { items: data.data.items, meta: data.data.meta };
 };

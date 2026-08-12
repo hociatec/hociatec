@@ -42,7 +42,7 @@ final class CommunicationPreferencesController extends AbstractController
         try {
             $this->updater->update($user, is_array($payload['preferences'] ?? null) ? $payload['preferences'] : []);
         } catch (\InvalidArgumentException $exception) {
-            return ApiProblemResponse::fromThrowable($exception, 'Préférences de communication invalides.', JsonResponse::HTTP_UNPROCESSABLE_ENTITY);
+            return ApiProblemResponse::fromThrowable($exception, 'Préférences de communication invalides.', JsonResponse::HTTP_BAD_REQUEST);
         } catch (NotificationOperationException) {
             return ApiResponse::internalError();
         }

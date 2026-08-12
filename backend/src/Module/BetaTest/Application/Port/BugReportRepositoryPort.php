@@ -49,5 +49,8 @@ interface BugReportRepositoryPort
     /** @return array<string, mixed> */
     public function dashboardStats(): array;
 
+    /** @return array{openReports:int,resolvedReports:int,totalReports:int} */
+    public function dashboardStatsForUser(User $user): array;
+
     public function countOpenForCampaign(BetaCampaign $campaign): int;
 }

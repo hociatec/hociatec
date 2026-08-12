@@ -28,10 +28,7 @@ export const CustomerEmailComposer = ({
     <div className="border-b border-brand-100 bg-brand-900 px-6 py-5 text-white">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500">
-            Messagerie client
-          </p>
-          <h2 className="mt-1 text-xl font-semibold">Envoyer un e-mail manuel</h2>
+          <h2 className="text-xl font-semibold">Envoyer un e-mail manuel</h2>
           <p className="mt-2 text-sm text-stone-500">
             Message direct vers {customer.fullName} ({customer.email}).
           </p>

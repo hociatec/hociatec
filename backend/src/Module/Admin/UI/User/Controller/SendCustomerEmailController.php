@@ -7,6 +7,7 @@ namespace App\Module\Admin\UI\User\Controller;
 use App\Module\Admin\Application\User\DTO\CustomerEmailInput;
 use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\User\Application\Workflow\AdminCustomerEmailService;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Validation\DtoValidator;
@@ -46,9 +47,9 @@ final class SendCustomerEmailController extends AbstractController
             $this->validator->validate($input);
             $this->emails->send($user, $input->subject, $input->message);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+            return ApiProblemResponse::fromThrowable($exception, 'Envoi d’email invalide.', Response::HTTP_BAD_REQUEST);
         } catch (\RuntimeException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_SERVICE_UNAVAILABLE);
+            return ApiProblemResponse::fromThrowable($exception, 'Envoi d’email indisponible.', Response::HTTP_SERVICE_UNAVAILABLE);
         }
 
         return ApiResponse::success(['sent' => true], Response::HTTP_OK, 'L’e-mail a bien été envoyé au client.');

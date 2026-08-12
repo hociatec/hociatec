@@ -12,6 +12,7 @@ use App\Module\Admin\Application\Operations\Workflow\SupportOperationsService;
 use App\Module\Support\Application\DTO\SupportCreateData;
 use App\Module\Support\Application\DTO\SupportReplyData;
 use App\Module\Support\Application\DTO\SupportUpdateData;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
@@ -50,7 +51,7 @@ final readonly class SupportOperationsController
             $this->validator->validate($input);
             $item = $this->support->create(new SupportCreateData($input->customerId, $input->subject, $input->reason, $input->message, $input->internalNotes, $input->orderId));
         } catch (OperationsResourceNotFoundException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_NOT_FOUND);
+            return ApiProblemResponse::fromThrowable($exception, 'Client ou commande introuvable.', Response::HTTP_NOT_FOUND);
         } catch (InvalidJsonPayloadException|\JsonException|\RuntimeException) {
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }
@@ -66,7 +67,7 @@ final readonly class SupportOperationsController
             $this->validator->validate($input);
             $item = $this->support->update($id, new SupportUpdateData($input->status, $input->internalNotes, $input->subject));
         } catch (OperationsResourceNotFoundException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_NOT_FOUND);
+            return ApiProblemResponse::fromThrowable($exception, 'Demande de support introuvable.', Response::HTTP_NOT_FOUND);
         } catch (InvalidJsonPayloadException|\JsonException|\RuntimeException) {
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }
@@ -82,11 +83,11 @@ final readonly class SupportOperationsController
             $this->validator->validate($input);
             $item = $this->support->reply($id, new SupportReplyData($input->message, $input->subject, $input->status));
         } catch (OperationsResourceNotFoundException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_NOT_FOUND);
+            return ApiProblemResponse::fromThrowable($exception, 'Demande de support introuvable.', Response::HTTP_NOT_FOUND);
         } catch (InvalidJsonPayloadException|\JsonException) {
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         } catch (\InvalidArgumentException|\RuntimeException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+            return ApiProblemResponse::fromThrowable($exception, 'Réponse de support invalide.', Response::HTTP_BAD_REQUEST);
         }
 
         return ApiResponse::success(['sent' => true, 'item' => $item]);

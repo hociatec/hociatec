@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace App\Module\Order\UI\Controller;
 
 use App\Module\Order\Application\DTO\CheckoutInput;
-use App\Module\Order\Application\Exception\CartCheckoutConflictException;
-use App\Module\Order\Application\Exception\CartCheckoutNotFoundException;
 use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Order\Application\Workflow\CartCheckoutService;
-use App\Shared\Application\Exception\ApiValidationException;
+use App\Shared\Application\Exception\ApiProblemException;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
 use App\Shared\Infrastructure\Http\RateLimited;
@@ -53,14 +52,14 @@ final class CheckoutController extends AbstractController
                 $token,
                 $input->addressId,
             );
-        } catch (CartCheckoutNotFoundException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_NOT_FOUND);
-        } catch (CartCheckoutConflictException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_CONFLICT);
-        } catch (ApiValidationException $exception) {
-            return ApiResponse::error($exception->getMessage(), $exception->statusCode, $exception->details);
+        } catch (ApiProblemException $exception) {
+            return ApiProblemResponse::fromThrowable($exception, 'Impossible de valider la commande.');
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error('Impossible de valider la commande.', Response::HTTP_BAD_REQUEST, [$exception->getMessage()]);
+            return ApiProblemResponse::fromThrowable($exception, 'Impossible de valider la commande.');
+        } catch (\DomainException $exception) {
+            return ApiProblemResponse::fromThrowable($exception, 'Impossible de valider la commande.');
+        } catch (\RuntimeException $exception) {
+            return ApiProblemResponse::fromThrowable($exception, 'Impossible de valider la commande.');
         }
 
         if (null !== $result->order) {

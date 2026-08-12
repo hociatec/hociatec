@@ -61,7 +61,7 @@ class RegisterController extends AbstractController
             return ApiResponse::error(
                 'Validation des donnees echouee.',
                 JsonResponse::HTTP_UNPROCESSABLE_ENTITY,
-                ['birthDate: '.$exception->getMessage()]
+                [$exception->fieldError()]
             );
         } catch (ActivationEmailDeliveryException $exception) {
             $this->logger->warning('Registration rolled back after activation email failure.', [

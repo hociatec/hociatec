@@ -6,5 +6,4 @@ export const adminTrainingQueryKeys = {
   sessions: () => ['admin', 'trainings', 'sessions'] as const,
   sessionForm: (id: number | null) => ['admin', 'trainings', 'session-form', id] as const,
   enrollments: () => ['admin', 'trainings', 'enrollments'] as const,
-  overview: () => ['admin', 'trainings', 'overview'] as const,
 };

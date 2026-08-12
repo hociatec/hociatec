@@ -22,6 +22,11 @@ interface EmailTemplateRepositoryPort
     /** @param array<string, mixed> $criteria */
     public function count(array $criteria): int;
 
+    /** @return list<EmailTemplate> */
+    public function findForAdmin(?string $search, ?string $scenario, ?string $status, int $limit, int $offset): array;
+
+    public function countForAdmin(?string $search, ?string $scenario, ?string $status): int;
+
     public function findOneBySlug(string $slug): ?EmailTemplate;
 
     public function findActiveOneByScenarioKey(string $scenarioKey): ?EmailTemplate;

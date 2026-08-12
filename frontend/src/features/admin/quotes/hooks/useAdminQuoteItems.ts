@@ -24,6 +24,7 @@ const createProductQuoteItem = (product: CatalogProduct): QuoteItem => ({
   unitPriceCents: product.effectivePriceCents ?? product.priceCents,
   vatRate: 20,
   discountCents: 0,
+  sellingType: product.sellingType,
   ...(product.sellingType === 'rental' ? { rentalMonths: 1 } : {}),
 });
 
@@ -50,11 +51,7 @@ export const useAdminQuoteItems = ({
     let vat = 0;
 
     for (const item of quote.items) {
-      const isRental =
-        item.type === 'product' &&
-        products.some(
-          (product) => product.id === item.productId && product.sellingType === 'rental',
-        );
+      const isRental = item.type === 'product' && item.sellingType === 'rental';
       const months = isRental ? clampAtLeast(item.rentalMonths ?? 1, 1) : 1;
       const line = clampAtLeast(
         item.unitPriceCents * item.quantity * months - (item.discountCents ?? 0),
@@ -66,7 +63,7 @@ export const useAdminQuoteItems = ({
 
     ht = clampAtLeast(ht - (quote.discountCents ?? 0), 0);
     return { ht, vat, ttc: ht + vat + (quote.shippingCents ?? 0) };
-  }, [products, quote]);
+  }, [quote]);
 
   const addItemFromService = (serviceId: number) => {
     const service = services.find((item) => item.id === serviceId);

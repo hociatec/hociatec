@@ -8,6 +8,7 @@ use App\Module\Admin\Application\Appointment\DTO\PrestationInput;
 use App\Module\Appointment\Application\Exception\AppointmentOperationException;
 use App\Module\Appointment\Application\Port\PrestationRepositoryPort;
 use App\Module\Appointment\Application\Workflow\PrestationService;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Http\RequestPayloadMapper;
@@ -49,7 +50,7 @@ class UpdatePrestationController extends AbstractController
         try {
             $priceCents = RequestPayloadMapper::priceCents($input->price);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY);
+            return ApiProblemResponse::fromInvalidArgument($exception, Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         if ($priceCents < 0) {
@@ -59,7 +60,7 @@ class UpdatePrestationController extends AbstractController
         try {
             $prestation = $this->prestationService->update($prestation, $input->name, $input->durationMinutes, $priceCents);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY);
+            return ApiProblemResponse::fromInvalidArgument($exception, Response::HTTP_UNPROCESSABLE_ENTITY);
         } catch (AppointmentOperationException) {
             return ApiResponse::internalError();
         }

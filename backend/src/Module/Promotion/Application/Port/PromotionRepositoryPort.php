@@ -24,6 +24,11 @@ interface PromotionRepositoryPort
     public function count(array $criteria): int;
 
     /** @return list<Promotion> */
+    public function findForAdmin(?string $search, ?string $status, int $limit, int $offset): array;
+
+    public function countForAdmin(?string $search, ?string $status): int;
+
+    /** @return list<Promotion> */
     public function findActiveForDate(\DateTimeImmutable $now): array;
 
     /** @return array{ordersCount:int,lastOrderAt:\DateTimeImmutable|null} */

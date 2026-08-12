@@ -1,6 +1,6 @@
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 
 import {
   fetchAdminTrainingEnrollmentsPage,
@@ -15,14 +15,16 @@ import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { formatFrenchDateTime } from '@/shared/lib/formatters';
 import { adminTrainingQueryKeys } from '@/features/admin/trainings/queryKeys';
 import { PaginationControls } from '@/shared/components/ui/PaginationControls';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { PaginatedResult } from '@/shared/types/api';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 export const TrainingEnrollmentsPage = () => {
   useDocumentTitle('Admin - Inscriptions formation');
 
   const queryClient = useQueryClient();
-  const [page, setPage] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [page, setPage] = useState(parseNullablePositiveInteger(searchParams.get('page')) ?? 1);
   const enrollmentsQuery = useQuery<PaginatedResult<TrainingEnrollmentDto>, Error>({
     queryKey: [...adminTrainingQueryKeys.enrollments(), { page }],
     queryFn: () => fetchAdminTrainingEnrollmentsPage(page, 10),
@@ -32,7 +34,7 @@ export const TrainingEnrollmentsPage = () => {
       updateAdminTrainingEnrollmentStatus(id, status),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.enrollments() });
-      void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.overview() });
+      void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.sessions() });
     },
   });
   const enrollments = enrollmentsQuery.data?.items ?? [];
@@ -42,6 +44,14 @@ export const TrainingEnrollmentsPage = () => {
     : statusMutation.error
       ? getHttpErrorMessage(statusMutation.error, 'Impossible de modifier le statut.')
       : null;
+
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (page > 1) {
+      next.set('page', String(page));
+    }
+    setSearchParams(next, { replace: true });
+  }, [page, setSearchParams]);
 
   const handleStatus = async (id: number, status: TrainingEnrollmentStatus) => {
     statusMutation.mutate({ id, status });

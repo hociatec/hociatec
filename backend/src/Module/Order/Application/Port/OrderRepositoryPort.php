@@ -26,6 +26,14 @@ interface OrderRepositoryPort
     public function countByUser(User $user): int;
 
     /** @return list<Order> */
+    public function findForUserList(User $user, ?string $status, int $limit, int $offset): array;
+
+    public function countForUserList(User $user, ?string $status): int;
+
+    /** @return array{all:int,open:int,delivered:int,cancelled:int} */
+    public function countStatusBucketsForUser(User $user): array;
+
+    /** @return list<Order> */
     public function findRecentForAdmin(int $limit = 8): array;
 
     /** @return list<Order> */
@@ -35,9 +43,9 @@ interface OrderRepositoryPort
     public function findFulfillmentQueue(int $limit = 30): array;
 
     /** @return list<Order> */
-    public function findForAdminList(?string $status, ?string $health, int $limit, int $offset): array;
+    public function findForAdminList(?string $status, ?string $health, ?string $search, int $limit, int $offset): array;
 
-    public function countForAdminList(?string $status, ?string $health): int;
+    public function countForAdminList(?string $status, ?string $health, ?string $search): int;
 
     /** @return array{count:int,totalCents:int} */
     public function getSummaryBetween(\DateTimeImmutable $from, \DateTimeImmutable $to): array;

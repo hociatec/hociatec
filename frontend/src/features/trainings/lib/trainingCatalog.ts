@@ -1,4 +1,5 @@
 import type { TrainingCategoryDto, TrainingDto } from '../api/trainingsApi';
+import type { TrainingFormat } from '../api/trainingTypes';
 
 import { parseNullableNonNegativeInteger } from '@/shared/lib/parsers';
 import { normalizeSearchText } from '@/shared/lib/searchText';
@@ -11,6 +12,24 @@ export const formatTrainingDuration = (minutes: number) => {
   const hours = Math.floor(minutes / 60);
   const rest = minutes % 60;
   return hours > 0 ? `${hours}h${rest ? String(rest).padStart(2, '0') : ''}` : `${minutes} min`;
+};
+export const formatTrainingDelivery = (formats: TrainingFormat[]) => {
+  const hasOnsite = formats.includes('onsite');
+  const hasRemote = formats.includes('remote');
+
+  if (hasOnsite && hasRemote) {
+    return 'Présentiel et distanciel';
+  }
+
+  if (hasOnsite) {
+    return 'Présentiel';
+  }
+
+  if (hasRemote) {
+    return 'Distanciel';
+  }
+
+  return 'Modalité à confirmer';
 };
 export const toNullableNumber = (value: string | null) => parseNullableNonNegativeInteger(value);
 export const normalizeTrainingParam = (value: string | null) =>

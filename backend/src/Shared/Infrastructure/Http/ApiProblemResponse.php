@@ -5,14 +5,33 @@ declare(strict_types=1);
 namespace App\Shared\Infrastructure\Http;
 
 use App\Shared\Application\Exception\ApiProblemException;
-use App\Shared\Application\Exception\ApiValidationException;
-use App\Shared\Application\Exception\PublicApiException;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 final class ApiProblemResponse
 {
     private function __construct()
     {
+    }
+
+    /**
+     * @param list<string>|array<string, mixed> $details
+     */
+    public static function fromInvalidArgument(
+        \InvalidArgumentException $exception,
+        int $status = JsonResponse::HTTP_BAD_REQUEST,
+        array $details = [],
+    ): JsonResponse {
+        if ($exception instanceof ApiProblemException) {
+            return self::fromThrowable($exception, null, $status, $details);
+        }
+
+        return ApiResponse::error(
+            self::defaultMessage($status),
+            $status,
+            $details,
+            self::statusCodeToErrorCode($status),
+        );
     }
 
     /**
@@ -24,39 +43,48 @@ final class ApiProblemResponse
         ?int $fallbackStatus = null,
         array $details = [],
     ): JsonResponse {
-        if ($exception instanceof ApiValidationException) {
-            return ApiResponse::validation($exception->getMessage(), $exception->details);
-        }
+        if ($exception instanceof ApiProblemException) {
+            $status = $fallbackStatus ?? $exception->getStatusCode();
+            $message = $fallbackMessage ?? $exception->publicMessage();
+            $payloadDetails = [] !== $details ? $details : $exception->details();
+            $code = null !== $fallbackStatus && $fallbackStatus !== $exception->getStatusCode()
+                ? self::statusCodeToErrorCode($status)
+                : $exception->errorCode();
 
-        if ($exception instanceof PublicApiException) {
             return ApiResponse::error(
-                $exception->publicMessage(),
-                $exception->getStatusCode(),
-                $details,
-                self::publicExceptionCode($exception),
+                $message,
+                $status,
+                $payloadDetails,
+                $code,
             );
         }
 
-        if ($exception instanceof ApiProblemException) {
+        if ($exception instanceof HttpExceptionInterface) {
+            $status = $fallbackStatus ?? $exception->getStatusCode();
+
             return ApiResponse::error(
-                $fallbackMessage ?? self::defaultMessage($exception->getStatusCode()),
-                $fallbackStatus ?? $exception->getStatusCode(),
+                $fallbackMessage ?? self::defaultMessage($status),
+                $status,
                 $details,
-                self::statusCodeToErrorCode($fallbackStatus ?? $exception->getStatusCode()),
+                self::statusCodeToErrorCode($status),
             );
         }
 
         if ($exception instanceof \DomainException) {
-            return ApiResponse::unprocessable(
+            return ApiResponse::error(
                 $fallbackMessage ?? 'Requête impossible.',
+                $fallbackStatus ?? JsonResponse::HTTP_UNPROCESSABLE_ENTITY,
                 $details,
+                self::statusCodeToErrorCode($fallbackStatus ?? JsonResponse::HTTP_UNPROCESSABLE_ENTITY),
             );
         }
 
         if ($exception instanceof \InvalidArgumentException) {
-            return ApiResponse::badRequest(
+            return ApiResponse::error(
                 $fallbackMessage ?? 'Requête invalide.',
+                $fallbackStatus ?? JsonResponse::HTTP_BAD_REQUEST,
                 $details,
+                self::statusCodeToErrorCode($fallbackStatus ?? JsonResponse::HTTP_BAD_REQUEST),
             );
         }
 
@@ -73,19 +101,6 @@ final class ApiProblemResponse
         return $status >= JsonResponse::HTTP_INTERNAL_SERVER_ERROR
             ? 'Une erreur interne est survenue.'
             : 'Requête impossible.';
-    }
-
-    private static function publicExceptionCode(PublicApiException $exception): string
-    {
-        return match ($exception->getStatusCode()) {
-            JsonResponse::HTTP_BAD_REQUEST => 'BAD_REQUEST',
-            JsonResponse::HTTP_UNAUTHORIZED => 'UNAUTHORIZED',
-            JsonResponse::HTTP_FORBIDDEN => 'FORBIDDEN',
-            JsonResponse::HTTP_NOT_FOUND => 'NOT_FOUND',
-            JsonResponse::HTTP_CONFLICT => 'CONFLICT',
-            JsonResponse::HTTP_UNPROCESSABLE_ENTITY => $exception instanceof ApiValidationException ? 'VALIDATION_ERROR' : 'UNPROCESSABLE_ENTITY',
-            default => $exception->getStatusCode() >= JsonResponse::HTTP_INTERNAL_SERVER_ERROR ? 'INTERNAL_ERROR' : 'REQUEST_ERROR',
-        };
     }
 
     private static function statusCodeToErrorCode(int $statusCode): string

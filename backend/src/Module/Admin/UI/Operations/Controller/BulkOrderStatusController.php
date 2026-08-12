@@ -6,6 +6,7 @@ namespace App\Module\Admin\UI\Operations\Controller;
 
 use App\Module\Admin\Application\Operations\DTO\BulkOrderStatusInput;
 use App\Module\Admin\Application\Operations\Workflow\BulkOrderStatusService;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Validation\DtoValidator;
@@ -33,7 +34,7 @@ final readonly class BulkOrderStatusController
             $this->validator->validate($input);
             $updated = $this->bulkStatus->update($input->orderIds, $input->status);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+            return ApiProblemResponse::fromThrowable($exception, 'Mise à jour en masse invalide.', Response::HTTP_BAD_REQUEST);
         } catch (InvalidJsonPayloadException|\JsonException|\RuntimeException) {
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }

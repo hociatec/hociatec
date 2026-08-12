@@ -20,6 +20,9 @@ interface OrderEventRepositoryPort
      */
     public function findBy(array $criteria, ?array $orderBy = null, ?int $limit = null, ?int $offset = null): array;
 
+    /** @param array<string, mixed> $criteria */
+    public function count(array $criteria): int;
+
     /**
      * @param list<Order> $orders
      *

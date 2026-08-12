@@ -7,6 +7,7 @@ namespace App\Module\Admin\UI\News\Controller;
 use App\Module\News\Application\Port\NewsArticleRepositoryPort;
 use App\Module\News\Application\Writer\NewsArticleWriter;
 use App\Module\News\Domain\Exception\NewsOperationException;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
@@ -30,7 +31,7 @@ final readonly class SendAdminNewsArticleEmailController
         try {
             $this->writer->sendPublishedEmails($article);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), JsonResponse::HTTP_BAD_REQUEST);
+            return ApiProblemResponse::fromThrowable($exception, 'Envoi de l’actualité impossible.', JsonResponse::HTTP_BAD_REQUEST);
         } catch (NewsOperationException) {
             return ApiResponse::internalError();
         }

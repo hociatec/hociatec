@@ -1,8 +1,6 @@
 import type { QuoteItem } from '@/features/quotes/publicApi';
 import type { CatalogProduct } from '@/features/catalog/adminApi';
 import { AdminQuoteItemRow } from './AdminQuoteItemRow';
-import { ADMIN_PAGE_SIZE, useAdminPagination } from '@/shared/hooks/useAdminPagination';
-import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 
 type AdminQuoteItemsTableProps = {
   items: QuoteItem[];
@@ -17,8 +15,6 @@ export const AdminQuoteItemsTable = ({
   onUpdateItem,
   onRemoveItem,
 }: AdminQuoteItemsTableProps) => {
-  const itemsPagination = useAdminPagination(items);
-
   return (
     <div>
       <div className="quote-table-scroll">
@@ -36,9 +32,7 @@ export const AdminQuoteItemsTable = ({
             </tr>
           </thead>
           <tbody>
-            {itemsPagination.paginatedItems.map((item, visibleIndex) => {
-              const index = (itemsPagination.page - 1) * ADMIN_PAGE_SIZE + visibleIndex;
-
+            {items.map((item, index) => {
               return (
                 <AdminQuoteItemRow
                   key={`${item.type}-${item.productId ?? item.serviceId ?? index}`}
@@ -53,13 +47,6 @@ export const AdminQuoteItemsTable = ({
           </tbody>
         </table>
       </div>
-      <PaginationControls
-        page={itemsPagination.page}
-        total={itemsPagination.total}
-        totalLabel="ligne"
-        totalPages={itemsPagination.totalPages}
-        onPageChange={itemsPagination.setPage}
-      />
     </div>
   );
 };

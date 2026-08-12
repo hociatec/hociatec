@@ -96,7 +96,7 @@ export interface OperationsOverviewDto {
     }>;
     movements: StockMovementDto[];
   };
-  emails: { items: EmailLogDto[] };
+  emails: { failedCount: number; items: EmailLogDto[] };
   actions: Array<{ label: string; href: string }>;
 }
 

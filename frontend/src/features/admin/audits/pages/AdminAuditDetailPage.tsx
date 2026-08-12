@@ -7,8 +7,6 @@ import type { AuditEventDto, AuditItemDto, AuditListItemDto } from '@/features/a
 import { useAuditMetadata } from '@/features/audits/publicApi';
 import { useAdminAuditDetail } from '../hooks/useAdminAuditDetail';
 import { logger } from '@/shared/lib/logger';
-import { PaginationControls } from '@/shared/components/ui/PaginationControls';
-import { useAdminPagination } from '@/shared/hooks/useAdminPagination';
 
 const AuditChecklistGroup = ({
   category,
@@ -21,13 +19,11 @@ const AuditChecklistGroup = ({
   updateItem: (item: AuditItemDto, patch: Partial<Pick<AuditItemDto, 'isCompliant' | 'comment'>>) => Promise<void>;
   scheduleCommentUpdate: (item: AuditItemDto, comment: string) => void;
 }) => {
-  const itemsPagination = useAdminPagination(items, category);
-
   return (
     <div>
       <div className="mb-2 text-xs uppercase text-gray-600">{category}</div>
       <div className="space-y-2">
-        {itemsPagination.paginatedItems.map((it) => (
+        {items.map((it) => (
           <div key={it.id} className="rounded border p-3">
             <div className="font-medium">
               {it.label}
@@ -73,26 +69,16 @@ const AuditChecklistGroup = ({
           </div>
         ))}
       </div>
-      <PaginationControls
-        className="mt-3"
-        page={itemsPagination.page}
-        total={itemsPagination.total}
-        totalLabel="point"
-        totalPages={itemsPagination.totalPages}
-        onPageChange={itemsPagination.setPage}
-      />
     </div>
   );
 };
 
 const AuditEventsList = ({ events }: { events: AuditEventDto[] }) => {
-  const eventsPagination = useAdminPagination(events, 'audit-events');
-
   return (
     <div>
       <div className="mb-2 font-medium">Historique</div>
       <ul className="space-y-1 text-sm text-gray-700">
-        {eventsPagination.paginatedItems.map((e) => (
+        {events.map((e) => (
           <li key={e.id}>
             <span className="text-gray-500">{formatFrenchDateTime(e.createdAt)} :</span>{' '}
             {e.message || e.type}
@@ -100,14 +86,6 @@ const AuditEventsList = ({ events }: { events: AuditEventDto[] }) => {
           </li>
         ))}
       </ul>
-      <PaginationControls
-        className="mt-3"
-        page={eventsPagination.page}
-        total={eventsPagination.total}
-        totalLabel="évènement"
-        totalPages={eventsPagination.totalPages}
-        onPageChange={eventsPagination.setPage}
-      />
     </div>
   );
 };

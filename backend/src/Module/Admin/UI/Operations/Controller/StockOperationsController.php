@@ -9,6 +9,7 @@ use App\Module\Admin\Application\Operations\DTO\UpdateLowStockThresholdInput;
 use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFoundException;
 use App\Module\Admin\Application\Operations\Workflow\StockOperationsService;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
@@ -57,9 +58,9 @@ final class StockOperationsController extends AbstractController
                 $this->currentAdmin(),
             );
         } catch (OperationsResourceNotFoundException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_NOT_FOUND);
+            return ApiProblemResponse::fromThrowable($exception, 'Ressource de stock introuvable.', Response::HTTP_NOT_FOUND);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+            return ApiProblemResponse::fromThrowable($exception, 'Création de mouvement de stock invalide.', Response::HTTP_BAD_REQUEST);
         } catch (InvalidJsonPayloadException|\JsonException|\RuntimeException) {
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }
@@ -75,9 +76,9 @@ final class StockOperationsController extends AbstractController
             $this->validator->validate($input);
             $product = $this->stock->updateThreshold($id, $input->threshold);
         } catch (OperationsResourceNotFoundException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_NOT_FOUND);
+            return ApiProblemResponse::fromThrowable($exception, 'Produit introuvable.', Response::HTTP_NOT_FOUND);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+            return ApiProblemResponse::fromThrowable($exception, 'Seuil de stock invalide.', Response::HTTP_BAD_REQUEST);
         } catch (InvalidJsonPayloadException|\JsonException|\RuntimeException) {
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }

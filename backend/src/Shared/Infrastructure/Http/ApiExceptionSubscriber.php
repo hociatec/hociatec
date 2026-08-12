@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Shared\Infrastructure\Http;
 
 use App\Shared\Application\Exception\ApiProblemException;
-use App\Shared\Application\Exception\ApiValidationException;
 use App\Shared\Application\Exception\PublicApiException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Psr\Log\LoggerInterface;
@@ -13,7 +12,6 @@ use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\HttpFoundation\Exception\JsonException as HttpFoundationJsonException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
-use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 
@@ -32,7 +30,8 @@ final readonly class ApiExceptionSubscriber
         }
 
         $exception = $event->getThrowable();
-        [$message, $status, $details] = $this->map($exception);
+        $response = $this->mapToResponse($exception);
+        $status = $response->getStatusCode();
 
         if ($status >= JsonResponse::HTTP_INTERNAL_SERVER_ERROR) {
             $this->logger->error('Unhandled API exception.', [
@@ -43,44 +42,41 @@ final readonly class ApiExceptionSubscriber
             ]);
         }
 
-        $event->setResponse(ApiResponse::error($message, $status, $details));
+        $event->setResponse($response);
     }
 
-    /**
-     * @return array{0: string, 1: int, 2: list<string>}
-     */
-    private function map(\Throwable $exception): array
+    private function mapToResponse(\Throwable $exception): JsonResponse
     {
-        if ($exception instanceof ApiValidationException) {
-            return [$exception->getMessage(), $exception->statusCode, $exception->details];
-        }
-
         if (
             $exception instanceof \JsonException
             || $exception instanceof HttpFoundationJsonException
             || $exception->getPrevious() instanceof \JsonException
             || $exception->getPrevious() instanceof HttpFoundationJsonException
         ) {
-            return ['Payload JSON invalide.', JsonResponse::HTTP_BAD_REQUEST, []];
+            return ApiResponse::badRequest('Payload JSON invalide.', code: 'INVALID_JSON_PAYLOAD');
         }
 
-        if ($exception instanceof HttpExceptionInterface) {
-            $message = $exception->getStatusCode() >= 500
-                ? 'Une erreur interne est survenue.'
-                : ($exception->getMessage() ?: 'Requête impossible.');
-
-            return [$message, $exception->getStatusCode(), []];
+        if ($exception instanceof AccessDeniedException) {
+            return ApiResponse::forbidden('Accès refusé.');
         }
 
-        return match (true) {
-            $exception instanceof AccessDeniedException => ['Accès refusé.', JsonResponse::HTTP_FORBIDDEN, []],
-            $exception instanceof AuthenticationException => ['Authentification requise.', JsonResponse::HTTP_UNAUTHORIZED, []],
-            $exception instanceof UniqueConstraintViolationException => ['Une ressource avec ces informations existe déjà.', JsonResponse::HTTP_CONFLICT, []],
-            $exception instanceof PublicApiException => [$exception->publicMessage(), $exception->getStatusCode(), []],
-            $exception instanceof ApiProblemException => [$exception->getStatusCode() >= JsonResponse::HTTP_INTERNAL_SERVER_ERROR ? 'Une erreur interne est survenue.' : 'Requête impossible.', $exception->getStatusCode(), []],
-            $exception instanceof \DomainException => ['Requête impossible.', JsonResponse::HTTP_UNPROCESSABLE_ENTITY, []],
-            $exception instanceof \InvalidArgumentException => ['Requête invalide.', JsonResponse::HTTP_BAD_REQUEST, []],
-            default => ['Une erreur interne est survenue.', JsonResponse::HTTP_INTERNAL_SERVER_ERROR, []],
-        };
+        if ($exception instanceof AuthenticationException) {
+            return ApiResponse::unauthorized('Authentification requise.');
+        }
+
+        if ($exception instanceof UniqueConstraintViolationException) {
+            return ApiResponse::conflict('Une ressource avec ces informations existe déjà.', code: 'RESOURCE_ALREADY_EXISTS');
+        }
+
+        if ($exception instanceof ApiProblemException) {
+            [$message, $status, $details, $code] = match (true) {
+                $exception instanceof PublicApiException => [$exception->publicMessage(), $exception->getStatusCode(), $exception->details(), $exception->errorCode()],
+                $exception instanceof ApiProblemException => [$exception->getStatusCode() >= JsonResponse::HTTP_INTERNAL_SERVER_ERROR ? 'Une erreur interne est survenue.' : 'Requête impossible.', $exception->getStatusCode(), $exception->details(), $exception->errorCode()],
+            };
+
+            return ApiResponse::error($message, $status, $details, $code);
+        }
+
+        return ApiProblemResponse::fromThrowable($exception);
     }
 }

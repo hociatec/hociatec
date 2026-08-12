@@ -97,6 +97,46 @@ class OrderRepository extends ServiceEntityRepository implements OrderRepository
             ->getSingleScalarResult();
     }
 
+    /**
+     * @return list<Order>
+     */
+    public function findForUserList(User $user, ?string $status, int $limit, int $offset): array
+    {
+        /** @var list<Order> $orders */
+        $orders = $this->createUserListQuery($user, $status)
+            ->orderBy('o.createdAt', 'DESC')
+            ->setFirstResult(max(0, $offset))
+            ->setMaxResults(max(1, min(100, $limit)))
+            ->getQuery()
+            ->getResult();
+
+        return $orders;
+    }
+
+    public function countForUserList(User $user, ?string $status): int
+    {
+        return (int) $this->createUserListQuery($user, $status)
+            ->select('COUNT(DISTINCT o.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /** @return array{all:int,open:int,delivered:int,cancelled:int} */
+    public function countStatusBucketsForUser(User $user): array
+    {
+        $all = $this->countByUser($user);
+        $open = $this->countForUserList($user, 'open');
+        $delivered = $this->countForUserList($user, Order::STATUS_DELIVERED);
+        $cancelled = $this->countForUserList($user, Order::STATUS_CANCELLED);
+
+        return [
+            'all' => $all,
+            'open' => $open,
+            'delivered' => $delivered,
+            'cancelled' => $cancelled,
+        ];
+    }
+
     public function hasActiveForUser(User $user): bool
     {
         return null !== $this->createQueryBuilder('o')
@@ -108,6 +148,30 @@ class OrderRepository extends ServiceEntityRepository implements OrderRepository
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
+    }
+
+    private function createUserListQuery(User $user, ?string $status): \Doctrine\ORM\QueryBuilder
+    {
+        $qb = $this->createQueryBuilder('o')
+            ->addSelect('i', 'p')
+            ->leftJoin('o.items', 'i')
+            ->leftJoin('i.product', 'p')
+            ->andWhere('o.user = :user')
+            ->setParameter('user', $user);
+
+        if (null === $status || '' === $status || 'all' === $status) {
+            return $qb;
+        }
+
+        if ('open' === $status) {
+            return $qb
+                ->andWhere('o.state.status IN (:statuses)')
+                ->setParameter('statuses', [Order::STATUS_PENDING, Order::STATUS_CONFIRMED]);
+        }
+
+        return $qb
+            ->andWhere('o.state.status = :status')
+            ->setParameter('status', $status);
     }
 
     /**

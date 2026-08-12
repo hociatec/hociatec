@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -17,6 +17,7 @@ import {
 } from '@/features/admin/customers/components/customerDetailShared';
 import { adminCustomerQueryKeys } from '@/features/admin/customers/queryKeys';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 export const useAdminCustomerDetail = (customerId: number) => {
   const navigate = useNavigate();
@@ -24,7 +25,6 @@ export const useAdminCustomerDetail = (customerId: number) => {
   const toast = useToast();
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
-  const [orderFilter, setOrderFilter] = useState<OrderFilter>('all');
   const [adminNotes, setAdminNotes] = useState('');
   const [adminTagsInput, setAdminTagsInput] = useState('');
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
@@ -32,14 +32,22 @@ export const useAdminCustomerDetail = (customerId: number) => {
   const [emailOpen, setEmailOpen] = useState(false);
   const [emailForm, setEmailForm] = useState<CustomerEmailFormState>({ subject: '', message: '' });
   const emailOnlyView = searchParams.get('panel') === 'email';
+  const orderFilterParam = searchParams.get('orderStatus');
+  const orderFilter: OrderFilter =
+    orderFilterParam === 'open' || orderFilterParam === 'delivered' || orderFilterParam === 'cancelled'
+      ? orderFilterParam
+      : 'all';
+  const orderPage = parseNullablePositiveInteger(searchParams.get('orderPage')) ?? 1;
   const customerQuery = useQuery({
-    queryKey: adminCustomerQueryKeys.detail(customerId || null),
-    queryFn: () => fetchAdminCustomerById(customerId),
+    queryKey: [...adminCustomerQueryKeys.detail(customerId || null), { orderFilter, orderPage }],
+    queryFn: () => fetchAdminCustomerById(customerId, { orderStatus: orderFilter, orderPage, orderPerPage: 10 }),
     enabled: Boolean(customerId),
   });
   const customer = customerQuery.data?.customer ?? null;
   const addresses: AdminCustomerAddressDto[] = customerQuery.data?.addresses ?? [];
-  const orders: OrderDto[] = customerQuery.data?.orders ?? [];
+  const orders: OrderDto[] = customerQuery.data?.orders.items ?? [];
+  const ordersMeta = customerQuery.data?.orders.meta ?? { page: orderPage, perPage: 10, total: 0, totalPages: 1 };
+  const orderStats = customerQuery.data?.orders.stats ?? { all: 0, open: 0, delivered: 0, cancelled: 0 };
   const saveProfileMutation = useMutation({
     mutationFn: () =>
       updateAdminCustomerAdminProfile(customerId, { adminNotes, adminTags: parsedTags }),
@@ -101,20 +109,6 @@ export const useAdminCustomerDetail = (customerId: number) => {
   }, [emailOnlyView]);
 
   const latestOrder = orders[0] ?? null;
-  const filteredOrders = useMemo(() => {
-    switch (orderFilter) {
-      case 'open':
-        return orders.filter((order) => order.status === 'pending' || order.status === 'confirmed');
-      case 'delivered':
-        return orders.filter((order) => order.status === 'delivered');
-      case 'cancelled':
-        return orders.filter((order) => order.status === 'cancelled');
-      case 'all':
-      default:
-        return orders;
-    }
-  }, [orderFilter, orders]);
-
   const parsedTags = adminTagsInput.split(',').map((tag) => tag.trim()).filter(Boolean);
 
   const closeEmailComposer = () => {
@@ -130,7 +124,31 @@ export const useAdminCustomerDetail = (customerId: number) => {
       return;
     }
     setEmailOpen(true);
-    setSearchParams({ panel: 'email' }, { replace: true });
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('panel', 'email');
+    setSearchParams(nextParams, { replace: true });
+  };
+
+  const setOrderFilter = (nextFilter: OrderFilter) => {
+    const nextParams = new URLSearchParams(searchParams);
+    if (nextFilter === 'all') {
+      nextParams.delete('orderStatus');
+    } else {
+      nextParams.set('orderStatus', nextFilter);
+    }
+    nextParams.delete('orderPage');
+    setSearchParams(nextParams, { replace: true });
+  };
+
+  const setOrderPage = (updater: (page: number) => number) => {
+    const nextPage = updater(orderPage);
+    const nextParams = new URLSearchParams(searchParams);
+    if (nextPage <= 1) {
+      nextParams.delete('orderPage');
+    } else {
+      nextParams.set('orderPage', String(nextPage));
+    }
+    setSearchParams(nextParams, { replace: true });
   };
 
   const handleSaveAdminProfile = () => {
@@ -153,7 +171,7 @@ export const useAdminCustomerDetail = (customerId: number) => {
   return {
     customer, addresses, orders, status: customerQuery.isLoading ? 'loading' : error || customerQuery.error ? 'error' : 'success', error: error ?? customerQuery.error?.message ?? null, orderFilter, adminNotes, adminTagsInput,
     saveState: saveProfileMutation.isPending ? 'saving' : saveState, saveMessage, emailOpen, emailForm, emailSending: sendEmailMutation.isPending, emailOnlyView, latestOrder,
-    filteredOrders, parsedTags, setAdminNotes, setAdminTagsInput, setEmailForm, setOrderFilter,
+    ordersMeta, orderStats, parsedTags, setAdminNotes, setAdminTagsInput, setEmailForm, setOrderFilter, setOrderPage,
     closeEmailComposer, toggleEmailComposer, handleSaveAdminProfile, handleSendEmail, applyEmailPreset,
     navigate,
   };

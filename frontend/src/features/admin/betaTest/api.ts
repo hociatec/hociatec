@@ -97,7 +97,7 @@ export const resolveBetaAttachmentUrl = (url: string) => toSafeAttachmentUrl(url
 export const fetchAdminBetaTesters = async (params: {
   page?: number;
   perPage?: number;
-  search?: string;
+  q?: string;
   status?: string;
 } = {}): Promise<PaginatedResult<AdminBetaTesterDto>> => {
   const { data } = await httpClient.get<ApiResponse<{ items: AdminBetaTesterDto[]; meta: PaginationMeta }>>(

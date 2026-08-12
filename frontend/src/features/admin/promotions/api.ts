@@ -48,10 +48,15 @@ export const fetchPromotionAudiences = async (): Promise<
   return data.data.items;
 };
 
-export const fetchPromotions = async (page = 1, perPage = 10): Promise<PaginatedResult<PromotionDto>> => {
+export const fetchPromotions = async (
+  page = 1,
+  perPage = 10,
+  q?: string,
+  status?: string,
+): Promise<PaginatedResult<PromotionDto>> => {
   const { data } = await httpClient.get<ApiResponse<{ items: PromotionDto[]; meta: PaginationMeta }>>(
     '/api/admin/promotions',
-    { params: { page, perPage } },
+    { params: { page, perPage, q, status } },
   );
   const payload = unwrapApiData(data, 'Réponse API invalide.');
   return payload;

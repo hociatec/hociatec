@@ -25,7 +25,7 @@ export const useAdminProductsList = () => {
   const confirm = useConfirm();
   const queryClient = useQueryClient();
   const [message, setMessage] = useState<string | null>(null);
-  const [searchValue, setSearchValue] = useState(searchParams.get('search') ?? '');
+  const [searchValue, setSearchValue] = useState(searchParams.get('q') ?? '');
   const [categoryValue, setCategoryValue] = useState(searchParams.get('category') ?? 'all');
   const [stockValue, setStockValue] = useState<'all' | 'low'>(
     'low' === searchParams.get('stock') ? 'low' : 'all',
@@ -51,7 +51,7 @@ export const useAdminProductsList = () => {
     () => omitUndefinedProperties({
       page,
       perPage: PRODUCTS_PER_PAGE,
-      search: searchValue.trim() || undefined,
+      q: searchValue.trim() || undefined,
       category: 'all' === categoryValue ? undefined : categoryValue,
       featured: 'featured' === featuredValue ? true : undefined,
       sellingType: 'all' === sellingTypeValue ? undefined : sellingTypeValue,
@@ -102,7 +102,7 @@ export const useAdminProductsList = () => {
   useEffect(() => {
     const next = new URLSearchParams();
     if (page > 1) next.set('page', String(page));
-    if (searchValue.trim()) next.set('search', searchValue.trim());
+    if (searchValue.trim()) next.set('q', searchValue.trim());
     if ('all' !== categoryValue) next.set('category', categoryValue);
     if ('all' !== stockValue) next.set('stock', stockValue);
     if ('all' !== featuredValue) next.set('featured', '1');

@@ -20,7 +20,7 @@ final readonly class ProductAdminListQueryMapper
                 'page' => max(1, $request->query->getInt('page', 1)),
                 'perPage' => max(1, min(self::MAX_PER_PAGE, $request->query->getInt('perPage', self::DEFAULT_PER_PAGE))),
                 'categorySlug' => $this->string($request->query->get('category')),
-                'search' => $this->string($request->query->get('search')),
+                'search' => $this->string($request->query->get('q')),
                 'featured' => $this->boolean($request, 'featured'),
                 'sellingType' => $this->choice($request->query->get('sellingType'), ['sale', 'rental']),
                 'minPriceCents' => $this->price($request->query->get('minPrice')),

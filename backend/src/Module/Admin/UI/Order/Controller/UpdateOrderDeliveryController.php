@@ -10,9 +10,9 @@ use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Order\Application\Writer\OrderDeliveryUpdater;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\User\Domain\Entity\User;
-use App\Shared\Application\Exception\ApiValidationException;
+use App\Shared\Application\Exception\ApiProblemException;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
-use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -49,12 +49,14 @@ final class UpdateOrderDeliveryController extends AbstractController
                 $input,
                 $actor instanceof User ? $actor : null,
             );
-        } catch (ApiValidationException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST, $exception->details);
+        } catch (ApiProblemException $exception) {
+            return ApiProblemResponse::fromThrowable($exception, 'Mise à jour de livraison invalide.', Response::HTTP_BAD_REQUEST);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
-        } catch (InvalidJsonPayloadException) {
-            return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
+            return ApiProblemResponse::fromThrowable($exception, 'Mise à jour de livraison invalide.', Response::HTTP_BAD_REQUEST);
+        } catch (\DomainException $exception) {
+            return ApiProblemResponse::fromThrowable($exception, 'Mise à jour de livraison invalide.', Response::HTTP_BAD_REQUEST);
+        } catch (\RuntimeException $exception) {
+            return ApiProblemResponse::fromThrowable($exception, 'Mise à jour de livraison invalide.', Response::HTTP_BAD_REQUEST);
         }
 
         return ApiResponse::successItem('order', $this->orderFormatter->formatOrder($order));

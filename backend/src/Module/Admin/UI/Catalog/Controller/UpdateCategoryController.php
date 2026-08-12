@@ -9,6 +9,7 @@ use App\Module\Catalog\Application\Port\CategoryRepositoryPort;
 use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Module\Catalog\Application\Workflow\CategoryCatalogWorkflow;
 use App\Module\Catalog\Domain\Exception\CatalogOperationException;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Validation\DtoValidator;
@@ -51,7 +52,7 @@ class UpdateCategoryController extends AbstractController
         try {
             $category = $this->categoryService->update($category, $input->name, $input->slug, $input->description, $input->isVisible);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY);
+            return ApiProblemResponse::fromThrowable($exception, 'Mise à jour de catégorie invalide.', Response::HTTP_UNPROCESSABLE_ENTITY);
         } catch (CatalogOperationException) {
             return ApiResponse::internalError();
         }

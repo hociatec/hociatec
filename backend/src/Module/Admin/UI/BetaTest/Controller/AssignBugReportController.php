@@ -8,6 +8,7 @@ use App\Module\Admin\Application\BetaTest\Handler\AssignBugReportHandler;
 use App\Module\BetaTest\Application\Port\BugReportRepositoryPort;
 use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -47,7 +48,7 @@ final class AssignBugReportController extends AbstractController
         try {
             $this->assignBugReport->assign($report, $assignedTo, $actor instanceof User ? $actor : null);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), 404);
+            return ApiProblemResponse::fromThrowable($exception, 'Assignation impossible.', 404);
         }
 
         return ApiResponse::success(['id' => $report->getId()], 200, 'Responsable mis à jour.');

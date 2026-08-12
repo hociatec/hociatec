@@ -1,15 +1,10 @@
-import { useMemo } from 'react';
-
 import { useAdminOperationsActions } from './useAdminOperationsActions';
 import { useAdminOperationsData } from './useAdminOperationsData';
 
 export const useAdminOperations = () => {
   const data = useAdminOperationsData();
   const actions = useAdminOperationsActions(data.refresh);
-  const failedEmails = useMemo(
-    () => data.emails.filter((email) => email.status === 'failed').length,
-    [data.emails],
-  );
+  const failedEmails = data.overview?.emails.failedCount ?? 0;
   const hasPriorities = Boolean(
     (data.overview?.support.openCount ?? 0) > 0 ||
       (data.overview?.refunds.pendingCount ?? 0) > 0 ||

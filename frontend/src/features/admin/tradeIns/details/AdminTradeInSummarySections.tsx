@@ -5,10 +5,7 @@ import { InfoItem } from '../AdminTradeInDetailFields';
 export const AdminTradeInSummarySections = ({ selected }: { selected: TradeInDto }) => (
   <>
     <section aria-labelledby="trade-in-contact-title" className="rounded-lg bg-stone-50 p-4">
-      <h3
-        id="trade-in-contact-title"
-        className="mb-3 text-sm font-semibold uppercase tracking-wide text-stone-600"
-      >
+      <h3 id="trade-in-contact-title" className="mb-3 text-base font-semibold text-stone-800">
         Coordonnées du demandeur
       </h3>
       <dl className="grid gap-3 sm:grid-cols-2">
@@ -26,10 +23,7 @@ export const AdminTradeInSummarySections = ({ selected }: { selected: TradeInDto
     </section>
 
     <section aria-labelledby="trade-in-equipment-title" className="rounded-lg border border-brand-100 p-4">
-      <h3
-        id="trade-in-equipment-title"
-        className="mb-3 text-sm font-semibold uppercase tracking-wide text-stone-600"
-      >
+      <h3 id="trade-in-equipment-title" className="mb-3 text-base font-semibold text-stone-800">
         Informations sur le matériel
       </h3>
       <dl className="grid gap-3 sm:grid-cols-2">
@@ -56,10 +50,7 @@ export const AdminTradeInSummarySections = ({ selected }: { selected: TradeInDto
     </section>
 
     <section aria-labelledby="trade-in-estimate-title" className="rounded-lg bg-emerald-50 p-4">
-      <h3
-        id="trade-in-estimate-title"
-        className="text-sm font-semibold uppercase tracking-wide text-emerald-900"
-      >
+      <h3 id="trade-in-estimate-title" className="text-base font-semibold text-emerald-950">
         Estimation indicative
       </h3>
       <p className="mt-2 text-2xl font-bold text-emerald-950">

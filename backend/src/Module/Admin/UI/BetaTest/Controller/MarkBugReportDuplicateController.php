@@ -8,6 +8,7 @@ use App\Module\Admin\Application\BetaTest\Handler\MarkBugReportDuplicateHandler;
 use App\Module\Admin\Application\BetaTest\Provider\BugReportReferenceProvider;
 use App\Module\BetaTest\Application\Port\BugReportRepositoryPort;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RequestPayloadMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -43,9 +44,9 @@ final class MarkBugReportDuplicateController extends AbstractController
             $duplicateOf = $this->references->referenceReport($duplicateOfId, $id);
             $this->markBugReportDuplicate->mark($report, $duplicateOf, $reason, $actor instanceof User ? $actor : null);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), 422);
+            return ApiProblemResponse::fromThrowable($exception, 'Marquage du doublon invalide.', 422);
         } catch (\RuntimeException $exception) {
-            return ApiResponse::error($exception->getMessage(), 404);
+            return ApiProblemResponse::fromThrowable($exception, 'Référence de doublon introuvable.', 404);
         }
 
         return ApiResponse::success(['id' => $report->getId()], 200, 'Signalement marqué comme doublon.');

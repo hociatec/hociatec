@@ -25,7 +25,7 @@ final class ListBetaTestersController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $search = RequestQueryMapper::lowerString($request, 'search');
+        $search = RequestQueryMapper::lowerString($request, 'q');
         $status = RequestQueryMapper::string($request, 'status');
         $accessibility = RequestQueryMapper::string($request, 'accessibility');
         $pagination = RequestQueryMapper::pagination($request, 10, 50);

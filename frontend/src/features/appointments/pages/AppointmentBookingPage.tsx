@@ -98,7 +98,6 @@ export const AppointmentBookingPage = () => {
     <SiteLayout headerVariant="light">
       <PublicPageShell
         size="medium"
-        eyebrow="Rendez-vous Hociatec"
         title="Prendre un rendez-vous"
         description="Réservez votre créneau en trois étapes claires : prestation, jour disponible, puis horaire de passage."
       >
@@ -151,10 +150,7 @@ export const AppointmentBookingPage = () => {
           <div className="border-b border-brand-100 bg-[linear-gradient(135deg,rgba(11,100,216,0.08),rgba(255,255,255,0.9))] px-6 py-5">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brand-700">
-                  Parcours de réservation
-                </p>
-                <h2 className="mt-2 text-2xl font-semibold text-brand-950">
+                <h2 className="text-2xl font-semibold text-brand-950">
                   {stepLabels[step as keyof typeof stepLabels]}
                 </h2>
               </div>

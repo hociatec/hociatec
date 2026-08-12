@@ -10,4 +10,9 @@ class InvalidProfilePasswordException extends \DomainException
     {
         return new self('Le nouveau mot de passe ne peut pas etre vide.');
     }
+
+    public function fieldError(string $field = 'password'): string
+    {
+        return $field.': '.$this->message;
+    }
 }

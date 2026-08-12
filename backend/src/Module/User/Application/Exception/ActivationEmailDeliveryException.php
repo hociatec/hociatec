@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\User\Application\Exception;
 
-use App\Shared\Application\Exception\ApiProblemException;
+use App\Shared\Application\Exception\AbstractApiProblemException;
 
-final class ActivationEmailDeliveryException extends \RuntimeException implements ApiProblemException
+final class ActivationEmailDeliveryException extends AbstractApiProblemException
 {
     public static function deliveryFailed(\Throwable $previous): self
     {
@@ -16,8 +16,8 @@ final class ActivationEmailDeliveryException extends \RuntimeException implement
         );
     }
 
-    public function getStatusCode(): int
+    public function __construct(string $message, ?\Throwable $previous = null)
     {
-        return 503;
+        parent::__construct($message, 503, 'Le service d’activation est momentanément indisponible.', 'ACTIVATION_EMAIL_DELIVERY_FAILED', previous: $previous);
     }
 }

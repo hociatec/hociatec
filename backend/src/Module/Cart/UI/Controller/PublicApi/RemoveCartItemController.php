@@ -6,8 +6,10 @@ namespace App\Module\Cart\UI\Controller\PublicApi;
 
 use App\Module\Cart\Application\Projection\CartFormatter;
 use App\Module\Cart\Application\Workflow\CartSessionWorkflow;
+use App\Module\Cart\Application\Exception\CartNotFoundException;
 use App\Module\Catalog\Application\Port\ProductRepositoryPort;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
 use App\Shared\Infrastructure\Http\RequestHeaderValueResolver;
@@ -45,17 +47,13 @@ class RemoveCartItemController extends AbstractController
         try {
             $rentalMonths = RequestQueryMapper::positiveIntFromAny($request, ['currentRentalMonths', 'rentalMonths']);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), JsonResponse::HTTP_BAD_REQUEST);
+            return ApiProblemResponse::fromThrowable($exception, 'Paramètres de suppression invalides.', JsonResponse::HTTP_BAD_REQUEST);
         }
 
         try {
             $cart = $this->cartService->removeProduct($token, $product, $rentalMonths);
-        } catch (\InvalidArgumentException $exception) {
-            $status = 'Panier introuvable.' === $exception->getMessage()
-                ? JsonResponse::HTTP_NOT_FOUND
-                : JsonResponse::HTTP_BAD_REQUEST;
-
-            return ApiResponse::error($exception->getMessage(), $status);
+        } catch (CartNotFoundException|\InvalidArgumentException $exception) {
+            return ApiProblemResponse::fromThrowable($exception);
         }
 
         $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());

@@ -7,6 +7,7 @@ namespace App\Module\Admin\UI\TradeIn\Controller;
 use App\Module\Admin\Application\TradeIn\DTO\TradeInOfferInput;
 use App\Module\TradeIn\Application\Port\TradeInRequestRepositoryPort;
 use App\Module\TradeIn\Application\Workflow\TradeInRequestWorkflow;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -43,7 +44,7 @@ final class SetTradeInOfferController extends AbstractController
         try {
             $this->service->setOffer($tradeIn, (int) $input->offerCents, $expires, $input->adminNote);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_CONFLICT);
+            return ApiProblemResponse::fromThrowable($exception, 'Enregistrement de l’offre impossible.', Response::HTTP_CONFLICT);
         }
 
         return ApiResponse::success(['status' => 'offer_sent', 'offerCents' => $tradeIn->getOfferCents()], 200, 'L’offre de reprise a été enregistrée.');

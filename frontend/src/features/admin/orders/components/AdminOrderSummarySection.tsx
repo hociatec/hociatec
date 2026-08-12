@@ -29,8 +29,7 @@ export const AdminOrderSummarySection = ({
     <div className="border-b border-brand-100 bg-brand-900 px-6 py-5 text-white">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500">Commande</p>
-          <h2 className="mt-1 text-2xl font-semibold">{order.number}</h2>
+          <h2 className="text-2xl font-semibold">{order.number}</h2>
           <p className="mt-2 text-sm text-stone-500">
             Créée le {formatOptionalFrenchDateTime(order.createdAt)} pour{' '}
             {order.customerDisplayName || order.invoice?.billingName || order.shipping.name || 'Client inconnu'}.

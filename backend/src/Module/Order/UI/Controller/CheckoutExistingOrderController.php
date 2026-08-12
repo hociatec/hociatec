@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace App\Module\Order\UI\Controller;
 
 use App\Module\Order\Application\DTO\CheckoutInput;
-use App\Module\Order\Application\Exception\CartCheckoutNotFoundException;
 use App\Module\Order\Application\Projection\OrderFormatter;
 use App\Module\Order\Application\Workflow\ExistingOrderCheckoutService;
-use App\Shared\Application\Exception\ApiValidationException;
+use App\Shared\Application\Exception\ApiProblemException;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
-use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Http\JsonRequestInput;
 use App\Shared\Infrastructure\Http\RateLimited;
 use App\Shared\Infrastructure\Validation\DtoValidator;
@@ -42,14 +41,14 @@ final class CheckoutExistingOrderController extends AbstractController
             $input = JsonRequestInput::decode($request, CheckoutInput::class);
             $this->dtoValidator->validate($input);
             $result = $this->checkout->checkout($this->currentUser(), $orderId, $input->addressId);
-        } catch (CartCheckoutNotFoundException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_NOT_FOUND);
-        } catch (ApiValidationException $exception) {
-            return ApiResponse::error($exception->getMessage(), $exception->statusCode, $exception->details);
-        } catch (InvalidJsonPayloadException) {
-            return ApiResponse::error('Payload de checkout invalide.', Response::HTTP_BAD_REQUEST);
-        } catch (\InvalidArgumentException|\RuntimeException $exception) {
-            return ApiResponse::error('Impossible de lancer le règlement.', Response::HTTP_BAD_REQUEST, [$exception->getMessage()]);
+        } catch (ApiProblemException $exception) {
+            return ApiProblemResponse::fromThrowable($exception, 'Impossible de lancer le règlement.');
+        } catch (\InvalidArgumentException $exception) {
+            return ApiProblemResponse::fromThrowable($exception, 'Impossible de lancer le règlement.');
+        } catch (\DomainException $exception) {
+            return ApiProblemResponse::fromThrowable($exception, 'Impossible de lancer le règlement.');
+        } catch (\RuntimeException $exception) {
+            return ApiProblemResponse::fromThrowable($exception, 'Impossible de lancer le règlement.');
         }
 
         if (null !== $result->order) {

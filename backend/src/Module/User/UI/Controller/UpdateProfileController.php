@@ -11,6 +11,7 @@ use App\Module\User\Application\Exception\InvalidProfilePasswordException;
 use App\Module\User\Application\Exception\UserAlreadyExistsException;
 use App\Module\User\Application\Projection\UserProfileFormatter;
 use App\Module\User\Application\Workflow\UpdateProfileService;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
 use App\Shared\Infrastructure\Validation\DtoValidator;
@@ -43,24 +44,24 @@ class UpdateProfileController extends AbstractController
         try {
             $updatedUser = $this->updateProfile->update($this->currentUser(), $input);
         } catch (UserAlreadyExistsException $exception) {
-            return ApiResponse::error($exception->getMessage(), JsonResponse::HTTP_CONFLICT);
+            return ApiProblemResponse::fromThrowable($exception, 'Mise à jour du profil impossible.', JsonResponse::HTTP_CONFLICT);
         } catch (InvalidBirthDateException $exception) {
             return ApiResponse::error(
                 'Validation des donnees echouee.',
                 JsonResponse::HTTP_UNPROCESSABLE_ENTITY,
-                ['birthDate: '.$exception->getMessage()]
+                [$exception->fieldError()]
             );
         } catch (InvalidCurrentPasswordException $exception) {
             return ApiResponse::error(
                 'Validation des donnees echouee.',
                 JsonResponse::HTTP_UNPROCESSABLE_ENTITY,
-                ['currentPassword: '.$exception->getMessage()]
+                [$exception->fieldError()]
             );
         } catch (InvalidProfilePasswordException $exception) {
             return ApiResponse::error(
                 'Validation des donnees echouee.',
                 JsonResponse::HTTP_UNPROCESSABLE_ENTITY,
-                ['password: '.$exception->getMessage()]
+                [$exception->fieldError()]
             );
         }
 

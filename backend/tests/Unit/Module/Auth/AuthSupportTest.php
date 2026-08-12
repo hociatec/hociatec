@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Module\Auth;
 
 use App\Module\Auth\Domain\Entity\RefreshToken;
+use App\Module\Auth\Infrastructure\Command\PurgeE2eDataCommand;
 use App\Module\Auth\Infrastructure\Command\SeedE2eDataCommand;
+use App\Module\Auth\Infrastructure\Seed\E2eDataPurger;
 use App\Module\Auth\Infrastructure\Http\AuthCookieService;
 use App\Module\Auth\Infrastructure\Seed\E2eDataSeeder;
 use App\Module\User\Domain\Entity\User;
@@ -102,8 +104,60 @@ final class AuthSupportTest extends TestCase
         $seeder->expects(self::once())->method('seed');
 
         $tester = new CommandTester(new SeedE2eDataCommand($seeder));
+        $previousFlag = $_SERVER['APP_E2E'] ?? null;
+        $_SERVER['APP_E2E'] = '1';
 
-        self::assertSame(Command::SUCCESS, $tester->execute([]));
-        self::assertStringContainsString('E2E users and orders seeded.', $tester->getDisplay());
+        try {
+            self::assertSame(Command::SUCCESS, $tester->execute([]));
+            self::assertStringContainsString('E2E users and orders seeded.', $tester->getDisplay());
+        } finally {
+            if (null === $previousFlag) {
+                unset($_SERVER['APP_E2E']);
+            } else {
+                $_SERVER['APP_E2E'] = $previousFlag;
+            }
+        }
+    }
+
+    public function testSeedE2eDataCommandIsBlockedWithoutExplicitE2eFlag(): void
+    {
+        $seeder = $this->createMock(E2eDataSeeder::class);
+        $seeder->expects(self::never())->method('seed');
+
+        $tester = new CommandTester(new SeedE2eDataCommand($seeder));
+        $previousFlag = $_SERVER['APP_E2E'] ?? null;
+        unset($_SERVER['APP_E2E']);
+
+        try {
+            self::assertSame(Command::FAILURE, $tester->execute([]));
+            self::assertStringContainsString('APP_E2E=1', $tester->getDisplay());
+        } finally {
+            if (null === $previousFlag) {
+                unset($_SERVER['APP_E2E']);
+            } else {
+                $_SERVER['APP_E2E'] = $previousFlag;
+            }
+        }
+    }
+
+    public function testPurgeE2eDataCommandDelegatesToPurger(): void
+    {
+        $purger = $this->createMock(E2eDataPurger::class);
+        $purger->expects(self::once())->method('purge')->willReturn(7);
+
+        $tester = new CommandTester(new PurgeE2eDataCommand($purger));
+        $previousFlag = $_SERVER['APP_E2E'] ?? null;
+        $_SERVER['APP_E2E'] = '1';
+
+        try {
+            self::assertSame(Command::SUCCESS, $tester->execute([]));
+            self::assertStringContainsString('E2E data purged (7 deleted rows).', $tester->getDisplay());
+        } finally {
+            if (null === $previousFlag) {
+                unset($_SERVER['APP_E2E']);
+            } else {
+                $_SERVER['APP_E2E'] = $previousFlag;
+            }
+        }
     }
 }

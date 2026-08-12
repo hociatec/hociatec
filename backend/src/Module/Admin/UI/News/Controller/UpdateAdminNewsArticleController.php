@@ -10,6 +10,7 @@ use App\Module\News\Application\Projection\NewsFormatter;
 use App\Module\News\Application\Writer\NewsArticleWriter;
 use App\Module\News\Domain\Exception\NewsOperationException;
 use App\Shared\Application\Exception\ApiValidationException;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Validation\DtoValidator;
@@ -38,7 +39,7 @@ final readonly class UpdateAdminNewsArticleController
             $this->validator->validate($input);
             $article = $this->writer->update($article, $input);
         } catch (ApiValidationException|InvalidJsonPayloadException|\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), JsonResponse::HTTP_BAD_REQUEST);
+            return ApiProblemResponse::fromThrowable($exception, 'Mise à jour de l’actualité invalide.', JsonResponse::HTTP_BAD_REQUEST);
         } catch (NewsOperationException) {
             return ApiResponse::internalError();
         }

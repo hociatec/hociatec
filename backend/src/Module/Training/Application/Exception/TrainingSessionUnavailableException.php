@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\Training\Application\Exception;
 
-use App\Shared\Application\Exception\ApiProblemException;
+use App\Shared\Application\Exception\AbstractApiProblemException;
 
-final class TrainingSessionUnavailableException extends \RuntimeException implements ApiProblemException
+final class TrainingSessionUnavailableException extends AbstractApiProblemException
 {
-    public function getStatusCode(): int
+    public function __construct(string $message = 'Session indisponible.')
     {
-        return 409;
+        parent::__construct($message, 409, $message, 'TRAINING_SESSION_UNAVAILABLE');
     }
 }

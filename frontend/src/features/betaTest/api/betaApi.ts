@@ -21,6 +21,12 @@ export interface PaginationMeta {
   totalPages: number;
 }
 
+export interface MyBugReportsStats {
+  openReports: number;
+  resolvedReports: number;
+  totalReports: number;
+}
+
 export interface BugReport {
   id: number;
   title: string;
@@ -89,7 +95,7 @@ export const fetchBetaCampaigns = async () =>
 export const fetchMyBugReports = async (params: { page?: number; perPage?: number } = {}) =>
   unwrapApiData(
     (
-      await httpClient.get<ApiResponse<{ items: BugReport[]; meta: PaginationMeta }>>(
+      await httpClient.get<ApiResponse<{ items: BugReport[]; meta: PaginationMeta; stats: MyBugReportsStats }>>(
         '/api/beta/reports',
         { params },
       )

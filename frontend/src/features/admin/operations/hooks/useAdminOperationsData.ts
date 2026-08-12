@@ -21,67 +21,90 @@ export const useAdminOperationsData = () => {
   const [stockPage, setStockPage] = useState(1);
   const [emailsPage, setEmailsPage] = useState(1);
   const [fulfillmentPage, setFulfillmentPage] = useState(1);
-  const operationsQuery = useQuery({
-    queryKey: [
-      ...adminOperationsQueryKeys.overview(),
-      { emailsPage, fulfillmentPage, refundsPage, stockPage, supportPage },
-    ],
-    queryFn: async () => {
-      const [overviewData, supportData, refundData, stockData, emailData, fulfillmentData] =
-        await Promise.all([
-          fetchOperationsOverview(),
-          fetchSupportRequests(supportPage, 10),
-          fetchRefunds(refundsPage, 10),
-          fetchStockMovements(stockPage, 10),
-          fetchEmailLogs(emailsPage, 10),
-          fetchFulfillmentOrders(fulfillmentPage, 10),
-        ]);
-      return {
-        overview: overviewData,
-        support: supportData.items,
-        supportMeta: supportData.meta,
-        refunds: refundData.items,
-        refundsMeta: refundData.meta,
-        stock: stockData.items,
-        stockMeta: stockData.meta,
-        emails: emailData.items,
-        emailsMeta: emailData.meta,
-        fulfillmentOrders: fulfillmentData.items,
-        fulfillmentMeta: fulfillmentData.meta,
-      };
-    },
+  const overviewQuery = useQuery({
+    queryKey: adminOperationsQueryKeys.overview(),
+    queryFn: fetchOperationsOverview,
+  });
+  const supportQuery = useQuery({
+    queryKey: adminOperationsQueryKeys.support(supportPage),
+    queryFn: () => fetchSupportRequests(supportPage, 10),
+  });
+  const refundsQuery = useQuery({
+    queryKey: adminOperationsQueryKeys.refunds(refundsPage),
+    queryFn: () => fetchRefunds(refundsPage, 10),
+  });
+  const stockQuery = useQuery({
+    queryKey: adminOperationsQueryKeys.stock(stockPage),
+    queryFn: () => fetchStockMovements(stockPage, 10),
+  });
+  const emailsQuery = useQuery({
+    queryKey: adminOperationsQueryKeys.emails(emailsPage),
+    queryFn: () => fetchEmailLogs(emailsPage, 10),
+  });
+  const fulfillmentQuery = useQuery({
+    queryKey: adminOperationsQueryKeys.fulfillment(fulfillmentPage),
+    queryFn: () => fetchFulfillmentOrders(fulfillmentPage, 10),
   });
 
   const refresh = useCallback(async () => {
-    await operationsQuery.refetch();
-  }, [operationsQuery]);
-  const status: 'loading' | 'error' | 'success' = operationsQuery.isLoading
+    await Promise.all([
+      overviewQuery.refetch(),
+      supportQuery.refetch(),
+      refundsQuery.refetch(),
+      stockQuery.refetch(),
+      emailsQuery.refetch(),
+      fulfillmentQuery.refetch(),
+    ]);
+  }, [emailsQuery, fulfillmentQuery, overviewQuery, refundsQuery, stockQuery, supportQuery]);
+  const status: 'loading' | 'error' | 'success' =
+    overviewQuery.isLoading ||
+    supportQuery.isLoading ||
+    refundsQuery.isLoading ||
+    stockQuery.isLoading ||
+    emailsQuery.isLoading ||
+    fulfillmentQuery.isLoading
     ? 'loading'
-    : operationsQuery.error
+    : overviewQuery.error ||
+        supportQuery.error ||
+        refundsQuery.error ||
+        stockQuery.error ||
+        emailsQuery.error ||
+        fulfillmentQuery.error
       ? 'error'
       : 'success';
 
   return {
-    overview: operationsQuery.data?.overview ?? null,
-    support: operationsQuery.data?.support ?? [],
-    supportMeta: operationsQuery.data?.supportMeta ?? emptyMeta(supportPage),
+    overview: overviewQuery.data ?? null,
+    support: supportQuery.data?.items ?? [],
+    supportMeta: supportQuery.data?.meta ?? emptyMeta(supportPage),
     setSupportPage,
-    refunds: operationsQuery.data?.refunds ?? [],
-    refundsMeta: operationsQuery.data?.refundsMeta ?? emptyMeta(refundsPage),
+    refunds: refundsQuery.data?.items ?? [],
+    refundsMeta: refundsQuery.data?.meta ?? emptyMeta(refundsPage),
     setRefundsPage,
-    stock: operationsQuery.data?.stock ?? [],
-    stockMeta: operationsQuery.data?.stockMeta ?? emptyMeta(stockPage),
+    stock: stockQuery.data?.items ?? [],
+    stockMeta: stockQuery.data?.meta ?? emptyMeta(stockPage),
     setStockPage,
-    emails: operationsQuery.data?.emails ?? [],
-    emailsMeta: operationsQuery.data?.emailsMeta ?? emptyMeta(emailsPage),
+    emails: emailsQuery.data?.items ?? [],
+    emailsMeta: emailsQuery.data?.meta ?? emptyMeta(emailsPage),
     setEmailsPage,
-    fulfillmentOrders: operationsQuery.data?.fulfillmentOrders ?? [],
-    fulfillmentMeta: operationsQuery.data?.fulfillmentMeta ?? emptyMeta(fulfillmentPage),
+    fulfillmentOrders: fulfillmentQuery.data?.items ?? [],
+    fulfillmentMeta: fulfillmentQuery.data?.meta ?? emptyMeta(fulfillmentPage),
     setFulfillmentPage,
     status,
-    message: operationsQuery.error
-      ? getHttpErrorMessage(operationsQuery.error, 'Erreur de chargement.')
-      : null,
+    message:
+      overviewQuery.error
+        ? getHttpErrorMessage(overviewQuery.error, 'Erreur de chargement.')
+        : supportQuery.error
+          ? getHttpErrorMessage(supportQuery.error, 'Erreur de chargement.')
+          : refundsQuery.error
+            ? getHttpErrorMessage(refundsQuery.error, 'Erreur de chargement.')
+            : stockQuery.error
+              ? getHttpErrorMessage(stockQuery.error, 'Erreur de chargement.')
+              : emailsQuery.error
+                ? getHttpErrorMessage(emailsQuery.error, 'Erreur de chargement.')
+                : fulfillmentQuery.error
+                  ? getHttpErrorMessage(fulfillmentQuery.error, 'Erreur de chargement.')
+                  : null,
     refresh,
   };
 };

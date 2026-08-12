@@ -49,6 +49,13 @@ export interface AdminCustomerDetailDto {
   lastOrderNumber?: string | null;
 }
 
+export interface AdminCustomerOrdersStatsDto {
+  all: number;
+  open: number;
+  delivered: number;
+  cancelled: number;
+}
+
 export interface AdminCustomerVoucherDto {
   id: number;
   name: string;
@@ -156,7 +163,7 @@ export const fetchAdminCustomers = async (
 ): Promise<PaginatedResult<AdminCustomerSummaryDto>> => {
   const query = new URLSearchParams();
   if (search.trim() !== '') {
-    query.set('search', search.trim());
+    query.set('q', search.trim());
   }
   query.set('sort', sort);
   query.set('page', String(page));
@@ -171,20 +178,31 @@ export const fetchAdminCustomers = async (
 
 export const fetchAdminCustomerById = async (
   customerId: number,
+  params: { orderStatus?: 'all' | 'open' | 'delivered' | 'cancelled'; orderPage?: number; orderPerPage?: number } = {},
 ): Promise<{
   customer: AdminCustomerDetailDto;
   addresses: AdminCustomerAddressDto[];
-  orders: OrderDto[];
+  orders: {
+    items: OrderDto[];
+    meta: PaginationMeta;
+    stats: AdminCustomerOrdersStatsDto;
+    filter: 'all' | 'open' | 'delivered' | 'cancelled';
+  };
   vouchers: AdminCustomerVoucherDto[];
 }> => {
   const { data } = await httpClient.get<
     ApiResponse<{
       customer: AdminCustomerDetailDto;
       addresses: AdminCustomerAddressDto[];
-      orders: OrderDto[];
+      orders: {
+        items: OrderDto[];
+        meta: PaginationMeta;
+        stats: AdminCustomerOrdersStatsDto;
+        filter: 'all' | 'open' | 'delivered' | 'cancelled';
+      };
       vouchers: AdminCustomerVoucherDto[];
     }>
-  >(`/api/admin/customers/${customerId}`);
+  >(`/api/admin/customers/${customerId}`, { params });
 
   const payload = unwrapApiData(data, 'Impossible de charger le client');
   return {

@@ -7,6 +7,7 @@ namespace App\Module\Admin\UI\BetaTest\Controller;
 use App\Module\Admin\Application\BetaTest\Handler\ChangeBetaTesterStatusHandler;
 use App\Module\BetaTest\Application\Port\BetaTesterProfileRepositoryPort;
 use App\Module\BetaTest\Domain\Entity\BetaTesterProfile;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -34,7 +35,7 @@ final class UpdateBetaTesterController extends AbstractController
         try {
             $this->changeTesterStatus->change($profile, $status);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), 422);
+            return ApiProblemResponse::fromThrowable($exception, 'Mise à jour du profil bêta invalide.', 422);
         }
 
         return ApiResponse::success([], 200, 'Profil mis à jour.');

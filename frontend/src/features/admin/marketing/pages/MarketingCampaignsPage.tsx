@@ -46,7 +46,7 @@ const formatCampaignCriteria = (campaign: MarketingCampaign) => {
 
 export const MarketingCampaignsPage = () => {
   useDocumentTitle('Admin - Campagnes e-mail');
-  const { segments, campaigns, campaignsMeta, setCampaignPage, loading, error, activeTemplates, lastCampaign } =
+  const { segments, campaigns, campaignsMeta, setCampaignPage, loading, error, activeTemplatesCount, lastCampaign } =
     useMarketingCampaignsOverview();
 
   return (
@@ -72,7 +72,7 @@ export const MarketingCampaignsPage = () => {
       }
     >
       <AdminMetricGrid columns={4}>
-        <AdminMetricCard label="Modèles actifs" value={activeTemplates.length} />
+        <AdminMetricCard label="Modèles actifs" value={activeTemplatesCount} />
         <AdminMetricCard label="Audiences disponibles" value={Object.keys(segments).length} />
         <AdminMetricCard label="Campagnes envoyées" value={campaignsMeta.total} />
         <AdminMetricCard

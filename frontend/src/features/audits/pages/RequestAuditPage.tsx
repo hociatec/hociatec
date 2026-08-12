@@ -63,7 +63,6 @@ export const RequestAuditPage = () => {
     <SiteLayout headerVariant="light">
       <PublicPageShell
         size="medium"
-        eyebrow="Audit"
         title="Demander un audit"
         description="Décrivez le périmètre à analyser et les objectifs attendus. Hociatec vous recontacte avec un cadrage adapté."
       >

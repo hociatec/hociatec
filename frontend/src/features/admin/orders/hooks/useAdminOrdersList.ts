@@ -10,6 +10,8 @@ import {
   type OrderStatusFilter,
 } from '../lib/adminOrderList';
 import { adminOrderQueryKeys } from '@/features/admin/orders/queryKeys';
+import { useDebounce } from '@/shared/hooks/useDebounce';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 import type { PaginatedResult } from '@/shared/types/api';
 
 export const useAdminOrdersList = () => {
@@ -21,11 +23,11 @@ export const useAdminOrdersList = () => {
   const [health, setHealth] = useState<OrderHealthFilter>(
     (searchParams.get('health') as OrderHealthFilter | null) ?? 'all',
   );
-  const [search, setSearch] = useState(searchParams.get('search') ?? '');
+  const [search, setSearch] = useState(searchParams.get('q') ?? '');
   const [sort, setSort] = useState<OrderSortKey>(
     (searchParams.get('sort') as OrderSortKey | null) ?? 'newest',
   );
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(parseNullablePositiveInteger(searchParams.get('page')) ?? 1);
   const [editing, setEditing] = useState<{
     id: number;
     current: OrderStatus;
@@ -34,19 +36,20 @@ export const useAdminOrdersList = () => {
     order: OrderDto;
   } | null>(null);
   const [updateError, setUpdateError] = useState<string | null>(null);
+  const debouncedSearch = useDebounce(search.trim(), 250);
   const metadataQuery = useQuery({
     queryKey: adminOrderQueryKeys.metadata(),
     queryFn: fetchAdminOrderMetadata,
   });
   const ordersQuery = useQuery<PaginatedResult<OrderDto>, Error>({
-    queryKey: [...adminOrderQueryKeys.list(filter, health, search, sort), { page }],
-    queryFn: () => fetchAdminOrders(filter, health, search, sort, page, 10),
+    queryKey: [...adminOrderQueryKeys.list(filter, health, debouncedSearch, sort), { page }],
+    queryFn: () => fetchAdminOrders(filter, health, debouncedSearch, sort, page, 10),
   });
   const updateStatusMutation = useMutation({
     mutationFn: ({ id, next }: { id: number; next: OrderStatus }) => updateAdminOrderStatus(id, next),
     onSuccess: (updated) => {
       queryClient.setQueryData<PaginatedResult<OrderDto>>(
-        [...adminOrderQueryKeys.list(filter, health, search, sort), { page }],
+        [...adminOrderQueryKeys.list(filter, health, debouncedSearch, sort), { page }],
         (previous) =>
           previous
             ? { ...previous, items: previous.items.map((order) => (order.id === updated.id ? updated : order)) }
@@ -69,13 +72,14 @@ export const useAdminOrdersList = () => {
     const next = new URLSearchParams();
     if (filter !== 'all') next.set('status', filter);
     if (health !== 'all') next.set('health', health);
-    if (search.trim()) next.set('search', search.trim());
+    if (search.trim()) next.set('q', search.trim());
     if (sort !== 'newest') next.set('sort', sort);
+    if (page > 1) next.set('page', String(page));
     setSearchParams(next, { replace: true });
-  }, [filter, health, search, sort, setSearchParams]);
+  }, [filter, health, page, search, sort, setSearchParams]);
   useEffect(() => {
     setPage(1);
-  }, [filter, health, search, sort]);
+  }, [filter, health, debouncedSearch, sort]);
   const handleConfirmUpdate = useCallback(() => {
     if (!editing) return;
     if (!editing.options.length) {

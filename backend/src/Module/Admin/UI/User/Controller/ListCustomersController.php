@@ -23,7 +23,7 @@ final class ListCustomersController extends AbstractController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $search = RequestQueryMapper::nullableString($request, 'search');
+        $search = RequestQueryMapper::nullableString($request, 'q');
         $sort = RequestQueryMapper::string($request, 'sort', 'recent_order');
         $pagination = RequestQueryMapper::pagination($request, 10, 50);
 

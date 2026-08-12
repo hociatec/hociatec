@@ -6,6 +6,7 @@ namespace App\Module\Order\Application\Workflow;
 
 use App\Module\Order\Application\DTO\CartCheckoutResult;
 use App\Module\Order\Application\Exception\CartCheckoutNotFoundException;
+use App\Module\Order\Application\Exception\CheckoutRequestException;
 use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Security\OrderAccessPolicy;
@@ -35,11 +36,11 @@ final readonly class ExistingOrderCheckoutService
         }
 
         if (Order::STATUS_PENDING !== $order->getStatus()) {
-            throw new \InvalidArgumentException('Cette commande ne peut pas être réglée.');
+            throw CheckoutRequestException::orderCannotBePaid();
         }
 
         if ($order->getTotalPriceCents() <= 0 || $order->getItems()->isEmpty()) {
-            throw new \InvalidArgumentException('Cette commande ne contient rien à régler.');
+            throw CheckoutRequestException::orderHasNothingToPay();
         }
 
         $shipping = $this->resolveShippingAddress($user, $addressId);
@@ -54,7 +55,7 @@ final readonly class ExistingOrderCheckoutService
             : $this->addresses->findFirstForUser($user);
 
         if (!$shipping instanceof ShippingAddress) {
-            throw new \InvalidArgumentException('Aucune adresse de livraison trouvée.');
+            throw CheckoutRequestException::missingCartShippingAddress();
         }
 
         return $shipping;

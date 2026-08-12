@@ -7,6 +7,7 @@ namespace App\Module\Admin\UI\BetaTest\Controller;
 use App\Module\Admin\Application\BetaTest\Handler\ChangeBugReportStatusHandler;
 use App\Module\BetaTest\Application\Port\BugReportRepositoryPort;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RequestPayloadMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -40,7 +41,7 @@ final class UpdateBugReportStatusController extends AbstractController
         try {
             $this->changeBugReportStatus->change($report, $status, $actor);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), 422);
+            return ApiProblemResponse::fromThrowable($exception, 'Changement de statut invalide.', 422);
         }
 
         return ApiResponse::success([

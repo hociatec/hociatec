@@ -43,7 +43,7 @@ export const CustomerQuickActions = ({
       {customer.ordersCount > 0 ? (
         <Link
           className="inline-flex items-center rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-600"
-          to={`/admin/orders?search=${encodeURIComponent(customer.email)}`}
+          to={`/admin/orders?q=${encodeURIComponent(customer.email)}`}
         >
           Rechercher ses commandes
         </Link>

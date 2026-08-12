@@ -1,15 +1,11 @@
 import type { QuoteDto } from '@/features/quotes/publicApi';
 import { formatEuroCents } from '@/shared/lib/formatters';
-import { useAdminPagination } from '@/shared/hooks/useAdminPagination';
-import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 
 export const AdminQuoteDetailItemsTable = ({
   items,
 }: {
   items: NonNullable<QuoteDto['items']>;
 }) => {
-  const itemsPagination = useAdminPagination(items);
-
   return (
     <div>
       <div className="quote-table-scroll">
@@ -25,7 +21,7 @@ export const AdminQuoteDetailItemsTable = ({
             </tr>
           </thead>
           <tbody>
-            {itemsPagination.paginatedItems.map((item) => (
+            {items.map((item) => (
               <tr key={item.id ?? `${item.name}-${item.quantity}`}>
                 <td className="quote-strong">{item.name}</td>
                 <td>{item.description || '-'}</td>
@@ -41,13 +37,6 @@ export const AdminQuoteDetailItemsTable = ({
           </tbody>
         </table>
       </div>
-      <PaginationControls
-        page={itemsPagination.page}
-        total={itemsPagination.total}
-        totalLabel="article"
-        totalPages={itemsPagination.totalPages}
-        onPageChange={itemsPagination.setPage}
-      />
     </div>
   );
 };

@@ -17,7 +17,6 @@ export const CgvPage = () => {
     <SiteLayout headerVariant="light">
       <PublicPageShell
         size="medium"
-        eyebrow="Informations légales"
         title="Conditions générales de vente (CGV)"
         description={`Dernière mise à jour: ${CGV_UPDATED_AT}`}
       >

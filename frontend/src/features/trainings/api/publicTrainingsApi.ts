@@ -1,5 +1,5 @@
 import { httpClient, requestSignalConfig } from '@/shared/lib/httpClient';
-import type { ApiResponse } from '@/shared/types/api';
+import type { ApiResponse, PaginatedResult, PaginationMeta } from '@/shared/types/api';
 import { TRAINING_API_ROUTES, trainingRequest, unwrapTrainingData } from './trainingApiShared';
 import type { TrainingCategoryDto, TrainingDto, TrainingSessionDto } from './trainingTypes';
 
@@ -20,6 +20,46 @@ export const fetchPublicTrainings = async (
       },
     );
     return unwrapTrainingData(res.data).items;
+  }, 'Impossible de charger les formations.');
+};
+
+export const searchPublicTrainings = async (
+  params: {
+    q?: string;
+    category?: string;
+    format?: string;
+    sort?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    minDuration?: number;
+    maxDuration?: number;
+    page?: number;
+    perPage?: number;
+    signal?: AbortSignal;
+  } = {},
+): Promise<PaginatedResult<TrainingDto>> => {
+  return trainingRequest(async () => {
+    const res = await httpClient.get<ApiResponse<{ items: TrainingDto[]; meta: PaginationMeta }>>(
+      TRAINING_API_ROUTES.publicList,
+      {
+        params: {
+          q: params.q,
+          category: params.category,
+          format: params.format,
+          sort: params.sort,
+          minPrice: params.minPrice,
+          maxPrice: params.maxPrice,
+          minDuration: params.minDuration,
+          maxDuration: params.maxDuration,
+          page: params.page ?? 1,
+          perPage: params.perPage ?? 10,
+        },
+        ...requestSignalConfig(params.signal),
+      },
+    );
+    const data = unwrapTrainingData(res.data);
+
+    return { items: data.items, meta: data.meta };
   }, 'Impossible de charger les formations.');
 };
 

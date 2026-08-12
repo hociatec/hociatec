@@ -17,7 +17,6 @@ export const PrivacyPage = () => {
     <SiteLayout headerVariant="light">
       <PublicPageShell
         size="medium"
-        eyebrow="Informations légales"
         title="Politique de confidentialité"
         description={`Dernière mise à jour: ${PRIVACY_UPDATED_AT}`}
       >

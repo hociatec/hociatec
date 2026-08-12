@@ -15,4 +15,9 @@ class InvalidCurrentPasswordException extends \DomainException
     {
         return new self('Le mot de passe actuel est incorrect.');
     }
+
+    public function fieldError(string $field = 'currentPassword'): string
+    {
+        return $field.': '.$this->message;
+    }
 }

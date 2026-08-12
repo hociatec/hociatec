@@ -13,6 +13,7 @@ use App\Module\Order\Application\DTO\RefundCreateData;
 use App\Module\Order\Application\DTO\RefundProcessData;
 use App\Module\Order\Application\DTO\RefundUpdateData;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
@@ -52,7 +53,7 @@ final class RefundOperationsController extends AbstractController
             $this->validator->validate($input);
             $item = $this->refunds->create(new RefundCreateData($input->orderId, $input->amountCents, $input->reason, $input->internalNotes, $input->paymentId, $input->currencyCode), $this->currentAdmin());
         } catch (OperationsResourceNotFoundException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_NOT_FOUND);
+            return ApiProblemResponse::fromThrowable($exception, 'Commande ou paiement introuvable.', Response::HTTP_NOT_FOUND);
         } catch (InvalidJsonPayloadException|\JsonException|\RuntimeException) {
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }
@@ -68,7 +69,7 @@ final class RefundOperationsController extends AbstractController
             $this->validator->validate($input);
             $item = $this->refunds->update($id, new RefundUpdateData($input->status, $input->stripeRefundId, $input->internalNotes));
         } catch (OperationsResourceNotFoundException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_NOT_FOUND);
+            return ApiProblemResponse::fromThrowable($exception, 'Demande de remboursement introuvable.', Response::HTTP_NOT_FOUND);
         } catch (InvalidJsonPayloadException|\JsonException|\RuntimeException) {
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }
@@ -84,9 +85,9 @@ final class RefundOperationsController extends AbstractController
             $this->validator->validate($input);
             $result = $this->refunds->processStripe($id, new RefundProcessData($input->confirmation, $input->paymentIntentId), $this->currentAdmin());
         } catch (OperationsResourceNotFoundException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_NOT_FOUND);
+            return ApiProblemResponse::fromThrowable($exception, 'Demande de remboursement introuvable.', Response::HTTP_NOT_FOUND);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+            return ApiProblemResponse::fromThrowable($exception, 'Traitement du remboursement invalide.', Response::HTTP_BAD_REQUEST);
         } catch (InvalidJsonPayloadException|\JsonException|\RuntimeException) {
             return ApiResponse::error('Payload invalide.', Response::HTTP_BAD_REQUEST);
         }

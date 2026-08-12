@@ -1,24 +1,19 @@
 import { Link } from 'react-router';
-import { useId } from 'react';
 
 import type { TrainingDto } from '@/features/trainings/api/trainingsApi';
-import { formatTrainingDuration } from '@/features/trainings/lib/trainingCatalog';
+import {
+  formatTrainingDelivery,
+  formatTrainingDuration,
+} from '@/features/trainings/lib/trainingCatalog';
 import { formatEuroCents } from '@/shared/lib/formatters';
 
 export const TrainingCatalogGrid = ({
   trainings,
-  categoryName,
 }: {
   trainings: TrainingDto[];
-  categoryName: (slug: string) => string;
 }) => {
-  const headingId = useId();
-
   return (
-    <section aria-labelledby={headingId}>
-      <h2 id={headingId} className="sr-only">
-        Résultats des formations
-      </h2>
+    <section>
       <div className="grid gap-4 md:grid-cols-2" role="list">
         {trainings.map((training) => (
           <article
@@ -27,38 +22,36 @@ export const TrainingCatalogGrid = ({
             className="flex h-full flex-col rounded-xl border border-brand-100 bg-white p-6 shadow-sm"
             style={{ contentVisibility: 'auto', containIntrinsicSize: '320px' }}
           >
-            <div className="flex flex-wrap gap-2">
-              <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-800">
-                {training.categoryDetails?.name ?? categoryName(training.category)}
-              </span>
-              {training.availableFormatDetails.map((format) => (
-                <span key={format.value} className="rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-stone-700">
-                  {format.label}
-                </span>
-              ))}
-            </div>
-            <h3 className="mt-4 text-2xl font-semibold text-brand-900">{training.title}</h3>
+            <h3 className="mt-4 text-2xl font-semibold text-brand-900">
+              <Link to={`/formations/${training.slug}`} className="transition hover:text-brand-700">
+                {training.title}
+              </Link>
+            </h3>
             <p className="mt-3 min-h-[4rem] text-sm leading-6 text-stone-600">
               {training.shortDescription ||
                 training.objective ||
                 'Formation accompagnée avec feuille de route.'}
             </p>
             <div className="mt-5 grid gap-2 border-t border-brand-100 pt-4 text-sm text-stone-600">
-              <div className="flex justify-between gap-4">
-                <span>Durée</span>
-                <strong className="text-brand-900">{formatTrainingDuration(training.durationMinutes)}</strong>
-              </div>
-              <div className="flex justify-between gap-4">
-                <span>Tarif</span>
-                <strong className="text-brand-900">{formatEuroCents(training.priceCents)}</strong>
-              </div>
+              <p>
+                <span>Modalité : </span>
+                <span className="font-semibold text-brand-900">
+                  {formatTrainingDelivery(training.availableFormats)}
+                </span>
+              </p>
+              <p>
+                <span>Durée : </span>
+                <span className="font-semibold text-brand-900">
+                  {formatTrainingDuration(training.durationMinutes)}
+                </span>
+              </p>
+              <p>
+                <span>Tarif : </span>
+                <span className="font-semibold text-brand-900">
+                  {formatEuroCents(training.priceCents)}
+                </span>
+              </p>
             </div>
-            <Link
-              to={`/formations/${training.slug}`}
-              className="mt-6 inline-flex w-fit rounded-full bg-brand-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-brand-800"
-            >
-              Voir la formation
-            </Link>
           </article>
         ))}
       </div>

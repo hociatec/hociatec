@@ -6,5 +6,4 @@ namespace App\Shared\Application\Exception;
 
 interface PublicApiException extends ApiProblemException
 {
-    public function publicMessage(): string;
 }

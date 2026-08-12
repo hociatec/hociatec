@@ -14,6 +14,8 @@ use App\Module\Voucher\Application\Projection\VoucherFormatter;
 
 final readonly class CustomerDetailsProvider
 {
+    private const ORDER_FILTERS = ['all', 'open', 'delivered', 'cancelled'];
+
     public function __construct(
         private UserRepositoryPort $users,
         private ShippingAddressRepositoryPort $addresses,
@@ -28,25 +30,34 @@ final readonly class CustomerDetailsProvider
     /**
      * @return array<string, mixed>|null
      */
-    public function details(int $userId): ?array
+    public function details(int $userId, string $orderStatus = 'all', int $orderPage = 1, int $orderPerPage = 10): ?array
     {
         $user = $this->users->find($userId);
         if (null === $user) {
             return null;
         }
 
-        $orders = $this->orders->findByUser($user);
+        $orderStatus = in_array($orderStatus, self::ORDER_FILTERS, true) ? $orderStatus : 'all';
+        $orderPage = max(1, $orderPage);
+        $orderPerPage = max(1, min(100, $orderPerPage));
+        $allOrders = $this->orders->findByUser($user, 1000, 0);
         $totalSpentCents = 0;
         $lastOrderAt = null;
         $lastOrderNumber = null;
 
-        foreach ($orders as $index => $order) {
+        foreach ($allOrders as $index => $order) {
             $totalSpentCents += $order->getTotalPriceCents();
             if (0 === $index) {
                 $lastOrderAt = $order->getCreatedAt()->format(DATE_ATOM);
                 $lastOrderNumber = $order->getNumber();
             }
         }
+
+        $ordersTotal = $this->orders->countForUserList($user, $orderStatus);
+        $ordersOffset = ($orderPage - 1) * $orderPerPage;
+        $orders = $this->orders->findForUserList($user, $orderStatus, $orderPerPage, $ordersOffset);
+        $ordersTotalPages = max(1, (int) ceil($ordersTotal / $orderPerPage));
+        $orderCounts = $this->orders->countStatusBucketsForUser($user);
 
         return [
             'customer' => [
@@ -60,7 +71,7 @@ final readonly class CustomerDetailsProvider
                 'adminNotes' => $user->getAdminNotes(),
                 'adminTags' => $user->getAdminTags(),
                 'createdAt' => $user->getCreatedAt()->format(DATE_ATOM),
-                'ordersCount' => count($orders),
+                'ordersCount' => $orderCounts['all'],
                 'totalSpentCents' => $totalSpentCents,
                 'lastOrderAt' => $lastOrderAt,
                 'lastOrderNumber' => $lastOrderNumber,
@@ -69,10 +80,20 @@ final readonly class CustomerDetailsProvider
                 fn ($address): array => $this->shippingAddressFormatter->toArray($address),
                 $this->addresses->findAllForUser($user),
             ),
-            'orders' => array_map(
-                fn ($order): array => $this->orderFormatter->formatOrder($order),
-                $orders,
-            ),
+            'orders' => [
+                'items' => array_map(
+                    fn ($order): array => $this->orderFormatter->formatOrder($order),
+                    $orders,
+                ),
+                'meta' => [
+                    'page' => $orderPage,
+                    'perPage' => $orderPerPage,
+                    'total' => $ordersTotal,
+                    'totalPages' => $ordersTotalPages,
+                ],
+                'stats' => $orderCounts,
+                'filter' => $orderStatus,
+            ],
             'vouchers' => array_map(
                 fn ($voucher): array => $this->voucherFormatter->formatVoucher($voucher),
                 $this->vouchers->findByRecipientUserId($userId),

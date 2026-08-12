@@ -1,7 +1,7 @@
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 
 import {
   deleteAdminTrainingCategory,
@@ -19,6 +19,8 @@ import { omitUndefinedProperties } from '@/shared/lib/object';
 import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import type { PaginatedResult } from '@/shared/types/api';
 import { parseNonNegativeInteger } from '@/shared/lib/parsers';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
+import { useEffect } from 'react';
 
 const emptyForm = {
   id: null as number | null,
@@ -34,7 +36,8 @@ export const TrainingCategoriesPage = () => {
   const [form, setForm] = useState(emptyForm);
   const [message, setMessage] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [page, setPage] = useState(parseNullablePositiveInteger(searchParams.get('page')) ?? 1);
   const confirm = useConfirm();
   const queryClient = useQueryClient();
   const categoriesQuery = useQuery<PaginatedResult<TrainingCategoryDto>, Error>({
@@ -43,7 +46,7 @@ export const TrainingCategoriesPage = () => {
   });
   const invalidateCategories = () => {
     void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.categories() });
-    void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.overview() });
+    void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.trainings() });
   };
   const saveMutation = useMutation({
     mutationFn: ({ id, payload }: { id?: number; payload: Parameters<typeof saveAdminTrainingCategory>[0] }) =>
@@ -73,6 +76,14 @@ export const TrainingCategoriesPage = () => {
       : deleteMutation.error
         ? getHttpErrorMessage(deleteMutation.error, 'Impossible de supprimer la catégorie.')
         : formError;
+
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (page > 1) {
+      next.set('page', String(page));
+    }
+    setSearchParams(next, { replace: true });
+  }, [page, setSearchParams]);
 
   const edit = (category: TrainingCategoryDto) => {
     setForm({

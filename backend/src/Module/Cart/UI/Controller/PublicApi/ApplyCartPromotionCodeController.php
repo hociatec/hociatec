@@ -8,6 +8,7 @@ use App\Module\Cart\Application\DTO\ApplyCartVoucherInput;
 use App\Module\Cart\Application\Projection\CartFormatter;
 use App\Module\Cart\Application\Workflow\CartVoucherService;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
 use App\Shared\Infrastructure\Http\RequestHeaderValueResolver;
@@ -44,7 +45,7 @@ final class ApplyCartPromotionCodeController extends AbstractController
                 $user instanceof User ? $user : null,
             );
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), JsonResponse::HTTP_BAD_REQUEST);
+            return ApiProblemResponse::fromThrowable($exception, 'Code promotion invalide.', JsonResponse::HTTP_BAD_REQUEST);
         }
 
         $response = ApiResponse::success([

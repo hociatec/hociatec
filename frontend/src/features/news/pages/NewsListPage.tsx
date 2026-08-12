@@ -42,7 +42,7 @@ export const NewsListPage = () => {
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-12">
         <header className="rounded-2xl border border-brand-100 bg-white p-8 shadow-sm">
           <h1 className="text-4xl font-semibold tracking-tight text-brand-900">
-            Actualités Hociatec
+            Actualités
           </h1>
           <p className="mt-4 max-w-3xl text-base leading-7 text-stone-600">
             Suivez les annonces, les évolutions de service et les informations utiles autour de l’accompagnement numérique Hociatec.

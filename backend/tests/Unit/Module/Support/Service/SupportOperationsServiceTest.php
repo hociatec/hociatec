@@ -28,6 +28,7 @@ use App\Shared\Infrastructure\Validation\ConstraintViolationFormatter;
 use App\Shared\Infrastructure\Validation\DtoValidator;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Mapping\UnderscoreNamingStrategy;
 use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\Persistence\ManagerRegistry;
@@ -210,6 +211,7 @@ final class SupportOperationsServiceTest extends TestCase
         }
 
         $config = ORMSetup::createAttributeMetadataConfiguration([__DIR__.'/../../../../../src'], true);
+        $config->setNamingStrategy(new UnderscoreNamingStrategy());
         $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true], $config);
         $entityManager = new EntityManager($connection, $config);
         (new SchemaTool($entityManager))->createSchema([

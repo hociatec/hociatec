@@ -1,7 +1,7 @@
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 
 import { deleteCategory, fetchAdminCategoriesPage, type CatalogCategory } from '@/features/catalog/adminApi';
 import { PageContainer } from '@/shared/components/layout/PageContainer';
@@ -13,18 +13,22 @@ import { FeedbackMessage, PrimaryLink } from '@/shared/components/ui/page-state'
 import { adminCatalogQueryKeys } from '@/features/admin/catalog/queryKeys';
 import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import type { PaginatedResult } from '@/shared/types/api';
+import { useDebounce } from '@/shared/hooks/useDebounce';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 export const CategoriesListPage = () => {
   useDocumentTitle('Admin - Catégories');
 
   const [message, setMessage] = useState<string | null>(null);
-  const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [search, setSearch] = useState(searchParams.get('q') ?? '');
+  const [page, setPage] = useState(parseNullablePositiveInteger(searchParams.get('page')) ?? 1);
   const confirm = useConfirm();
   const queryClient = useQueryClient();
+  const debouncedSearch = useDebounce(search.trim(), 250);
   const categoriesQuery = useQuery<PaginatedResult<CatalogCategory>, Error>({
-    queryKey: [...adminCatalogQueryKeys.categories(), { page, search }],
-    queryFn: () => fetchAdminCategoriesPage(page, 10, search),
+    queryKey: [...adminCatalogQueryKeys.categories(), { page, q: debouncedSearch }],
+    queryFn: () => fetchAdminCategoriesPage(page, 10, debouncedSearch),
   });
   const deleteMutation = useMutation({
     mutationFn: deleteCategory,
@@ -62,7 +66,18 @@ export const CategoriesListPage = () => {
 
   useEffect(() => {
     setPage(1);
-  }, [search]);
+  }, [debouncedSearch]);
+
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (search.trim()) {
+      next.set('q', search.trim());
+    }
+    if (page > 1) {
+      next.set('page', String(page));
+    }
+    setSearchParams(next, { replace: true });
+  }, [page, search, setSearchParams]);
 
   return (
     <PageContainer

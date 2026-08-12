@@ -19,15 +19,11 @@ const parseRate = (value: string) => {
 export const AdminQuoteItemRow = ({
   item,
   index,
-  products,
+  products: _products,
   onUpdateItem,
   onRemoveItem,
 }: AdminQuoteItemRowProps) => {
-  const isRental =
-    item.type === 'product' &&
-    products.some(
-      (product) => product.id === item.productId && product.sellingType === 'rental',
-    );
+  const isRental = item.type === 'product' && item.sellingType === 'rental';
   const isCustom = item.type === 'custom';
   const months = isRental ? clampAtLeast(item.rentalMonths ?? 1, 1) : 1;
   const line = clampAtLeast(

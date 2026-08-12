@@ -8,6 +8,7 @@ use App\Module\Admin\Application\Catalog\DTO\CategoryInput;
 use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Module\Catalog\Application\Workflow\CategoryCatalogWorkflow;
 use App\Module\Catalog\Domain\Exception\CatalogOperationException;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Validation\DtoValidator;
@@ -43,7 +44,7 @@ class CreateCategoryController extends AbstractController
         try {
             $category = $this->categoryService->create($input->name, $input->slug, $input->description, $input->isVisible);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY);
+            return ApiProblemResponse::fromThrowable($exception, 'Création de catégorie invalide.', Response::HTTP_UNPROCESSABLE_ENTITY);
         } catch (CatalogOperationException) {
             return ApiResponse::internalError();
         }

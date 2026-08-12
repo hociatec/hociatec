@@ -27,11 +27,12 @@ class ListServicesController extends AbstractController
     public function __invoke(Request $request): JsonResponse
     {
         $pagination = RequestQueryMapper::pagination($request, 10, 100);
-        $items = $this->serviceRepository->findBy([], ['title' => 'ASC'], $pagination->perPage, $pagination->offset());
+        $search = RequestQueryMapper::nullableString($request, 'q');
+        $items = $this->serviceRepository->findForAdmin($search, $pagination->perPage, $pagination->offset());
 
         return ApiResponse::paginated(
             array_map(fn ($s) => $this->formatter->formatService($s), $items),
-            $pagination->metadata($this->serviceRepository->count([])),
+            $pagination->metadata($this->serviceRepository->countForAdmin($search)),
         );
     }
 }

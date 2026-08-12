@@ -30,7 +30,7 @@ final class RespondToTradeInOfferController extends AbstractController
         try {
             $result = $this->portal->respondToOfferForUser($this->currentUser(), $id, $action);
         } catch (\DomainException $exception) {
-            return ApiProblemResponse::fromThrowable($exception, 'Réponse à l’offre impossible.', Response::HTTP_CONFLICT);
+            return ApiProblemResponse::fromThrowable($exception, 'Réponse à l’offre impossible.', Response::HTTP_UNPROCESSABLE_ENTITY);
         } catch (\InvalidArgumentException $exception) {
             return ApiProblemResponse::fromThrowable($exception, 'Action de reprise invalide.', Response::HTTP_BAD_REQUEST);
         }

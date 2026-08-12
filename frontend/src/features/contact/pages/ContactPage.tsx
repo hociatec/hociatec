@@ -100,7 +100,6 @@ export const ContactPage = () => {
     <SiteLayout headerVariant="light">
       <PublicPageShell
         size="medium"
-        eyebrow="Contact"
         title="Parlons de votre besoin"
         description="Une question sur un devis, un audit ou une intervention ? Envoyez-nous votre demande avec les éléments utiles."
       >

@@ -119,8 +119,12 @@ export const resolveServiceIllustration = (service: QuoteServiceDto): ServiceIll
   const normalizedTitle = normalizeTitle(service.title);
 
   if (service.imageUrl?.trim()) {
+    const imageUrl = service.imageUrl.trim();
+
     return {
-      imageUrl: service.imageUrl.trim(),
+      imageUrl: imageUrl.startsWith('/service-illustrations/')
+        ? resolvePublicAssetUrl(imageUrl)
+        : imageUrl,
       imageAlt: service.imageAlt?.trim() || service.title,
     };
   }

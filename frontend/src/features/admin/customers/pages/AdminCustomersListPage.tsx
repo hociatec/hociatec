@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 
 import { fetchAdminCustomers, type AdminCustomerSummaryDto } from '@/features/admin/customers/api';
 import { PageContainer } from '@/shared/components/layout/PageContainer';
@@ -18,26 +18,28 @@ import { formatEuroCents, formatOptionalFrenchDateTime } from '@/shared/lib/form
 import { adminCustomerQueryKeys } from '@/features/admin/customers/queryKeys';
 import { normalizePhoneLink } from '@/features/admin/customers/components/customerDetailShared';
 import type { PaginatedResult } from '@/shared/types/api';
+import { useDebounce } from '@/shared/hooks/useDebounce';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 type SortKey = 'recent_order' | 'highest_spent' | 'most_orders' | 'newest_account' | 'name_asc';
 
 export const AdminCustomersListPage = () => {
-  const [search, setSearch] = useState('');
-  const [sort, setSort] = useState<SortKey>('recent_order');
-  const [page, setPage] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [search, setSearch] = useState(searchParams.get('q') ?? '');
+  const [sort, setSort] = useState<SortKey>(
+    (searchParams.get('sort') as SortKey | null) ?? 'recent_order',
+  );
+  const [page, setPage] = useState(parseNullablePositiveInteger(searchParams.get('page')) ?? 1);
+  const debouncedSearch = useDebounce(search.trim(), 250);
   const customersQuery = useQuery<PaginatedResult<AdminCustomerSummaryDto>, Error>({
-    queryKey: [...adminCustomerQueryKeys.list(search, sort), { page }],
-    queryFn: () => fetchAdminCustomers(search, sort, page, 10),
+    queryKey: [...adminCustomerQueryKeys.list(debouncedSearch, sort), { page }],
+    queryFn: () => fetchAdminCustomers(debouncedSearch, sort, page, 10),
   });
   const customers = customersQuery.data?.items ?? [];
   const customersMeta = customersQuery.data?.meta ?? { page, perPage: 10, total: 0, totalPages: 1 };
   const status = customersQuery.isLoading ? 'loading' : customersQuery.isError ? 'error' : 'success';
   const error = customersQuery.error?.message ?? null;
 
-  const verifiedCount = useMemo(
-    () => customers.filter((customer) => customer.isVerified).length,
-    [customers],
-  );
   const sortOptions = useMemo(
     () => [
       { value: 'recent_order', label: 'Dernière commande' },
@@ -53,7 +55,21 @@ export const AdminCustomersListPage = () => {
 
   useEffect(() => {
     setPage(1);
-  }, [search, sort]);
+  }, [debouncedSearch, sort]);
+
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (search.trim()) {
+      next.set('q', search.trim());
+    }
+    if (sort !== 'recent_order') {
+      next.set('sort', sort);
+    }
+    if (page > 1) {
+      next.set('page', String(page));
+    }
+    setSearchParams(next, { replace: true });
+  }, [page, search, setSearchParams, sort]);
 
   return (
     <PageContainer size="admin" title="Clients">
@@ -63,8 +79,7 @@ export const AdminCustomersListPage = () => {
           {customersMeta.total > 1 ? 's' : ''}.
         </p>
         <p className="text-sm text-stone-500">
-          Recherche par prénom, nom, email, téléphone ou numéro de commande. {verifiedCount} compte
-          {verifiedCount > 1 ? 's' : ''} vérifié{verifiedCount > 1 ? 's' : ''}.
+          Recherche par prénom, nom, email, téléphone ou numéro de commande.
         </p>
       </div>
 
@@ -150,7 +165,7 @@ export const AdminCustomersListPage = () => {
                       {customer.ordersCount > 0 ? (
                         <Link
                           className="inline-flex items-center text-sm underline"
-                          to={`/admin/orders?search=${encodeURIComponent(customer.email)}`}
+                          to={`/admin/orders?q=${encodeURIComponent(customer.email)}`}
                         >
                           Ses commandes
                         </Link>

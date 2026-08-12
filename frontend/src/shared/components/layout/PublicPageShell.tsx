@@ -5,7 +5,6 @@ import { cn } from '@/lib/utils';
 interface PublicPageShellProps extends PropsWithChildren {
   actions?: ReactNode;
   description?: ReactNode;
-  eyebrow?: string;
   size?: 'medium' | 'wide';
   title: string;
 }

@@ -24,7 +24,7 @@ export const useAdminOperationsActions = (refresh: () => Promise<void>) => {
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const refreshOperations = useCallback(async () => {
     setActionMessage(null);
-    await queryClient.invalidateQueries({ queryKey: adminOperationsQueryKeys.overview() });
+    await queryClient.invalidateQueries({ queryKey: adminOperationsQueryKeys.base() });
     await refresh();
   }, [queryClient, refresh]);
   const [supportForm, setSupportForm] = useState<SupportForm>(emptySupportForm);

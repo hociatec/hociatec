@@ -1,7 +1,7 @@
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 
 import {
   deleteAdminTrainingSession,
@@ -17,12 +17,14 @@ import { formatOptionalFrenchDate } from '@/shared/lib/formatters';
 import { adminTrainingQueryKeys } from '@/features/admin/trainings/queryKeys';
 import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import type { PaginatedResult } from '@/shared/types/api';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 export const TrainingSessionsPage = () => {
   useDocumentTitle('Admin - Sessions de formation');
 
   const [message, setMessage] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [page, setPage] = useState(parseNullablePositiveInteger(searchParams.get('page')) ?? 1);
   const confirm = useConfirm();
   const queryClient = useQueryClient();
   const sessionsQuery = useQuery<PaginatedResult<TrainingSessionDto>, Error>({
@@ -33,7 +35,7 @@ export const TrainingSessionsPage = () => {
     mutationFn: deleteAdminTrainingSession,
     onSuccess: (response) => {
       void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.sessions() });
-      void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.overview() });
+      void queryClient.invalidateQueries({ queryKey: adminTrainingQueryKeys.enrollments() });
       setMessage(response.message ?? 'La session a bien été supprimée.');
     },
   });
@@ -44,6 +46,14 @@ export const TrainingSessionsPage = () => {
     : deleteMutation.error
       ? getHttpErrorMessage(deleteMutation.error, 'Impossible de supprimer la session.')
       : null;
+
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (page > 1) {
+      next.set('page', String(page));
+    }
+    setSearchParams(next, { replace: true });
+  }, [page, setSearchParams]);
 
   const handleDelete = async (session: TrainingSessionDto) => {
     const confirmed = await confirm({

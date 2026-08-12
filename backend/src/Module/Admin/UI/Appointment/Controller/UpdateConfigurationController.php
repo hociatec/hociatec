@@ -8,6 +8,7 @@ use App\Module\Admin\Application\Appointment\DTO\WorkingDaysInput;
 use App\Module\Appointment\Application\Exception\AppointmentOperationException;
 use App\Module\Appointment\Application\Mapper\WorkingDayPayloadMapper;
 use App\Module\Appointment\Application\Workflow\WorkingDayConfigurationService;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Validation\DtoValidator;
@@ -36,14 +37,18 @@ class UpdateConfigurationController extends AbstractController
             $input = WorkingDaysInput::fromArray($payload);
             $this->validator->validate($input);
             $days = $this->payloadMapper->map($input->toPayload());
-        } catch (InvalidJsonPayloadException|\JsonException|\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+        } catch (InvalidJsonPayloadException|\JsonException) {
+            return ApiResponse::error('Payload JSON invalide.', Response::HTTP_BAD_REQUEST);
+        } catch (\InvalidArgumentException $exception) {
+            return ApiProblemResponse::fromInvalidArgument($exception, Response::HTTP_BAD_REQUEST);
         }
 
         try {
             $configurations = $this->configurationService->update($days);
         } catch (\InvalidArgumentException|AppointmentOperationException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+            return $exception instanceof \InvalidArgumentException
+                ? ApiProblemResponse::fromInvalidArgument($exception, Response::HTTP_BAD_REQUEST)
+                : ApiProblemResponse::fromThrowable($exception, 'Impossible de mettre a jour la configuration.', Response::HTTP_BAD_REQUEST);
         }
 
         return ApiResponse::success([

@@ -1,7 +1,5 @@
 import type { BackupStatusDto } from '../api';
 import { formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
-import { useAdminPagination } from '@/shared/hooks/useAdminPagination';
-import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 
 type BackupListProps = {
   backups: BackupStatusDto['backups'];
@@ -23,8 +21,6 @@ const formatBytes = (bytes?: number | null) => {
 };
 
 export const BackupList = ({ backups }: BackupListProps) => {
-  const backupsPagination = useAdminPagination(backups);
-
   return (
     <section className="rounded-xl border border-white/10 bg-white/[0.04] p-6">
       <h2 className="text-xl font-semibold text-white">Sauvegardes effectuées</h2>
@@ -39,7 +35,7 @@ export const BackupList = ({ backups }: BackupListProps) => {
           </thead>
           <tbody className="divide-y divide-white/10 text-stone-200">
             {backups.length ? (
-              backupsPagination.paginatedItems.map((backup) => (
+              backups.map((backup) => (
                 <tr key={backup.filename}>
                   <td className="py-4 pr-4 font-medium text-white">{backup.filename}</td>
                   <td className="py-4 pr-4">{formatDate(backup.createdAt)}</td>
@@ -56,14 +52,6 @@ export const BackupList = ({ backups }: BackupListProps) => {
           </tbody>
         </table>
       </div>
-      <PaginationControls
-        className="mt-6 text-stone-200"
-        page={backupsPagination.page}
-        total={backupsPagination.total}
-        totalLabel="sauvegarde"
-        totalPages={backupsPagination.totalPages}
-        onPageChange={backupsPagination.setPage}
-      />
     </section>
   );
 };

@@ -6,6 +6,7 @@ namespace App\Module\Appointment\UI\Controller\Client;
 
 use App\Module\Appointment\Application\DTO\UpdateAppointmentStatusInput;
 use App\Module\Appointment\Application\Workflow\CustomerAppointmentPortalService;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
@@ -43,11 +44,11 @@ final class UpdateAppointmentStatusController extends AbstractController
         try {
             $appointment = $this->portal->changeStatusForUser($this->currentUser(), $id, $input->status);
         } catch (\DomainException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_FORBIDDEN);
+            return ApiProblemResponse::fromThrowable($exception, 'Changement de statut impossible.', Response::HTTP_FORBIDDEN);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+            return ApiProblemResponse::fromThrowable($exception, 'Changement de statut invalide.', Response::HTTP_BAD_REQUEST);
         } catch (\RuntimeException $exception) {
-            return ApiResponse::error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+            return ApiProblemResponse::fromThrowable($exception, 'Changement de statut impossible.', Response::HTTP_BAD_REQUEST);
         }
         if (null === $appointment) {
             return ApiResponse::error('Rendez-vous introuvable.', Response::HTTP_NOT_FOUND);

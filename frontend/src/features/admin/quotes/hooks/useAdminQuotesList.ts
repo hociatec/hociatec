@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useSearchParams } from 'react-router';
 import {
   fetchAdminQuotes,
   deleteAdminQuote,
@@ -15,20 +16,22 @@ import { fetchAdminQuoteMetadata, type QuoteMetadataOption } from '@/features/qu
 import { adminQuoteQueryKeys } from '@/features/quotes/publicApi';
 import { omitUndefinedProperties } from '@/shared/lib/object';
 import { useDebounce } from '@/shared/hooks/useDebounce';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 import type { PaginatedResult } from '@/shared/types/api';
 
 export const useAdminQuotesList = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const toast = useToast();
   const confirm = useConfirm();
   const prompt = usePrompt();
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const [search, setSearch] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [fromDate, setFromDate] = useState<string | null>(null);
-  const [toDate, setToDate] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState(searchParams.get('q') ?? '');
+  const [filterStatus, setFilterStatus] = useState(searchParams.get('status') ?? 'all');
+  const [fromDate, setFromDate] = useState(searchParams.get('from'));
+  const [toDate, setToDate] = useState(searchParams.get('to'));
+  const [page, setPage] = useState(parseNullablePositiveInteger(searchParams.get('page')) ?? 1);
   const debouncedSearch = useDebounce(search.trim(), 250);
   const metadataQuery = useQuery({
     queryKey: adminQuoteQueryKeys.metadata(),
@@ -109,6 +112,25 @@ export const useAdminQuotesList = () => {
   useEffect(() => {
     setPage(1);
   }, [filterStatus, fromDate, debouncedSearch, toDate]);
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (search.trim()) {
+      next.set('q', search.trim());
+    }
+    if (filterStatus !== 'all') {
+      next.set('status', filterStatus);
+    }
+    if (fromDate) {
+      next.set('from', fromDate);
+    }
+    if (toDate) {
+      next.set('to', toDate);
+    }
+    if (page > 1) {
+      next.set('page', String(page));
+    }
+    setSearchParams(next, { replace: true });
+  }, [filterStatus, fromDate, page, search, setSearchParams, toDate]);
   const handleDelete = async (id: number) => {
     const quote = quotes.find((item) => item.id === id);
     if (

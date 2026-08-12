@@ -10,6 +10,7 @@ use App\Module\BetaTest\Application\Writer\BugReportWriter;
 use App\Module\BetaTest\Domain\Enum\BetaTesterStatus;
 use App\Module\BetaTest\Domain\Exception\BetaTestOperationException;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -59,7 +60,7 @@ final class CreateBugReportController extends AbstractController
         try {
             $report = $this->writer->create($user, $campaign, $payload, $files);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), 422);
+            return ApiProblemResponse::fromThrowable($exception, 'Signalement invalide.', 422);
         } catch (BetaTestOperationException) {
             return ApiResponse::internalError();
         }

@@ -31,7 +31,7 @@ final class AdminLoyaltyController extends AbstractController
     #[Route('', name: 'api_admin_loyalty_list', methods: ['GET'])]
     public function list(Request $request): JsonResponse
     {
-        $search = RequestQueryMapper::string($request, 'search');
+        $search = RequestQueryMapper::string($request, 'q');
         $pagination = RequestQueryMapper::pagination($request, 10, 50);
 
         return ApiResponse::paginated(

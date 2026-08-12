@@ -6,6 +6,7 @@ namespace App\Module\User\UI\Controller;
 
 use App\Module\User\Application\Exception\DeleteAccountBlockedException;
 use App\Module\User\Application\Workflow\DeleteAccountService;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
 use Psr\Log\LoggerInterface;
@@ -33,7 +34,7 @@ class DeleteAccountController extends AbstractController
         try {
             $this->deleter->delete($user);
         } catch (DeleteAccountBlockedException $exception) {
-            return ApiResponse::error($exception->getMessage(), JsonResponse::HTTP_CONFLICT);
+            return ApiProblemResponse::fromThrowable($exception, 'Suppression du compte impossible.', JsonResponse::HTTP_CONFLICT);
         } catch (\RuntimeException $exception) {
             $this->logger->error('Unable to delete user account.', [
                 'userId' => $user->getId(),

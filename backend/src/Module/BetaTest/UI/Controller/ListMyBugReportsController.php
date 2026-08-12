@@ -35,9 +35,12 @@ final class ListMyBugReportsController extends AbstractController
         $pagination = RequestQueryMapper::pagination($request, 12, 100);
         $result = $this->portal->listForUser($user, $pagination->perPage, $pagination->offset());
 
-        return ApiResponse::paginated(
-            array_map(fn (BugReport $report): array => $this->formatter->format($report), $result['items']),
-            $pagination->metadata($result['total']),
-        );
+        $meta = $pagination->metadata($result['total']);
+
+        return ApiResponse::success([
+            'items' => array_map(fn (BugReport $report): array => $this->formatter->format($report), $result['items']),
+            'meta' => $meta,
+            'stats' => $result['stats'],
+        ], meta: $meta);
     }
 }

@@ -2,13 +2,10 @@ import { Link } from 'react-router';
 import { ArrowRight, CircleAlert, CircleCheckBig } from 'lucide-react';
 
 import type { AdminDashboardDto } from '@/features/admin/customers/api';
-import { useAdminPagination } from '@/shared/hooks/useAdminPagination';
-import { PaginationControls } from '@/shared/components/ui/PaginationControls';
 import { formatFrenchDateTime } from '@/shared/lib/formatters';
 
 export const AdminDashboardNotifications = ({ dashboard }: { dashboard: AdminDashboardDto }) => {
   const notifications = dashboard.notifications ?? [];
-  const notificationsPagination = useAdminPagination(notifications);
 
   return (
   <section className="space-y-4">
@@ -22,7 +19,7 @@ export const AdminDashboardNotifications = ({ dashboard }: { dashboard: AdminDas
     <div className="grid gap-3 xl:grid-cols-2">
       {notifications.length === 0 ? (
         <div className="rounded-2xl border border-brand-700 bg-brand-800/50 p-5 text-sm text-stone-500">Aucune notification récente.</div>
-      ) : notificationsPagination.paginatedItems.map((item) => {
+      ) : notifications.map((item) => {
         const isAction = item.severity === 'action';
         const isDanger = item.severity === 'danger';
         return (
@@ -38,14 +35,6 @@ export const AdminDashboardNotifications = ({ dashboard }: { dashboard: AdminDas
         );
       })}
     </div>
-    <PaginationControls
-      className="mt-6 text-stone-300"
-      page={notificationsPagination.page}
-      total={notificationsPagination.total}
-      totalLabel="notification"
-      totalPages={notificationsPagination.totalPages}
-      onPageChange={notificationsPagination.setPage}
-    />
   </section>
   );
 };

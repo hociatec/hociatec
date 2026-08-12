@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link } from 'react-router';
+import { useEffect, useState } from 'react';
+import { Link, useSearchParams } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { deleteAdminNewsArticle, fetchAdminNewsArticles, sendAdminNewsArticleEmail, type NewsArticleDto } from '@/features/news/publicApi';
@@ -11,17 +11,25 @@ import { useConfirm } from '@/shared/components/ui/confirm';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { adminNewsQueryKeys } from '@/features/admin/news/queryKeys';
 import { PaginationControls } from '@/shared/components/ui/PaginationControls';
+import { useDebounce } from '@/shared/hooks/useDebounce';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 export const AdminNewsListPage = () => {
   useDocumentTitle('Admin - Actualités');
   const queryClient = useQueryClient();
   const confirm = useConfirm();
-  const [query, setQuery] = useState('');
-  const [page, setPage] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [query, setQuery] = useState(searchParams.get('q') ?? '');
+  const [page, setPage] = useState(parseNullablePositiveInteger(searchParams.get('page')) ?? 1);
   const [message, setMessage] = useState<string | null>(null);
+  const debouncedQuery = useDebounce(query.trim(), 250);
   const newsQuery = useQuery({
-    queryKey: adminNewsQueryKeys.list(`${query}:${page}`),
-    queryFn: () => fetchAdminNewsArticles({ page, q: query }),
+    queryKey: [...adminNewsQueryKeys.list(debouncedQuery), { page }],
+    queryFn: () =>
+      fetchAdminNewsArticles({
+        page,
+        ...(debouncedQuery ? { q: debouncedQuery } : {}),
+      }),
   });
   const items: NewsArticleDto[] = newsQuery.data?.items ?? [];
   const meta = newsQuery.data?.meta ?? null;
@@ -36,6 +44,21 @@ export const AdminNewsListPage = () => {
     mutationFn: sendAdminNewsArticleEmail,
     onSuccess: () => setMessage('Envoi des e-mails d’actualité planifié.'),
   });
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedQuery]);
+
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (query.trim()) {
+      next.set('q', query.trim());
+    }
+    if (page > 1) {
+      next.set('page', String(page));
+    }
+    setSearchParams(next, { replace: true });
+  }, [page, query, setSearchParams]);
 
   const handleDelete = async (article: NewsArticleDto) => {
     if (
@@ -86,7 +109,6 @@ export const AdminNewsListPage = () => {
           value={query}
           onChange={(value) => {
             setQuery(value);
-            setPage(1);
           }}
           placeholder="Rechercher une actualité..."
         />

@@ -2,6 +2,8 @@ export const quoteQueryKeys = {
   mine: () => ['quotes', 'mine'] as const,
   mineDetail: (id: number | null) => ['quotes', 'mine-detail', id] as const,
   publicServices: () => ['quotes', 'public-services'] as const,
+  publicServicesSearch: (q: string, page: number, perPage: number) =>
+    ['quotes', 'public-services-search', { q, page, perPage }] as const,
   publicService: (id: number | null) => ['quotes', 'public-service', id] as const,
   catalogProducts: (q: string) => ['quotes', 'catalog-products', { q }] as const,
 };

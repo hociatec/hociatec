@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router';
 
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { adminFetchTradeIns } from '@/features/tradeIns/publicApi';
@@ -6,12 +7,16 @@ import type { TradeInDto, TradeInStatus } from '@/features/tradeIns/publicApi';
 import type { PaginationMeta } from '@/shared/types/api';
 import { initialTradeInModalState, useTradeInAdminModalState } from './tradeInAdminModalState';
 import { useAdminTradeInActions } from './useAdminTradeInActions';
+import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 
 export const useAdminTradeInsPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [items, setItems] = useState<TradeInDto[]>([]);
   const [pagination, setPagination] = useState<PaginationMeta>({ page: 1, perPage: 10, total: 0, totalPages: 1 });
-  const [page, setPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState<TradeInStatus | ''>('');
+  const [page, setPage] = useState(parseNullablePositiveInteger(searchParams.get('page')) ?? 1);
+  const [statusFilter, setStatusFilter] = useState<TradeInStatus | ''>(
+    (searchParams.get('status') as TradeInStatus | null) ?? '',
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const {
@@ -30,6 +35,7 @@ export const useAdminTradeInsPage = () => {
   } = useTradeInAdminModalState();
   const load = async () => {
     setLoading(true);
+    setError(null);
     try {
       const result = await adminFetchTradeIns(statusFilter || undefined, page, 10);
       setItems(result.items);
@@ -48,6 +54,17 @@ export const useAdminTradeInsPage = () => {
   useEffect(() => {
     setPage(1);
   }, [statusFilter]);
+
+  useEffect(() => {
+    const next = new URLSearchParams();
+    if (statusFilter) {
+      next.set('status', statusFilter);
+    }
+    if (page > 1) {
+      next.set('page', String(page));
+    }
+    setSearchParams(next, { replace: true });
+  }, [page, setSearchParams, statusFilter]);
 
   useEffect(() => {
     if (!modalState.selected) return;

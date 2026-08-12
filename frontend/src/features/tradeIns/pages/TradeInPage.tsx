@@ -72,7 +72,6 @@ export const TradeInPage = () => {
       <SiteLayout headerVariant="light">
         <PublicPageShell
           size="medium"
-          eyebrow="Reprise"
           title="Demande envoyée"
           description="Votre demande a été enregistrée. L’estimation sera confirmée après vérification."
         >
@@ -85,7 +84,6 @@ export const TradeInPage = () => {
   return (
     <SiteLayout headerVariant="light">
       <PublicPageShell
-        eyebrow="Reprise matériel"
         title="Faire reprendre un matériel"
         description="Décrivez votre matériel. Vous recevrez une estimation indicative, puis une offre définitive après contrôle."
       >

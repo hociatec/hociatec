@@ -27,13 +27,15 @@ final class ListPromotionsController extends AbstractController
     public function __invoke(Request $request): JsonResponse
     {
         $pagination = RequestQueryMapper::pagination($request, 10, 50);
+        $search = RequestQueryMapper::nullableString($request, 'q');
+        $status = RequestQueryMapper::choice($request, 'status', ['active', 'inactive']);
 
         return ApiResponse::paginated(
             array_map(
                 fn ($promotion) => $this->formatter->formatPromotion($promotion),
-                $this->promotions->findBy([], ['updatedAt' => 'DESC'], $pagination->perPage, $pagination->offset()),
+                $this->promotions->findForAdmin($search, $status, $pagination->perPage, $pagination->offset()),
             ),
-            $pagination->metadata($this->promotions->count([])),
+            $pagination->metadata($this->promotions->countForAdmin($search, $status)),
         );
     }
 }

@@ -9,6 +9,7 @@ use App\Module\Cart\Application\Projection\CartFormatter;
 use App\Module\Cart\Application\Workflow\CartSessionWorkflow;
 use App\Module\Catalog\Application\Port\ProductRepositoryPort;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
 use App\Shared\Infrastructure\Http\RequestHeaderValueResolver;
@@ -59,7 +60,7 @@ class AddCartItemController extends AbstractController
         try {
             $cart = $this->cartService->addProduct($token, $product, $quantity, $rentalMonths);
         } catch (\InvalidArgumentException $exception) {
-            return ApiResponse::error($exception->getMessage(), JsonResponse::HTTP_BAD_REQUEST);
+            return ApiProblemResponse::fromThrowable($exception, 'Impossible d’ajouter cet article au panier.', JsonResponse::HTTP_BAD_REQUEST);
         }
 
         $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Shared\Infrastructure\Http;
 
+use App\Shared\Application\Exception\PublicInvalidArgumentException;
 use App\Shared\Domain\ValueObject\DecimalNumber;
 
 final class RequestPayloadMapper
@@ -55,7 +56,7 @@ final class RequestPayloadMapper
             return 0;
         }
 
-        throw new \InvalidArgumentException('Le prix doit etre positif.');
+        throw new PublicInvalidArgumentException('Le prix doit etre positif.', 422, 'UNPROCESSABLE_ENTITY');
     }
 
     public static function dateOrNull(mixed $value): ?\DateTimeImmutable

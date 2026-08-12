@@ -6,6 +6,9 @@ namespace App\Module\Order\Application\Factory;
 
 use App\Module\Cart\Application\Port\CartSessionRepositoryPort;
 use App\Module\Cart\Domain\Entity\CartSession;
+use App\Module\Order\Application\Exception\CartAlreadyConvertedException;
+use App\Module\Order\Application\Exception\CartCheckoutNotFoundException;
+use App\Module\Order\Application\Exception\CheckoutRequestException;
 use App\Module\Order\Application\DTO\CartOrderSummary;
 use App\Module\Order\Application\DTO\OrderCreationData;
 use App\Module\Order\Domain\Entity\Order;
@@ -31,7 +34,7 @@ final readonly class CartOrderCreator
     public function create(User $user, CartSession $cart, ShippingAddress $address): Order
     {
         if (0 === $cart->getItems()->count()) {
-            throw new \InvalidArgumentException('Le panier est vide.');
+            throw CheckoutRequestException::emptyCart();
         }
 
         $summary = $this->summaryBuilder->build($cart, $user);
@@ -40,18 +43,18 @@ final readonly class CartOrderCreator
             function () use ($user, $cart, $address, $summary): Order {
                 $cartId = $cart->getId();
                 if (null === $cartId) {
-                    throw new \InvalidArgumentException('Panier invalide.');
+                    throw new CartCheckoutNotFoundException('Panier introuvable.', 'CART_NOT_FOUND');
                 }
 
                 $lockedCart = $this->carts->findForUpdate($cartId);
                 if (null === $lockedCart) {
-                    throw new \InvalidArgumentException('Panier introuvable.');
+                    throw new CartCheckoutNotFoundException('Panier introuvable.', 'CART_NOT_FOUND');
                 }
                 if ($lockedCart->isConverted()) {
-                    throw new \InvalidArgumentException('Ce panier a deja ete valide.');
+                    throw new CartAlreadyConvertedException('Ce panier a deja ete valide.');
                 }
                 if (0 === $lockedCart->getItems()->count()) {
-                    throw new \InvalidArgumentException('Le panier est vide.');
+                    throw CheckoutRequestException::emptyCart();
                 }
 
                 $order = $this->createOrder($user, $address, $summary);
@@ -60,7 +63,7 @@ final readonly class CartOrderCreator
                 $this->persistence->flush();
 
                 if (null === $order->getId()) {
-                    throw new \InvalidArgumentException('Commande invalide.');
+                    throw CheckoutRequestException::invalidOrder();
                 }
                 $lockedCart->markConverted($order->getId());
                 $this->persistence->persist($lockedCart);
