@@ -33,21 +33,6 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Read native iOS app metadata
-        id: ios_meta
-        run: |
-          PROJECT_FILE="app_iphone/hociatec iphone.xcodeproj/project.pbxproj"
-          BUNDLE_IDENTIFIER="$(sed -nE 's/.*PRODUCT_BUNDLE_IDENTIFIER = "?([^";]+)"?;.*/\1/p' "${PROJECT_FILE}" | head -n 1)"
-          MIN_OS_VERSION="$(sed -nE 's/.*IPHONEOS_DEPLOYMENT_TARGET = ([^;]+);/\1/p' "${PROJECT_FILE}" | head -n 1)"
-
-          if [ -z "${BUNDLE_IDENTIFIER}" ] || [ -z "${MIN_OS_VERSION}" ]; then
-            echo "Impossible de lire les metadonnees iOS depuis ${PROJECT_FILE}." >&2
-            exit 1
-          fi
-
-          echo "bundle_identifier=${BUNDLE_IDENTIFIER}" >> "$GITHUB_OUTPUT"
-          echo "min_os_version=${MIN_OS_VERSION}" >> "$GITHUB_OUTPUT"
-
       - name: Resolve IPA artifact name
         id: artifact
         env:
@@ -72,7 +57,8 @@ jobs:
           mkdir -p tmp-ios-download
           gh run download "${{ inputs.run_id || github.event.workflow_run.id }}" --name "${{ steps.artifact.outputs.name }}" --dir tmp-ios-download
 
-      - name: Generate AltStore source JSON
+      - name: Read IPA metadata
+        id: ipa_meta
         env:
           ARTIFACT_NAME: ${{ steps.artifact.outputs.name }}
         run: |
@@ -83,8 +69,70 @@ jobs:
             exit 1
           fi
 
-          APP_VERSION="$(printf '%s' "${ARTIFACT_NAME}" | sed -E 's/^hociatec-ios-unsigned-ipa-v([^ -]+)-b([0-9]+)$/\1/')"
-          APP_BUILD="$(printf '%s' "${ARTIFACT_NAME}" | sed -E 's/^hociatec-ios-unsigned-ipa-v([^ -]+)-b([0-9]+)$/\2/')"
+          EXTRACT_DIR="$(mktemp -d)"
+          unzip -qq "${IPA_PATH}" -d "${EXTRACT_DIR}"
+          INFO_PLIST="$(find "${EXTRACT_DIR}/Payload" -maxdepth 2 -path '*.app/Info.plist' | head -n 1)"
+
+          if [ -z "${INFO_PLIST}" ]; then
+            echo "Impossible de trouver Info.plist dans l'IPA." >&2
+            exit 1
+          fi
+
+          readarray -t IPA_META < <(python3 -c "import plistlib, sys; plist = plistlib.load(open(sys.argv[1], 'rb')); [print(str(plist.get(key, '')).strip()) for key in ('CFBundleIdentifier', 'CFBundleShortVersionString', 'CFBundleVersion', 'MinimumOSVersion')]" "${INFO_PLIST}")
+
+          BUNDLE_IDENTIFIER="${IPA_META[0]}"
+          IPA_VERSION="${IPA_META[1]}"
+          IPA_BUILD="${IPA_META[2]}"
+          MIN_OS_VERSION="${IPA_META[3]}"
+
+          if [ -z "${BUNDLE_IDENTIFIER}" ] || [ -z "${IPA_VERSION}" ] || [ -z "${IPA_BUILD}" ] || [ -z "${MIN_OS_VERSION}" ]; then
+            echo "Impossible de lire les metadonnees depuis l'IPA." >&2
+            exit 1
+          fi
+
+          ARTIFACT_VERSION="$(printf '%s' "${ARTIFACT_NAME}" | sed -E 's/^hociatec-ios-unsigned-ipa-v([^ -]+)-b([0-9]+)$/\1/')"
+          ARTIFACT_BUILD="$(printf '%s' "${ARTIFACT_NAME}" | sed -E 's/^hociatec-ios-unsigned-ipa-v([^ -]+)-b([0-9]+)$/\2/')"
+
+          if [ "${IPA_VERSION}" != "${ARTIFACT_VERSION}" ] || [ "${IPA_BUILD}" != "${ARTIFACT_BUILD}" ]; then
+            echo "Les metadonnees de l'IPA (${IPA_VERSION} build ${IPA_BUILD}) ne correspondent pas a l'artefact ${ARTIFACT_NAME}." >&2
+            exit 1
+          fi
+
+          echo "bundle_identifier=${BUNDLE_IDENTIFIER}" >> "$GITHUB_OUTPUT"
+          echo "min_os_version=${MIN_OS_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "app_version=${IPA_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "app_build=${IPA_BUILD}" >> "$GITHUB_OUTPUT"
+
+      - name: Prevent ios-latest downgrade
+        env:
+          CANDIDATE_VERSION: ${{ steps.ipa_meta.outputs.app_version }}
+          CANDIDATE_BUILD: ${{ steps.ipa_meta.outputs.app_build }}
+        run: |
+          CURRENT_SOURCE_URL="https://github.com/hociatec/hociatec-downloads/releases/download/ios-latest/hociatec-altstore-source.json"
+          HTTP_STATUS="$(curl -L -s -o tmp-ios-download/current-altstore-source.json -w '%{http_code}' "${CURRENT_SOURCE_URL}")"
+
+          if [ "${HTTP_STATUS}" = "404" ]; then
+            exit 0
+          fi
+
+          if [ "${HTTP_STATUS}" -lt 200 ] || [ "${HTTP_STATUS}" -ge 300 ]; then
+            echo "Impossible de verifier la version AltStore actuelle (HTTP ${HTTP_STATUS})." >&2
+            exit 1
+          fi
+
+          python3 -c "import json, sys; source_path, candidate_version, candidate_build = sys.argv[1:4]; payload = json.load(open(source_path, 'r', encoding='utf-8')); current = payload['apps'][0]['versions'][0]; current_version = str(current.get('version', '')).strip(); current_build = str(current.get('buildVersion', '')).strip(); parse = lambda value: [int(''.join(ch for ch in chunk if ch.isdigit()) or '0') for chunk in value.split('.')]; a = parse(candidate_version); b = parse(current_version); length = max(len(a), len(b)); a.extend([0] * (length - len(a))); b.extend([0] * (length - len(b))); version_cmp = (-1 if a < b else 1 if a > b else 0); candidate_build_int = int(candidate_build); current_build_int = int(current_build or '0'); raise SystemExit(f'Refus de republier ios-latest avec {candidate_version} ({candidate_build_int}) car la version actuelle est {current_version} ({current_build_int}).') if (version_cmp < 0 or (version_cmp == 0 and candidate_build_int < current_build_int)) else None" tmp-ios-download/current-altstore-source.json "${CANDIDATE_VERSION}" "${CANDIDATE_BUILD}"
+
+      - name: Generate AltStore source JSON
+        run: |
+          IPA_PATH="$(find tmp-ios-download -maxdepth 2 -name '*.ipa' | head -n 1)"
+
+          if [ -z "${IPA_PATH}" ]; then
+            echo "Impossible de trouver le fichier IPA telecharge." >&2
+            exit 1
+          fi
+
+          APP_VERSION="${{ steps.ipa_meta.outputs.app_version }}"
+          APP_BUILD="${{ steps.ipa_meta.outputs.app_build }}"
           VERSION_RELEASE_TAG="ios-v${APP_VERSION}-b${APP_BUILD}"
           PUBLIC_IPA_FILENAME="hociatec-altstore-v${APP_VERSION}-b${APP_BUILD}.ipa"
           IPA_SIZE="$(wc -c < "${IPA_PATH}" | tr -d '[:space:]')"
@@ -102,12 +150,12 @@ jobs:
             "website": "https://hociatec.fr",
             "tintColor": "#16324F",
             "featuredApps": [
-              "${{ steps.ios_meta.outputs.bundle_identifier }}"
+              "${{ steps.ipa_meta.outputs.bundle_identifier }}"
             ],
             "apps": [
               {
                 "name": "Hociatec",
-                "bundleIdentifier": "${{ steps.ios_meta.outputs.bundle_identifier }}",
+                "bundleIdentifier": "${{ steps.ipa_meta.outputs.bundle_identifier }}",
                 "developerName": "Hociatec",
                 "subtitle": "Catalogue, prestations et services Hociatec",
                 "localizedDescription": "Application mobile officielle Hociatec. Retrouvez les services, le catalogue et les mises a jour depuis AltStore.",
@@ -122,7 +170,7 @@ jobs:
                     "localizedDescription": "Derniere version publiee automatiquement depuis la CI Hociatec.",
                     "downloadURL": "${IPA_URL}",
                     "size": ${IPA_SIZE},
-                    "minOSVersion": "${{ steps.ios_meta.outputs.min_os_version }}"
+                    "minOSVersion": "${{ steps.ipa_meta.outputs.min_os_version }}"
                   }
                 ]
               }
