@@ -275,7 +275,7 @@ jobs:
                   tmp-ios-published/hociatec-altstore-source.json \
                   "${APP_VERSION}" \
                   "${APP_BUILD}" \
-                && python3 -c "import json, os; payload = json.load(open('tmp-ios-published/hociatec-altstore-source.json', 'r', encoding='utf-8')); download_url = payload['apps'][0]['versions'][0]['downloadURL']; expected_url = os.environ['DOWNLOAD_URL_EXPECTED']; raise SystemExit(f'Le downloadURL publie n\\'est pas encore a jour: {download_url} != {expected_url}') if download_url != expected_url else None"
+                && python3 -c "import json, os, sys; payload = json.load(open('tmp-ios-published/hociatec-altstore-source.json', 'r', encoding='utf-8')); download_url = payload['apps'][0]['versions'][0]['downloadURL']; expected_url = os.environ['DOWNLOAD_URL_EXPECTED']; sys.exit(f'Le downloadURL publie n\\'est pas encore a jour: {download_url} != {expected_url}') if download_url != expected_url else sys.exit(0)"
               then
                 break
               fi
