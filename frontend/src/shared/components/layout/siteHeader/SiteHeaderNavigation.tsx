@@ -32,7 +32,7 @@ const serviceLinks = [
 const altStoreSourcePath = 'https://hociatec.fr/hociatec-altstore-source.json';
 const iosDownloadProxyPath = 'https://hociatec.fr/api/public/ios/latest-download';
 const altStoreAddSourcePath =
-  `altstore://source?url=${encodeURIComponent(altStoreSourcePath)}`;
+  `altstore-pal://source?url=${encodeURIComponent(altStoreSourcePath)}`;
 
 type AltStoreSourceVersion = {
   version: string;
