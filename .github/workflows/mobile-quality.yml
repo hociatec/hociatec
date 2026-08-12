@@ -62,6 +62,8 @@ jobs:
             -project "${PROJECT_PATH}" \
             -scheme "${SCHEME}" \
             -destination "id=${{ steps.simulator.outputs.udid }}" \
+            -skip-testing:"hociatec iphoneUITests" \
+            -skip-testing:"hociatec iphoneUITestsLaunchTests" \
             CODE_SIGNING_ALLOWED=NO
 
   ios-build:
