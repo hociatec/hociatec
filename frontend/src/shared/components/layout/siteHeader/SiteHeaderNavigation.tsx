@@ -31,6 +31,8 @@ const serviceLinks = [
 
 const altStoreSourcePath = 'https://hociatec.fr/hociatec-altstore-source.json';
 const iosDownloadProxyPath = 'https://hociatec.fr/api/public/ios/latest-download';
+const altStoreClassicAddSourcePath =
+  `altstore-classic://source?url=${encodeURIComponent(altStoreSourcePath)}`;
 
 type AltStoreSourceVersion = {
   version: string;
@@ -213,13 +215,13 @@ export const SiteHeaderNavigation = () => {
       </Link>
 
       <a
-        href={altStoreSourcePath}
+        href={altStoreClassicAddSourcePath}
         className="site-header__cta"
         rel="noopener noreferrer"
         target="_blank"
       >
         <Download aria-hidden="true" />
-        Source AltStore Classic
+        Ajouter a AltStore Classic
       </a>
 
       <a
