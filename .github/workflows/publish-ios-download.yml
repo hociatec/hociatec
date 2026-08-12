@@ -261,7 +261,7 @@ jobs:
           rm -rf tmp-ios-published
           mkdir -p tmp-ios-published
 
-          DOWNLOAD_URL_EXPECTED="https://github.com/hociatec/hociatec-downloads/releases/download/ios-latest/${LATEST_IPA_FILENAME}"
+          export DOWNLOAD_URL_EXPECTED="https://github.com/hociatec/hociatec-downloads/releases/download/ios-latest/${LATEST_IPA_FILENAME}"
 
           for attempt in 1 2 3 4 5 6 7 8; do
             echo "Verification de la propagation GitHub Release, tentative ${attempt}/8"
