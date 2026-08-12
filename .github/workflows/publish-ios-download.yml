@@ -261,26 +261,45 @@ jobs:
           rm -rf tmp-ios-published
           mkdir -p tmp-ios-published
 
-          for attempt in 1 2 3 4 5; do
-            echo "Verification de la propagation GitHub Release, tentative ${attempt}/5"
+          DOWNLOAD_URL_EXPECTED="https://github.com/hociatec/hociatec-downloads/releases/download/ios-latest/${LATEST_IPA_FILENAME}"
+
+          for attempt in 1 2 3 4 5 6 7 8; do
+            echo "Verification de la propagation GitHub Release, tentative ${attempt}/8"
 
             if curl -fsSL "${IPA_URL}" -o "tmp-ios-published/${PUBLIC_IPA_FILENAME}" \
               && curl -fsSL "${LATEST_IPA_URL}" -o "tmp-ios-published/${LATEST_IPA_FILENAME}" \
               && curl -fsSL "${SOURCE_URL}" -o tmp-ios-published/hociatec-altstore-source.json; then
-              break
+              if ./app_iphone/tools/validate_altstore_ipa.sh "tmp-ios-published/${PUBLIC_IPA_FILENAME}" \
+                && ./app_iphone/tools/validate_altstore_ipa.sh "tmp-ios-published/${LATEST_IPA_FILENAME}" \
+                && ./app_iphone/tools/validate_altstore_source.sh \
+                  tmp-ios-published/hociatec-altstore-source.json \
+                  "${APP_VERSION}" \
+                  "${APP_BUILD}" \
+                && python3 - <<'PY'
+import json
+import os
+
+source_path = "tmp-ios-published/hociatec-altstore-source.json"
+expected_url = os.environ["DOWNLOAD_URL_EXPECTED"]
+
+with open(source_path, "r", encoding="utf-8") as fh:
+    payload = json.load(fh)
+
+download_url = payload["apps"][0]["versions"][0]["downloadURL"]
+if download_url != expected_url:
+    raise SystemExit(
+        f"Le downloadURL publie n'est pas encore a jour: {download_url} != {expected_url}"
+    )
+PY
+              then
+                break
+              fi
             fi
 
-            if [ "${attempt}" -eq 5 ]; then
-              echo "Les assets publics AltStore ne sont pas encore disponibles apres 5 tentatives." >&2
+            if [ "${attempt}" -eq 8 ]; then
+              echo "Les assets publics AltStore ne sont pas encore coherents apres 8 tentatives." >&2
               exit 1
             fi
 
             sleep 15
           done
-
-          ./app_iphone/tools/validate_altstore_ipa.sh "tmp-ios-published/${PUBLIC_IPA_FILENAME}"
-          ./app_iphone/tools/validate_altstore_ipa.sh "tmp-ios-published/${LATEST_IPA_FILENAME}"
-          ./app_iphone/tools/validate_altstore_source.sh \
-            tmp-ios-published/hociatec-altstore-source.json \
-            "${APP_VERSION}" \
-            "${APP_BUILD}"
