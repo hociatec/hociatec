@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useLocation, Link } from 'react-router';
 import {
   BriefcaseBusiness,
@@ -36,12 +37,55 @@ const altStoreSourcePath =
 const altStoreAddSourcePath =
   `altstore://source?url=${encodeURIComponent(altStoreSourcePath)}`;
 
+type AltStoreSourceVersion = {
+  version: string;
+  buildVersion?: string;
+};
+
+type AltStoreSourceApp = {
+  versions?: AltStoreSourceVersion[];
+};
+
+type AltStoreSourcePayload = {
+  apps?: AltStoreSourceApp[];
+};
+
+const fetchPublishedIosVersion = async (): Promise<string | null> => {
+  const response = await fetch(altStoreSourcePath, {
+    method: 'GET',
+    mode: 'cors',
+    headers: {
+      Accept: 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Impossible de charger la version iPhone publiee (${response.status}).`);
+  }
+
+  const payload = (await response.json()) as AltStoreSourcePayload;
+  const version = payload.apps?.[0]?.versions?.[0]?.version?.trim();
+
+  return version && version.length > 0 ? version : null;
+};
+
 export const SiteHeaderNavigation = () => {
   const { pathname } = useLocation();
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
   const catalogSummaryRef = useRef<HTMLElement | null>(null);
   const servicesSummaryRef = useRef<HTMLElement | null>(null);
+  const { data: publishedIosVersion } = useQuery<string | null, Error>({
+    queryKey: ['public', 'ios-app-version'],
+    queryFn: fetchPublishedIosVersion,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    retry: 1,
+  });
+
+  const iosDownloadLabel = publishedIosVersion
+    ? `Télécharger l'app iPhone (${publishedIosVersion})`
+    : "Télécharger l'app iPhone";
 
   const closeCatalogMenu = () => {
     setCatalogOpen(false);
@@ -162,7 +206,7 @@ export const SiteHeaderNavigation = () => {
         target="_blank"
       >
         <Download aria-hidden="true" />
-        Télécharger l&apos;app iPhone
+        {iosDownloadLabel}
       </a>
     </nav>
   );
