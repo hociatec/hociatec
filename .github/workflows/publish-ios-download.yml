@@ -137,7 +137,7 @@ jobs:
           PUBLIC_IPA_FILENAME="hociatec-altstore-v${APP_VERSION}-b${APP_BUILD}.ipa"
           IPA_SIZE="$(wc -c < "${IPA_PATH}" | tr -d '[:space:]')"
           RELEASE_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          IPA_URL="https://hociatec.fr/api/public/ios/latest-download"
+          IPA_URL="https://github.com/hociatec/hociatec-downloads/releases/download/ios-latest/hociatec-altstore-latest.ipa"
           SOURCE_URL="https://github.com/hociatec/hociatec-downloads/releases/download/ios-latest/hociatec-altstore-source.json"
           ICON_URL="https://hociatec.fr/logo.png"
 
