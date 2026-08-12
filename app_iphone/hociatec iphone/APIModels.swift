@@ -445,6 +445,7 @@ struct QuoteTotals: Decodable {
 
 struct QuoteServiceList: Decodable {
     let items: [QuoteService]
+    let meta: PaginationMeta?
 }
 
 struct NewsArticle: Decodable, Identifiable {
@@ -492,6 +493,10 @@ struct NewsComment: Decodable, Identifiable {
 struct NewsCommentListData: Decodable {
     let items: [NewsComment]
     let meta: PaginationMeta
+}
+
+struct NewsCommentData: Decodable {
+    let comment: NewsComment
 }
 
 struct ReviewAuthor: Decodable {

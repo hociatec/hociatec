@@ -808,22 +808,37 @@ final class APIClient: ObservableObject {
     
     // MARK: - Quotes
     
-    func quoteServices() async throws -> [QuoteService] {
+    func quoteServices(page: Int? = nil, perPage: Int? = nil, query search: String? = nil) async throws -> QuoteServiceList {
+        var query: [URLQueryItem] = []
+        if let page { query.append(URLQueryItem(name: "page", value: String(page))) }
+        if let perPage { query.append(URLQueryItem(name: "perPage", value: String(perPage))) }
+        if let search, !search.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            query.append(URLQueryItem(name: "q", value: search))
+        }
         let data: QuoteServiceList = try await request(
-            path: "api/public/services"
+            path: "api/public/services",
+            query: query.isEmpty ? nil : query
         )
-        return data.items
+        return data
     }
 
     func latestNews(limit: Int = 3) async throws -> [NewsArticle] {
-        let data: NewsArticleListData = try await request(
-            path: "api/public/news",
-            query: [
-                URLQueryItem(name: "page", value: "1"),
-                URLQueryItem(name: "perPage", value: String(limit))
-            ]
-        )
+        let data = try await newsArticles(page: 1, perPage: limit)
         return Array(data.items.prefix(limit))
+    }
+
+    func newsArticles(page: Int = 1, perPage: Int = 9, query search: String? = nil) async throws -> NewsArticleListData {
+        var query = [
+            URLQueryItem(name: "page", value: String(page)),
+            URLQueryItem(name: "perPage", value: String(perPage))
+        ]
+        if let search, !search.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            query.append(URLQueryItem(name: "q", value: search))
+        }
+        return try await request(
+            path: "api/public/news",
+            query: query
+        )
     }
 
     func newsArticle(slug: String) async throws -> NewsArticle {
@@ -843,6 +858,18 @@ final class APIClient: ObservableObject {
                 URLQueryItem(name: "perPage", value: String(perPage))
             ]
         )
+    }
+
+    func createNewsComment(slug: String, content: String) async throws -> NewsComment {
+        let encodedSlug = slug.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? slug
+        let data: NewsCommentData = try await request(
+            path: "api/public/news/\(encodedSlug)/comments",
+            method: "POST",
+            body: ["content": content],
+            authorized: true,
+            attachCartToken: false
+        )
+        return data.comment
     }
 
     func publicService(id: Int) async throws -> QuoteService {

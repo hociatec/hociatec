@@ -27,7 +27,7 @@ final class HomeViewModel: ObservableObject {
             async let latestArticles = api.latestNews(limit: 3)
 
             featured = try await featuredProducts
-            services = selectFeaturedServices(from: try await availableServices)
+            services = selectFeaturedServices(from: try await availableServices.items)
             news = try await latestArticles
         } catch let err {
             self.error = err.localizedDescription
@@ -884,7 +884,7 @@ final class QuoteViewModel: ObservableObject {
         isLoadingServices = true
         error = nil
         do {
-            services = try await api.quoteServices()
+            services = try await api.quoteServices().items
         } catch let err {
             self.error = err.localizedDescription
         }

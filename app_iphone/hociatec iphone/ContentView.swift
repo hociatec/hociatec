@@ -173,6 +173,18 @@ private struct HomeScreen: View {
                         }
                     }
                 }
+
+                NavigationLink {
+                    ServicesCatalogView(api: container.api)
+                } label: {
+                    HStack {
+                        Label("Tous les services", systemImage: "wrench.and.screwdriver")
+                            .fontWeight(.semibold)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .foregroundStyle(.tertiary)
+                    }
+                }
             }
 
             Section("Produits en vedette") {
@@ -262,6 +274,18 @@ private struct HomeScreen: View {
                             }
                             .padding(.vertical, 4)
                         }
+                    }
+                }
+
+                NavigationLink {
+                    NewsListView(api: container.api)
+                } label: {
+                    HStack {
+                        Label("Toutes les actualités", systemImage: "newspaper")
+                            .fontWeight(.semibold)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .foregroundStyle(.tertiary)
                     }
                 }
             }
@@ -372,14 +396,17 @@ private struct ServiceDetailView: View {
 private struct NewsDetailView: View {
     let api: APIClient
     let slug: String
+    @EnvironmentObject private var account: AccountViewModel
     @State private var article: NewsArticle?
     @State private var comments: [NewsComment] = []
     @State private var commentsPage = 1
     @State private var commentsTotalPages = 1
     @State private var isLoading = false
     @State private var isLoadingComments = false
+    @State private var isSubmittingComment = false
     @State private var error: String?
     @State private var commentsError: String?
+    @State private var newComment = ""
 
     var body: some View {
         List {
@@ -451,6 +478,31 @@ private struct NewsDetailView: View {
                             .disabled(commentsPage >= commentsTotalPages || isLoadingComments)
                         }
                     }
+
+                    if account.isLoggedIn {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Ajouter un commentaire")
+                                .fontWeight(.semibold)
+                            TextEditor(text: $newComment)
+                                .frame(minHeight: 120)
+                            Button {
+                                Task { await submitComment() }
+                            } label: {
+                                if isSubmittingComment {
+                                    ProgressView()
+                                        .frame(maxWidth: .infinity)
+                                } else {
+                                    Text("Publier le commentaire")
+                                        .fontWeight(.semibold)
+                                        .frame(maxWidth: .infinity)
+                                }
+                            }
+                            .disabled(isSubmittingComment || newComment.trimmingCharacters(in: .whitespacesAndNewlines).count < 3)
+                        }
+                    } else {
+                        Text("Connectez-vous pour ajouter un commentaire.")
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
         }
@@ -487,6 +539,208 @@ private struct NewsDetailView: View {
             commentsTotalPages = max(1, data.meta.totalPages)
         } catch {
             self.commentsError = error.localizedDescription
+        }
+    }
+
+    private func submitComment() async {
+        let content = newComment.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard content.count >= 3 else { return }
+        guard !isSubmittingComment else { return }
+        isSubmittingComment = true
+        commentsError = nil
+        defer { isSubmittingComment = false }
+
+        do {
+            _ = try await api.createNewsComment(slug: slug, content: content)
+            newComment = ""
+            commentsPage = 1
+            await loadComments()
+        } catch {
+            commentsError = error.localizedDescription
+        }
+    }
+}
+
+private struct ServicesCatalogView: View {
+    let api: APIClient
+    @State private var services: [QuoteService] = []
+    @State private var page = 1
+    @State private var totalPages = 1
+    @State private var searchText = ""
+    @State private var appliedSearch = ""
+    @State private var isLoading = false
+    @State private var error: String?
+
+    var body: some View {
+        List {
+            Section {
+                TextField("Rechercher un service", text: $searchText)
+                Button("Rechercher") {
+                    appliedSearch = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+                    page = 1
+                    Task { await load() }
+                }
+            }
+
+            Section("Services") {
+                if isLoading && services.isEmpty {
+                    ProgressView("Chargement des services...")
+                } else if let error {
+                    Text(error).foregroundStyle(.red)
+                } else if services.isEmpty {
+                    Text(appliedSearch.isEmpty ? "Aucun service publié pour le moment." : "Aucun service ne correspond à cette recherche.")
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(services) { service in
+                        NavigationLink {
+                            ServiceDetailView(api: api, serviceID: service.id)
+                        } label: {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(service.title)
+                                    .fontWeight(.semibold)
+                                if let description = service.description, !description.isEmpty {
+                                    Text(description)
+                                        .lineLimit(2)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                            .padding(.vertical, 4)
+                        }
+                    }
+                }
+            }
+
+            if totalPages > 1 {
+                Section {
+                    HStack {
+                        Button("Précédent") {
+                            guard page > 1 else { return }
+                            page -= 1
+                            Task { await load() }
+                        }
+                        .disabled(page <= 1 || isLoading)
+                        Spacer()
+                        Text("\(page)/\(totalPages)")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Button("Suivant") {
+                            guard page < totalPages else { return }
+                            page += 1
+                            Task { await load() }
+                        }
+                        .disabled(page >= totalPages || isLoading)
+                    }
+                }
+            }
+        }
+        .navigationTitle("Services")
+        .task { await load() }
+    }
+
+    private func load() async {
+        guard !isLoading else { return }
+        isLoading = true
+        error = nil
+        defer { isLoading = false }
+
+        do {
+            let data = try await api.quoteServices(page: page, perPage: 7, query: appliedSearch.isEmpty ? nil : appliedSearch)
+            services = data.items
+            totalPages = max(1, data.meta?.totalPages ?? 1)
+        } catch {
+            self.error = error.localizedDescription
+        }
+    }
+}
+
+private struct NewsListView: View {
+    let api: APIClient
+    @State private var articles: [NewsArticle] = []
+    @State private var page = 1
+    @State private var totalPages = 1
+    @State private var searchText = ""
+    @State private var appliedSearch = ""
+    @State private var isLoading = false
+    @State private var error: String?
+
+    var body: some View {
+        List {
+            Section {
+                TextField("Rechercher une actualité", text: $searchText)
+                Button("Rechercher") {
+                    appliedSearch = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+                    page = 1
+                    Task { await load() }
+                }
+            }
+
+            Section("Actualités") {
+                if isLoading && articles.isEmpty {
+                    ProgressView("Chargement des actualités...")
+                } else if let error {
+                    Text(error).foregroundStyle(.red)
+                } else if articles.isEmpty {
+                    Text("Aucune actualité disponible pour le moment.")
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(articles) { article in
+                        NavigationLink {
+                            NewsDetailView(api: api, slug: article.slug)
+                        } label: {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(article.title)
+                                    .fontWeight(.semibold)
+                                Text(article.excerpt)
+                                    .lineLimit(3)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .padding(.vertical, 4)
+                        }
+                    }
+                }
+            }
+
+            if totalPages > 1 {
+                Section {
+                    HStack {
+                        Button("Précédent") {
+                            guard page > 1 else { return }
+                            page -= 1
+                            Task { await load() }
+                        }
+                        .disabled(page <= 1 || isLoading)
+                        Spacer()
+                        Text("\(page)/\(totalPages)")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Button("Suivant") {
+                            guard page < totalPages else { return }
+                            page += 1
+                            Task { await load() }
+                        }
+                        .disabled(page >= totalPages || isLoading)
+                    }
+                }
+            }
+        }
+        .navigationTitle("Actualités")
+        .task { await load() }
+    }
+
+    private func load() async {
+        guard !isLoading else { return }
+        isLoading = true
+        error = nil
+        defer { isLoading = false }
+
+        do {
+            let data = try await api.newsArticles(page: page, perPage: 9, query: appliedSearch.isEmpty ? nil : appliedSearch)
+            articles = data.items
+            totalPages = max(1, data.meta.totalPages)
+        } catch {
+            self.error = error.localizedDescription
         }
     }
 }
