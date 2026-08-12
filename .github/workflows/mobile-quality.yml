@@ -4,12 +4,12 @@ on:
   workflow_dispatch:
   pull_request:
     paths:
-      - 'iphone/**'
+      - 'app_iphone/**'
       - '.github/workflows/mobile-quality.yml'
   push:
     branches: [main, master]
     paths:
-      - 'iphone/**'
+      - 'app_iphone/**'
       - '.github/workflows/mobile-quality.yml'
 
 permissions:
@@ -17,28 +17,52 @@ permissions:
 
 jobs:
   quality:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: iphone
+    runs-on: macos-latest
+    env:
+      PROJECT_PATH: app_iphone/hociatec iphone.xcodeproj
+      SCHEME: hociatec iphone
 
     steps:
       - uses: actions/checkout@v5
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
+      - name: Show Xcode version
+        run: xcodebuild -version
 
-      - name: Install dependencies
-        run: flutter pub get
+      - name: Resolve test simulator
+        id: simulator
+        run: |
+          SIMULATOR_UDID="$(xcrun simctl list devices available | awk -F '[()]' '
+            /iPhone 16 Pro/ { print $2; exit }
+            /iPhone 16/ { print $2; exit }
+            /iPhone 15 Pro/ { print $2; exit }
+            /iPhone 15/ { print $2; exit }
+          ')"
 
-      - name: Static analysis
-        run: flutter analyze
+          if [ -z "${SIMULATOR_UDID}" ]; then
+            echo "Impossible de trouver un simulateur iPhone disponible sur le runner." >&2
+            xcrun simctl list devices available
+            exit 1
+          fi
 
-      - name: Widget tests
-        run: flutter test
+          echo "udid=${SIMULATOR_UDID}" >> "$GITHUB_OUTPUT"
+
+      - name: Build for simulator
+        run: |
+          xcodebuild \
+            -project "${PROJECT_PATH}" \
+            -scheme "${SCHEME}" \
+            -configuration Debug \
+            -destination "generic/platform=iOS Simulator" \
+            CODE_SIGNING_ALLOWED=NO \
+            clean build
+
+      - name: Run unit tests
+        run: |
+          xcodebuild test \
+            -project "${PROJECT_PATH}" \
+            -scheme "${SCHEME}" \
+            -destination "id=${{ steps.simulator.outputs.udid }}" \
+            CODE_SIGNING_ALLOWED=NO
 
   ios-build:
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
@@ -46,28 +70,25 @@ jobs:
     needs: quality
     env:
       IPA_BASENAME: hociatec-altstore
-    defaults:
-      run:
-        working-directory: iphone
+      PROJECT_PATH: app_iphone/hociatec iphone.xcodeproj
+      SCHEME: hociatec iphone
 
     steps:
       - uses: actions/checkout@v5
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
-
-      - name: Install dependencies
-        run: flutter pub get
-
       - name: Read app version metadata
         id: app_meta
         run: |
-          APP_VERSION="$(grep '^version:' pubspec.yaml | sed 's/version:[[:space:]]*//' | cut -d'+' -f1)"
-          APP_BUILD="$(grep '^version:' pubspec.yaml | sed 's/version:[[:space:]]*//' | cut -d'+' -f2)"
+          PROJECT_FILE="${PROJECT_PATH}"
+          APP_VERSION="$(sed -nE 's/.*MARKETING_VERSION = ([^;]+);/\1/p' "${PROJECT_FILE}" | head -n 1)"
+          APP_BUILD="$(sed -nE 's/.*CURRENT_PROJECT_VERSION = ([^;]+);/\1/p' "${PROJECT_FILE}" | head -n 1)"
           IPA_FILENAME="${IPA_BASENAME}-v${APP_VERSION}-b${APP_BUILD}.ipa"
+
+          if [ -z "${APP_VERSION}" ] || [ -z "${APP_BUILD}" ]; then
+            echo "Impossible de lire MARKETING_VERSION ou CURRENT_PROJECT_VERSION depuis ${PROJECT_FILE}." >&2
+            exit 1
+          fi
+
           echo "app_version=${APP_VERSION}" >> "$GITHUB_OUTPUT"
           echo "app_build=${APP_BUILD}" >> "$GITHUB_OUTPUT"
           echo "ipa_filename=${IPA_FILENAME}" >> "$GITHUB_OUTPUT"
@@ -75,29 +96,45 @@ jobs:
       - name: Show Xcode version
         run: xcodebuild -version
 
-      - name: Precache iOS artifacts
-        run: flutter precache --ios
-
-      - name: Verify unsigned iOS device build
-        run: flutter build ios --release --no-codesign
+      - name: Build unsigned iOS device app
+        run: |
+          xcodebuild \
+            -project "${PROJECT_PATH}" \
+            -scheme "${SCHEME}" \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination "generic/platform=iOS" \
+            -derivedDataPath app_iphone/build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            clean build
 
       - name: Package clean unsigned IPA for AltStore
         run: |
-          rm -rf build/ios/ipa-export
-          mkdir -p build/ios/ipa-export/Payload
-          cp -R build/ios/iphoneos/Runner.app build/ios/ipa-export/Payload/
-          find build/ios/ipa-export/Payload -name '_CodeSignature' -type d -prune -exec rm -rf {} +
-          find build/ios/ipa-export/Payload -name 'embedded.mobileprovision' -type f -delete
-          find build/ios/ipa-export/Payload -name 'SC_Info' -type d -prune -exec rm -rf {} +
-          cd build/ios/ipa-export
+          APP_PATH="$(find app_iphone/build/Build/Products -maxdepth 2 -type d -name '*.app' | head -n 1)"
+
+          if [ -z "${APP_PATH}" ]; then
+            echo "Impossible de trouver le bundle .app genere." >&2
+            find app_iphone/build/Build/Products -maxdepth 3 -print || true
+            exit 1
+          fi
+
+          rm -rf app_iphone/build/ipa-export
+          mkdir -p app_iphone/build/ipa-export/Payload
+          cp -R "${APP_PATH}" app_iphone/build/ipa-export/Payload/
+          find app_iphone/build/ipa-export/Payload -name '_CodeSignature' -type d -prune -exec rm -rf {} +
+          find app_iphone/build/ipa-export/Payload -name 'embedded.mobileprovision' -type f -delete
+          find app_iphone/build/ipa-export/Payload -name 'SC_Info' -type d -prune -exec rm -rf {} +
+          cd app_iphone/build/ipa-export
           zip -qry -0 --symlinks "${{ steps.app_meta.outputs.ipa_filename }}" Payload
 
       - name: Validate AltStore IPA structure
-        run: ./tools/validate_altstore_ipa.sh "build/ios/ipa-export/${{ steps.app_meta.outputs.ipa_filename }}"
+        run: ./app_iphone/tools/validate_altstore_ipa.sh "app_iphone/build/ipa-export/${{ steps.app_meta.outputs.ipa_filename }}"
 
       - name: Upload unsigned IPA artifact
         uses: actions/upload-artifact@v6
         with:
           name: hociatec-ios-unsigned-ipa-v${{ steps.app_meta.outputs.app_version }}-b${{ steps.app_meta.outputs.app_build }}
-          path: iphone/build/ios/ipa-export/${{ steps.app_meta.outputs.ipa_filename }}
+          path: app_iphone/build/ipa-export/${{ steps.app_meta.outputs.ipa_filename }}
           if-no-files-found: error
