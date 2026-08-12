@@ -442,7 +442,7 @@ export const MySupportRequestsPage = () => {
                                   className="rounded-full border border-brand-200 px-3 py-1 text-xs font-medium text-brand-700 hover:border-brand-400"
                                   href={`/api/support/me/${selectedSupport.id}/attachments/${encodeURIComponent(attachment.name)}`}
                                   target="_blank"
-                                  rel="noreferrer"
+                                  rel="noopener noreferrer"
                                 >
                                   {attachment.originalName}
                                 </a>
