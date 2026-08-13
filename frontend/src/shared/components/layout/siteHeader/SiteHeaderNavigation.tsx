@@ -19,11 +19,12 @@ import { isAnyPathActive, isPathActive } from '@/shared/lib/routes';
 const catalogLinks = [
   { path: '/catalogue/vente', label: 'Vente', Icon: ShoppingBag },
   { path: '/catalogue/location', label: 'Location', Icon: PackageSearch },
-  { path: '/reprise', label: 'Reprise', Icon: RefreshCw },
+  { path: '/services', label: 'Services', Icon: MonitorCog },
+  { path: '/formations', label: 'Formations', Icon: GraduationCap },
 ] as const;
 
-const serviceLinks = [
-  { path: '/services', label: 'Nos services', Icon: MonitorCog },
+const prestationLinks = [
+  { path: '/reprise', label: 'Reprise', Icon: RefreshCw },
   { path: '/appointments/book', label: 'Prendre rendez-vous', Icon: CalendarDays },
   { path: '/devis/nouveau', label: 'Créer un devis', Icon: FileText },
   { path: '/audits/request', label: 'Demander un audit', Icon: ClipboardCheck },
@@ -81,11 +82,9 @@ const fetchPublishedIosRelease = async (): Promise<PublishedIosRelease | null> =
 
 export const SiteHeaderNavigation = () => {
   const { pathname } = useLocation();
-  const [catalogOpen, setCatalogOpen] = useState(false);
-  const [servicesOpen, setServicesOpen] = useState(false);
+  const [offerOpen, setOfferOpen] = useState(false);
   const [publishedIosRelease, setPublishedIosRelease] = useState<PublishedIosRelease | null>(null);
-  const catalogSummaryRef = useRef<HTMLElement | null>(null);
-  const servicesSummaryRef = useRef<HTMLElement | null>(null);
+  const offerSummaryRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -112,97 +111,66 @@ export const SiteHeaderNavigation = () => {
     : "Télécharger l'app iPhone";
   const iosDownloadPath = publishedIosRelease ? iosDownloadProxyPath : '#';
 
-  const closeCatalogMenu = () => {
-    setCatalogOpen(false);
-    catalogSummaryRef.current?.focus();
+  const closeOfferMenu = () => {
+    setOfferOpen(false);
+    offerSummaryRef.current?.focus();
   };
 
-  const closeServicesMenu = () => {
-    setServicesOpen(false);
-    servicesSummaryRef.current?.focus();
-  };
-
-  const handleCatalogKeyDown = (event: KeyboardEvent<HTMLDetailsElement>) => {
+  const handleOfferKeyDown = (event: KeyboardEvent<HTMLDetailsElement>) => {
     if (event.key !== 'Escape') return;
     event.preventDefault();
     event.stopPropagation();
-    closeCatalogMenu();
-  };
-
-  const handleServicesKeyDown = (event: KeyboardEvent<HTMLDetailsElement>) => {
-    if (event.key !== 'Escape') return;
-    event.preventDefault();
-    event.stopPropagation();
-    closeServicesMenu();
+    closeOfferMenu();
   };
 
   return (
     <nav className="site-header__nav" aria-label="Navigation principale">
       <details
         className="site-header__menu"
-        open={catalogOpen}
-        onToggle={(event) => setCatalogOpen(event.currentTarget.open)}
-        onKeyDown={handleCatalogKeyDown}
+        open={offerOpen}
+        onToggle={(event) => setOfferOpen(event.currentTarget.open)}
+        onKeyDown={handleOfferKeyDown}
       >
         <summary
-          ref={catalogSummaryRef}
-          className={`site-header__menu-trigger${isAnyPathActive(pathname, ['/catalogue', '/reprise']) ? ' site-header__link--active' : ''}`}
+          ref={offerSummaryRef}
+          className={`site-header__menu-trigger${isAnyPathActive(pathname, ['/catalogue', '/services', '/formations', '/reprise', '/appointments/book', '/devis/nouveau', '/audits/request']) ? ' site-header__link--active' : ''}`}
         >
           <ShoppingBag aria-hidden="true" />
-          <span>Catalogue</span>
+          <span>Notre offre</span>
         </summary>
         <div className="site-header__menu-panel">
-          {catalogLinks.map(({ path, label, Icon }) => (
-            <Link
-              key={path}
-              to={path}
-              prefetch="intent"
-              className={isPathActive(pathname, path) ? 'is-active' : undefined}
-              onClick={() => setCatalogOpen(false)}
-            >
-              <Icon aria-hidden="true" />
-              <span>{label}</span>
-            </Link>
-          ))}
+          <div className="site-header__menu-group">
+            <p className="site-header__menu-group-title">Catalogue</p>
+            {catalogLinks.map(({ path, label, Icon }) => (
+              <Link
+                key={path}
+                to={path}
+                prefetch="intent"
+                className={isPathActive(pathname, path) ? 'is-active' : undefined}
+                onClick={() => setOfferOpen(false)}
+              >
+                <Icon aria-hidden="true" />
+                <span>{label}</span>
+              </Link>
+            ))}
+          </div>
+          <div className="site-header__menu-group">
+            <p className="site-header__menu-group-title">Prestations</p>
+            {prestationLinks.map(({ path, label, Icon }) => (
+              <Link
+                key={path}
+                to={path}
+                prefetch="intent"
+                className={isPathActive(pathname, path) ? 'is-active' : undefined}
+                onClick={() => setOfferOpen(false)}
+              >
+                <Icon aria-hidden="true" />
+                <span>{label}</span>
+              </Link>
+            ))}
+          </div>
         </div>
       </details>
-      <details
-        className="site-header__menu"
-        open={servicesOpen}
-        onToggle={(event) => setServicesOpen(event.currentTarget.open)}
-        onKeyDown={handleServicesKeyDown}
-      >
-        <summary
-          ref={servicesSummaryRef}
-          className={`site-header__menu-trigger${isAnyPathActive(pathname, ['/services', '/appointments/book', '/devis/nouveau', '/audits/request']) ? ' site-header__link--active' : ''}`}
-        >
-          <MonitorCog aria-hidden="true" />
-          <span>Prestations</span>
-        </summary>
-        <div className="site-header__menu-panel">
-          {serviceLinks.map(({ path, label, Icon }) => (
-            <Link
-              key={path}
-              to={path}
-              prefetch="intent"
-              className={isPathActive(pathname, path) ? 'is-active' : undefined}
-              onClick={() => setServicesOpen(false)}
-            >
-              <Icon aria-hidden="true" />
-              <span>{label}</span>
-            </Link>
-          ))}
-        </div>
-      </details>
-
-      <Link
-        to="/formations"
-        prefetch="viewport"
-        className={`site-header__link${isPathActive(pathname, '/formations') ? ' site-header__link--active' : ''}`}
-      >
-        <GraduationCap aria-hidden="true" />
-        Formations
-      </Link>
 
       <Link
         to="/contact"

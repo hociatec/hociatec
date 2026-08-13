@@ -1,0 +1,30 @@
+import Foundation
+
+extension QuoteViewModel {
+    func submit() async {
+        let validItems = buildValidItems()
+        guard !validItems.isEmpty else {
+            error = "Ajoutez au moins une ligne valide."
+            return
+        }
+
+        isSubmitting = true
+        error = nil
+        successMessage = nil
+        defer { isSubmitting = false }
+
+        do {
+            _ = try await submitQuoteUseCase.execute(
+                name: name,
+                email: email,
+                company: company.isEmpty ? nil : company,
+                address: address.isEmpty ? nil : address,
+                items: validItems
+            )
+            successMessage = "Demande de devis envoyée."
+            items = []
+        } catch let err {
+            error = err.localizedDescription
+        }
+    }
+}

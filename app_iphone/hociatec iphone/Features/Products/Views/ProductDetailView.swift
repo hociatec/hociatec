@@ -1,15 +1,11 @@
 import SwiftUI
-import UIKit
 
 struct ProductDetailView: View {
     @EnvironmentObject private var container: AppContainer
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: ProductDetailViewModel
     @Binding private var selectedTab: Int
-    @State private var showStockAlert = false
-    @State private var stockAlertMessage = ""
-    @State private var showAddAlert = false
-    @State private var addedProductName: String = ""
+    @State private var alertState = ProductDetailAlertState()
 
     let initialImageURL: URL?
     @ObservedObject var cart: CartViewModel
@@ -107,19 +103,19 @@ struct ProductDetailView: View {
                 await viewModel.loadReviews(page: 1)
             }
         }
-        .alert("Ajout au panier", isPresented: $showAddAlert) {
+        .alert("Ajout au panier", isPresented: $alertState.showAddAlert) {
             Button("Continuer", role: .cancel) { dismiss() }
             Button("Voir le panier") {
                 selectedTab = 2
                 dismiss()
             }
         } message: {
-            Text("\(addedProductName) a été ajouté au panier.")
+            Text("\(alertState.addedProductName) a été ajouté au panier.")
         }
-        .alert("Stock insuffisant", isPresented: $showStockAlert) {
+        .alert("Stock insuffisant", isPresented: $alertState.showStockAlert) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text(stockAlertMessage)
+            Text(alertState.stockAlertMessage)
         }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -137,14 +133,6 @@ struct ProductDetailView: View {
         container.services.assets.assetURL(for: viewModel.product.imageUrl) ?? initialImageURL
     }
 
-    private var stockLimit: Int {
-        viewModel.stockLimit(using: cart)
-    }
-
-    private var rentalMonthsIfNeeded: Int {
-        viewModel.effectiveRentalMonths(using: cart)
-    }
-
     private var placeholder: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 12)
@@ -152,57 +140,5 @@ struct ProductDetailView: View {
             Image(systemName: "photo")
                 .foregroundStyle(.secondary)
         }
-    }
-
-    private func decreaseQuantity() async {
-        guard let item = cart.cart?.items.first(where: { $0.product.id == viewModel.product.id }) else { return }
-        let newQuantity = item.quantity - 1
-        if newQuantity <= 0 {
-            await cart.remove(item: item)
-        } else {
-            await cart.update(item: item, quantity: newQuantity)
-        }
-    }
-
-    private func increaseQuantity() async {
-        let currentCartQuantity = cart.cart?.items.first(where: { $0.product.id == viewModel.product.id })?.quantity ?? 0
-        if currentCartQuantity >= stockLimit {
-            stockAlertMessage = "Stock insuffisant pour \(viewModel.product.name). Quantité max: \(stockLimit)."
-            showStockAlert = true
-            return
-        }
-
-        if let item = cart.cart?.items.first(where: { $0.product.id == viewModel.product.id }) {
-            await cart.update(
-                item: item,
-                quantity: item.quantity + 1,
-                rentalMonths: item.rentalMonths ?? rentalMonthsIfNeeded
-            )
-        } else {
-            await cart.add(
-                product: viewModel.product,
-                quantity: 1,
-                rentalMonths: viewModel.product.sellingType == .rental ? rentalMonthsIfNeeded : nil
-            )
-            addedProductName = viewModel.product.name
-            showAddAlert = true
-        }
-        UINotificationFeedbackGenerator().notificationOccurred(.success)
-    }
-
-    private func addCurrentProductToCart() async {
-        if stockLimit <= 0 {
-            stockAlertMessage = "Stock insuffisant pour \(viewModel.product.name)."
-            showStockAlert = true
-            return
-        }
-
-        await cart.add(
-            product: viewModel.product,
-            rentalMonths: viewModel.product.sellingType == .rental ? rentalMonthsIfNeeded : nil
-        )
-        addedProductName = viewModel.product.name
-        showAddAlert = true
-        UINotificationFeedbackGenerator().notificationOccurred(.success)
     }
 }

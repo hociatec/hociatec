@@ -9,18 +9,7 @@ struct OfferHubView: View {
 
     var body: some View {
         List {
-            Section("Produits") {
-                NavigationLink {
-                    ProductsListView(
-                        viewModel: container.makeProductsViewModel(),
-                        selectedTab: $selectedTab,
-                        filtersBadge: $filtersBadge,
-                        navigationTitle: "Produits"
-                    )
-                } label: {
-                    Label("Tous les produits", systemImage: "shippingbox")
-                }
-
+            Section("Catalogue") {
                 NavigationLink {
                     ProductsListView(
                         viewModel: container.makeProductsViewModel(initialSellingType: .sale),
@@ -42,9 +31,7 @@ struct OfferHubView: View {
                 } label: {
                     Label("Location", systemImage: "clock.arrow.circlepath")
                 }
-            }
-
-            Section("Services") {
+                
                 NavigationLink {
                     ServicesCatalogView(api: services.serviceCatalog)
                 } label: {
@@ -54,13 +41,36 @@ struct OfferHubView: View {
                 NavigationLink {
                     TrainingsCatalogView(api: services.training)
                 } label: {
-                    Label("Formation", systemImage: "graduationcap")
+                    Label("Formations", systemImage: "graduationcap")
                 }
+            }
 
+            Section("Prestations") {
                 NavigationLink {
                     TradeInRequestView(service: services.tradeIn, account: account)
                 } label: {
-                    Label("Reprise de matériel", systemImage: "arrow.triangle.2.circlepath")
+                    Label("Reprise", systemImage: "arrow.triangle.2.circlepath")
+                }
+
+                NavigationLink {
+                    AppointmentBookingView(service: services.appointments)
+                } label: {
+                    Label("Prendre rendez-vous", systemImage: "calendar")
+                }
+
+                NavigationLink {
+                    QuoteRequestView(viewModel: container.makeQuoteViewModel())
+                } label: {
+                    Label("Créer un devis", systemImage: "doc.text")
+                }
+
+                NavigationLink {
+                    ContactView(
+                        service: services.contact,
+                        initialSubject: "Demande d'audit"
+                    )
+                } label: {
+                    Label("Demander un audit", systemImage: "checklist")
                 }
             }
         }

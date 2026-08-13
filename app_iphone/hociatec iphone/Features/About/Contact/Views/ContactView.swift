@@ -5,9 +5,16 @@ import Combine
 struct ContactView: View {
     @EnvironmentObject private var container: AppContainer
     @StateObject private var viewModel: ContactViewModel
+    private let initialSubject: String?
 
-    init(service: ContactServing) {
-        _viewModel = StateObject(wrappedValue: ContactViewModel(service: service))
+    init(service: ContactServing, initialSubject: String? = nil) {
+        self.initialSubject = initialSubject
+        _viewModel = StateObject(
+            wrappedValue: ContactViewModel(
+                service: service,
+                initialSubject: initialSubject
+            )
+        )
     }
 
     var body: some View {
@@ -77,6 +84,7 @@ struct ContactView: View {
             if let profile = container.account.profile {
                 viewModel.prefill(name: profile.fullName, email: profile.email)
             }
+            viewModel.prefillSubject(initialSubject)
         }
     }
 }
@@ -93,8 +101,9 @@ private final class ContactViewModel: ObservableObject {
 
     private let service: ContactServing
 
-    init(service: ContactServing) {
+    init(service: ContactServing, initialSubject: String? = nil) {
         self.service = service
+        self.subject = initialSubject ?? ""
     }
 
     var canSend: Bool {
@@ -104,6 +113,13 @@ private final class ContactViewModel: ObservableObject {
     func prefill(name: String, email: String) {
         if self.name.isEmpty { self.name = name }
         if self.email.isEmpty { self.email = email }
+    }
+
+    func prefillSubject(_ subject: String?) {
+        guard self.subject.isEmpty else { return }
+        if let subject, !subject.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            self.subject = subject
+        }
     }
 
     func send() async {

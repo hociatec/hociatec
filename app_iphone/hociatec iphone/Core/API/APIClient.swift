@@ -4,12 +4,12 @@ import Combine
 /// Client HTTP léger pour l’API hociatec.fr.
 final class APIClient: ObservableObject {
     let baseURL = URL(string: "https://api.hociatec.fr")!
-    private let authenticatedSessionMarker = "__cookie_session__"
+    let authenticatedSessionMarker = "__cookie_session__"
 
-    private let session: URLSession
-    private let decoder: JSONDecoder
-    private let sessionStore: SessionStore
-    private let isoFormatter: ISO8601DateFormatter
+    let session: URLSession
+    let decoder: JSONDecoder
+    let sessionStore: SessionStore
+    let isoFormatter: ISO8601DateFormatter
 
     init(sessionStore: SessionStore, session: URLSession = .shared) {
         self.sessionStore = sessionStore
@@ -23,200 +23,6 @@ final class APIClient: ObservableObject {
         formatter.formatOptions = [.withInternetDateTime]
         formatter.timeZone = .init(secondsFromGMT: 0)
         self.isoFormatter = formatter
-    }
-
-    func featuredProducts() async throws -> [Product] {
-        let data: ProductListData = try await request(
-            path: "api/public/catalog/products",
-            query: [URLQueryItem(name: "homepage", value: "1")]
-        )
-        return data.items
-    }
-
-    func products(search: String? = nil, categorySlug: String? = nil, sellingType: SellingType? = nil) async throws -> [Product] {
-        var query: [URLQueryItem] = []
-        if let search, !search.isEmpty {
-            query.append(.init(name: "q", value: search))
-        }
-        if let categorySlug, !categorySlug.isEmpty {
-            query.append(.init(name: "category", value: categorySlug))
-        }
-        if let sellingType {
-            query.append(.init(name: "sellingType", value: sellingType.rawValue))
-        }
-
-        let data: ProductListData = try await request(
-            path: "api/public/catalog/products",
-            query: query.isEmpty ? nil : query
-        )
-        return data.items
-    }
-
-    func product(slug: String) async throws -> Product {
-        try await request(path: "api/public/catalog/products/\(slug)")
-    }
-
-    func productReviews(slug: String, page: Int = 1, perPage: Int = 10) async throws -> ReviewListData {
-        let data: ReviewListData = try await request(
-            path: "api/public/catalog/products/\(slug)/reviews",
-            query: [
-                URLQueryItem(name: "page", value: String(page)),
-                URLQueryItem(name: "perPage", value: String(perPage))
-            ],
-            authorized: true,
-            attachCartToken: false
-        )
-        // Backend may return meta (total/average) but hide items unless auth is valid/fresh.
-        // If we have credentials stored, try a one-shot token refresh and retry once.
-        if data.meta.total > 0, data.items.isEmpty, await refreshAuthTokenIfPossible() {
-            let retried: ReviewListData = try await request(
-                path: "api/public/catalog/products/\(slug)/reviews",
-                query: [
-                    URLQueryItem(name: "page", value: String(page)),
-                    URLQueryItem(name: "perPage", value: String(perPage))
-                ],
-                authorized: true,
-                attachCartToken: false
-            )
-            return retried
-        }
-        return data
-    }
-
-    func categories() async throws -> [CategorySummary] {
-        let data: CategoryListData = try await request(
-            path: "api/public/catalog/categories"
-        )
-        return data.items
-    }
-
-    func fetchCart() async throws -> Cart {
-        let data: CartData = try await request(
-            path: "api/public/cart",
-            method: "GET",
-            query: nil,
-            authorized: false,
-            attachCartToken: true
-        )
-        return data.cart
-    }
-
-    func addToCart(productId: Int, quantity: Int, rentalMonths: Int? = nil) async throws -> Cart {
-        var body: [String: Any] = [
-            "productId": productId,
-            "quantity": max(1, quantity)
-        ]
-        if let token = sessionStore.cartToken {
-            body["cartToken"] = token
-        }
-        if let rentalMonths {
-            body["rentalMonths"] = rentalMonths
-        }
-
-        let data: CartData = try await request(
-            path: "api/public/cart/items",
-            method: "POST",
-            body: body,
-            authorized: false,
-            attachCartToken: true
-        )
-        return data.cart
-    }
-
-    func updateCart(productId: Int, quantity: Int, rentalMonths: Int? = nil, currentRentalMonths: Int? = nil) async throws -> Cart {
-        var body: [String: Any] = [
-            "quantity": max(0, quantity)
-        ]
-        if let token = sessionStore.cartToken {
-            body["cartToken"] = token
-        }
-        if let rentalMonths {
-            body["rentalMonths"] = rentalMonths
-        }
-        if let currentRentalMonths {
-            body["currentRentalMonths"] = currentRentalMonths
-        }
-
-        let data: CartData = try await request(
-            path: "api/public/cart/items/\(productId)",
-            method: "PATCH",
-            body: body,
-            authorized: false,
-            attachCartToken: true
-        )
-        return data.cart
-    }
-
-    func removeFromCart(productId: Int) async throws -> Cart {
-        let data: CartData = try await request(
-            path: "api/public/cart/items/\(productId)",
-            method: "DELETE",
-            authorized: false,
-            attachCartToken: true
-        )
-        return data.cart
-    }
-    
-    func clearCart() async throws -> Cart {
-        let data: CartData = try await request(
-            path: "api/public/cart",
-            method: "DELETE",
-            authorized: false,
-            attachCartToken: true
-        )
-        return data.cart
-    }
-
-    func login(email: String, password: String) async throws -> String {
-        let payload = ["email": email, "password": password]
-        let (data, response) = try await rawRequest(
-            path: "api/auth/login",
-            method: "POST",
-            body: payload,
-            authorized: false,
-            attachCartToken: false
-        )
-
-        guard let http = response as? HTTPURLResponse else {
-            throw APIError.invalidResponse
-        }
-
-        if !(200..<300).contains(http.statusCode) {
-            if let errorPayload = try? decoder.decode(APIErrorPayload.self, from: data) {
-                throw APIError.httpStatus(http.statusCode, errorPayload.message ?? "Identifiants incorrects.")
-            }
-            throw APIError.httpStatus(http.statusCode, "Identifiants incorrects.")
-        }
-
-        sessionStore.jwtToken = authenticatedSessionMarker
-        return authenticatedSessionMarker
-    }
-
-    func profile() async throws -> UserProfile {
-        let authSession: AuthSessionData = try await request(
-            path: "api/auth/me",
-            authorized: true
-        )
-        guard let profile = authSession.profile else {
-            sessionStore.clearSession()
-            throw APIError.httpStatus(401, "Session expirée. Veuillez vous reconnecter.")
-        }
-        sessionStore.profile = profile
-        return profile
-    }
-
-    func logout() async {
-        do {
-            try await send(
-                path: "api/auth/logout",
-                method: "POST",
-                authorized: false,
-                attachCartToken: false
-            )
-        } catch {
-            // Always clear local state even if server-side logout fails.
-        }
-        sessionStore.clearSession()
     }
 
     func assetURL(for path: String?) -> URL? {
@@ -235,7 +41,7 @@ final class APIClient: ObservableObject {
 
     // MARK: - Core HTTP helpers
 
-    private func request<T: Decodable>(
+    func request<T: Decodable>(
         path: String,
         method: String = "GET",
         query: [URLQueryItem]? = nil,
@@ -308,7 +114,7 @@ final class APIClient: ObservableObject {
         }
     }
 
-    private func rawRequest(
+    func rawRequest(
         path: String,
         method: String,
         query: [URLQueryItem]? = nil,
@@ -361,13 +167,13 @@ final class APIClient: ObservableObject {
         }
     }
 
-    private func captureCartToken(from response: HTTPURLResponse) {
+    func captureCartToken(from response: HTTPURLResponse) {
         if let headerToken = response.value(forHTTPHeaderField: "X-Cart-Token"), !headerToken.isEmpty {
             sessionStore.cartToken = headerToken
         }
     }
 
-    private func currentCsrfToken() async throws -> String {
+    func currentCsrfToken() async throws -> String {
         if let csrfToken = sessionStore.csrfToken,
            !csrfToken.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             return csrfToken
@@ -382,7 +188,7 @@ final class APIClient: ObservableObject {
         return data.token
     }
 
-    private func requiresCsrf(path: String, method: String) -> Bool {
+    func requiresCsrf(path: String, method: String) -> Bool {
         guard methodRequiresCsrf(method), path.hasPrefix("api/") else {
             return false
         }
@@ -390,11 +196,11 @@ final class APIClient: ObservableObject {
         return !["api/auth/login", "api/auth/register", "api/auth/refresh"].contains(path)
     }
 
-    private func methodRequiresCsrf(_ method: String) -> Bool {
+    func methodRequiresCsrf(_ method: String) -> Bool {
         !["GET", "HEAD", "OPTIONS"].contains(method.uppercased())
     }
     
-    private func refreshAuthTokenIfPossible() async -> Bool {
+    func refreshAuthTokenIfPossible() async -> Bool {
         guard let credentials = sessionStore.storedCredentials else {
             return false
         }
@@ -407,264 +213,9 @@ final class APIClient: ObservableObject {
             return false
         }
     }
-    
-    // MARK: - Account
-    
-    func myOrders() async throws -> [OrderSummary] {
-        let data: OrderListData = try await request(
-            path: "api/orders/me",
-            authorized: true
-        )
-        return data.items
-    }
-    
-    func pendingReviews() async throws -> [PendingReviewItem] {
-        let data: PendingReviewListData = try await request(
-            path: "api/orders/me/pending-reviews",
-            authorized: true,
-            attachCartToken: false
-        )
-        return data.items
-    }
-
-    func order(id: Int) async throws -> OrderSummary {
-        let data: OrderData = try await request(
-            path: "api/orders/\(id)",
-            authorized: true
-        )
-        return data.order
-    }
-    
-    func cancelOrder(id: Int) async throws -> OrderSummary {
-        let data: OrderData = try await request(
-            path: "api/orders/\(id)/cancel",
-            method: "POST",
-            authorized: true
-        )
-        return data.order
-    }
-    
-    func createReview(orderId: Int, orderItemId: Int, score: Int, comment: String?) async throws -> Review {
-        var body: [String: Any] = [
-            "score": score
-        ]
-        if let comment, !comment.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            body["comment"] = comment
-        }
-        let data: ReviewData = try await request(
-            path: "api/orders/\(orderId)/items/\(orderItemId)/review",
-            method: "POST",
-            body: body,
-            authorized: true,
-            attachCartToken: false
-        )
-        return data.review
-    }
-    
-    func checkout() async throws -> OrderSummary {
-        let data: OrderData = try await request(
-            path: "api/orders/checkout",
-            method: "POST",
-            authorized: true,
-            attachCartToken: true
-        )
-        return data.order
-    }
-    
-    func sendContact(
-        name: String,
-        email: String,
-        subject: String,
-        message: String
-    ) async throws {
-        try await send(
-            path: "api/public/contact",
-            method: "POST",
-            body: [
-                "name": name,
-                "email": email,
-                "subject": subject,
-                "message": message
-            ],
-            authorized: false,
-            attachCartToken: false
-        )
-    }
-
-    func updateProfile(
-        firstName: String,
-        lastName: String,
-        email: String,
-        address: String?,
-        postalCode: String?,
-        city: String?,
-        birthDate: String,
-        phoneNumber: String,
-        gender: String
-    ) async throws -> UserProfile {
-        var body: [String: Any] = [
-            "firstName": firstName,
-            "lastName": lastName,
-            "email": email,
-            "birthDate": birthDate,
-            "phoneNumber": phoneNumber
-        ]
-        if let address { body["address"] = address }
-        if let postalCode { body["postalCode"] = postalCode }
-        if let city { body["city"] = city }
-        body["gender"] = gender
-
-        do {
-            let profile: UserProfile = try await request(
-                path: "api/auth/profile",
-                method: "PUT",
-                body: body,
-                authorized: true,
-                attachCartToken: false
-            )
-            sessionStore.profile = profile
-            return profile
-        }
-    }
-
-    func deleteAccount() async throws {
-        let _: APIEnvelope<APIErrorPayload?> = try await request(
-            path: "api/auth/profile",
-            method: "DELETE",
-            authorized: true,
-            attachCartToken: false
-        )
-        // Clear session locally
-        sessionStore.clearSession()
-    }
-    
-    func register(
-        email: String,
-        password: String,
-        confirmPassword: String,
-        firstName: String,
-        lastName: String,
-        birthDate: String,
-        phoneNumber: String,
-        gender: String
-    ) async throws {
-        let body: [String: Any] = [
-            "email": email,
-            "password": password,
-            "confirmPassword": confirmPassword,
-            "firstName": firstName,
-            "lastName": lastName,
-            "birthDate": birthDate,
-            "phoneNumber": phoneNumber,
-            "gender": gender
-        ]
-        
-        try await send(
-            path: "api/auth/register",
-            method: "POST",
-            body: body,
-            authorized: false,
-            attachCartToken: false
-        )
-    }
-
-    func requestPasswordReset(email: String) async throws {
-        try await send(
-            path: "api/auth/password-reset/request",
-            method: "POST",
-            body: ["email": email],
-            authorized: false,
-            attachCartToken: false
-        )
-    }
-
-    func resetPassword(token: String, password: String, confirmPassword: String) async throws {
-        let encodedToken = token.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? token
-        try await send(
-            path: "api/auth/password-reset/reset/\(encodedToken)",
-            method: "POST",
-            body: [
-                "password": password,
-                "confirmPassword": confirmPassword
-            ],
-            authorized: false,
-            attachCartToken: false
-        )
-    }
-    
-    // MARK: - Appointments
-
-    func appointmentPrestations() async throws -> [AppointmentPrestation] {
-        let data: AppointmentPrestationList = try await request(
-            path: "api/public/appointments/prestations"
-        )
-        return data.items
-    }
-
-    func appointmentAvailability(prestationId: Int, start: Date, end: Date) async throws -> [AppointmentSlot] {
-        let data: AppointmentAvailability = try await request(
-            path: "api/public/appointments/availability",
-            query: [
-                URLQueryItem(name: "start", value: isoFormatter.string(from: start)),
-                URLQueryItem(name: "end", value: isoFormatter.string(from: end)),
-                URLQueryItem(name: "prestationId", value: "\(prestationId)")
-            ],
-            authorized: false,
-            attachCartToken: false
-        )
-        return data.slots
-    }
-
-    func bookAppointment(prestationId: Int, startAt: Date) async throws -> AppointmentSummary {
-        let body: [String: Any] = [
-            "prestationId": prestationId,
-            "startAt": isoFormatter.string(from: startAt)
-        ]
-        let appointment: AppointmentSummary = try await request(
-            path: "api/appointments",
-            method: "POST",
-            body: body,
-            authorized: true,
-            attachCartToken: false
-        )
-        return appointment
-    }
-
-    /// Annule un rendez-vous existant.
-    /// - Primary: `PATCH /api/appointments/{id}/status` with `{ "status": "cancelled" }`
-    /// - Fallback: `POST /api/appointments/{id}/cancel` (some deployments are inconsistent or /status may fail with 5xx)
-    func cancelAppointment(id: Int) async throws {
-        let body: [String: Any] = ["status": "cancelled"]
-        do {
-            // We don't rely on the response payload here; any 2xx means "accepted".
-            try await send(
-                path: "api/appointments/\(id)/status",
-                method: "PATCH",
-                body: body,
-                authorized: true,
-                attachCartToken: false
-            )
-        } catch let APIError.httpStatus(code, _) where code == 404 || code == 405 || (500...599).contains(code) {
-            // Fallback endpoint is also available in the backend snapshot.
-            try await send(
-                path: "api/appointments/\(id)/cancel",
-                method: "POST",
-                authorized: true,
-                attachCartToken: false
-            )
-        }
-    }
-
-    func myAppointments() async throws -> AppointmentList {
-        return try await request(
-            path: "api/appointments/me",
-            authorized: true,
-            attachCartToken: false
-        )
-    }
 
     // MARK: - Generic sender for endpoints without envelope decoding
-    private func send(
+    func send(
         path: String,
         method: String,
         query: [URLQueryItem]? = nil,
@@ -725,323 +276,7 @@ final class APIClient: ObservableObject {
         }
     }
 
-    // MARK: - Addresses
-
-    func createAddress(
-        label: String,
-        address: String,
-        postalCode: String,
-        city: String,
-        isDefault: Bool
-    ) async throws {
-        let body: [String: Any] = [
-            "name": label,
-            "address": address,
-            "postalCode": postalCode,
-            "city": city,
-            "isDefault": isDefault
-        ]
-        try await send(
-            path: "api/addresses",
-            method: "POST",
-            body: body,
-            authorized: true,
-            attachCartToken: false
-        )
-    }
-
-    func updateAddress(
-        id: Int,
-        label: String,
-        address: String,
-        postalCode: String,
-        city: String,
-        isDefault: Bool
-    ) async throws {
-        let body: [String: Any] = [
-            "name": label,
-            "address": address,
-            "postalCode": postalCode,
-            "city": city
-        ]
-        try await send(
-            path: "api/addresses/\(id)",
-            method: "PUT",
-            body: body,
-            authorized: true,
-            attachCartToken: false
-        )
-        if isDefault {
-            try await setDefaultAddress(id: id)
-        }
-    }
-
-    func deleteAddress(id: Int) async throws {
-        try await send(
-            path: "api/addresses/\(id)",
-            method: "DELETE",
-            authorized: true,
-            attachCartToken: false
-        )
-    }
-
-    func setDefaultAddress(id: Int) async throws {
-        try await send(
-            path: "api/addresses/\(id)/default",
-            method: "PUT",
-            authorized: true,
-            attachCartToken: false
-        )
-    }
-
-    func listAddresses() async throws -> [UserAddress] {
-        let data: AddressListData = try await request(
-            path: "api/addresses/me",
-            authorized: true,
-            attachCartToken: false
-        )
-        return data.items
-    }
-    
-    // MARK: - Quotes
-    
-    func quoteServices(page: Int? = nil, perPage: Int? = nil, query search: String? = nil) async throws -> QuoteServiceList {
-        var query: [URLQueryItem] = []
-        if let page { query.append(URLQueryItem(name: "page", value: String(page))) }
-        if let perPage { query.append(URLQueryItem(name: "perPage", value: String(perPage))) }
-        if let search, !search.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            query.append(URLQueryItem(name: "q", value: search))
-        }
-        let data: QuoteServiceList = try await request(
-            path: "api/public/services",
-            query: query.isEmpty ? nil : query
-        )
-        return data
-    }
-
-    func latestNews(limit: Int = 3) async throws -> [NewsArticle] {
-        let data = try await newsArticles(page: 1, perPage: limit)
-        return Array(data.items.prefix(limit))
-    }
-
-    func newsArticles(page: Int = 1, perPage: Int = 9, query search: String? = nil) async throws -> NewsArticleListData {
-        var query = [
-            URLQueryItem(name: "page", value: String(page)),
-            URLQueryItem(name: "perPage", value: String(perPage))
-        ]
-        if let search, !search.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            query.append(URLQueryItem(name: "q", value: search))
-        }
-        return try await request(
-            path: "api/public/news",
-            query: query
-        )
-    }
-
-    func newsArticle(slug: String) async throws -> NewsArticle {
-        let encodedSlug = slug.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? slug
-        let data: NewsArticleData = try await request(
-            path: "api/public/news/\(encodedSlug)"
-        )
-        return data.article
-    }
-
-    func trainingCategories() async throws -> [TrainingCategory] {
-        let data: TrainingCategoryListData = try await request(
-            path: "api/public/training-categories"
-        )
-        return data.items
-    }
-
-    func trainings(
-        page: Int = 1,
-        perPage: Int = 10,
-        query search: String? = nil,
-        category: String? = nil
-    ) async throws -> TrainingListData {
-        var query = [
-            URLQueryItem(name: "page", value: String(page)),
-            URLQueryItem(name: "perPage", value: String(perPage))
-        ]
-        if let search, !search.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            query.append(URLQueryItem(name: "q", value: search))
-        }
-        if let category, !category.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            query.append(URLQueryItem(name: "category", value: category))
-        }
-        return try await request(
-            path: "api/public/trainings",
-            query: query
-        )
-    }
-
-    func training(slug: String) async throws -> TrainingDetailData {
-        let encodedSlug = slug.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? slug
-        return try await request(
-            path: "api/public/trainings/\(encodedSlug)"
-        )
-    }
-
-    func newsComments(slug: String, page: Int = 1, perPage: Int = 10) async throws -> NewsCommentListData {
-        let encodedSlug = slug.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? slug
-        return try await request(
-            path: "api/public/news/\(encodedSlug)/comments",
-            query: [
-                URLQueryItem(name: "page", value: String(page)),
-                URLQueryItem(name: "perPage", value: String(perPage))
-            ]
-        )
-    }
-
-    func createNewsComment(slug: String, content: String) async throws -> NewsComment {
-        let encodedSlug = slug.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? slug
-        let data: NewsCommentData = try await request(
-            path: "api/public/news/\(encodedSlug)/comments",
-            method: "POST",
-            body: ["content": content],
-            authorized: true,
-            attachCartToken: false
-        )
-        return data.comment
-    }
-
-    func publicService(id: Int) async throws -> QuoteService {
-        try await request(
-            path: "api/public/services/\(id)"
-        )
-    }
-    
-    func createQuote(
-        name: String,
-        email: String,
-        company: String?,
-        address: String?,
-        items: [QuoteRequestItem]
-    ) async throws -> QuoteSummary {
-        var customer: [String: Any] = [
-            "name": name,
-            "email": email
-        ]
-        if let company { customer["company"] = company }
-        if let address { customer["address"] = address }
-        
-        let body: [String: Any] = [
-            "customer": customer,
-            "items": items.map { $0.toPayload() }
-        ]
-        return try await request(
-            path: "api/public/quotes",
-            method: "POST",
-            body: body,
-            authorized: false,
-            attachCartToken: false
-        )
-    }
-    
-    func myQuotes() async throws -> [QuoteSummary] {
-        let data: QuoteListData = try await request(
-            path: "api/quotes/me",
-            authorized: true,
-            attachCartToken: false
-        )
-        return data.items
-    }
-    
-    func deleteQuote(id: Int) async throws {
-        try await send(
-            path: "api/quotes/me/\(id)",
-            method: "DELETE",
-            authorized: true,
-            attachCartToken: false
-        )
-    }
-
-    // MARK: - Trade-ins
-
-    func tradeInMetadata() async throws -> TradeInMetadata {
-        try await request(
-            path: "api/public/trade-ins/metadata",
-            authorized: false,
-            attachCartToken: false
-        )
-    }
-
-    func createTradeIn(
-        payload: TradeInRequestPayload,
-        ribFilename: String,
-        ribData: Data,
-        authorized: Bool
-    ) async throws -> TradeInSummary {
-        let fields: [String: String] = [
-            "firstName": payload.firstName,
-            "lastName": payload.lastName,
-            "email": payload.email,
-            "phone": payload.phone,
-            "category": payload.category,
-            "productName": payload.productName,
-            "purchasePriceCents": String(payload.purchasePriceCents),
-            "purchaseYear": String(payload.purchaseYear),
-            "brand": payload.brand ?? "",
-            "model": payload.model ?? "",
-            "serialNumber": payload.serialNumber ?? "",
-            "conditionGrade": payload.conditionGrade,
-            "functional": payload.functional ? "1" : "0",
-            "hasAccessories": payload.hasAccessories ? "1" : "0",
-            "hasProofOfPurchase": payload.hasProofOfPurchase ? "1" : "0",
-            "description": payload.description,
-            "catalogProductId": payload.catalogProductId.map(String.init) ?? "",
-            "consent": payload.consent ? "1" : "0"
-        ]
-
-        return try await multipartRequest(
-            path: authorized ? "api/trade-ins" : "api/public/trade-ins",
-            fields: fields,
-            fileFieldName: "rib",
-            filename: ribFilename,
-            mimeType: "application/pdf",
-            fileData: ribData,
-            authorized: authorized,
-            attachCartToken: false
-        )
-    }
-    
-    // MARK: - Favorites
-
-    struct FavoriteListData: Decodable {
-        let items: [FavoriteEntry]
-    }
-
-    func listFavorites() async throws -> [FavoriteEntry] {
-        let data: FavoriteListData = try await request(
-            path: "api/favorites",
-            authorized: true,
-            attachCartToken: false
-        )
-        return data.items
-    }
-
-    @discardableResult
-    func addFavorite(productId: Int) async throws -> AddFavoriteResponse {
-        let resp: AddFavoriteResponse = try await request(
-            path: "api/favorites/\(productId)",
-            method: "POST",
-            authorized: true,
-            attachCartToken: false
-        )
-        return resp
-    }
-
-    func removeFavorite(productId: Int) async throws -> Bool {
-        let resp: RemoveFavoriteResponse = try await request(
-            path: "api/favorites/\(productId)",
-            method: "DELETE",
-            authorized: true,
-            attachCartToken: false
-        )
-        return resp.removed
-    }
-
-    private func multipartRequest<T: Decodable>(
+    func multipartRequest<T: Decodable>(
         path: String,
         fields: [String: String],
         fileFieldName: String,
@@ -1118,7 +353,7 @@ final class APIClient: ObservableObject {
         }
     }
 
-    private func rawMultipartRequest(
+    func rawMultipartRequest(
         path: String,
         fields: [String: String],
         fileFieldName: String,
@@ -1160,7 +395,7 @@ final class APIClient: ObservableObject {
         }
     }
 
-    private func buildMultipartBody(
+    func buildMultipartBody(
         fields: [String: String],
         fileFieldName: String,
         filename: String,
