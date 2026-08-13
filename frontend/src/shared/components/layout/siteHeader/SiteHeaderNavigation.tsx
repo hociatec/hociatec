@@ -82,9 +82,11 @@ const fetchPublishedIosRelease = async (): Promise<PublishedIosRelease | null> =
 
 export const SiteHeaderNavigation = () => {
   const { pathname } = useLocation();
-  const [offerOpen, setOfferOpen] = useState(false);
+  const [catalogOpen, setCatalogOpen] = useState(false);
+  const [servicesOpen, setServicesOpen] = useState(false);
   const [publishedIosRelease, setPublishedIosRelease] = useState<PublishedIosRelease | null>(null);
-  const offerSummaryRef = useRef<HTMLElement | null>(null);
+  const catalogSummaryRef = useRef<HTMLElement | null>(null);
+  const servicesSummaryRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -111,64 +113,86 @@ export const SiteHeaderNavigation = () => {
     : "Télécharger l'app iPhone";
   const iosDownloadPath = publishedIosRelease ? iosDownloadProxyPath : '#';
 
-  const closeOfferMenu = () => {
-    setOfferOpen(false);
-    offerSummaryRef.current?.focus();
+  const closeCatalogMenu = () => {
+    setCatalogOpen(false);
+    catalogSummaryRef.current?.focus();
   };
 
-  const handleOfferKeyDown = (event: KeyboardEvent<HTMLDetailsElement>) => {
+  const closeServicesMenu = () => {
+    setServicesOpen(false);
+    servicesSummaryRef.current?.focus();
+  };
+
+  const handleCatalogKeyDown = (event: KeyboardEvent<HTMLDetailsElement>) => {
     if (event.key !== 'Escape') return;
     event.preventDefault();
     event.stopPropagation();
-    closeOfferMenu();
+    closeCatalogMenu();
+  };
+
+  const handleServicesKeyDown = (event: KeyboardEvent<HTMLDetailsElement>) => {
+    if (event.key !== 'Escape') return;
+    event.preventDefault();
+    event.stopPropagation();
+    closeServicesMenu();
   };
 
   return (
     <nav className="site-header__nav" aria-label="Navigation principale">
       <details
         className="site-header__menu"
-        open={offerOpen}
-        onToggle={(event) => setOfferOpen(event.currentTarget.open)}
-        onKeyDown={handleOfferKeyDown}
+        open={catalogOpen}
+        onToggle={(event) => setCatalogOpen(event.currentTarget.open)}
+        onKeyDown={handleCatalogKeyDown}
       >
         <summary
-          ref={offerSummaryRef}
-          className={`site-header__menu-trigger${isAnyPathActive(pathname, ['/catalogue', '/services', '/formations', '/reprise', '/appointments/book', '/devis/nouveau', '/audits/request']) ? ' site-header__link--active' : ''}`}
+          ref={catalogSummaryRef}
+          className={`site-header__menu-trigger${isAnyPathActive(pathname, ['/catalogue', '/services', '/formations']) ? ' site-header__link--active' : ''}`}
         >
           <ShoppingBag aria-hidden="true" />
-          <span>Notre offre</span>
+          <span>Catalogue</span>
         </summary>
         <div className="site-header__menu-panel">
-          <div className="site-header__menu-group">
-            <p className="site-header__menu-group-title">Catalogue</p>
-            {catalogLinks.map(({ path, label, Icon }) => (
-              <Link
-                key={path}
-                to={path}
-                prefetch="intent"
-                className={isPathActive(pathname, path) ? 'is-active' : undefined}
-                onClick={() => setOfferOpen(false)}
-              >
-                <Icon aria-hidden="true" />
-                <span>{label}</span>
-              </Link>
-            ))}
-          </div>
-          <div className="site-header__menu-group">
-            <p className="site-header__menu-group-title">Prestations</p>
-            {prestationLinks.map(({ path, label, Icon }) => (
-              <Link
-                key={path}
-                to={path}
-                prefetch="intent"
-                className={isPathActive(pathname, path) ? 'is-active' : undefined}
-                onClick={() => setOfferOpen(false)}
-              >
-                <Icon aria-hidden="true" />
-                <span>{label}</span>
-              </Link>
-            ))}
-          </div>
+          {catalogLinks.map(({ path, label, Icon }) => (
+            <Link
+              key={path}
+              to={path}
+              prefetch="intent"
+              className={isPathActive(pathname, path) ? 'is-active' : undefined}
+              onClick={() => setCatalogOpen(false)}
+            >
+              <Icon aria-hidden="true" />
+              <span>{label}</span>
+            </Link>
+          ))}
+        </div>
+      </details>
+      <details
+        className="site-header__menu"
+        open={servicesOpen}
+        onToggle={(event) => setServicesOpen(event.currentTarget.open)}
+        onKeyDown={handleServicesKeyDown}
+      >
+        <summary
+          ref={servicesSummaryRef}
+          className={`site-header__menu-trigger${isAnyPathActive(pathname, ['/reprise', '/appointments/book', '/devis/nouveau', '/audits/request']) ? ' site-header__link--active' : ''}`}
+        >
+          <MonitorCog aria-hidden="true" />
+          <span>Prestations</span>
+        </summary>
+        <div className="site-header__menu-panel">
+          {prestationLinks.map(({ path, label, Icon }) => (
+            <Link
+              key={path}
+              to={path}
+              prefetch="intent"
+              className={isPathActive(pathname, path) ? 'is-active' : undefined}
+              onClick={() => setServicesOpen(false)}
+            >
+              <Icon aria-hidden="true" />
+              <span>{label}</span>
+            </Link>
+          ))}
         </div>
       </details>
 
