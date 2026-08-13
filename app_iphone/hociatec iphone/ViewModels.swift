@@ -88,7 +88,6 @@ final class ProductsViewModel: ObservableObject {
     @Published var products: [Product] = []
     @Published var categories: [CategorySummary] = []
     @Published var selectedCategory: CategorySummary?
-    @Published var selectedCategoryIds: Set<Int> = []
     @Published var selectedSellingType: SellingType? = nil
     @Published var sort: SortOption = .relevance
     @Published var search = ""
@@ -98,8 +97,9 @@ final class ProductsViewModel: ObservableObject {
 
     private let api: APIClient
 
-    init(api: APIClient) {
+    init(api: APIClient, initialSellingType: SellingType? = nil) {
         self.api = api
+        self.selectedSellingType = initialSellingType
     }
 
     func load(force: Bool = false) async {
@@ -108,27 +108,12 @@ final class ProductsViewModel: ObservableObject {
         error = nil
 
         do {
-            let slugs: [String]? = {
-                if !selectedCategoryIds.isEmpty {
-                    let selected = categories.filter { selectedCategoryIds.contains($0.id) }
-                    return selected.map { $0.slug }
-                } else if let slug = selectedCategory?.slug { return [slug] } else { return nil }
-            }()
             let items = try await api.products(
                 search: search.isEmpty ? nil : search,
-                categorySlugs: slugs,
+                categorySlug: selectedCategory?.slug,
                 sellingType: selectedSellingType
             )
-
-            // Appliquer aussi le filtrage côté client pour s’assurer du résultat, même si l’API ignore un filtre.
-            var filtered = items
-            if !selectedCategoryIds.isEmpty {
-                filtered = filtered.filter { selectedCategoryIds.contains($0.category.id) }
-            }
-            if let selectedSellingType {
-                filtered = filtered.filter { $0.sellingType == selectedSellingType }
-            }
-            products = applySorting(on: filtered)
+            products = applySorting(on: items)
         } catch let err {
             self.error = err.localizedDescription
             if force {
@@ -146,7 +131,7 @@ final class ProductsViewModel: ObservableObject {
         do {
             categories = try await api.categories()
             if let current = selectedCategory {
-                selectedCategoryIds = [current.id]
+                selectedCategory = categories.first(where: { $0.id == current.id || $0.slug == current.slug })
             }
         } catch let err {
             // Non bloquant pour les produits : on logue l'erreur dans `error` si aucune autre.

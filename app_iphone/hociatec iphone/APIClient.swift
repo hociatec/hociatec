@@ -33,50 +33,23 @@ final class APIClient: ObservableObject {
         return data.items
     }
 
-    func products(search: String? = nil, categorySlugs: [String]? = nil, sellingType: SellingType? = nil) async throws -> [Product] {
-        func fetch(categorySlug: String?) async throws -> [Product] {
-            var query: [URLQueryItem] = []
-            if let search, !search.isEmpty {
-                query.append(.init(name: "q", value: search))
-            }
-            if let categorySlug, !categorySlug.isEmpty {
-                // Backend expects a single category slug under `category`.
-                query.append(.init(name: "category", value: categorySlug))
-            }
-            if let sellingType {
-                query.append(.init(name: "sellingType", value: sellingType.rawValue))
-            }
-
-            let data: ProductListData = try await request(
-                path: "api/public/catalog/products",
-                query: query.isEmpty ? nil : query
-            )
-            return data.items
+    func products(search: String? = nil, categorySlug: String? = nil, sellingType: SellingType? = nil) async throws -> [Product] {
+        var query: [URLQueryItem] = []
+        if let search, !search.isEmpty {
+            query.append(.init(name: "q", value: search))
+        }
+        if let categorySlug, !categorySlug.isEmpty {
+            query.append(.init(name: "category", value: categorySlug))
+        }
+        if let sellingType {
+            query.append(.init(name: "sellingType", value: sellingType.rawValue))
         }
 
-        let slugs = (categorySlugs ?? []).filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-        if slugs.count <= 1 {
-            return try await fetch(categorySlug: slugs.first)
-        }
-
-        // Backend only supports one category filter; fetch per category and merge.
-        // Do it sequentially to avoid rate limiting and make behavior predictable.
-        var byId: [Int: Product] = [:]
-        var lastError: Error?
-        for slug in slugs {
-            do {
-                let items = try await fetch(categorySlug: slug)
-                for p in items { byId[p.id] = p }
-            } catch {
-                lastError = error
-                continue
-            }
-        }
-        if !byId.isEmpty {
-            return Array(byId.values)
-        }
-        if let lastError { throw lastError }
-        return []
+        let data: ProductListData = try await request(
+            path: "api/public/catalog/products",
+            query: query.isEmpty ? nil : query
+        )
+        return data.items
     }
 
     func product(slug: String) async throws -> Product {
@@ -871,6 +844,42 @@ final class APIClient: ObservableObject {
             path: "api/public/news/\(encodedSlug)"
         )
         return data.article
+    }
+
+    func trainingCategories() async throws -> [TrainingCategory] {
+        let data: TrainingCategoryListData = try await request(
+            path: "api/public/training-categories"
+        )
+        return data.items
+    }
+
+    func trainings(
+        page: Int = 1,
+        perPage: Int = 10,
+        query search: String? = nil,
+        category: String? = nil
+    ) async throws -> TrainingListData {
+        var query = [
+            URLQueryItem(name: "page", value: String(page)),
+            URLQueryItem(name: "perPage", value: String(perPage))
+        ]
+        if let search, !search.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            query.append(URLQueryItem(name: "q", value: search))
+        }
+        if let category, !category.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            query.append(URLQueryItem(name: "category", value: category))
+        }
+        return try await request(
+            path: "api/public/trainings",
+            query: query
+        )
+    }
+
+    func training(slug: String) async throws -> TrainingDetailData {
+        let encodedSlug = slug.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? slug
+        return try await request(
+            path: "api/public/trainings/\(encodedSlug)"
+        )
     }
 
     func newsComments(slug: String, page: Int = 1, perPage: Int = 10) async throws -> NewsCommentListData {

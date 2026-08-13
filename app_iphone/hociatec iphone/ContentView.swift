@@ -36,9 +36,9 @@ struct ContentView: View {
             .tag(0)
 
             NavigationStack {
-                ProductsListView(api: container.api, selectedTab: $selectedTab, filtersBadge: $productFiltersBadge)
+                OfferHubView(api: container.api, selectedTab: $selectedTab, filtersBadge: $productFiltersBadge)
             }
-            .tabItem { Label("Produits", systemImage: "square.grid.2x2") }
+            .tabItem { Label("Notre offre", systemImage: "square.grid.2x2") }
             .badge(productFiltersBadge.map { Text("\($0)") })
             .tag(1)
 
@@ -52,10 +52,16 @@ struct ContentView: View {
             .tag(2)
 
             NavigationStack {
+                NewsListView(api: container.api)
+            }
+            .tabItem { Label("Actualités", systemImage: "newspaper") }
+            .tag(3)
+
+            NavigationStack {
                 AccountScreen()
             }
             .tabItem { Label("Compte", systemImage: "person") }
-            .tag(3)
+            .tag(4)
         }
         .task { await cart.refresh() }
         .overlay(alignment: .top) {
@@ -227,14 +233,14 @@ private struct HomeScreen: View {
                     selectedTab = 1
                 } label: {
                     HStack {
-                        Label("Voir tous les produits", systemImage: "square.grid.2x2")
+                        Label("Voir notre offre", systemImage: "square.grid.2x2")
                             .fontWeight(.semibold)
                         Spacer()
                         Image(systemName: "chevron.right")
                             .foregroundStyle(.tertiary)
                     }
                 }
-                .accessibilityHint("Ouvrir l’onglet Produits")
+                .accessibilityHint("Ouvrir l’onglet Notre offre")
             }
 
             Section("Actualités") {
@@ -292,6 +298,75 @@ private struct HomeScreen: View {
         }
         .navigationTitle("Accueil")
         .task { await home.load() }
+    }
+}
+
+private struct OfferHubView: View {
+    let api: APIClient
+    @EnvironmentObject private var account: AccountViewModel
+    @Binding var selectedTab: Int
+    @Binding var filtersBadge: Int?
+
+    var body: some View {
+        List {
+            Section("Produits") {
+                NavigationLink {
+                    ProductsListView(
+                        api: api,
+                        selectedTab: $selectedTab,
+                        filtersBadge: $filtersBadge,
+                        navigationTitle: "Produits"
+                    )
+                } label: {
+                    Label("Tous les produits", systemImage: "shippingbox")
+                }
+
+                NavigationLink {
+                    ProductsListView(
+                        api: api,
+                        selectedTab: $selectedTab,
+                        filtersBadge: $filtersBadge,
+                        initialSellingType: .sale,
+                        navigationTitle: "Produits en vente"
+                    )
+                } label: {
+                    Label("Vente", systemImage: "cart")
+                }
+
+                NavigationLink {
+                    ProductsListView(
+                        api: api,
+                        selectedTab: $selectedTab,
+                        filtersBadge: $filtersBadge,
+                        initialSellingType: .rental,
+                        navigationTitle: "Produits en location"
+                    )
+                } label: {
+                    Label("Location", systemImage: "clock.arrow.circlepath")
+                }
+            }
+
+            Section("Services") {
+                NavigationLink {
+                    ServicesCatalogView(api: api)
+                } label: {
+                    Label("Services", systemImage: "wrench.and.screwdriver")
+                }
+
+                NavigationLink {
+                    TrainingsCatalogView(api: api)
+                } label: {
+                    Label("Formation", systemImage: "graduationcap")
+                }
+
+                NavigationLink {
+                    TradeInRequestView(api: api, account: account)
+                } label: {
+                    Label("Reprise de matériel", systemImage: "arrow.triangle.2.circlepath")
+                }
+            }
+        }
+        .navigationTitle("Notre offre")
     }
 }
 
@@ -847,6 +922,243 @@ private struct NewsListView: View {
     }
 }
 
+private struct TrainingsCatalogView: View {
+    let api: APIClient
+    @State private var trainings: [Training] = []
+    @State private var categories: [TrainingCategory] = []
+    @State private var selectedCategorySlug = ""
+    @State private var page = 1
+    @State private var totalPages = 1
+    @State private var searchText = ""
+    @State private var appliedSearch = ""
+    @State private var isLoading = false
+    @State private var error: String?
+
+    var body: some View {
+        List {
+            Section {
+                TextField("Rechercher une formation", text: $searchText)
+                if !categories.isEmpty {
+                    Picker("Catégorie", selection: $selectedCategorySlug) {
+                        Text("Toutes").tag("")
+                        ForEach(categories) { category in
+                            Text(category.name).tag(category.slug)
+                        }
+                    }
+                }
+                Button("Rechercher") {
+                    appliedSearch = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+                    page = 1
+                    Task { await load() }
+                }
+            }
+
+            Section("Formations") {
+                if isLoading && trainings.isEmpty {
+                    ProgressView("Chargement des formations...")
+                } else if let error {
+                    Text(error).foregroundStyle(.red)
+                } else if trainings.isEmpty {
+                    Text("Aucune formation publiée pour le moment.")
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(trainings) { training in
+                        NavigationLink {
+                            TrainingDetailView(api: api, slug: training.slug)
+                        } label: {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text(training.title)
+                                    .fontWeight(.semibold)
+                                Text(training.objective ?? training.shortDescription ?? "Formation accompagnée avec feuille de route pratique.")
+                                    .lineLimit(3)
+                                    .foregroundStyle(.secondary)
+                                HStack {
+                                    Text(training.categoryDetails?.name ?? training.category)
+                                        .font(.footnote)
+                                        .foregroundStyle(.secondary)
+                                    Spacer()
+                                    Text(PriceFormatter.format(cents: training.priceCents))
+                                        .font(.footnote)
+                                        .fontWeight(.semibold)
+                                }
+                            }
+                            .padding(.vertical, 4)
+                        }
+                    }
+                }
+            }
+
+            if totalPages > 1 {
+                Section {
+                    HStack {
+                        Button("Précédent") {
+                            guard page > 1 else { return }
+                            page -= 1
+                            Task { await load() }
+                        }
+                        .disabled(page <= 1 || isLoading)
+                        Spacer()
+                        Text("\(page)/\(totalPages)")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Button("Suivant") {
+                            guard page < totalPages else { return }
+                            page += 1
+                            Task { await load() }
+                        }
+                        .disabled(page >= totalPages || isLoading)
+                    }
+                }
+            }
+        }
+        .navigationTitle("Formations")
+        .task {
+            await loadCategoriesIfNeeded()
+            await load()
+        }
+        .onChangeCompat(selectedCategorySlug) { _ in
+            page = 1
+            Task { await load() }
+        }
+    }
+
+    private func loadCategoriesIfNeeded() async {
+        guard categories.isEmpty else { return }
+        do {
+            categories = try await api.trainingCategories().filter(\.isActive)
+        } catch {
+            if self.error == nil {
+                self.error = error.localizedDescription
+            }
+        }
+    }
+
+    private func load() async {
+        guard !isLoading else { return }
+        isLoading = true
+        error = nil
+        defer { isLoading = false }
+
+        do {
+            let data = try await api.trainings(
+                page: page,
+                perPage: 8,
+                query: appliedSearch.isEmpty ? nil : appliedSearch,
+                category: selectedCategorySlug.isEmpty ? nil : selectedCategorySlug
+            )
+            trainings = data.items
+            totalPages = max(1, data.meta.totalPages)
+        } catch {
+            self.error = error.localizedDescription
+        }
+    }
+}
+
+private struct TrainingDetailView: View {
+    let api: APIClient
+    let slug: String
+    @State private var training: Training?
+    @State private var sessions: [TrainingSession] = []
+    @State private var isLoading = false
+    @State private var error: String?
+
+    var body: some View {
+        List {
+            if isLoading && training == nil {
+                Section {
+                    ProgressView("Chargement de la formation...")
+                }
+            } else if let error, training == nil {
+                Section {
+                    Text(error).foregroundStyle(.red)
+                }
+            } else if let training {
+                Section {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(training.title)
+                            .font(.title3.weight(.semibold))
+                        Text(training.objective ?? training.shortDescription ?? "Formation accompagnée avec feuille de route pratique.")
+                            .foregroundStyle(.secondary)
+                        LabeledContent("Catégorie", value: training.categoryDetails?.name ?? training.category)
+                        LabeledContent("Modalité", value: nonEmptyText(training.availableFormatDetails.map(\.label).joined(separator: ", ")) ?? "À confirmer")
+                        LabeledContent("Durée", value: trainingDurationLabel(training.durationMinutes))
+                        LabeledContent("Tarif", value: PriceFormatter.format(cents: training.priceCents))
+                        if let audience = nonEmptyText(training.audience) {
+                            LabeledContent("Public concerné", value: audience)
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+
+                Section("Feuille de route") {
+                    if training.roadmap.isEmpty {
+                        Text("Le programme détaillé sera communiqué avec les informations de session.")
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(training.roadmap.sorted { $0.position < $1.position }) { item in
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("\(item.position). \(item.title)")
+                                    .fontWeight(.semibold)
+                            }
+                            .padding(.vertical, 2)
+                        }
+                    }
+                }
+
+                Section("Sessions") {
+                    if sessions.isEmpty {
+                        Text("Aucune session ouverte pour le moment.")
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(sessions) { session in
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Text(session.formatLabel)
+                                        .fontWeight(.semibold)
+                                    Spacer()
+                                    Text(session.statusLabel)
+                                        .font(.footnote)
+                                        .foregroundStyle(.secondary)
+                                }
+                                LabeledContent("Début", value: trainingDateTimeFormatter.string(from: session.startsAt))
+                                LabeledContent("Fin", value: trainingDateTimeFormatter.string(from: session.endsAt))
+                                LabeledContent("Places restantes", value: "\(max(0, session.remainingSeats))/\(session.capacity)")
+                                if let location = nonEmptyText(session.location) {
+                                    LabeledContent("Lieu", value: location)
+                                }
+                                if let meetingURL = nonEmptyText(session.meetingUrl) {
+                                    Link(destination: URL(string: meetingURL) ?? URL(string: "https://hociatec.fr/formations/\(slug)")!) {
+                                        Label("Lien de session", systemImage: "link")
+                                    }
+                                }
+                            }
+                            .padding(.vertical, 4)
+                        }
+                    }
+                }
+            }
+        }
+        .navigationTitle("Formation")
+        .task { await load() }
+    }
+
+    private func load() async {
+        guard !isLoading else { return }
+        isLoading = true
+        error = nil
+        defer { isLoading = false }
+
+        do {
+            let data = try await api.training(slug: slug)
+            training = data.training
+            sessions = data.sessions
+        } catch {
+            self.error = error.localizedDescription
+        }
+    }
+}
+
 private func serviceBillingModeLabel(_ value: String?) -> String {
     let normalized = (value ?? "")
         .folding(options: .diacriticInsensitive, locale: .current)
@@ -872,6 +1184,32 @@ private func serviceBillingModeLabel(_ value: String?) -> String {
         return value?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false ? (value ?? "Prix fixe") : "Prix fixe"
     }
 }
+
+private func nonEmptyText(_ value: String?) -> String? {
+    guard let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty else {
+        return nil
+    }
+    return trimmed
+}
+
+private func trainingDurationLabel(_ minutes: Int) -> String {
+    if minutes >= 60 {
+        let hours = Double(minutes) / 60.0
+        if hours.rounded() == hours {
+            return "\(Int(hours)) h"
+        }
+        return String(format: "%.1f h", hours).replacingOccurrences(of: ".", with: ",")
+    }
+    return "\(minutes) min"
+}
+
+private let trainingDateTimeFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "fr_FR")
+    formatter.dateStyle = .medium
+    formatter.timeStyle = .short
+    return formatter
+}()
 
 private struct BannerView: View {
     let message: String

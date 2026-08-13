@@ -6,17 +6,25 @@ struct ProductsListView: View {
     @StateObject private var viewModel: ProductsViewModel
     @Binding var selectedTab: Int
     @Binding var filtersBadge: Int?
+    private let navigationTitle: String
     @State private var useGrid: Bool = false
     @State private var showSortSheet: Bool = false
     @State private var showFilterSheet: Bool = false
-    @State private var draftSelectedCategoryIds: Set<Int> = []
+    @State private var draftSelectedCategoryID: Int? = nil
     @State private var draftSelectedType: SellingType? = nil
     @State private var didInitDraftFilters: Bool = false
 
-    init(api: APIClient, selectedTab: Binding<Int>, filtersBadge: Binding<Int?>) {
-        _viewModel = StateObject(wrappedValue: ProductsViewModel(api: api))
+    init(
+        api: APIClient,
+        selectedTab: Binding<Int>,
+        filtersBadge: Binding<Int?>,
+        initialSellingType: SellingType? = nil,
+        navigationTitle: String = "Produits"
+    ) {
+        _viewModel = StateObject(wrappedValue: ProductsViewModel(api: api, initialSellingType: initialSellingType))
         self._selectedTab = selectedTab
         self._filtersBadge = filtersBadge
+        self.navigationTitle = navigationTitle
     }
 
     var body: some View {
@@ -33,7 +41,7 @@ struct ProductsListView: View {
                         Button {
                             showFilterSheet = true
                         } label: {
-                            let count = viewModel.selectedCategoryIds.count + (viewModel.selectedSellingType == nil ? 0 : 1)
+                            let count = (viewModel.selectedCategory == nil ? 0 : 1) + (viewModel.selectedSellingType == nil ? 0 : 1)
                             Label(count > 0 ? "Filtres (\(count))" : "Filtres", systemImage: "line.3.horizontal.decrease.circle")
                         }
                         Spacer()
@@ -51,34 +59,31 @@ struct ProductsListView: View {
                             Label("Trier (\(sortLabel))", systemImage: "arrow.up.arrow.down")
                         }
                     }
-                    if !viewModel.selectedCategoryIds.isEmpty || viewModel.selectedSellingType != nil {
+                    if viewModel.selectedCategory != nil || viewModel.selectedSellingType != nil {
                         Text(summaryText)
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
-                    if !viewModel.selectedCategoryIds.isEmpty || viewModel.selectedSellingType != nil {
+                    if viewModel.selectedCategory != nil || viewModel.selectedSellingType != nil {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 8) {
-                                ForEach(viewModel.categories.filter { viewModel.selectedCategoryIds.contains($0.id) }) { cat in
+                                if let category = viewModel.selectedCategory {
                                     HStack(spacing: 6) {
-                                        Text(cat.name)
+                                        Text(category.name)
                                         Button {
-                                            var updated = viewModel.selectedCategoryIds
-                                            updated.remove(cat.id)
-                                            viewModel.selectedCategoryIds = updated
+                                            viewModel.selectedCategory = nil
                                             Task { await viewModel.load(force: true) }
                                         } label: {
                                             Image(systemName: "xmark.circle.fill")
                                         }
                                         .buttonStyle(.plain)
-                                        .accessibilityLabel("Retirer le filtre \(cat.name)")
+                                        .accessibilityLabel("Retirer le filtre \(category.name)")
                                     }
                                     .padding(.horizontal, 10)
                                     .padding(.vertical, 6)
                                     .background(Color.blue.opacity(0.1))
                                     .foregroundColor(.blue)
                                     .clipShape(Capsule())
-                                }
                                 if let t = viewModel.selectedSellingType {
                                     HStack(spacing: 6) {
                                         Text(t == .rental ? "Location" : "Vente")
@@ -263,16 +268,13 @@ struct ProductsListView: View {
                         if viewModel.categories.isEmpty {
                             Text("Chargement...").foregroundStyle(.secondary)
                         } else {
-                            ForEach(viewModel.categories) { cat in
-                                Toggle(isOn: Binding(
-                                    get: { draftSelectedCategoryIds.contains(cat.id) },
-                                    set: { newVal in
-                                        if newVal { draftSelectedCategoryIds.insert(cat.id) } else { draftSelectedCategoryIds.remove(cat.id) }
-                                    }
-                                )) {
-                                    Text(cat.name)
+                            Picker("Catégorie", selection: $draftSelectedCategoryID) {
+                                Text("Toutes").tag(Int?.none)
+                                ForEach(viewModel.categories) { cat in
+                                    Text(cat.name).tag(Optional(cat.id))
                                 }
                             }
+                            .pickerStyle(.inline)
                         }
                     }
                     Section("Type") {
@@ -286,13 +288,7 @@ struct ProductsListView: View {
                 }
                 .onAppear {
                     guard !didInitDraftFilters else { return }
-                    if !viewModel.selectedCategoryIds.isEmpty {
-                        draftSelectedCategoryIds = viewModel.selectedCategoryIds
-                    } else if let selectedCategory = viewModel.selectedCategory {
-                        draftSelectedCategoryIds = [selectedCategory.id]
-                    } else {
-                        draftSelectedCategoryIds = []
-                    }
+                    draftSelectedCategoryID = viewModel.selectedCategory?.id
                     draftSelectedType = viewModel.selectedSellingType
                     didInitDraftFilters = true
                 }
@@ -305,24 +301,23 @@ struct ProductsListView: View {
                     ToolbarItem(placement: .cancellationAction) { Button("Annuler") { showFilterSheet = false } }
                     ToolbarItem(placement: .bottomBar) {
                         Button("Réinitialiser") {
-                            draftSelectedCategoryIds.removeAll()
+                            draftSelectedCategoryID = nil
                             draftSelectedType = nil
                         }
                     }
                     ToolbarItem(placement: .confirmationAction) {
                         Button("Appliquer") {
-                            viewModel.selectedCategory = nil
-                            viewModel.selectedCategoryIds = draftSelectedCategoryIds
+                            viewModel.selectedCategory = viewModel.categories.first(where: { $0.id == draftSelectedCategoryID })
                             viewModel.selectedSellingType = draftSelectedType
                             Task { await viewModel.load(force: true) }
                             showFilterSheet = false
                         }
-                        .disabled(draftSelectedCategoryIds == viewModel.selectedCategoryIds && draftSelectedType == viewModel.selectedSellingType)
+                        .disabled(draftSelectedCategoryID == viewModel.selectedCategory?.id && draftSelectedType == viewModel.selectedSellingType)
                     }
                 }
             }
         }
-        .navigationTitle("Produits")
+        .navigationTitle(navigationTitle)
         .searchable(text: $viewModel.search, placement: .navigationBarDrawer(displayMode: .always), prompt: "Rechercher")
         .onSubmit(of: .search) {
             Task { await viewModel.load(force: true) }
@@ -338,7 +333,7 @@ struct ProductsListView: View {
             await viewModel.load(force: true)
             await cart.refresh()
         }
-        .onChangeCompat(viewModel.selectedCategoryIds) { _ in if !showFilterSheet { updateFiltersBadge() } }
+        .onChangeCompat(viewModel.selectedCategory?.id) { _ in if !showFilterSheet { updateFiltersBadge() } }
         .onChangeCompat(viewModel.selectedSellingType) { _ in if !showFilterSheet { updateFiltersBadge() } }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -353,9 +348,8 @@ struct ProductsListView: View {
     
     private var summaryText: String {
         var parts: [String] = []
-        if !viewModel.selectedCategoryIds.isEmpty {
-            let names = viewModel.categories.filter { viewModel.selectedCategoryIds.contains($0.id) }.map { $0.name }
-            if !names.isEmpty { parts.append("Catégories: " + names.joined(separator: ", ")) }
+        if let category = viewModel.selectedCategory {
+            parts.append("Catégorie: \(category.name)")
         }
         if let t = viewModel.selectedSellingType {
             parts.append("Type: " + (t == .rental ? "Location" : "Vente"))
@@ -364,7 +358,7 @@ struct ProductsListView: View {
     }
 
     private func updateFiltersBadge() {
-        let count = viewModel.selectedCategoryIds.count + (viewModel.selectedSellingType == nil ? 0 : 1)
+        let count = (viewModel.selectedCategory == nil ? 0 : 1) + (viewModel.selectedSellingType == nil ? 0 : 1)
         filtersBadge = count == 0 ? nil : count
     }
 }
