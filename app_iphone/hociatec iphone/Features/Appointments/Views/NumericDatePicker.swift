@@ -86,9 +86,9 @@ struct NumericDatePicker: View {
 
     private func clampComponents() {
         let clamped = presentation.clampedComponents(year: year, month: month, day: day)
-        year = clamped.year
-        month = clamped.month
-        day = clamped.day
+        year = clamped.year ?? year
+        month = clamped.month ?? month
+        day = clamped.day ?? day
     }
 
     private func syncFromDate() {
