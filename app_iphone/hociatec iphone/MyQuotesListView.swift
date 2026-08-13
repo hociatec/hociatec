@@ -104,13 +104,13 @@ private struct QuoteDetailView: View {
 
     var body: some View {
         Form {
-            Section("Devis") {
+            Section {
                 LabeledContent("Numéro") { Text(quote.number ?? "—") }
                 LabeledContent("Statut") { Text(quote.statusLabel) }
                 LabeledContent("Créé le") { Text(quotesDateFormatter.string(from: quote.createdAt)) }
             }
 
-            Section("Client") {
+            Section {
                 LabeledContent("Nom") { Text(quote.customer.name) }
                 LabeledContent("Email") { Text(quote.customer.email) }
                 if let company = quote.customer.company, !company.isEmpty {
@@ -121,7 +121,7 @@ private struct QuoteDetailView: View {
                 }
             }
 
-            Section("Lignes") {
+            Section {
                 ForEach(quote.items) { item in
                     VStack(alignment: .leading, spacing: 6) {
                         Text(item.name).fontWeight(.semibold)
@@ -141,21 +141,21 @@ private struct QuoteDetailView: View {
                 }
             }
 
-            Section("Totaux") {
+            Section {
                 LabeledContent("HT") { Text(PriceFormatter.format(cents: quote.totals.ht)) }
                 LabeledContent("TVA") { Text(PriceFormatter.format(cents: quote.totals.vat)) }
                 LabeledContent("TTC") { Text(PriceFormatter.format(cents: quote.totals.ttc)).fontWeight(.semibold) }
             }
 
             if let conditions = quote.conditions, !conditions.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                Section("Conditions") {
+                Section {
                     Text(conditions)
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
             }
         }
-        .navigationTitle("Détail devis")
+        .navigationTitle(quote.number ?? "Devis")
         .navigationBarTitleDisplayMode(.inline)
     }
 }

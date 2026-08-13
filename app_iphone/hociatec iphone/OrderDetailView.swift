@@ -21,20 +21,20 @@ struct OrderDetailView: View {
             }
 
             if let order = order {
-                Section("Informations") {
+                Section {
                     LabeledContent("Numéro") { Text(order.number) }
                     LabeledContent("Statut") { Text(order.statusLabel) }
                     LabeledContent("Créée le") { Text(dateFormatter.string(from: order.createdAt)) }
                 }
 
-                Section("Livraison") {
+                Section {
                     LabeledContent("Nom") { Text(order.shipping.name) }
                     LabeledContent("Adresse") { Text(order.shipping.address) }
                     LabeledContent("Code postal") { Text(order.shipping.postalCode) }
                     LabeledContent("Ville") { Text(order.shipping.city) }
                 }
 
-                Section("Articles") {
+                Section {
                     ForEach(order.items) { item in
                         VStack(alignment: .leading, spacing: 6) {
                             Text(item.productName).fontWeight(.semibold)
@@ -54,12 +54,12 @@ struct OrderDetailView: View {
                     }
                 }
 
-                Section("Total") {
+                Section {
                     Text(PriceFormatter.format(cents: order.totalPriceCents)).fontWeight(.bold)
                 }
 
                 if order.status.lowercased() == "pending" {
-                    Section("Actions") {
+                    Section {
                         Button(role: .destructive) {
                             showCancelAlert = true
                         } label: {
@@ -70,7 +70,7 @@ struct OrderDetailView: View {
                 }
             }
         }
-        .navigationTitle("Commande #\(order?.number ?? "")")
+        .navigationTitle(order?.number.isEmpty == false ? (order?.number ?? "Commande") : "Commande")
         .task { await load() }
         .alert("Annuler cette commande ?", isPresented: $showCancelAlert) {
             Button("Retour", role: .cancel) { showCancelAlert = false }
