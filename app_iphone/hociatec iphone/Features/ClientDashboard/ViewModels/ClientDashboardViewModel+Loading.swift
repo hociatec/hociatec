@@ -57,8 +57,20 @@ extension ClientDashboardViewModel {
         do {
             return ClientDashboardLoadResult(value: try await operation(), failure: nil)
         } catch {
+            if isBenignCancellation(error) {
+                return ClientDashboardLoadResult(value: nil, failure: nil)
+            }
             return ClientDashboardLoadResult(value: nil, failure: error)
         }
+    }
+
+    private func isBenignCancellation(_ error: Error) -> Bool {
+        if error is CancellationError {
+            return true
+        }
+
+        let nsError = error as NSError
+        return nsError.domain == NSURLErrorDomain && nsError.code == NSURLErrorCancelled
     }
 }
 

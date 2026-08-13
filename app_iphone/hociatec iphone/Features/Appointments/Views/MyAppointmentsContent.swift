@@ -23,9 +23,9 @@ struct MyAppointmentsContent: View {
                 .accessibilityHint("Sélectionnez pour filtrer la liste des rendez-vous")
 
                 AppointmentSummaryHeader(
+                    allCount: viewModel.allAppointments.count,
                     upcomingCount: viewModel.upcomingFiltered.count,
                     pastCount: viewModel.pastFiltered.count,
-                    cancelledCount: viewModel.cancelledAppointments.count,
                     isLoading: viewModel.isLoading
                 )
 
@@ -49,15 +49,6 @@ struct MyAppointmentsContent: View {
                         .frame(maxWidth: .infinity)
                         .listRowInsets(EdgeInsets())
                         .listRowSeparator(.hidden)
-
-                        if tab == .upcoming {
-                            NavigationLink {
-                                AppointmentBookingView(service: service)
-                            } label: {
-                                Label("Prendre rendez-vous", systemImage: "calendar.badge.plus")
-                                    .fontWeight(.semibold)
-                            }
-                        }
                     }
                 } else {
                     ForEach(viewModel.visibleAppointments(for: tab)) { appointment in

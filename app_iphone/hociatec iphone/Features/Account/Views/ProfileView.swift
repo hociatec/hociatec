@@ -56,10 +56,6 @@ struct ProfileView: View {
                     }
                 }
                 .disabled(account.isLoading || account.firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || account.lastName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || account.email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                Button("Recharger") {
-                    Task { await account.refreshProfile() }
-                }
-                .disabled(account.isLoading)
             }
             if let error = account.error, !error.isEmpty {
                 Section {

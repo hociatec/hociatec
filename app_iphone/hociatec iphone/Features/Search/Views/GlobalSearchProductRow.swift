@@ -3,6 +3,7 @@ import SwiftUI
 struct GlobalSearchProductRow: View {
     let product: Product
     var showsTitle: Bool = true
+    @EnvironmentObject private var cart: CartViewModel
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -28,6 +29,8 @@ struct GlobalSearchProductRow: View {
                 .lineLimit(2)
             Text(PriceFormatter.format(cents: product.priceCents))
                 .font(.footnote.weight(.semibold))
+
+            ProductCatalogActions(product: product, cart: cart)
         }
         .accessibilityElement(children: .contain)
     }

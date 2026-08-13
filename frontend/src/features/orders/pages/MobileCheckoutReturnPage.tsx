@@ -4,14 +4,14 @@ import { Link, useSearchParams } from 'react-router';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
-const APP_SCHEME = 'hociatec';
+const APP_SCHEME_PREFIX = 'hociatec:///checkout';
 
 const buildAppUrl = (status: string | null, sessionId: string | null) => {
   if (status === 'success' && sessionId) {
-    return `${APP_SCHEME}://checkout/success?session_id=${encodeURIComponent(sessionId)}`;
+    return `${APP_SCHEME_PREFIX}/success?session_id=${encodeURIComponent(sessionId)}`;
   }
 
-  return `${APP_SCHEME}://checkout/cancel`;
+  return `${APP_SCHEME_PREFIX}/cancel`;
 };
 
 export const MobileCheckoutReturnPage = () => {

@@ -5,8 +5,9 @@ struct ClientDashboardView: View {
     @EnvironmentObject private var account: AccountViewModel
     @State private var showDeleteConfirmation = false
 
-    private var loadKey: Int? {
-        account.profile?.id
+    private var loadKey: String? {
+        guard let profileID = account.profile?.id else { return nil }
+        return "\(profileID)"
     }
 
     init(services: AppServices) {
@@ -30,7 +31,7 @@ struct ClientDashboardView: View {
         }
         .navigationTitle("Mon espace")
         .task(id: loadKey) {
-            guard account.isLoggedIn else { return }
+            guard account.isLoggedIn, loadKey != nil else { return }
             viewModel.resetVisibleState()
             await viewModel.load(force: true)
         }

@@ -86,10 +86,19 @@ final class SessionStore: ObservableObject {
 
     func handleIncomingURL(_ url: URL) {
         guard url.scheme?.caseInsensitiveCompare("hociatec") == .orderedSame else { return }
-        guard url.host?.caseInsensitiveCompare("checkout") == .orderedSame else { return }
-
+        let host = url.host?.lowercased()
         let pathComponents = url.pathComponents.filter { $0 != "/" }
-        guard let action = pathComponents.first?.lowercased() else { return }
+
+        let action: String?
+        if host == "checkout" {
+            action = pathComponents.first?.lowercased()
+        } else if pathComponents.first?.lowercased() == "checkout" {
+            action = pathComponents.dropFirst().first?.lowercased()
+        } else {
+            action = nil
+        }
+
+        guard let action else { return }
 
         switch action {
         case "success":

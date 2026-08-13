@@ -30,6 +30,36 @@ struct UserAddress: Codable, Identifiable, Equatable {
         case companyVatNumber
         case isDefault
     }
+
+    var typeLabel: String {
+        type == "professional" ? "Professionnelle" : "Personnelle"
+    }
+
+    var formattedLines: [String] {
+        var lines: [String] = []
+
+        if type == "professional", let company, !company.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            lines.append(company)
+        }
+
+        lines.append(address)
+
+        if let addressComplement, !addressComplement.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            lines.append(addressComplement)
+        }
+
+        lines.append("\(postalCode) \(city)")
+
+        if type == "professional", let companySiren, !companySiren.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            lines.append("SIREN : \(companySiren)")
+        }
+
+        if type == "professional", let companyVatNumber, !companyVatNumber.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            lines.append("TVA : \(companyVatNumber)")
+        }
+
+        return lines
+    }
 }
 
 struct LoginResponse: Decodable {

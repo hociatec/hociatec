@@ -30,9 +30,14 @@ struct AddressFormFieldsSection: View {
         }
 
         Section("Adresse") {
-            Picker("Type", selection: $type) {
-                Text("Personnelle").tag("personal")
-                Text("Professionnelle").tag("professional")
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Type d’adresse")
+                    .font(.subheadline.weight(.semibold))
+                Picker("Type", selection: $type) {
+                    Text("Personnel").tag("personal")
+                    Text("Professionnel").tag("professional")
+                }
+                .pickerStyle(.segmented)
             }
 
             LabeledContent("Intitulé") {
@@ -61,6 +66,15 @@ struct AddressFormFieldsSection: View {
             }
 
             if type == "professional" {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Informations de facturation professionnelle")
+                        .font(.subheadline.weight(.semibold))
+                    Text("Optionnel. A renseigner si la facture doit comporter des mentions societe.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.vertical, 4)
+
                 LabeledContent("Société") {
                     TextField("Nom de la société", text: $company)
                 }

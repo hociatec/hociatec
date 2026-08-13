@@ -22,23 +22,14 @@ struct FavoritesScreen: View {
             } else {
                 Section {
                     ForEach(viewModel.items) { product in
-                        NavigationLink {
-                            ProductDetailView(
-                                viewModel: container.makeProductDetailViewModel(product: product),
-                                imageURL: container.services.assets.assetURL(for: product.imageUrl),
-                                cart: container.cart,
-                                selectedTab: .constant(0)
-                            )
-                            .environmentObject(container)
-                        } label: {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(product.name).fontWeight(.semibold)
-                                Text(product.shortDescription)
-                                    .font(.footnote)
-                                    .foregroundStyle(.secondary)
-                                    .lineLimit(2)
-                            }
-                        }
+                        ProductCatalogCard(
+                            product: product,
+                            imageURL: container.services.assets.assetURL(for: product.imageUrl),
+                            cart: container.cart,
+                            selectedTab: .constant(0),
+                            isCompact: false
+                        )
+                        .environmentObject(container)
                     }
                 }
             }

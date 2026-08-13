@@ -49,8 +49,8 @@ struct LoginView: View {
             }
         }
         .navigationTitle("Connexion")
-        .onChangeCompat(account.isLoggedIn) { isLoggedIn in
-            guard isLoggedIn else { return }
+        .onChangeCompat(account.profile?.id) { profileID in
+            guard profileID != nil, account.isLoggedIn else { return }
             dismiss()
         }
     }

@@ -7,7 +7,7 @@ struct MyAppointmentsView: View {
     private let service: AppointmentServing
     @StateObject private var viewModel: MyAppointmentsViewModel
 
-    @State private var tab: AppointmentTabFilter = .upcoming
+    @State private var tab: AppointmentTabFilter = .all
 
     init(service: AppointmentServing) {
         self.service = service

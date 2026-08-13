@@ -14,36 +14,53 @@ struct AddressesManagerView: View {
         List {
             ForEach(account.addresses.indices, id: \.self) { index in
                 let addr = account.addresses[index]
-                NavigationLink(destination: AddressDetailView(address: addr).environmentObject(account)) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(addr.label.isEmpty ? "Adresse" : addr.label)
-                            .font(.headline)
-                        Text("\(addr.address), \(addr.postalCode) \(addr.city)")
-                            .foregroundStyle(.secondary)
-                        if addr.isDefault {
-                            Label("Par défaut", systemImage: "star.fill")
-                                .font(.caption)
-                                .foregroundStyle(.yellow)
-                                .accessibilityLabel("Adresse par défaut")
+                VStack(alignment: .leading, spacing: 10) {
+                    NavigationLink(destination: AddressDetailView(address: addr).environmentObject(account)) {
+                        VStack(alignment: .leading, spacing: 6) {
+                            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                                Text(addr.label.isEmpty ? "Adresse" : addr.label)
+                                    .font(.headline)
+                                Text(addr.typeLabel)
+                                    .font(.caption.weight(.semibold))
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(Capsule().fill(Color.blue.opacity(0.1)))
+                                    .foregroundStyle(.blue)
+                                if addr.isDefault {
+                                    Label("Par défaut", systemImage: "star.fill")
+                                        .font(.caption)
+                                        .foregroundStyle(.yellow)
+                                        .accessibilityLabel("Adresse par défaut")
+                                }
+                            }
+
+                            ForEach(addr.formattedLines, id: \.self) { line in
+                                Text(line)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
                     }
-                }
-                .accessibilityHint("Afficher les détails de l’adresse")
-                .swipeActions(edge: .leading) {
-                    if !addr.isDefault, let id = addr.id {
+                    .accessibilityHint("Afficher les détails de l’adresse")
+
+                    HStack {
+                        if !addr.isDefault, let id = addr.id {
+                            Button {
+                                Task { await account.makeDefaultAddress(id: id) }
+                            } label: {
+                                Label("Par défaut", systemImage: "star")
+                            }
+                            .buttonStyle(.bordered)
+                            .tint(.blue)
+                        }
+
+                        Spacer()
+
                         Button {
-                            Task { await account.makeDefaultAddress(id: id) }
+                            editSheet = EditSheet(address: addr)
                         } label: {
-                            Label("Définir par défaut", systemImage: "star")
+                            Label("Modifier", systemImage: "pencil")
                         }
-                        .tint(.blue)
-                    }
-                }
-                .swipeActions(edge: .trailing) {
-                    Button {
-                        editSheet = EditSheet(address: addr)
-                    } label: {
-                        Label("Modifier", systemImage: "pencil")
+                        .buttonStyle(.borderedProminent)
                     }
                 }
             }

@@ -58,10 +58,21 @@ final class MyAppointmentsViewModel: ObservableObject {
         past.filter { !$0.isCancelledStatus }.sorted { $0.startAt > $1.startAt }
     }
 
-    var cancelledAppointments: [AppointmentSummary] {
-        (upcoming + past)
-            .filter(\.isCancelledStatus)
-            .sorted { $0.startAt > $1.startAt }
+    var allAppointments: [AppointmentSummary] {
+        (upcomingFiltered + pastFiltered).sorted { lhs, rhs in
+            if lhs.startAt == rhs.startAt {
+                return lhs.id > rhs.id
+            }
+
+            let lhsUpcoming = lhs.startAt >= Date()
+            let rhsUpcoming = rhs.startAt >= Date()
+
+            if lhsUpcoming != rhsUpcoming {
+                return lhsUpcoming && !rhsUpcoming
+            }
+
+            return lhsUpcoming ? lhs.startAt < rhs.startAt : lhs.startAt > rhs.startAt
+        }
     }
 
     func nextUpcoming() -> AppointmentSummary? {
@@ -70,12 +81,12 @@ final class MyAppointmentsViewModel: ObservableObject {
 
     func appointments(for tab: AppointmentTabFilter) -> [AppointmentSummary] {
         switch tab {
+        case .all:
+            return allAppointments
         case .upcoming:
             return upcomingFiltered
         case .past:
             return pastFiltered
-        case .cancelled:
-            return cancelledAppointments
         }
     }
 
@@ -89,9 +100,9 @@ final class MyAppointmentsViewModel: ObservableObject {
 
     func emptyStateMessage(for tab: AppointmentTabFilter) -> String {
         switch tab {
+        case .all: return "Aucun rendez-vous."
         case .upcoming: return "Aucun rendez-vous à venir."
         case .past: return "Aucun rendez-vous passé."
-        case .cancelled: return "Aucun rendez-vous annulé."
         }
     }
 }

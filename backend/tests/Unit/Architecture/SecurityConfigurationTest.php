@@ -55,6 +55,7 @@ final class SecurityConfigurationTest extends TestCase
             'src/Module/BetaTest/UI/Controller/ListBugReportCommentsController.php' => ['CustomerBugReportPortalService', 'listCommentsForUser($user,'],
             'src/Module/BetaTest/UI/Controller/ListMyBugReportsController.php' => ['CustomerBugReportPortalService', 'listForUser($user,'],
             'src/Module/BetaTest/UI/Controller/ShowBugReportController.php' => ['CustomerBugReportPortalService', 'showForUser($user,'],
+            'src/Module/Order/UI/Controller/CancelCheckoutSessionController.php' => ['CustomerOrderPortalService', 'currentUser()'],
             'src/Module/Order/UI/Controller/CancelMyOrderController.php' => ['CustomerOrderPortalService', 'currentUser()'],
             'src/Module/Order/Application/Workflow/ExistingOrderCheckoutService.php' => ['OrderAccessPolicy', 'findOneForUser($addressId, $user)'],
             'src/Module/Order/UI/Controller/CheckoutSessionStatusController.php' => ['CustomerOrderPortalService', 'currentUser()'],

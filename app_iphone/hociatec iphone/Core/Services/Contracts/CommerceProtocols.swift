@@ -29,6 +29,7 @@ protocol OrderServing {
     func order(id: Int) async throws -> OrderSummary
     func cancelOrder(id: Int) async throws -> OrderSummary
     func checkoutSessionStatus(stripeSessionId: String) async throws -> CheckoutSessionStatusData
+    func cancelCheckoutSession(stripeSessionId: String) async throws -> CheckoutSessionStatusData
     func pendingReviews() async throws -> [PendingReviewItem]
     func createReview(orderId: Int, orderItemId: Int, score: Int, comment: String?) async throws -> Review
 }

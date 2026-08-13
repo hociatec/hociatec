@@ -78,4 +78,13 @@ extension APIClient {
             attachCartToken: false
         )
     }
+
+    func cancelCheckoutSession(stripeSessionId: String) async throws -> CheckoutSessionStatusData {
+        try await request(
+            path: "api/orders/checkout/sessions/\(stripeSessionId)/cancel",
+            method: "POST",
+            authorized: true,
+            attachCartToken: false
+        )
+    }
 }

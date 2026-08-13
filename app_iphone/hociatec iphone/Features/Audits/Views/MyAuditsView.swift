@@ -10,7 +10,6 @@ struct MyAuditsView: View {
     var body: some View {
         List {
             AuditStatusSection(error: viewModel.error, successMessage: viewModel.successMessage)
-            AuditRequestEntrySection(viewModel: viewModel)
             AuditListSection(viewModel: viewModel)
         }
         .navigationTitle("Mes audits")
@@ -43,25 +42,11 @@ private struct AuditStatusSection: View {
     }
 }
 
-private struct AuditRequestEntrySection: View {
-    @ObservedObject var viewModel: AuditsViewModel
-
-    var body: some View {
-        Section {
-            NavigationLink {
-                RequestAuditView(viewModel: viewModel)
-            } label: {
-                Label("Demander un audit", systemImage: "checklist")
-            }
-        }
-    }
-}
-
 private struct AuditListSection: View {
     @ObservedObject var viewModel: AuditsViewModel
 
     var body: some View {
-        Section("Mes audits") {
+        Section {
             if viewModel.isLoading && viewModel.items.isEmpty {
                 ProgressView("Chargement...")
             } else if viewModel.items.isEmpty {

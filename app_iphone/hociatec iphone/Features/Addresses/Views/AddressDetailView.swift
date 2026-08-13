@@ -3,17 +3,19 @@ import SwiftUI
 struct AddressDetailView: View {
     @EnvironmentObject private var account: AccountViewModel
     let address: UserAddress
+    @State private var showEdit = false
 
     var body: some View {
         Form {
             Section {
                 LabeledContent("Libellé") { Text(address.label) }
-                LabeledContent("Adresse") { Text(address.address) }
-                if let addressComplement = address.addressComplement, !addressComplement.isEmpty {
-                    LabeledContent("Complément") { Text(addressComplement) }
+                LabeledContent("Type") { Text(address.typeLabel) }
+                if address.type == "professional", let company = address.company, !company.isEmpty {
+                    LabeledContent("Société") { Text(company) }
                 }
-                LabeledContent("Code postal") { Text(address.postalCode) }
-                LabeledContent("Ville") { Text(address.city) }
+                ForEach(address.formattedLines, id: \.self) { line in
+                    Text(line)
+                }
             }
             if address.isDefault {
                 Section {
@@ -28,6 +30,12 @@ struct AddressDetailView: View {
         .navigationTitle(address.label)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Modifier") {
+                    showEdit = true
+                }
+            }
+
             if !address.isDefault, let id = address.id {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -36,6 +44,19 @@ struct AddressDetailView: View {
                         Label("Par défaut", systemImage: "star.fill")
                     }
                 }
+            }
+        }
+        .sheet(isPresented: $showEdit) {
+            NavigationStack {
+                AddressFormView(address: address)
+                    .environmentObject(account)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Fermer") {
+                                showEdit = false
+                            }
+                        }
+                    }
             }
         }
     }

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HomeFeaturedProductsSection: View {
     @EnvironmentObject private var container: AppContainer
+    @EnvironmentObject private var cart: CartViewModel
     @ObservedObject var home: HomeViewModel
 
     var body: some View {
@@ -17,31 +18,14 @@ struct HomeFeaturedProductsSection: View {
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(home.featured.prefix(5)) { product in
-                    VStack(alignment: .leading, spacing: 4) {
-                        NavigationLink {
-                            ProductDetailView(
-                                viewModel: container.makeProductDetailViewModel(product: product),
-                                imageURL: container.services.assets.assetURL(for: product.imageUrl),
-                                cart: container.cart,
-                                selectedTab: .constant(0)
-                            )
-                            .environmentObject(container)
-                        } label: {
-                            Text(product.name)
-                                .fontWeight(.semibold)
-                                .multilineTextAlignment(.leading)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityAddTraits(.isHeader)
-                        .accessibilityHint("Afficher le détail du produit")
-
-                        Text(product.shortDescription)
-                            .lineLimit(2)
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding(.vertical, 4)
-                    .accessibilityElement(children: .contain)
+                    ProductCatalogCard(
+                        product: product,
+                        imageURL: container.services.assets.assetURL(for: product.imageUrl),
+                        cart: cart,
+                        selectedTab: .constant(0),
+                        isCompact: false
+                    )
+                    .environmentObject(container)
                 }
             }
         }

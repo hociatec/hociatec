@@ -185,6 +185,9 @@ struct CartScreen: View {
             screenState.checkoutStatusMessage = "Confirmation du paiement en cours..."
             await verifyPendingCheckoutIfNeeded()
         case .cancelled:
+            if let sessionId = screenState.pendingCheckoutSessionId ?? container.session.pendingCheckoutSessionId {
+                _ = try? await container.services.orders.cancelCheckoutSession(stripeSessionId: sessionId)
+            }
             screenState.pendingCheckoutSessionId = nil
             container.session.pendingCheckoutSessionId = nil
             screenState.checkoutStatusMessage = nil
