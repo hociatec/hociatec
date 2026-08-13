@@ -12,22 +12,11 @@ struct BetaOptionsSection: View {
                     Text("Aucune option disponible.")
                         .foregroundStyle(.secondary)
                 } else {
-                    ForEach(0..<options.count, id: \.self) { index in
-                        let option = options[index]
-                        Button {
-                            toggle(option.value)
-                        } label: {
-                            HStack {
-                                Text(option.label)
-                                Spacer()
-                                if selection.contains(option.value) {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .foregroundStyle(.accent)
-                                }
-                            }
-                        }
-                        .buttonStyle(.plain)
-                    }
+                    BetaOptionsRows(
+                        options: options,
+                        selectedValues: Set(selection),
+                        onToggle: toggle
+                    )
                 }
             },
             header: {
@@ -42,5 +31,43 @@ struct BetaOptionsSection: View {
         } else {
             selection.append(value)
         }
+    }
+}
+
+private struct BetaOptionsRows: View {
+    let options: [BetaChoice]
+    let selectedValues: Set<String>
+    let onToggle: (String) -> Void
+
+    var body: some View {
+        ForEach(options, id: \.id) { option in
+            BetaOptionRow(
+                option: option,
+                isSelected: selectedValues.contains(option.value),
+                onToggle: onToggle
+            )
+        }
+    }
+}
+
+private struct BetaOptionRow: View {
+    let option: BetaChoice
+    let isSelected: Bool
+    let onToggle: (String) -> Void
+
+    var body: some View {
+        Button {
+            onToggle(option.value)
+        } label: {
+            HStack {
+                Text(option.label)
+                Spacer()
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(.accent)
+                }
+            }
+        }
+        .buttonStyle(.plain)
     }
 }
