@@ -112,6 +112,13 @@ struct AccountScreen: View {
                         }
                     }
                     .disabled(account.isLoading)
+
+                    NavigationLink {
+                        ForgotPasswordView(api: container.api, initialEmail: account.email)
+                    } label: {
+                        Text("Mot de passe oublié ?")
+                            .font(.footnote)
+                    }
                 }
 
                 Section {
@@ -135,6 +142,179 @@ struct AccountScreen: View {
             if account.isLoggedIn {
                 await account.refreshProfile()
             }
+        }
+    }
+}
+
+private struct ForgotPasswordView: View {
+    let api: APIClient
+    let initialEmail: String
+
+    @State private var email: String
+    @State private var isSubmitting = false
+    @State private var successMessage: String?
+    @State private var errorMessage: String?
+
+    init(api: APIClient, initialEmail: String) {
+        self.api = api
+        self.initialEmail = initialEmail
+        _email = State(initialValue: initialEmail)
+    }
+
+    var body: some View {
+        Form {
+            Section {
+                Text("Saisissez l’adresse e-mail liée à votre compte. Si elle existe, un lien vous sera envoyé.")
+                    .foregroundStyle(.secondary)
+                TextField("Email", text: $email)
+                    .keyboardType(.emailAddress)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+            }
+
+            if let successMessage {
+                Section {
+                    Text(successMessage)
+                        .foregroundStyle(.green)
+                }
+            }
+
+            if let errorMessage {
+                Section {
+                    Text(errorMessage)
+                        .foregroundStyle(.red)
+                }
+            }
+
+            Section {
+                Button {
+                    Task { await submit() }
+                } label: {
+                    if isSubmitting {
+                        ProgressView()
+                            .frame(maxWidth: .infinity)
+                    } else {
+                        Text("Envoyer le lien de réinitialisation")
+                            .fontWeight(.semibold)
+                            .frame(maxWidth: .infinity)
+                    }
+                }
+                .disabled(isSubmitting || email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+
+            Section {
+                NavigationLink {
+                    ResetPasswordView(api: api)
+                } label: {
+                    Text("J’ai déjà un token")
+                }
+            }
+        }
+        .navigationTitle("Mot de passe oublié")
+    }
+
+    private func submit() async {
+        let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedEmail.isEmpty else { return }
+        guard !isSubmitting else { return }
+        isSubmitting = true
+        errorMessage = nil
+        successMessage = nil
+        defer { isSubmitting = false }
+
+        do {
+            try await api.requestPasswordReset(email: trimmedEmail)
+            successMessage = "Si un compte existe, un e-mail vient d’être envoyé."
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+}
+
+private struct ResetPasswordView: View {
+    let api: APIClient
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var token = ""
+    @State private var password = ""
+    @State private var confirmPassword = ""
+    @State private var isSubmitting = false
+    @State private var successMessage: String?
+    @State private var errorMessage: String?
+
+    private let passwordRule = /^(?=.*[A-Z])(?=.*\d).{8,}$/
+
+    var body: some View {
+        Form {
+            Section {
+                TextField("Token", text: $token)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                SecureField("Nouveau mot de passe", text: $password)
+                SecureField("Confirmation", text: $confirmPassword)
+                Text("Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            if let successMessage {
+                Section {
+                    Text(successMessage)
+                        .foregroundStyle(.green)
+                }
+            }
+
+            if let errorMessage {
+                Section {
+                    Text(errorMessage)
+                        .foregroundStyle(.red)
+                }
+            }
+
+            Section {
+                Button {
+                    Task { await submit() }
+                } label: {
+                    if isSubmitting {
+                        ProgressView()
+                            .frame(maxWidth: .infinity)
+                    } else {
+                        Text("Enregistrer mon nouveau mot de passe")
+                            .fontWeight(.semibold)
+                            .frame(maxWidth: .infinity)
+                    }
+                }
+                .disabled(isSubmitting || token.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || password.isEmpty || confirmPassword.isEmpty)
+            }
+        }
+        .navigationTitle("Nouveau mot de passe")
+    }
+
+    private func submit() async {
+        let trimmedToken = token.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedToken.isEmpty else { return }
+        guard password == confirmPassword else {
+            errorMessage = "Les mots de passe doivent être identiques."
+            return
+        }
+        guard password.wholeMatch(of: passwordRule) != nil else {
+            errorMessage = "Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre."
+            return
+        }
+        guard !isSubmitting else { return }
+
+        isSubmitting = true
+        errorMessage = nil
+        successMessage = nil
+        defer { isSubmitting = false }
+
+        do {
+            try await api.resetPassword(token: trimmedToken, password: password, confirmPassword: confirmPassword)
+            successMessage = "Votre mot de passe a été réinitialisé."
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
+            dismiss()
+        } catch {
+            errorMessage = error.localizedDescription
         }
     }
 }

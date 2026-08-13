@@ -594,6 +594,30 @@ final class APIClient: ObservableObject {
             attachCartToken: false
         )
     }
+
+    func requestPasswordReset(email: String) async throws {
+        try await send(
+            path: "api/auth/password-reset/request",
+            method: "POST",
+            body: ["email": email],
+            authorized: false,
+            attachCartToken: false
+        )
+    }
+
+    func resetPassword(token: String, password: String, confirmPassword: String) async throws {
+        let encodedToken = token.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? token
+        try await send(
+            path: "api/auth/password-reset/reset/\(encodedToken)",
+            method: "POST",
+            body: [
+                "password": password,
+                "confirmPassword": confirmPassword
+            ],
+            authorized: false,
+            attachCartToken: false
+        )
+    }
     
     // MARK: - Appointments
 
