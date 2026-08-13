@@ -15,8 +15,8 @@ struct CartScreen: View {
             if let cartData = cart.cart {
                 CartErrorSection(error: cart.error)
                 CartStatusSection(
-                    message: screenState.checkoutStatusMessage ?? cart.statusMessage,
-                    isLoading: screenState.isCheckingCheckoutStatus
+                    message: cart.statusMessage,
+                    isLoading: false
                 )
                 CartItemsSection(
                     cartData: cartData,
@@ -63,7 +63,10 @@ struct CartScreen: View {
             await loadScreenData()
             if let sessionId = container.session.pendingCheckoutSessionId {
                 screenState.pendingCheckoutSessionId = sessionId
-                screenState.checkoutStatusMessage = "Vérification d’un paiement en attente..."
+                presentCheckoutDialog(
+                    title: "Paiement en attente",
+                    message: "Vérification du paiement en cours."
+                )
                 await verifyPendingCheckoutIfNeeded()
             }
         }
@@ -106,14 +109,15 @@ struct CartScreen: View {
         if let result = await cart.checkout() {
             UINotificationFeedbackGenerator().notificationOccurred(.success)
             if let order = result.order {
-                screenState.pendingCheckoutSessionId = nil
-                container.session.pendingCheckoutSessionId = nil
-                screenState.checkoutStatusMessage = nil
+                resetCheckoutFlow()
                 completedOrder = order
             } else if let checkoutURL = result.checkoutURL {
                 screenState.pendingCheckoutSessionId = result.checkoutSessionId
                 container.session.pendingCheckoutSessionId = result.checkoutSessionId
-                screenState.checkoutStatusMessage = "Paiement en cours. Revenez dans l’app après validation pour finaliser la commande."
+                presentCheckoutDialog(
+                    title: "Paiement en cours",
+                    message: "Revenez dans l’app après validation pour finaliser la commande."
+                )
                 openURL(checkoutURL)
             }
         }
@@ -143,30 +147,28 @@ struct CartScreen: View {
 
                     if let order {
                         await cart.refresh()
-                        screenState.pendingCheckoutSessionId = nil
-                        container.session.pendingCheckoutSessionId = nil
-                        screenState.checkoutStatusMessage = nil
+                        resetCheckoutFlow()
                         completedOrder = order
                         return
                     }
                 }
 
                 if status.status == "failed" || status.status == "expired" {
-                    screenState.pendingCheckoutSessionId = nil
-                    container.session.pendingCheckoutSessionId = nil
-                    screenState.checkoutStatusMessage = nil
-                    cart.error = status.status == "expired"
-                        ? "Le paiement a expiré. Vous pouvez relancer la validation depuis le panier."
-                        : "Le paiement a échoué. Vérifiez votre moyen de paiement puis réessayez."
+                    resetCheckoutFlow()
+                    presentCheckoutDialog(
+                        title: status.status == "expired" ? "Paiement expiré" : "Paiement échoué",
+                        message: status.status == "expired"
+                            ? "Le paiement a expiré. Vous pouvez relancer la validation depuis le panier."
+                            : "Le paiement a échoué. Vérifiez votre moyen de paiement puis réessayez."
+                    )
                     return
                 }
-
-                screenState.checkoutStatusMessage = attempt >= 20
-                    ? "Le paiement n'est pas encore finalisé. Revenez dans quelques secondes ou relancez la validation si vous avez interrompu le paiement."
-                    : "Confirmation du paiement en cours..."
             } catch {
                 if attempt >= 20 {
-                    cart.error = error.localizedDescription
+                    presentCheckoutDialog(
+                        title: "Paiement en attente",
+                        message: "Le paiement n'est pas encore finalisé. Revenez dans quelques secondes ou relancez la validation si vous avez interrompu le paiement."
+                    )
                     return
                 }
             }
@@ -182,16 +184,20 @@ struct CartScreen: View {
         case let .success(sessionId):
             screenState.pendingCheckoutSessionId = sessionId
             container.session.pendingCheckoutSessionId = sessionId
-            screenState.checkoutStatusMessage = "Confirmation du paiement en cours..."
+            presentCheckoutDialog(
+                title: "Confirmation du paiement",
+                message: "Confirmation du paiement en cours."
+            )
             await verifyPendingCheckoutIfNeeded()
         case .cancelled:
             if let sessionId = screenState.pendingCheckoutSessionId ?? container.session.pendingCheckoutSessionId {
                 _ = try? await container.services.orders.cancelCheckoutSession(stripeSessionId: sessionId)
             }
-            screenState.pendingCheckoutSessionId = nil
-            container.session.pendingCheckoutSessionId = nil
-            screenState.checkoutStatusMessage = nil
-            cart.error = "Le paiement a été annulé. Vous pouvez reprendre la validation quand vous voulez."
+            resetCheckoutFlow()
+            presentCheckoutDialog(
+                title: "Paiement annulé",
+                message: "Le paiement a été annulé. Vous pouvez reprendre la validation quand vous voulez."
+            )
         }
     }
 
@@ -232,5 +238,17 @@ struct CartScreen: View {
             await account.loadAddresses()
         }
         await cart.refresh()
+    }
+
+    private func presentCheckoutDialog(title: String, message: String) {
+        screenState.checkoutDialog = CartCheckoutDialog(title: title, message: message)
+    }
+
+    private func resetCheckoutFlow() {
+        screenState.pendingCheckoutSessionId = nil
+        container.session.pendingCheckoutSessionId = nil
+        screenState.isCheckingCheckoutStatus = false
+        screenState.checkoutDialog = nil
+        cart.error = nil
     }
 }

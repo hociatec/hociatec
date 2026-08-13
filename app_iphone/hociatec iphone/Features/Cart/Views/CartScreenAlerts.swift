@@ -42,5 +42,14 @@ extension View {
                     Text("")
                 }
             }
+            .alert(item: screenState.checkoutDialog) { dialog in
+                Alert(
+                    title: Text(dialog.title),
+                    message: Text(dialog.message),
+                    dismissButton: .default(Text("OK")) {
+                        screenState.wrappedValue.checkoutDialog = nil
+                    }
+                )
+            }
     }
 }

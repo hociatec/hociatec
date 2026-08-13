@@ -36,6 +36,7 @@ extension AccountViewModel {
     }
 
     func applyAuthenticatedState(profile: UserProfile) async {
+        error = nil
         apply(profile: profile)
         session.profile = profile
         await loadAddresses()

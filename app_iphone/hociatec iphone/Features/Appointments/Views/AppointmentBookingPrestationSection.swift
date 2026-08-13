@@ -5,10 +5,15 @@ struct AppointmentBookingPrestationSection: View {
     @Binding var selectedPrestationId: Int?
     let selectedPrestation: AppointmentPrestation?
     let isLoading: Bool
+    let error: String?
+    let onNext: () -> Void
 
     var body: some View {
         Section {
-            if prestations.isEmpty && isLoading {
+            if let error, !error.isEmpty {
+                Text(error)
+                    .foregroundStyle(.red)
+            } else if prestations.isEmpty && isLoading {
                 ProgressView("Chargement des prestations...")
             } else if prestations.isEmpty {
                 Text("Aucune prestation disponible pour le moment.")
@@ -30,6 +35,12 @@ struct AppointmentBookingPrestationSection: View {
                             .fontWeight(.semibold)
                     }
                 }
+
+                Button("Suivant") {
+                    onNext()
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(selectedPrestationId == nil || isLoading)
             }
         }
     }

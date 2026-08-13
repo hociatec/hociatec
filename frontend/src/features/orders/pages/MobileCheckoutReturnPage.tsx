@@ -4,7 +4,7 @@ import { Link, useSearchParams } from 'react-router';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
-const APP_SCHEME_PREFIX = 'hociatec:///checkout';
+const APP_SCHEME_PREFIX = 'hociatec://checkout';
 
 const buildAppUrl = (status: string | null, sessionId: string | null) => {
   if (status === 'success' && sessionId) {

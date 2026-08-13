@@ -1,5 +1,33 @@
 import SwiftUI
 
+struct ProductAddToCartButton: View {
+    let isLoading: Bool
+    let isDisabled: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack {
+                Spacer()
+                if isLoading {
+                    ProgressView()
+                } else {
+                    Text("Ajouter au panier")
+                        .fontWeight(.semibold)
+                }
+                Spacer()
+            }
+            .padding()
+            .background(Color.teal.opacity(0.15))
+            .foregroundStyle(.teal)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+        .disabled(isLoading || isDisabled)
+        .accessibilityLabel("Ajouter au panier")
+        .accessibilityAddTraits(.isButton)
+    }
+}
+
 struct RentalMonthsSelector: View {
     let rentalMonths: Int
     let decreaseAction: () -> Void
@@ -96,23 +124,11 @@ struct ProductPurchaseSection: View {
                     increaseAction: increaseQuantity
                 )
             } else {
-                Button(action: addToCart) {
-                    HStack {
-                        Spacer()
-                        if isLoading {
-                            ProgressView()
-                        } else {
-                            Text("Ajouter au panier")
-                                .fontWeight(.semibold)
-                        }
-                        Spacer()
-                    }
-                    .padding()
-                    .background(Color.teal.opacity(0.15))
-                    .foregroundStyle(.teal)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                }
-                .disabled(isLoading || isOutOfStock)
+                ProductAddToCartButton(
+                    isLoading: isLoading,
+                    isDisabled: isOutOfStock,
+                    action: addToCart
+                )
                 .padding(.top, 8)
             }
         }

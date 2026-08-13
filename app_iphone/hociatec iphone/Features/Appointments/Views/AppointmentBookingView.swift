@@ -3,7 +3,6 @@ import SwiftUI
 struct AppointmentBookingView: View {
     @EnvironmentObject private var account: AccountViewModel
     @StateObject private var viewModel: AppointmentBookingViewModel
-    @State private var startDate = Date()
 
     init(service: AppointmentServing) {
         _viewModel = StateObject(wrappedValue: AppointmentBookingViewModel(service: service))
@@ -12,30 +11,14 @@ struct AppointmentBookingView: View {
     var body: some View {
         Form {
             AppointmentBookingGuestNoticeSection(isLoggedIn: account.isLoggedIn)
-            AppointmentBookingPrestationSection(
-                prestations: viewModel.prestations,
-                selectedPrestationId: $viewModel.selectedPrestationId,
-                selectedPrestation: selectedPrestation,
-                isLoading: viewModel.isLoading
-            )
-            AppointmentBookingStartDateSection(startDate: $startDate)
-            AppointmentBookingSlotsSection(
-                slotsByDay: slotsByDay,
-                sortedDays: sortedDays,
-                selectedPrestation: selectedPrestation,
-                isLoading: viewModel.isLoading,
-                error: viewModel.error,
-                viewModel: viewModel
-            )
+            AppointmentBookingProgressSection(step: viewModel.step)
+            stepContent
             AppointmentBookingSuccessSection(successMessage: viewModel.successMessage)
         }
         .navigationTitle("Rendez-vous")
-        .task { await viewModel.initialize(startDate: startDate) }
+        .task { await viewModel.initialize() }
         .onChangeCompat(viewModel.selectedPrestationId) { _ in
-            Task { await viewModel.loadSlots(startDate: startDate) }
-        }
-        .onChangeCompat(startDate) { newDate in
-            Task { await viewModel.loadSlots(startDate: newDate) }
+            Task { await viewModel.didChangePrestation() }
         }
         .environment(\.locale, Locale(identifier: "fr_FR"))
         .environment(\.calendar, Calendar(identifier: .gregorian))
@@ -48,14 +31,52 @@ struct AppointmentBookingView: View {
         )
     }
 
-    private var slotsByDay: [Date: [AppointmentSlot]] {
-        AppointmentBookingPresentation.slotsByDay(
-            slots: viewModel.slots,
-            startDate: startDate
-        )
+    @ViewBuilder
+    private var stepContent: some View {
+        switch viewModel.step {
+        case .prestation:
+            AppointmentBookingPrestationSection(
+                prestations: viewModel.prestations,
+                selectedPrestationId: $viewModel.selectedPrestationId,
+                selectedPrestation: selectedPrestation,
+                isLoading: viewModel.isLoading,
+                error: viewModel.error
+            ) {
+                Task { await viewModel.goToDaySelection() }
+            }
+        case .day:
+            AppointmentBookingCalendarSection(
+                visibleMonth: viewModel.visibleMonth,
+                availableDays: AppointmentBookingPresentation.availableDays(from: viewModel.slots),
+                selectedDate: viewModel.selectedDate,
+                isLoading: viewModel.isLoading,
+                error: viewModel.error,
+                onSelectDay: viewModel.selectDay
+            ) {
+                Task { await viewModel.showPreviousMonth() }
+            } onNextMonth: {
+                Task { await viewModel.showNextMonth() }
+            } onCurrentMonth: {
+                Task { await viewModel.showCurrentMonth() }
+            } onBack: {
+                viewModel.backToPrestationSelection()
+            }
+        case .slot:
+            AppointmentBookingSlotsSection(
+                slots: selectedDaySlots,
+                selectedDate: viewModel.selectedDate,
+                selectedPrestation: selectedPrestation,
+                isLoading: viewModel.isLoading,
+                error: viewModel.error,
+                viewModel: viewModel
+            ) {
+                viewModel.backToDaySelection()
+            }
+        }
     }
 
-    private var sortedDays: [Date] {
-        AppointmentBookingPresentation.sortedDays(from: slotsByDay)
+    private var selectedDaySlots: [AppointmentSlot] {
+        guard let selectedDate = viewModel.selectedDate else { return [] }
+        return AppointmentBookingPresentation.daySlots(for: selectedDate, from: viewModel.slots)
     }
 }

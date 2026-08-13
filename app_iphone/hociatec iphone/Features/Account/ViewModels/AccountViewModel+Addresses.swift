@@ -11,6 +11,7 @@ extension AccountViewModel {
             let items = try await useCases.loadAddresses.execute()
             addresses = items
         } catch let err {
+            if shouldIgnore(error: err) { return }
             error = err.localizedDescription
         }
     }
@@ -73,6 +74,7 @@ extension AccountViewModel {
             try await operation()
             await refreshProfile()
         } catch let err {
+            if shouldIgnore(error: err) { return }
             error = err.localizedDescription
         }
     }

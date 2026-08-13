@@ -1,57 +1,45 @@
 import SwiftUI
 
 struct AppointmentBookingSlotsSection: View {
-    let slotsByDay: [Date: [AppointmentSlot]]
-    let sortedDays: [Date]
+    let slots: [AppointmentSlot]
+    let selectedDate: Date?
     let selectedPrestation: AppointmentPrestation?
     let isLoading: Bool
     let error: String?
     let viewModel: AppointmentBookingViewModel
+    let onBack: () -> Void
 
     var body: some View {
         Section {
-            if isLoading && slotsByDay.isEmpty {
+            if isLoading && slots.isEmpty {
                 ProgressView("Recherche des créneaux...")
             } else if let error, !error.isEmpty {
                 Text(error)
                     .foregroundStyle(.red)
-            } else if slotsByDay.isEmpty {
-                Text("Aucun créneau disponible sur la période.")
+            } else if slots.isEmpty {
+                Text("Aucun créneau disponible pour le jour sélectionné.")
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(sortedDays, id: \.self) { day in
-                    AppointmentBookingDaySection(
-                        day: day,
-                        slots: slotsByDay[day] ?? [],
-                        selectedPrestation: selectedPrestation,
-                        viewModel: viewModel
-                    )
+                if let selectedDate {
+                    Text(spokenDayFormatter.string(from: selectedDate).capitalized)
+                        .font(.headline)
                 }
+
+                ForEach(slots) { slot in
+                    NavigationLink {
+                        AppointmentConfirmationView(viewModel: viewModel, slot: slot)
+                    } label: {
+                        AppointmentBookingSlotRow(slot: slot, selectedPrestation: selectedPrestation)
+                    }
+                }
+
+                Button("Revenir au calendrier") {
+                    onBack()
+                }
+                .buttonStyle(.bordered)
+                .padding(.top, 8)
             }
         }
-    }
-}
-
-private struct AppointmentBookingDaySection: View {
-    let day: Date
-    let slots: [AppointmentSlot]
-    let selectedPrestation: AppointmentPrestation?
-    let viewModel: AppointmentBookingViewModel
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(dayFormatter.string(from: day))
-                .font(.headline)
-
-            ForEach(slots) { slot in
-                NavigationLink {
-                    AppointmentConfirmationView(viewModel: viewModel, slot: slot)
-                } label: {
-                    AppointmentBookingSlotRow(slot: slot, selectedPrestation: selectedPrestation)
-                }
-            }
-        }
-        .padding(.vertical, 6)
     }
 }
 

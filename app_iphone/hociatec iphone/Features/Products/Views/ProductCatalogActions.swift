@@ -7,14 +7,12 @@ struct ProductCatalogActions: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Button {
+            ProductAddToCartButton(
+                isLoading: cart.isLoading,
+                isDisabled: false
+            ) {
                 Task { await cart.add(product: product) }
-            } label: {
-                Text("Ajouter au panier")
-                    .fontWeight(.semibold)
-                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.borderedProminent)
 
             HStack(spacing: 12) {
                 Button {

@@ -9,18 +9,20 @@ extension AccountViewModel {
     func loadProfile() async {
         isLoading = true
         error = nil
+        defer { isLoading = false }
         do {
             let profile = try await useCases.loadProfile.execute()
             await applyAuthenticatedState(profile: profile)
         } catch let err {
+            if shouldIgnore(error: err) { return }
             self.error = err.localizedDescription
         }
-        isLoading = false
     }
 
     func updateProfile() async {
         isLoading = true
         error = nil
+        defer { isLoading = false }
         do {
             let updated = try await useCases.updateProfile.execute(
                 firstName: firstName,
@@ -37,32 +39,34 @@ extension AccountViewModel {
             session.profile = updated
             session.loginEmail = updated.email
         } catch let err {
+            if shouldIgnore(error: err) { return }
             self.error = err.localizedDescription
         }
-        isLoading = false
     }
 
     func refreshProfile() async {
         isLoading = true
         error = nil
+        defer { isLoading = false }
         do {
             let profile = try await useCases.loadProfile.execute()
             await applyAuthenticatedState(profile: profile)
         } catch let err {
+            if shouldIgnore(error: err) { return }
             self.error = err.localizedDescription
         }
-        isLoading = false
     }
 
     func deleteAccount() async {
         isLoading = true
         error = nil
+        defer { isLoading = false }
         do {
             try await useCases.deleteAccount.execute()
             await logout()
         } catch let err {
+            if shouldIgnore(error: err) { return }
             self.error = err.localizedDescription
         }
-        isLoading = false
     }
 }

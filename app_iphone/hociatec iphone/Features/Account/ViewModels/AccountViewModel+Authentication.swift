@@ -20,6 +20,7 @@ extension AccountViewModel {
             let profile = try await useCases.loadProfile.execute()
             await applyAuthenticatedState(profile: profile)
         } catch let err {
+            if shouldIgnore(error: err) { return }
             self.error = err.localizedDescription
         }
     }
@@ -55,6 +56,10 @@ extension AccountViewModel {
             isLoading = false
             return true
         } catch let err {
+            if shouldIgnore(error: err) {
+                isLoading = false
+                return false
+            }
             self.error = err.localizedDescription
             isLoading = false
             return false
