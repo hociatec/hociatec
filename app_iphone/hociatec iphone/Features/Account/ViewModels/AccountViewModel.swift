@@ -29,11 +29,11 @@ final class AccountViewModel: ObservableObject {
     @Published var roles: [String] = []
     @Published var addresses: [UserAddress] = []
 
-    private let service: AccountServing
+    private let useCases: AccountUseCases
     private let session: SessionStore
 
-    init(service: AccountServing, session: SessionStore) {
-        self.service = service
+    init(useCases: AccountUseCases, session: SessionStore) {
+        self.useCases = useCases
         self.session = session
         self.profile = session.profile
         self.email = session.profile?.email ?? session.loginEmail ?? ""
@@ -67,10 +67,8 @@ final class AccountViewModel: ObservableObject {
         isLoading = true
         error = nil
         do {
-            let profile = try await service.profile()
-            self.apply(profile: profile)
-            session.profile = profile
-            await loadAddresses()
+            let profile = try await useCases.loadProfile.execute()
+            await applyAuthenticatedState(profile: profile)
         } catch let err {
             self.error = err.localizedDescription
         }
@@ -91,12 +89,10 @@ final class AccountViewModel: ObservableObject {
         }
 
         do {
-            _ = try await service.login(email: email, password: password)
+            try await useCases.login.execute(email: email, password: password)
             session.storeCredentials(email: email, password: password)
-            let profile = try await service.profile()
-            self.apply(profile: profile)
-            session.profile = profile
-            await loadAddresses()
+            let profile = try await useCases.loadProfile.execute()
+            await applyAuthenticatedState(profile: profile)
         } catch let err {
             self.error = err.localizedDescription
         }
@@ -106,7 +102,7 @@ final class AccountViewModel: ObservableObject {
         isLoading = true
         error = nil
         do {
-            let updated = try await service.updateProfile(
+            let updated = try await useCases.updateProfile.execute(
                 firstName: firstName,
                 lastName: lastName,
                 email: email,
@@ -130,7 +126,7 @@ final class AccountViewModel: ObservableObject {
         isLoading = true
         error = nil
         do {
-            try await service.deleteAccount()
+            try await useCases.deleteAccount.execute()
             await logout()
         } catch let err {
             self.error = err.localizedDescription
@@ -153,7 +149,7 @@ final class AccountViewModel: ObservableObject {
         statusMessage = nil
         let birthISO = AccountViewModel.birthDateFormatter.string(from: birthDate)
         do {
-            try await service.register(
+            try await useCases.register.execute(
                 email: email,
                 password: password,
                 confirmPassword: confirmPassword,
@@ -178,10 +174,8 @@ final class AccountViewModel: ObservableObject {
         isLoading = true
         error = nil
         do {
-            let p = try await service.profile()
-            self.apply(profile: p)
-            session.profile = p
-            await loadAddresses()
+            let profile = try await useCases.loadProfile.execute()
+            await applyAuthenticatedState(profile: profile)
         } catch let err {
             self.error = err.localizedDescription
         }
@@ -192,7 +186,7 @@ final class AccountViewModel: ObservableObject {
         isLoading = true
         error = nil
         do {
-            try await service.createAddress(label: label, address: address, postalCode: postalCode, city: city, isDefault: isDefault)
+            try await useCases.createAddress.execute(label: label, address: address, postalCode: postalCode, city: city, isDefault: isDefault)
             await refreshProfile()
         } catch let err {
             self.error = err.localizedDescription
@@ -205,7 +199,7 @@ final class AccountViewModel: ObservableObject {
         isLoading = true
         error = nil
         do {
-            try await service.updateAddress(id: id, label: addr.label, address: addr.address, postalCode: addr.postalCode, city: addr.city, isDefault: addr.isDefault)
+            try await useCases.updateAddress.execute(id: id, label: addr.label, address: addr.address, postalCode: addr.postalCode, city: addr.city, isDefault: addr.isDefault)
             await refreshProfile()
         } catch let err {
             self.error = err.localizedDescription
@@ -217,7 +211,7 @@ final class AccountViewModel: ObservableObject {
         isLoading = true
         error = nil
         do {
-            try await service.deleteAddress(id: id)
+            try await useCases.deleteAddress.execute(id: id)
             await refreshProfile()
         } catch let err {
             self.error = err.localizedDescription
@@ -229,7 +223,7 @@ final class AccountViewModel: ObservableObject {
         isLoading = true
         error = nil
         do {
-            try await service.setDefaultAddress(id: id)
+            try await useCases.setDefaultAddress.execute(id: id)
             await refreshProfile()
         } catch let err {
             self.error = err.localizedDescription
@@ -238,13 +232,19 @@ final class AccountViewModel: ObservableObject {
     }
 
     func logout() async {
-        await service.logout()
+        await useCases.logout.execute()
         profile = nil
         error = nil
         statusMessage = nil
         password = ""
         addresses = []
         gender = "autre"
+    }
+
+    private func applyAuthenticatedState(profile: UserProfile) async {
+        apply(profile: profile)
+        session.profile = profile
+        await loadAddresses()
     }
 
     private func apply(profile p: UserProfile) {
@@ -271,7 +271,7 @@ final class AccountViewModel: ObservableObject {
         }
 
         do {
-            let items = try await service.listAddresses()
+            let items = try await useCases.loadAddresses.execute()
             addresses = items
         } catch let err {
             self.error = err.localizedDescription
