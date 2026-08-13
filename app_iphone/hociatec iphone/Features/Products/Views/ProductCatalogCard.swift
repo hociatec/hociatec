@@ -12,7 +12,12 @@ struct ProductCatalogCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             NavigationLink {
-                ProductDetailView(product: product, imageURL: imageURL, cart: cart, selectedTab: $selectedTab)
+                ProductDetailView(
+                    viewModel: container.makeProductDetailViewModel(product: product),
+                    imageURL: imageURL,
+                    cart: cart,
+                    selectedTab: $selectedTab
+                )
                     .environmentObject(container)
             } label: {
                 VStack(alignment: .leading, spacing: 12) {

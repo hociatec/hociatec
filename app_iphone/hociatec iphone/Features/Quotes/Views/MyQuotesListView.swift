@@ -5,8 +5,8 @@ struct MyQuotesListView: View {
     @StateObject private var viewModel: MyQuotesViewModel
     @State private var quoteToDelete: QuoteSummary? = nil
 
-    init(service: QuoteServing) {
-        _viewModel = StateObject(wrappedValue: MyQuotesViewModel(service: service))
+    init(viewModel: MyQuotesViewModel) {
+        _viewModel = StateObject(wrappedValue: viewModel)
     }
 
     var body: some View {

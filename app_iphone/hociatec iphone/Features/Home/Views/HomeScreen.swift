@@ -90,7 +90,7 @@ struct HomeScreen: View {
                     ForEach(home.featured.prefix(5)) { product in
                         NavigationLink {
                             ProductDetailView(
-                                product: product,
+                                viewModel: container.makeProductDetailViewModel(product: product),
                                 imageURL: container.services.assets.assetURL(for: product.imageUrl),
                                 cart: container.cart,
                                 selectedTab: .constant(0)

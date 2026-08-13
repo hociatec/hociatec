@@ -18,8 +18,8 @@ struct ProductDetailView: View {
         cart.cart?.items.first(where: { $0.product.id == viewModel.product.id })?.quantity ?? 0
     }
 
-    init(product: Product, imageURL: URL?, cart: CartViewModel, selectedTab: Binding<Int>) {
-        _viewModel = StateObject(wrappedValue: ProductDetailViewModel(product: product))
+    init(viewModel: ProductDetailViewModel, imageURL: URL?, cart: CartViewModel, selectedTab: Binding<Int>) {
+        _viewModel = StateObject(wrappedValue: viewModel)
         self._selectedTab = selectedTab
         self.initialImageURL = imageURL
         self.cart = cart
@@ -59,10 +59,7 @@ struct ProductDetailView: View {
                     canLoadMore: viewModel.hasMoreReviews,
                     loadMoreAction: {
                         Task {
-                            await viewModel.loadReviews(
-                                productService: container.services.products,
-                                page: viewModel.nextReviewsPage
-                            )
+                            await viewModel.loadReviews(page: viewModel.nextReviewsPage)
                         }
                     },
                     reviewsDestination: AnyView(
@@ -102,16 +99,12 @@ struct ProductDetailView: View {
         .navigationTitle(viewModel.product.name)
         .navigationBarTitleDisplayMode(.inline)
         .task {
-            await viewModel.loadInitialData(
-                productService: container.services.products,
-                favoritesService: container.services.favorites,
-                cart: cart
-            )
+            await viewModel.loadInitialData(cart: cart)
         }
         .onChangeCompat(container.account.isLoggedIn) { isLoggedIn in
             guard isLoggedIn else { return }
             Task {
-                await viewModel.loadReviews(productService: container.services.products, page: 1)
+                await viewModel.loadReviews(page: 1)
             }
         }
         .alert("Ajout au panier", isPresented: $showAddAlert) {
@@ -131,7 +124,7 @@ struct ProductDetailView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    Task { await viewModel.toggleFavorite(favoritesService: container.services.favorites) }
+                    Task { await viewModel.toggleFavorite() }
                 } label: {
                     Image(systemName: viewModel.isFavorite ? "heart.fill" : "heart")
                 }

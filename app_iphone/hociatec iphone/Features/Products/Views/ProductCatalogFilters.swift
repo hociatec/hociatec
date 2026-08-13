@@ -1,9 +1,9 @@
 import SwiftUI
 
 struct ProductCatalogToolbar: View {
-    let selectedCategory: ProductCategory?
+    let selectedCategory: CategorySummary?
     let selectedSellingType: SellingType?
-    let sort: ProductsSort
+    let sort: ProductSortOption
     let summaryText: String
     let onOpenFilters: () -> Void
     let onOpenSort: () -> Void
@@ -65,8 +65,8 @@ struct ProductCatalogToolbar: View {
 }
 
 struct ProductSortSheet: View {
-    let selectedSort: ProductsSort
-    let onSelect: (ProductsSort) -> Void
+    let selectedSort: ProductSortOption
+    let onSelect: (ProductSortOption) -> Void
     let onClose: () -> Void
 
     var body: some View {
@@ -96,7 +96,7 @@ struct ProductSortSheet: View {
 }
 
 struct ProductFiltersSheet: View {
-    let categories: [ProductCategory]
+    let categories: [CategorySummary]
     @Binding var selectedCategoryID: Int?
     @Binding var selectedSellingType: SellingType?
     let currentCategoryID: Int?

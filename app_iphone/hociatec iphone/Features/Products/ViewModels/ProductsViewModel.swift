@@ -6,16 +6,18 @@ final class ProductsViewModel: ObservableObject {
     @Published var categories: [CategorySummary] = []
     @Published var selectedCategory: CategorySummary?
     @Published var selectedSellingType: SellingType? = nil
-    @Published var sort: SortOption = .relevance
+    @Published var sort: ProductSortOption = .relevance
     @Published var search = ""
     @Published var isLoading = false
-    @Published var isLoadingCategories = false
     @Published var error: String?
 
-    private let service: ProductServing
+    private let loadProductsUseCase: LoadProductsUseCase
+    private let loadCategoriesUseCase: LoadProductCategoriesUseCase
+    private var isLoadingCategories = false
 
-    init(service: ProductServing, initialSellingType: SellingType? = nil) {
-        self.service = service
+    init(useCases: ProductsUseCases, initialSellingType: SellingType? = nil) {
+        self.loadProductsUseCase = useCases.loadProducts
+        self.loadCategoriesUseCase = useCases.loadCategories
         self.selectedSellingType = initialSellingType
     }
 
@@ -25,7 +27,7 @@ final class ProductsViewModel: ObservableObject {
         error = nil
 
         do {
-            let items = try await service.products(
+            let items = try await loadProductsUseCase.execute(
                 search: search.isEmpty ? nil : search,
                 categorySlug: selectedCategory?.slug,
                 sellingType: selectedSellingType
@@ -46,7 +48,7 @@ final class ProductsViewModel: ObservableObject {
         isLoadingCategories = true
         defer { isLoadingCategories = false }
         do {
-            categories = try await service.categories()
+            categories = try await loadCategoriesUseCase.execute()
             if let current = selectedCategory {
                 selectedCategory = categories.first(where: { $0.id == current.id || $0.slug == current.slug })
             }
@@ -70,26 +72,17 @@ final class ProductsViewModel: ObservableObject {
         }
     }
 
-    func updateSort(_ newSort: SortOption) {
+    func updateSort(_ newSort: ProductSortOption) {
         sort = newSort
         products = applySorting(on: products)
     }
 }
 
-enum SortOption: String, CaseIterable, Identifiable {
+enum ProductSortOption: String, CaseIterable, Identifiable {
     case relevance
     case priceLowHigh
     case priceHighLow
     case newest
 
     var id: String { rawValue }
-
-    var label: String {
-        switch self {
-        case .relevance: return "Pertinence"
-        case .priceLowHigh: return "Prix ↑"
-        case .priceHighLow: return "Prix ↓"
-        case .newest: return "Nouveautés"
-        }
-    }
 }

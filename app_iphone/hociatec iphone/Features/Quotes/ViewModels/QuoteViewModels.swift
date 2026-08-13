@@ -16,13 +16,15 @@ final class QuoteViewModel: ObservableObject {
     @Published var error: String?
     @Published var successMessage: String?
 
-    private let quoteService: QuoteServing
-    private let productService: ProductServing
+    private let loadServicesUseCase: LoadQuoteServicesUseCase
+    private let searchProductsUseCase: SearchQuoteProductsUseCase
+    private let submitQuoteUseCase: SubmitQuoteUseCase
     private let account: AccountViewModel
 
-    init(quoteService: QuoteServing, productService: ProductServing, account: AccountViewModel) {
-        self.quoteService = quoteService
-        self.productService = productService
+    init(useCases: QuotesUseCases, account: AccountViewModel) {
+        self.loadServicesUseCase = useCases.loadServices
+        self.searchProductsUseCase = useCases.searchProducts
+        self.submitQuoteUseCase = useCases.submitQuote
         self.account = account
         prefill()
     }
@@ -36,7 +38,7 @@ final class QuoteViewModel: ObservableObject {
         isLoadingServices = true
         error = nil
         do {
-            services = try await quoteService.quoteServices(page: nil, perPage: nil, query: nil).items
+            services = try await loadServicesUseCase.execute(query: nil)
         } catch let err {
             self.error = err.localizedDescription
         }
@@ -52,22 +54,10 @@ final class QuoteViewModel: ObservableObject {
         isSearching = true
         defer { isSearching = false }
         do {
-            productResults = try await productService.products(search: query, categorySlug: nil, sellingType: nil)
+            productResults = try await searchProductsUseCase.execute(query: query)
         } catch let err {
             error = err.localizedDescription
         }
-    }
-
-    var matchingServices: [QuoteService] {
-        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        guard !query.isEmpty else { return [] }
-        return services.filter {
-            $0.title.lowercased().contains(query) || ($0.description?.lowercased().contains(query) ?? false)
-        }
-    }
-
-    var hasServicesLoaded: Bool {
-        !services.isEmpty
     }
 
     func submit() async {
@@ -120,7 +110,7 @@ final class QuoteViewModel: ObservableObject {
         defer { isSubmitting = false }
 
         do {
-            _ = try await quoteService.createQuote(
+            _ = try await submitQuoteUseCase.execute(
                 name: name,
                 email: email,
                 company: company.isEmpty ? nil : company,
@@ -132,11 +122,6 @@ final class QuoteViewModel: ObservableObject {
         } catch let err {
             self.error = err.localizedDescription
         }
-    }
-
-    func addLine() {
-        let first = services.first
-        items.append(QuoteDraftItem(serviceId: first?.id, productId: nil, quantity: 1, description: "", title: first?.title, unitPriceCents: first?.priceCents))
     }
 
     func addServiceLine(_ service: QuoteService) {
@@ -201,10 +186,12 @@ final class MyQuotesViewModel: ObservableObject {
     @Published var quotes: [QuoteSummary] = []
     @Published var isLoading = false
     @Published var error: String?
-    private let service: QuoteServing
+    private let loadMyQuotesUseCase: LoadMyQuotesUseCase
+    private let deleteQuoteUseCase: DeleteQuoteUseCase
 
-    init(service: QuoteServing) {
-        self.service = service
+    init(useCases: QuotesUseCases) {
+        self.loadMyQuotesUseCase = useCases.loadMyQuotes
+        self.deleteQuoteUseCase = useCases.deleteQuote
     }
 
     func load(force: Bool = false) async {
@@ -212,7 +199,7 @@ final class MyQuotesViewModel: ObservableObject {
         isLoading = true
         error = nil
         do {
-            quotes = try await service.myQuotes()
+            quotes = try await loadMyQuotesUseCase.execute()
         } catch let err {
             self.error = err.localizedDescription
         }
@@ -223,7 +210,7 @@ final class MyQuotesViewModel: ObservableObject {
         isLoading = true
         error = nil
         do {
-            try await service.deleteQuote(id: id)
+            try await deleteQuoteUseCase.execute(id: id)
             quotes.removeAll { $0.id == id }
         } catch let err {
             self.error = err.localizedDescription

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct OfferHubView: View {
     let services: AppServices
+    @EnvironmentObject private var container: AppContainer
     @EnvironmentObject private var account: AccountViewModel
     @Binding var selectedTab: Int
     @Binding var filtersBadge: Int?
@@ -11,7 +12,7 @@ struct OfferHubView: View {
             Section("Produits") {
                 NavigationLink {
                     ProductsListView(
-                        service: services.products,
+                        viewModel: container.makeProductsViewModel(),
                         selectedTab: $selectedTab,
                         filtersBadge: $filtersBadge,
                         navigationTitle: "Produits"
@@ -22,10 +23,9 @@ struct OfferHubView: View {
 
                 NavigationLink {
                     ProductsListView(
-                        service: services.products,
+                        viewModel: container.makeProductsViewModel(initialSellingType: .sale),
                         selectedTab: $selectedTab,
                         filtersBadge: $filtersBadge,
-                        initialSellingType: .sale,
                         navigationTitle: "Produits en vente"
                     )
                 } label: {
@@ -34,10 +34,9 @@ struct OfferHubView: View {
 
                 NavigationLink {
                     ProductsListView(
-                        service: services.products,
+                        viewModel: container.makeProductsViewModel(initialSellingType: .rental),
                         selectedTab: $selectedTab,
                         filtersBadge: $filtersBadge,
-                        initialSellingType: .rental,
                         navigationTitle: "Produits en location"
                     )
                 } label: {

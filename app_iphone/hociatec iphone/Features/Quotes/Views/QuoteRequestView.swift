@@ -8,8 +8,8 @@ struct QuoteRequestView: View {
     @State private var showingAddLineSheet = false
     @Environment(\.dismiss) private var dismiss
 
-    init(quoteService: QuoteServing, productService: ProductServing, account: AccountViewModel) {
-        _viewModel = StateObject(wrappedValue: QuoteViewModel(quoteService: quoteService, productService: productService, account: account))
+    init(viewModel: QuoteViewModel) {
+        _viewModel = StateObject(wrappedValue: viewModel)
     }
 
     var body: some View {

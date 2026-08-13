@@ -14,8 +14,17 @@ final class ProductDetailViewModel: ObservableObject {
     @Published var reviewsError: String?
     @Published var isFavorite = false
 
-    init(product: Product) {
+    private let loadDetailUseCase: LoadProductDetailUseCase
+    private let loadReviewsUseCase: LoadProductReviewsUseCase
+    private let loadFavoriteStatusUseCase: LoadProductFavoriteStatusUseCase
+    private let toggleFavoriteUseCase: ToggleProductFavoriteUseCase
+
+    init(product: Product, useCases: ProductsUseCases) {
         self.product = product
+        self.loadDetailUseCase = useCases.loadProductDetail
+        self.loadReviewsUseCase = useCases.loadProductReviews
+        self.loadFavoriteStatusUseCase = useCases.loadFavoriteStatus
+        self.toggleFavoriteUseCase = useCases.toggleFavorite
     }
 
     var hasMoreReviews: Bool {
@@ -45,23 +54,21 @@ final class ProductDetailViewModel: ObservableObject {
     }
 
     func loadInitialData(
-        productService: ProductServing,
-        favoritesService: FavoritesServing,
         cart: CartViewModel
     ) async {
-        await loadProductDetail(productService: productService, cart: cart)
-        await loadReviews(productService: productService, page: 1)
-        await refreshFavorite(favoritesService: favoritesService)
+        await loadProductDetail(cart: cart)
+        await loadReviews(page: 1)
+        await refreshFavorite()
     }
 
-    func loadReviews(productService: ProductServing, page: Int = 1) async {
+    func loadReviews(page: Int = 1) async {
         guard !isLoadingReviews else { return }
         isLoadingReviews = true
         reviewsError = nil
         defer { isLoadingReviews = false }
 
         do {
-            let data = try await productService.productReviews(slug: product.slug, page: page, perPage: reviewsPerPage)
+            let data = try await loadReviewsUseCase.execute(slug: product.slug, page: page, perPage: reviewsPerPage)
             reviewsPerPage = data.meta.perPage
             reviewsTotal = data.meta.total
             reviewsAverage = data.meta.average
@@ -75,14 +82,14 @@ final class ProductDetailViewModel: ObservableObject {
         }
     }
 
-    func loadProductDetail(productService: ProductServing, cart: CartViewModel) async {
+    func loadProductDetail(cart: CartViewModel) async {
         guard !isLoadingDetail else { return }
         isLoadingDetail = true
         detailError = nil
         defer { isLoadingDetail = false }
 
         do {
-            product = try await productService.product(slug: product.slug)
+            product = try await loadDetailUseCase.execute(slug: product.slug)
             if product.sellingType == .rental,
                let existing = cart.cart?.items.first(where: { $0.product.id == product.id })?.rentalMonths {
                 rentalMonths = max(1, existing)
@@ -92,23 +99,17 @@ final class ProductDetailViewModel: ObservableObject {
         }
     }
 
-    func refreshFavorite(favoritesService: FavoritesServing) async {
+    func refreshFavorite() async {
         do {
-            let favorites = try await favoritesService.listFavorites()
-            isFavorite = favorites.contains { $0.product.id == product.id }
+            isFavorite = try await loadFavoriteStatusUseCase.execute(productId: product.id)
         } catch {
             isFavorite = false
         }
     }
 
-    func toggleFavorite(favoritesService: FavoritesServing) async {
+    func toggleFavorite() async {
         do {
-            if isFavorite {
-                _ = try await favoritesService.removeFavorite(productId: product.id)
-            } else {
-                _ = try await favoritesService.addFavorite(productId: product.id)
-            }
-            await refreshFavorite(favoritesService: favoritesService)
+            isFavorite = try await toggleFavoriteUseCase.execute(productId: product.id, isFavorite: isFavorite)
         } catch {
         }
     }

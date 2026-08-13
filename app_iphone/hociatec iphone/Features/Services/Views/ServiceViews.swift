@@ -3,7 +3,6 @@ import SwiftUI
 struct ServiceDetailView: View {
     let serviceCatalog: ServiceCatalogServing
     let serviceID: Int
-    @EnvironmentObject private var account: AccountViewModel
     @EnvironmentObject private var container: AppContainer
     @StateObject private var viewModel: ServiceDetailViewModel
 
@@ -84,7 +83,7 @@ struct ServiceDetailView: View {
 
                 Section("Actions") {
                     NavigationLink {
-                        QuoteRequestView(quoteService: container.services.quotes, productService: container.services.products, account: account)
+                        QuoteRequestView(viewModel: container.makeQuoteViewModel())
                     } label: {
                         Label("Demander un devis", systemImage: "doc.badge.plus")
                     }

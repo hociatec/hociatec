@@ -46,7 +46,7 @@ struct AccountScreen: View {
                         Label("Mes commandes", systemImage: "bag")
                     }
                     NavigationLink {
-                        MyQuotesListView(service: container.services.quotes)
+                        MyQuotesListView(viewModel: container.makeMyQuotesViewModel())
                     } label: {
                         Label("Mes devis", systemImage: "doc.text")
                     }

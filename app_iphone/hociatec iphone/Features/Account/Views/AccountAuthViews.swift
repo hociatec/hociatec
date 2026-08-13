@@ -52,7 +52,6 @@ struct LoginView: View {
 
 struct ForgotPasswordView: View {
     let service: AccountServing
-    let initialEmail: String
 
     @State private var email: String
     @State private var isSubmitting = false
@@ -61,7 +60,6 @@ struct ForgotPasswordView: View {
 
     init(service: AccountServing, initialEmail: String) {
         self.service = service
-        self.initialEmail = initialEmail
         _email = State(initialValue: initialEmail)
     }
 

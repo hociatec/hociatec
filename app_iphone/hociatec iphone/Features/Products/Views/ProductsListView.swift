@@ -16,13 +16,12 @@ struct ProductsListView: View {
     @State private var didInitDraftFilters: Bool = false
 
     init(
-        service: ProductServing,
+        viewModel: ProductsViewModel,
         selectedTab: Binding<Int>,
         filtersBadge: Binding<Int?>,
-        initialSellingType: SellingType? = nil,
         navigationTitle: String = "Produits"
     ) {
-        _viewModel = StateObject(wrappedValue: ProductsViewModel(service: service, initialSellingType: initialSellingType))
+        _viewModel = StateObject(wrappedValue: viewModel)
         self._selectedTab = selectedTab
         self._filtersBadge = filtersBadge
         self.navigationTitle = navigationTitle
@@ -131,7 +130,6 @@ struct ProductsListView: View {
         .onSubmit(of: .search) {
             Task { await viewModel.load(force: true) }
         }
-        .onChangeCompat(viewModel.search) { _ in }
         .task {
             await viewModel.loadCategoriesIfNeeded()
             await viewModel.load()

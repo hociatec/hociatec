@@ -1,0 +1,34 @@
+import Foundation
+
+struct ProductsRepositoryLive: ProductsRepository {
+    let productsService: ProductServing
+    let favoritesService: FavoritesServing
+
+    func fetchProducts(search: String?, categorySlug: String?, sellingType: SellingType?) async throws -> [Product] {
+        try await productsService.products(search: search, categorySlug: categorySlug, sellingType: sellingType)
+    }
+
+    func fetchCategories() async throws -> [CategorySummary] {
+        try await productsService.categories()
+    }
+
+    func fetchProduct(slug: String) async throws -> Product {
+        try await productsService.product(slug: slug)
+    }
+
+    func fetchReviews(slug: String, page: Int, perPage: Int) async throws -> ReviewListData {
+        try await productsService.productReviews(slug: slug, page: page, perPage: perPage)
+    }
+
+    func fetchFavorites() async throws -> [FavoriteEntry] {
+        try await favoritesService.listFavorites()
+    }
+
+    func addFavorite(productId: Int) async throws {
+        _ = try await favoritesService.addFavorite(productId: productId)
+    }
+
+    func removeFavorite(productId: Int) async throws {
+        _ = try await favoritesService.removeFavorite(productId: productId)
+    }
+}
