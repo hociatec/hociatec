@@ -188,7 +188,6 @@ private struct CustomTabBarButton: View {
 private struct HomeScreen: View {
     @StateObject private var home: HomeViewModel
     @EnvironmentObject private var container: AppContainer
-    @EnvironmentObject private var account: AccountViewModel
     @Binding private var selectedTab: Int
 
     init(api: APIClient, selectedTab: Binding<Int>) {
@@ -199,22 +198,20 @@ private struct HomeScreen: View {
     var body: some View {
         List {
             Section {
-                NavigationLink {
-                    AppointmentBookingView(api: container.api)
-                } label: {
-                    Label("Rendez-vous", systemImage: "calendar.badge.plus")
-                }
-
-                NavigationLink {
-                    TradeInRequestView(api: container.api, account: account)
-                } label: {
-                    Label("Reprise", systemImage: "arrow.triangle.2.circlepath")
-                }
-
-                NavigationLink {
-                    QuoteRequestView(api: container.api, account: account)
-                } label: {
-                    Label("Devis", systemImage: "doc.badge.plus")
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Hociatec accompagne vos besoins en materiel informatique, services numeriques, formation et suivi client.")
+                        .font(.body)
+                    Text("Retrouvez nos nouveautes, nos offres et un parcours mobile aligne avec nos services.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                    Button {
+                        selectedTab = 3
+                    } label: {
+                        Label("Actualités", systemImage: "newspaper")
+                            .fontWeight(.semibold)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                    }
+                    .buttonStyle(.borderedProminent)
                 }
             }
 
@@ -258,17 +255,6 @@ private struct HomeScreen: View {
                     }
                 }
 
-                NavigationLink {
-                    ServicesCatalogView(api: container.api)
-                } label: {
-                    HStack {
-                        Label("Tous les services", systemImage: "wrench.and.screwdriver")
-                            .fontWeight(.semibold)
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .foregroundStyle(.tertiary)
-                    }
-                }
             }
 
             Section("Produits en vedette") {
@@ -307,18 +293,6 @@ private struct HomeScreen: View {
                     }
                 }
 
-                Button {
-                    selectedTab = 1
-                } label: {
-                    HStack {
-                        Label("Voir notre offre", systemImage: "square.grid.2x2")
-                            .fontWeight(.semibold)
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .foregroundStyle(.tertiary)
-                    }
-                }
-                .accessibilityHint("Ouvrir l’onglet Notre offre")
             }
 
             Section("Actualités") {
@@ -361,17 +335,6 @@ private struct HomeScreen: View {
                     }
                 }
 
-                NavigationLink {
-                    NewsListView(api: container.api)
-                } label: {
-                    HStack {
-                        Label("Toutes les actualités", systemImage: "newspaper")
-                            .fontWeight(.semibold)
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .foregroundStyle(.tertiary)
-                    }
-                }
             }
         }
         .navigationTitle("Accueil")
