@@ -60,7 +60,16 @@ struct Product: Decodable, Identifiable {
     let description: String
     let priceCents: Int
     let sellingType: SellingType
+    let sellingTypeLabel: String?
+    let priceUnitLabel: String?
     let effectivePriceCents: Int
+    let brand: String?
+    let variantsCount: Int?
+    let variantColors: [String]?
+    let variantStorages: [String]?
+    let storageCapacity: String?
+    let memoryRam: String?
+    let color: String?
     let stock: Int
     let isPublished: Bool
     let isFeaturedHome: Bool

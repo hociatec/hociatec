@@ -1,4 +1,5 @@
 import SwiftUI
+import Foundation
 
 struct ProductsListView: View {
     @EnvironmentObject private var container: AppContainer
@@ -127,124 +128,27 @@ struct ProductsListView: View {
                         let columns = [GridItem(.flexible()), GridItem(.flexible())]
                         LazyVGrid(columns: columns, spacing: 12) {
                             ForEach(viewModel.products) { product in
-                                NavigationLink {
-                                    ProductDetailView(product: product, imageURL: container.api.assetURL(for: product.imageUrl), cart: cart, selectedTab: $selectedTab)
-                                        .environmentObject(container)
-                                } label: {
-                                    ZStack(alignment: .topTrailing) {
-                                        VStack(alignment: .leading, spacing: 6) {
-                                            ZStack(alignment: .topLeading) {
-                                                AsyncImage(url: container.api.assetURL(for: product.imageUrl)) { phase in
-                                                    switch phase {
-                                                    case .success(let image):
-                                                        image.resizable().scaledToFill().frame(height: 140).clipped().cornerRadius(10)
-                                                    case .failure:
-                                                        RoundedRectangle(cornerRadius: 10).fill(.gray.opacity(0.1)).frame(height: 140).overlay(Image(systemName: "photo").foregroundStyle(.secondary))
-                                                    default:
-                                                        RoundedRectangle(cornerRadius: 10).fill(.gray.opacity(0.08)).frame(height: 140).overlay(ProgressView())
-                                                    }
-                                                }
-                                                .accessibilityHidden(true)
-                                                if product.sellingType != .unknown {
-                                                    Text(product.sellingType == .rental ? "Location" : "Vente")
-                                                        .font(.caption2)
-                                                        .padding(.horizontal, 6)
-                                                        .padding(.vertical, 2)
-                                                        .background(Color.blue.opacity(0.85))
-                                                        .foregroundColor(.white)
-                                                        .clipShape(Capsule())
-                                                        .padding(6)
-                                                }
-                                            }
-                                            Text(product.name).font(.subheadline).fontWeight(.semibold).lineLimit(2)
-                                            HStack(spacing: 6) {
-                                                Text(PriceFormatter.format(cents: product.effectivePriceCents)).fontWeight(.bold)
-                                                if product.sellingType == .rental { Text("/mois").foregroundStyle(.secondary) }
-                                                if product.effectivePriceCents < product.priceCents { Text(PriceFormatter.format(cents: product.priceCents)).strikethrough().foregroundStyle(.secondary) }
-                                            }
-                                            .font(.footnote)
-                                        }
-                                        Button {
-                                            Task {
-                                                do {
-                                                    try await container.api.addFavorite(productId: product.id)
-                                                    await cart.refresh()
-                                                } catch {
-                                                    // Ignore favorite errors to keep UI responsive
-                                                }
-                                            }
-                                        } label: {
-                                            Image(systemName: "heart")
-                                                .padding(8)
-                                        }
-                                        .buttonStyle(.borderless)
-                                        .accessibilityLabel("Ajouter aux favoris")
-                                    }
-                                }
-                                .accessibilityElement(children: .ignore)
-                                .accessibilityLabel("\(product.name), \(PriceFormatter.format(cents: product.effectivePriceCents))\(product.sellingType == .rental ? " par mois" : "")")
-                                .accessibilityHint("Afficher le détail du produit")
+                                ProductCatalogCard(
+                                    product: product,
+                                    imageURL: container.api.assetURL(for: product.imageUrl),
+                                    cart: cart,
+                                    selectedTab: $selectedTab,
+                                    isCompact: true
+                                )
+                                .environmentObject(container)
                             }
                         }
                         .listRowInsets(EdgeInsets())
                     } else {
                         ForEach(viewModel.products) { product in
-                            NavigationLink {
-                                ProductDetailView(product: product, imageURL: container.api.assetURL(for: product.imageUrl), cart: cart, selectedTab: $selectedTab)
-                                    .environmentObject(container)
-                            } label: {
-                                HStack(alignment: .top, spacing: 12) {
-                                    AsyncImage(url: container.api.assetURL(for: product.imageUrl)) { phase in
-                                        switch phase {
-                                        case .success(let image):
-                                            image.resizable().scaledToFill().frame(width: 64, height: 64).clipped().cornerRadius(8)
-                                        case .failure:
-                                            ZStack { RoundedRectangle(cornerRadius: 8).fill(.gray.opacity(0.1)); Image(systemName: "photo").foregroundStyle(.secondary) }.frame(width: 64, height: 64)
-                                        default:
-                                            ZStack { RoundedRectangle(cornerRadius: 8).fill(.gray.opacity(0.1)); ProgressView() }.frame(width: 64, height: 64)
-                                        }
-                                    }
-                                    .accessibilityHidden(true)
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(product.name).fontWeight(.semibold)
-                                        if product.sellingType != .unknown {
-                                            Text(product.sellingType == .rental ? "Location" : "Vente")
-                                                .font(.caption2)
-                                                .padding(.horizontal, 6)
-                                                .padding(.vertical, 2)
-                                                .background(Color.blue.opacity(0.1))
-                                                .foregroundColor(.blue)
-                                                .clipShape(Capsule())
-                                        }
-                                        Text(product.shortDescription).lineLimit(2).foregroundStyle(.secondary)
-                                        HStack(spacing: 6) {
-                                            Text(PriceFormatter.format(cents: product.effectivePriceCents)).fontWeight(.bold)
-                                            if product.sellingType == .rental { Text("/mois").foregroundStyle(.secondary) }
-                                            if product.effectivePriceCents < product.priceCents { Text(PriceFormatter.format(cents: product.priceCents)).strikethrough().foregroundStyle(.secondary) }
-                                        }
-                                        .font(.subheadline)
-                                    }
-                                    Spacer()
-                                    Button {
-                                        Task {
-                                            do {
-                                                try await container.api.addFavorite(productId: product.id)
-                                                await cart.refresh()
-                                            } catch {
-                                                // Ignore favorite errors to keep UI responsive
-                                            }
-                                        }
-                                    } label: {
-                                        Image(systemName: "heart")
-                                    }
-                                    .buttonStyle(.borderless)
-                                    .accessibilityLabel("Ajouter aux favoris")
-                                }
-                                .padding(.vertical, 6)
-                                .accessibilityElement(children: .ignore)
-                                .accessibilityLabel("\(product.name), \(PriceFormatter.format(cents: product.effectivePriceCents))\(product.sellingType == .rental ? " par mois" : "")")
-                                .accessibilityHint("Afficher le détail du produit")
-                            }
+                            ProductCatalogCard(
+                                product: product,
+                                imageURL: container.api.assetURL(for: product.imageUrl),
+                                cart: cart,
+                                selectedTab: $selectedTab,
+                                isCompact: false
+                            )
+                            .environmentObject(container)
                         }
                     }
                 }
@@ -362,6 +266,168 @@ struct ProductsListView: View {
         let count = (viewModel.selectedCategory == nil ? 0 : 1) + (viewModel.selectedSellingType == nil ? 0 : 1)
         filtersBadge = count == 0 ? nil : count
     }
+}
+
+private struct ProductCatalogCard: View {
+    let product: Product
+    let imageURL: URL?
+    let cart: CartViewModel
+    @Binding var selectedTab: Int
+    let isCompact: Bool
+    @EnvironmentObject private var container: AppContainer
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            NavigationLink {
+                ProductDetailView(product: product, imageURL: imageURL, cart: cart, selectedTab: $selectedTab)
+                    .environmentObject(container)
+            } label: {
+                VStack(alignment: .leading, spacing: 12) {
+                    productImage
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(product.name)
+                            .font(isCompact ? .subheadline.weight(.semibold) : .headline)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            ProductFactLine(label: "Référence", value: product.sku)
+                            ProductFactLine(label: "Type", value: productSellingContext(product))
+                            if let configuration = productConfiguration(product) {
+                                ProductFactLine(label: "Configuration", value: configuration)
+                            }
+                        }
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+
+                        if !product.shortDescription.isEmpty {
+                            Text(product.shortDescription)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(isCompact ? 3 : 4)
+                        }
+
+                        Text(productPriceLabel(product))
+                            .font(.title3.weight(.bold))
+                            .foregroundStyle(.primary)
+                    }
+                }
+            }
+            .buttonStyle(.plain)
+            .accessibilityHint("Afficher le détail du produit")
+
+            VStack(alignment: .leading, spacing: 8) {
+                Button {
+                    Task { await cart.add(product: product) }
+                } label: {
+                    Text("Ajouter au panier")
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+
+                HStack(spacing: 12) {
+                    Link(destination: facebookShareURL(for: product)) {
+                        Label("Partager sur Facebook", systemImage: "square.and.arrow.up")
+                            .font(.footnote)
+                    }
+
+                    Link(destination: emailShareURL(for: product)) {
+                        Label("Partager par e-mail", systemImage: "envelope")
+                            .font(.footnote)
+                    }
+                }
+                .foregroundStyle(.blue)
+            }
+        }
+        .padding(.vertical, 6)
+    }
+
+    @ViewBuilder
+    private var productImage: some View {
+        AsyncImage(url: imageURL) { phase in
+            switch phase {
+            case .success(let image):
+                image
+                    .resizable()
+                    .scaledToFill()
+                    .frame(height: isCompact ? 140 : 180)
+                    .frame(maxWidth: .infinity)
+                    .clipped()
+                    .cornerRadius(12)
+            case .failure:
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(.gray.opacity(0.1))
+                    .frame(height: isCompact ? 140 : 180)
+                    .overlay(Image(systemName: "photo").foregroundStyle(.secondary))
+            default:
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(.gray.opacity(0.08))
+                    .frame(height: isCompact ? 140 : 180)
+                    .overlay(ProgressView())
+            }
+        }
+        .accessibilityHidden(true)
+    }
+}
+
+private struct ProductFactLine: View {
+    let label: String
+    let value: String
+
+    var body: some View {
+        Text("\(label): \(value)")
+            .multilineTextAlignment(.leading)
+    }
+}
+
+private func productSellingContext(_ product: Product) -> String {
+    let sellingTypeLabel = product.sellingTypeLabel ?? {
+        switch product.sellingType {
+        case .rental: return "Location"
+        case .sale: return "Vente"
+        case .unknown: return "Produit"
+        }
+    }()
+    return "\(product.category.name) (\(sellingTypeLabel))"
+}
+
+private func productConfiguration(_ product: Product) -> String? {
+    let compactSpecs = [
+        nonEmptyValue(product.brand),
+        nonEmptyValue(product.memoryRam),
+        (product.variantsCount ?? 1) > 1 ? nil : nonEmptyValue(product.storageCapacity),
+        (product.variantsCount ?? 1) > 1 ? nil : nonEmptyValue(product.color)
+    ].compactMap { $0 }
+
+    guard !compactSpecs.isEmpty else { return nil }
+    return compactSpecs.joined(separator: " • ")
+}
+
+private func productPriceLabel(_ product: Product) -> String {
+    let unitSuffix = nonEmptyValue(product.priceUnitLabel) ?? (product.sellingType == .rental ? "/mois" : "")
+    return PriceFormatter.format(cents: product.effectivePriceCents) + unitSuffix
+}
+
+private func facebookShareURL(for product: Product) -> URL {
+    let target = "https://hociatec.fr/catalogue/produits/\(product.slug)"
+    let encodedTarget = target.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? target
+    return URL(string: "https://www.facebook.com/sharer/sharer.php?u=\(encodedTarget)")!
+}
+
+private func emailShareURL(for product: Product) -> URL {
+    let subject = "Découvrir \(product.name)"
+    let body = "\(product.name)\n\(productPriceLabel(product))\nhttps://hociatec.fr/catalogue/produits/\(product.slug)"
+    let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? subject
+    let encodedBody = body.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? body
+    return URL(string: "mailto:?subject=\(encodedSubject)&body=\(encodedBody)")!
+}
+
+private func nonEmptyValue(_ value: String?) -> String? {
+    guard let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty else {
+        return nil
+    }
+    return trimmed
 }
 
 private struct ShimmerView: View {
