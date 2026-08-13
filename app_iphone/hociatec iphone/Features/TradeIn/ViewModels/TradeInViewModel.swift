@@ -29,8 +29,8 @@ final class TradeInViewModel: ObservableObject {
     @Published var error: String?
     @Published var successMessage: String?
 
-    private let service: TradeInServing
-    private let account: AccountViewModel
+    let service: TradeInServing
+    let account: AccountViewModel
 
     init(service: TradeInServing, account: AccountViewModel) {
         self.service = service
@@ -42,7 +42,7 @@ final class TradeInViewModel: ObservableObject {
     }
 }
 
-private enum TradeInMoneyParser {
+enum TradeInMoneyParser {
     static func cents(from input: String) -> Int? {
         let cleaned = input
             .replacingOccurrences(of: "€", with: "")
