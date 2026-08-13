@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 
 @MainActor
 final class AccountViewModel: ObservableObject {
@@ -28,13 +29,16 @@ final class AccountViewModel: ObservableObject {
     @Published var gender: String = "autre"
     @Published var roles: [String] = []
     @Published var addresses: [UserAddress] = []
+    @Published private(set) var isLoggedIn: Bool
 
     private let useCases: AccountUseCases
     private let session: SessionStore
+    private var cancellables = Set<AnyCancellable>()
 
     init(useCases: AccountUseCases, session: SessionStore) {
         self.useCases = useCases
         self.session = session
+        self.isLoggedIn = session.jwtToken != nil
         self.profile = session.profile
         self.email = session.profile?.email ?? session.loginEmail ?? ""
         if let p = session.profile {
@@ -52,10 +56,7 @@ final class AccountViewModel: ObservableObject {
             self.gender = "autre"
             self.addresses = []
         }
-    }
-
-    var isLoggedIn: Bool {
-        session.jwtToken != nil
+        bindSession()
     }
 
     func loadProfileIfPossible() async {
@@ -233,18 +234,64 @@ final class AccountViewModel: ObservableObject {
 
     func logout() async {
         await useCases.logout.execute()
-        profile = nil
-        error = nil
-        statusMessage = nil
-        password = ""
-        addresses = []
-        gender = "autre"
+        applyLoggedOutState()
+    }
+
+    private func bindSession() {
+        session.$jwtToken
+            .receive(on: RunLoop.main)
+            .sink { [weak self] token in
+                guard let self else { return }
+                self.isLoggedIn = token != nil
+                if token == nil {
+                    self.applyLoggedOutState()
+                }
+            }
+            .store(in: &cancellables)
+
+        session.$profile
+            .receive(on: RunLoop.main)
+            .sink { [weak self] profile in
+                guard let self else { return }
+                if let profile {
+                    self.apply(profile: profile)
+                }
+            }
+            .store(in: &cancellables)
+
+        session.$loginEmail
+            .receive(on: RunLoop.main)
+            .sink { [weak self] loginEmail in
+                guard let self else { return }
+                if !self.isLoggedIn {
+                    self.email = loginEmail ?? ""
+                }
+            }
+            .store(in: &cancellables)
     }
 
     private func applyAuthenticatedState(profile: UserProfile) async {
         apply(profile: profile)
         session.profile = profile
         await loadAddresses()
+    }
+
+    private func applyLoggedOutState() {
+        profile = nil
+        error = nil
+        statusMessage = nil
+        password = ""
+        firstName = ""
+        lastName = ""
+        address = nil
+        postalCode = nil
+        city = nil
+        birthDate = ""
+        phoneNumber = ""
+        roles = []
+        addresses = []
+        gender = "autre"
+        email = session.loginEmail ?? email
     }
 
     private func apply(profile p: UserProfile) {
