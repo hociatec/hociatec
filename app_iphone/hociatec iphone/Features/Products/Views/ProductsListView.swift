@@ -4,7 +4,7 @@ import SwiftUI
 struct ProductsListView: View {
     @EnvironmentObject private var container: AppContainer
     @EnvironmentObject private var cart: CartViewModel
-    @StateObject private var viewModel: ProductsViewModel
+    @StateObject var viewModel: ProductsViewModel
     @Binding var selectedTab: Int
     @Binding var filtersBadge: Int?
     private let navigationTitle: String

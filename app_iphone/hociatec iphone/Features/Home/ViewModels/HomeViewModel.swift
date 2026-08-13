@@ -12,13 +12,11 @@ final class HomeViewModel: ObservableObject {
     private let productsService: ProductServing
     private let serviceCatalogService: ServiceCatalogServing
     private let newsService: NewsServing
-    private let appointmentsService: AppointmentServing
 
-    init(productsService: ProductServing, serviceCatalogService: ServiceCatalogServing, newsService: NewsServing, appointmentsService: AppointmentServing) {
+    init(productsService: ProductServing, serviceCatalogService: ServiceCatalogServing, newsService: NewsServing) {
         self.productsService = productsService
         self.serviceCatalogService = serviceCatalogService
         self.newsService = newsService
-        self.appointmentsService = appointmentsService
     }
 
     func load(force: Bool = false) async {
@@ -38,18 +36,6 @@ final class HomeViewModel: ObservableObject {
             self.error = err.localizedDescription
         }
 
-        isLoading = false
-    }
-
-    func cancel(appointmentID: Int) async {
-        isLoading = true
-        error = nil
-        do {
-            try await appointmentsService.cancelAppointment(id: appointmentID)
-            await load(force: true)
-        } catch let err {
-            self.error = err.localizedDescription
-        }
         isLoading = false
     }
 

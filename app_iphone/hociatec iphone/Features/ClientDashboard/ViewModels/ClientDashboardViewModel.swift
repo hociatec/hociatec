@@ -11,12 +11,12 @@ final class ClientDashboardViewModel: ObservableObject {
     @Published var convertPoints = ""
     @Published var conversionMessage: String?
 
-    private let quoteService: QuoteServing
-    private let appointmentService: AppointmentServing
-    private let orderService: OrderServing
-    private let trainingService: TrainingServing
-    private let workspaceService: WorkspaceServing
-    private let actionBuilder = ClientDashboardActionBuilder()
+    let quoteService: QuoteServing
+    let appointmentService: AppointmentServing
+    let orderService: OrderServing
+    let trainingService: TrainingServing
+    let workspaceService: WorkspaceServing
+    let actionBuilder = ClientDashboardActionBuilder()
 
     init(
         quoteService: QuoteServing,

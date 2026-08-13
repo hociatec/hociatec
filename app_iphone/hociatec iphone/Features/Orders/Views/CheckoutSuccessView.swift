@@ -23,7 +23,7 @@ struct CheckoutSuccessView: View {
                     Text(PriceFormatter.format(cents: order.totalPriceCents))
                         .fontWeight(.semibold)
                 }
-                LabeledContent("Créée le") { Text(dateFormatter.string(from: order.createdAt)) }
+                LabeledContent("Créée le") { Text(OrderStatusPresentation.dateFormatter.string(from: order.createdAt)) }
             }
 
             Section {

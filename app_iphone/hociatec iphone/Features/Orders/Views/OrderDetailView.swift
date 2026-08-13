@@ -24,7 +24,7 @@ struct OrderDetailView: View {
                 Section {
                     LabeledContent("Numéro") { Text(order.number) }
                     LabeledContent("Statut") { Text(order.statusLabel) }
-                    LabeledContent("Créée le") { Text(dateFormatter.string(from: order.createdAt)) }
+                    LabeledContent("Créée le") { Text(OrderStatusPresentation.dateFormatter.string(from: order.createdAt)) }
                 }
 
                 Section {
@@ -129,11 +129,3 @@ private final class OrderDetailViewModel: ObservableObject {
         }
     }
 }
-
-private let dateFormatter: DateFormatter = {
-    let df = DateFormatter()
-    df.locale = Locale(identifier: "fr_FR")
-    df.dateStyle = .medium
-    df.timeStyle = .short
-    return df
-}()

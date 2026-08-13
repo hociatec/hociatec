@@ -1,22 +1,6 @@
 import Foundation
 import Combine
 
-enum MyAppointmentsFilter: String, CaseIterable, Identifiable {
-    case all
-    case confirmed
-    case cancelled
-
-    var id: String { rawValue }
-
-    var label: String {
-        switch self {
-        case .all: return "Tous"
-        case .confirmed: return "Confirmés"
-        case .cancelled: return "Annulés"
-        }
-    }
-}
-
 @MainActor
 final class AppointmentBookingViewModel: ObservableObject {
     @Published var prestations: [AppointmentPrestation] = []
@@ -100,56 +84,6 @@ final class AppointmentBookingViewModel: ObservableObject {
         } catch let err {
             self.error = err.localizedDescription
             return nil
-        }
-    }
-}
-
-@MainActor
-final class MyAppointmentsViewModel: ObservableObject {
-    @Published var upcoming: [AppointmentSummary] = []
-    @Published var past: [AppointmentSummary] = []
-    @Published var isLoading = false
-    @Published var error: String?
-    @Published var successMessage: String? = nil
-
-    private let service: AppointmentServing
-
-    init(service: AppointmentServing) {
-        self.service = service
-    }
-
-    func load(force: Bool = false) async {
-        if isLoading && !force { return }
-        isLoading = true
-        error = nil
-
-        do {
-            let list = try await service.myAppointments()
-            upcoming = list.upcoming
-            past = list.past
-        } catch let err {
-            self.error = err.localizedDescription
-        }
-
-        isLoading = false
-    }
-
-    func cancel(appointmentID: Int) async -> Bool {
-        guard !isLoading else { return false }
-        isLoading = true
-        error = nil
-        successMessage = nil
-        defer { isLoading = false }
-        do {
-            try await service.cancelAppointment(id: appointmentID)
-            let list = try await service.myAppointments()
-            upcoming = list.upcoming
-            past = list.past
-            successMessage = "Rendez-vous annulé."
-            return true
-        } catch {
-            self.error = error.localizedDescription
-            return false
         }
     }
 }
