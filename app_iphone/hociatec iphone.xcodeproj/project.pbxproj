@@ -7,8 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		E5796F962EE9A50700E14DFC /* RatingStars.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5796F952EE9A50700E14DFC /* RatingStars.swift */; };
-		E5F6792A2EEA71D300BCB489 /* FavoritesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5F679292EEA71D300BCB489 /* FavoritesScreen.swift */; };
 		E6001A0F2EF1000000000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E6001A1D2EF1000000000001 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
@@ -33,8 +31,6 @@
 		E51666922EE475CB00708A53 /* hociatec iphone.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "hociatec iphone.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E51666A12EE475CC00708A53 /* hociatec iphoneTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "hociatec iphoneTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E51666AB2EE475CC00708A53 /* hociatec iphoneUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "hociatec iphoneUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		E5796F952EE9A50700E14DFC /* RatingStars.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RatingStars.swift; sourceTree = "<group>"; };
-		E5F679292EEA71D300BCB489 /* FavoritesScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesScreen.swift; sourceTree = "<group>"; };
 		E6001A002EF1000000000001 /* hociatec iphone/ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "hociatec iphone/ContentView.swift"; sourceTree = "<group>"; };
 		E6001A102EF1000000000001 /* hociatec iphone/AddressDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "hociatec iphone/AddressDetailView.swift"; sourceTree = "<group>"; };
 		E6001A112EF1000000000001 /* hociatec iphone/AddressFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "hociatec iphone/AddressFormView.swift"; sourceTree = "<group>"; };
@@ -102,7 +98,6 @@
 				E51666A42EE475CC00708A53 /* hociatec iphoneTests */,
 				E51666AE2EE475CC00708A53 /* hociatec iphoneUITests */,
 				E51666932EE475CB00708A53 /* Products */,
-				E5796F952EE9A50700E14DFC /* RatingStars.swift */,
 				E6001A002EF1000000000001 /* hociatec iphone/ContentView.swift */,
 				E6001A102EF1000000000001 /* hociatec iphone/AddressDetailView.swift */,
 				E6001A112EF1000000000001 /* hociatec iphone/AddressFormView.swift */,
@@ -118,7 +113,6 @@
 				E6001A1B2EF1000000000001 /* hociatec iphone/SessionStore.swift */,
 				E6001A1C2EF1000000000001 /* hociatec iphone/ViewModels.swift */,
 				E6001A1D2EF1000000000001 /* Assets.xcassets */,
-				E5F679292EEA71D300BCB489 /* FavoritesScreen.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -278,8 +272,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E5796F962EE9A50700E14DFC /* RatingStars.swift in Sources */,
-				E5F6792A2EEA71D300BCB489 /* FavoritesScreen.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
