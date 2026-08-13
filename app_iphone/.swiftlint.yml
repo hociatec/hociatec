@@ -1,0 +1,17 @@
+included:
+  - "hociatec iphone"
+
+excluded:
+  - "hociatec iphone.xcodeproj"
+  - "build"
+  - "DerivedData"
+
+only_rules:
+  - duplicate_imports
+  - empty_count
+  - force_cast
+  - force_try
+  - redundant_nil_coalescing
+  - unused_closure_parameter
+
+reporter: "github-actions-logging"
