@@ -17,10 +17,10 @@ final class QuoteViewModel: ObservableObject {
     @Published var error: String?
     @Published var successMessage: String?
 
-    private let loadServicesUseCase: LoadQuoteServicesUseCase
-    private let searchProductsUseCase: SearchQuoteProductsUseCase
-    private let submitQuoteUseCase: SubmitQuoteUseCase
-    private let account: AccountViewModel
+    let loadServicesUseCase: LoadQuoteServicesUseCase
+    let searchProductsUseCase: SearchQuoteProductsUseCase
+    let submitQuoteUseCase: SubmitQuoteUseCase
+    let account: AccountViewModel
 
     init(useCases: QuotesUseCases, account: AccountViewModel) {
         self.loadServicesUseCase = useCases.loadServices
@@ -36,8 +36,8 @@ final class MyQuotesViewModel: ObservableObject {
     @Published var quotes: [QuoteSummary] = []
     @Published var isLoading = false
     @Published var error: String?
-    private let loadMyQuotesUseCase: LoadMyQuotesUseCase
-    private let deleteQuoteUseCase: DeleteQuoteUseCase
+    let loadMyQuotesUseCase: LoadMyQuotesUseCase
+    let deleteQuoteUseCase: DeleteQuoteUseCase
 
     init(useCases: QuotesUseCases) {
         self.loadMyQuotesUseCase = useCases.loadMyQuotes

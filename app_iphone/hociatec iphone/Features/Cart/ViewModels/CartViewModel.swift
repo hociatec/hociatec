@@ -8,7 +8,7 @@ final class CartViewModel: ObservableObject {
     @Published var error: String?
     @Published var statusMessage: String?
 
-    private let service: CartServing
+    let service: CartServing
 
     init(service: CartServing) {
         self.service = service
