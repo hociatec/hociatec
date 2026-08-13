@@ -9,11 +9,11 @@ extension ClientDashboardViewModel {
         conversionMessage = nil
         defer { isLoading = false }
 
-        async let quotesResult = capture { try await quoteService.myQuotes() }
-        async let appointmentsResult = capture { try await appointmentService.myAppointments() }
-        async let pendingReviewsResult = capture { try await orderService.pendingReviews() }
-        async let loyaltyResult = capture { try await workspaceService.loyaltyBalance() }
-        async let trainingsResult = capture { try await trainingService.myEnrollments(page: 1, perPage: 10) }
+        async let quotesResult = capture { try await self.quoteService.myQuotes() }
+        async let appointmentsResult = capture { try await self.appointmentService.myAppointments() }
+        async let pendingReviewsResult = capture { try await self.orderService.pendingReviews() }
+        async let loyaltyResult = capture { try await self.workspaceService.loyaltyBalance() }
+        async let trainingsResult = capture { try await self.trainingService.myEnrollments(page: 1, perPage: 10) }
 
         let quotes = await quotesResult
         let appointments = await appointmentsResult
