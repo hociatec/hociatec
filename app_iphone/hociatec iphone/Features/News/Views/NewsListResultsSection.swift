@@ -27,7 +27,7 @@ struct NewsListResultsSection: View {
 }
 
 private struct NewsListRow: View {
-    let article: NewsArticleSummary
+    let article: NewsArticle
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {

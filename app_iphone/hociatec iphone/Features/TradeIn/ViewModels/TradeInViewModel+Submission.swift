@@ -48,8 +48,8 @@ extension TradeInViewModel {
         switch TradeInSubmissionValidator.validate(draft) {
         case .success(let fields):
             return fields
-        case .failure(let message):
-            error = message
+        case .failure(let validationError):
+            error = validationError.localizedDescription
             return nil
         }
     }

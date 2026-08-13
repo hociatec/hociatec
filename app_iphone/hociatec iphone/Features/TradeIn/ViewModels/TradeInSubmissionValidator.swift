@@ -1,39 +1,45 @@
 import Foundation
 
+struct TradeInSubmissionValidationError: LocalizedError {
+    let message: String
+
+    var errorDescription: String? { message }
+}
+
 enum TradeInSubmissionValidator {
-    static func validate(_ draft: TradeInSubmissionDraft) -> Result<TradeInValidatedSubmissionFields, String> {
+    static func validate(_ draft: TradeInSubmissionDraft) -> Result<TradeInValidatedSubmissionFields, TradeInSubmissionValidationError> {
         guard !draft.firstName.isEmpty else {
-            return .failure("Renseignez votre prénom.")
+            return .failure(.init(message: "Renseignez votre prénom."))
         }
         guard !draft.lastName.isEmpty else {
-            return .failure("Renseignez votre nom.")
+            return .failure(.init(message: "Renseignez votre nom."))
         }
         guard !draft.email.isEmpty, draft.email.contains("@") else {
-            return .failure("Renseignez un e-mail valide.")
+            return .failure(.init(message: "Renseignez un e-mail valide."))
         }
         guard !draft.category.isEmpty else {
-            return .failure("Choisissez une catégorie.")
+            return .failure(.init(message: "Choisissez une catégorie."))
         }
         guard !draft.condition.isEmpty else {
-            return .failure("Choisissez un état.")
+            return .failure(.init(message: "Choisissez un état."))
         }
         guard !draft.productName.isEmpty else {
-            return .failure("Renseignez le produit.")
+            return .failure(.init(message: "Renseignez le produit."))
         }
         guard draft.purchasePriceCents != nil else {
-            return .failure("Renseignez un prix d’achat valide.")
+            return .failure(.init(message: "Renseignez un prix d’achat valide."))
         }
         guard let purchaseYear = draft.purchaseYear, (1980...2100).contains(purchaseYear) else {
-            return .failure("Renseignez une année d’achat valide.")
+            return .failure(.init(message: "Renseignez une année d’achat valide."))
         }
         guard !draft.phone.isEmpty else {
-            return .failure("Renseignez votre téléphone.")
+            return .failure(.init(message: "Renseignez votre téléphone."))
         }
         guard !draft.description.isEmpty else {
-            return .failure("Décrivez l’état du produit.")
+            return .failure(.init(message: "Décrivez l’état du produit."))
         }
         guard draft.consent else {
-            return .failure("Vous devez accepter le traitement de la demande.")
+            return .failure(.init(message: "Vous devez accepter le traitement de la demande."))
         }
 
         return .success(
