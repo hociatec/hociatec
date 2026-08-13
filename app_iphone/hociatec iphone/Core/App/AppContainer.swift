@@ -11,6 +11,7 @@ final class AppContainer: ObservableObject {
     let account: AccountViewModel
     let productsUseCases: ProductsUseCases
     let quotesUseCases: QuotesUseCases
+    let accountUseCases: AccountUseCases
 
     init() {
         let session = SessionStore()
@@ -18,6 +19,21 @@ final class AppContainer: ObservableObject {
         let apiClient = APIClient(sessionStore: session)
         let services = AppServices(apiClient: apiClient)
         self.services = services
+
+        let accountRepository = AccountRepositoryLive(service: services.account)
+        self.accountUseCases = AccountUseCases(
+            login: LoginUseCase(repository: accountRepository),
+            logout: LogoutUseCase(repository: accountRepository),
+            loadProfile: LoadAccountProfileUseCase(repository: accountRepository),
+            updateProfile: UpdateAccountProfileUseCase(repository: accountRepository),
+            deleteAccount: DeleteAccountUseCase(repository: accountRepository),
+            register: RegisterAccountUseCase(repository: accountRepository),
+            loadAddresses: LoadAccountAddressesUseCase(repository: accountRepository),
+            createAddress: CreateAccountAddressUseCase(repository: accountRepository),
+            updateAddress: UpdateAccountAddressUseCase(repository: accountRepository),
+            deleteAddress: DeleteAccountAddressUseCase(repository: accountRepository),
+            setDefaultAddress: SetDefaultAccountAddressUseCase(repository: accountRepository)
+        )
 
         let productsRepository = ProductsRepositoryLive(
             productsService: services.products,
@@ -46,7 +62,7 @@ final class AppContainer: ObservableObject {
 
         let cartVM = CartViewModel(service: services.cart)
         self.cart = cartVM
-        self.account = AccountViewModel(service: services.account, session: session)
+        self.account = AccountViewModel(useCases: accountUseCases, session: session)
     }
 
     func makeProductsViewModel(initialSellingType: SellingType? = nil) -> ProductsViewModel {

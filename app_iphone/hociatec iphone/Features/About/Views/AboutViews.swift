@@ -86,15 +86,13 @@ private struct SocialLinksView: View {
 
     var body: some View {
         List {
-            Section("Réseaux sociaux") {
-                ForEach(links, id: \.0) { label, href in
-                    Link(destination: URL(string: href)!) {
-                        HStack {
-                            Text(label)
-                            Spacer()
-                            Image(systemName: "arrow.up.right.square")
-                                .foregroundStyle(.secondary)
-                        }
+            ForEach(links, id: \.0) { label, href in
+                Link(destination: URL(string: href)!) {
+                    HStack {
+                        Text(label)
+                        Spacer()
+                        Image(systemName: "arrow.up.right.square")
+                            .foregroundStyle(.secondary)
                     }
                 }
             }

@@ -11,7 +11,7 @@ struct ContentView: View {
     var body: some View {
         TabView(selection: $selectedTab) {
             NavigationStack {
-                HomeScreen(services: container.services, selectedTab: $selectedTab)
+                HomeScreen(services: container.services)
             }
             .tabItem { Label("Accueil", systemImage: "house") }
             .tag(0)
@@ -34,16 +34,22 @@ struct ContentView: View {
             .tag(2)
 
             NavigationStack {
+                NewsListView(api: container.services.news)
+            }
+            .tabItem { Label("Actualités", systemImage: "newspaper") }
+            .tag(3)
+
+            NavigationStack {
                 AccountScreen()
             }
             .tabItem { Label("Compte", systemImage: "person") }
-            .tag(3)
+            .tag(4)
 
             NavigationStack {
                 AboutHubView(services: container.services)
             }
             .tabItem { Label("À propos", systemImage: "info.circle") }
-            .tag(4)
+            .tag(5)
         }
         .task { await cart.refresh() }
         .overlay(alignment: .top) {

@@ -3,35 +3,25 @@ import SwiftUI
 struct HomeScreen: View {
     @StateObject private var home: HomeViewModel
     @EnvironmentObject private var container: AppContainer
-    @Binding private var selectedTab: Int
 
-    init(services: AppServices, selectedTab: Binding<Int>) {
+    init(services: AppServices) {
         _home = StateObject(wrappedValue: HomeViewModel(
             productsService: services.products,
             serviceCatalogService: services.serviceCatalog,
             newsService: services.news,
             appointmentsService: services.appointments
         ))
-        _selectedTab = selectedTab
     }
 
     var body: some View {
         List {
             Section {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("Hociatec accompagne vos besoins en materiel informatique, services numeriques, formation et suivi client.")
+                    Text("Hociatec accompagne vos besoins en matériel informatique, services numériques, formation et suivi client.")
                         .font(.body)
-                    Text("Retrouvez nos nouveautes, nos offres et un parcours mobile aligne avec nos services.")
+                    Text("Retrouvez nos nouveautés, nos offres et un parcours mobile aligné avec nos services.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
-                    NavigationLink {
-                        NewsListView(api: container.services.news)
-                    } label: {
-                        Label("Actualités", systemImage: "newspaper")
-                            .fontWeight(.semibold)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                    }
-                    .buttonStyle(.borderedProminent)
                 }
             }
 
