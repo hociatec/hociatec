@@ -12,7 +12,8 @@ struct BetaOptionsSection: View {
                     Text("Aucune option disponible.")
                         .foregroundStyle(.secondary)
                 } else {
-                    for option in options {
+                    ForEach(0..<options.count, id: \.self) { index in
+                        let option = options[index]
                         Button {
                             toggle(option.value)
                         } label: {
