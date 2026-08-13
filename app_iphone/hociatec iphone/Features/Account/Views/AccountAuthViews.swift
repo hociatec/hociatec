@@ -3,6 +3,7 @@ import SwiftUI
 struct LoginView: View {
     @ObservedObject var account: AccountViewModel
     let authService: AccountServing
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         Form {
@@ -47,6 +48,10 @@ struct LoginView: View {
             }
         }
         .navigationTitle("Connexion")
+        .onChangeCompat(account.isLoggedIn) { isLoggedIn in
+            guard isLoggedIn else { return }
+            dismiss()
+        }
     }
 }
 

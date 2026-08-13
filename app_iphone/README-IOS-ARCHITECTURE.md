@@ -40,8 +40,11 @@
 - `Features/Orders`: commandes.
 - `Features/Favorites`: favoris.
 - `Core/API`: client réseau et modèles alignés backend.
+- `Core/API/Models`: modèles découpés par domaine backend.
 - `Core/App`: composition applicative et dépendances partagées.
-- `Core/Services`: service layer injectée dans les `ViewModel`.
+- `Core/Services`: composition de la service layer.
+- `Core/Services/Contracts`: protocoles injectables consommés par les repositories et `ViewModel`.
+- `Core/Services/Implementations`: adaptateurs concrets branchés sur `APIClient`.
 - `Core/Session`: persistance de session utilisateur.
 - `Shared/Support`: utilitaires transverses et compatibilité SwiftUI.
 - `Shared/UI`: composants UI transverses.
@@ -52,3 +55,4 @@
 - Préférer plusieurs fichiers petits par feature plutôt qu’un fichier unique qui mélange vues, état et helpers.
 - Ajouter une stratégie de tests unitaires ciblant chaque `ViewModel`.
 - Garder à la racine uniquement `hociatec_iphoneApp.swift`, qui reste le point d’entrée naturel de l’application.
+- Éviter les fichiers “god files” dans `Core`; préférer un découpage métier explicite même pour les modèles et services.

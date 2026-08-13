@@ -31,20 +31,7 @@
 		E51666922EE475CB00708A53 /* hociatec iphone.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "hociatec iphone.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E51666A12EE475CC00708A53 /* hociatec iphoneTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "hociatec iphoneTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E51666AB2EE475CC00708A53 /* hociatec iphoneUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "hociatec iphoneUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		E6001A002EF1000000000001 /* hociatec iphone/ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "hociatec iphone/ContentView.swift"; sourceTree = "<group>"; };
-		E6001A102EF1000000000001 /* hociatec iphone/AddressDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "hociatec iphone/AddressDetailView.swift"; sourceTree = "<group>"; };
-		E6001A112EF1000000000001 /* hociatec iphone/AddressFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "hociatec iphone/AddressFormView.swift"; sourceTree = "<group>"; };
-		E6001A122EF1000000000001 /* hociatec iphone/APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "hociatec iphone/APIClient.swift"; sourceTree = "<group>"; };
-		E6001A132EF1000000000001 /* hociatec iphone/APIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "hociatec iphone/APIModels.swift"; sourceTree = "<group>"; };
-		E6001A142EF1000000000001 /* hociatec iphone/AppContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "hociatec iphone/AppContainer.swift"; sourceTree = "<group>"; };
-		E6001A152EF1000000000001 /* hociatec iphone/AppLanguageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "hociatec iphone/AppLanguageManager.swift"; sourceTree = "<group>"; };
-		E6001A162EF1000000000001 /* hociatec iphone/AppointmentsViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "hociatec iphone/AppointmentsViews.swift"; sourceTree = "<group>"; };
-		E6001A172EF1000000000001 /* hociatec iphone/Formatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "hociatec iphone/Formatting.swift"; sourceTree = "<group>"; };
 		E6001A182EF1000000000001 /* hociatec iphone/hociatec_iphoneApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "hociatec iphone/hociatec_iphoneApp.swift"; sourceTree = "<group>"; };
-		E6001A192EF1000000000001 /* hociatec iphone/Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "hociatec iphone/Item.swift"; sourceTree = "<group>"; };
-		E6001A1A2EF1000000000001 /* hociatec iphone/ProductDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "hociatec iphone/ProductDetailView.swift"; sourceTree = "<group>"; };
-		E6001A1B2EF1000000000001 /* hociatec iphone/SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "hociatec iphone/SessionStore.swift"; sourceTree = "<group>"; };
-		E6001A1C2EF1000000000001 /* hociatec iphone/ViewModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "hociatec iphone/ViewModels.swift"; sourceTree = "<group>"; };
 		E6001A1D2EF1000000000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -98,20 +85,7 @@
 				E51666A42EE475CC00708A53 /* hociatec iphoneTests */,
 				E51666AE2EE475CC00708A53 /* hociatec iphoneUITests */,
 				E51666932EE475CB00708A53 /* Products */,
-				E6001A002EF1000000000001 /* hociatec iphone/ContentView.swift */,
-				E6001A102EF1000000000001 /* hociatec iphone/AddressDetailView.swift */,
-				E6001A112EF1000000000001 /* hociatec iphone/AddressFormView.swift */,
-				E6001A122EF1000000000001 /* hociatec iphone/APIClient.swift */,
-				E6001A132EF1000000000001 /* hociatec iphone/APIModels.swift */,
-				E6001A142EF1000000000001 /* hociatec iphone/AppContainer.swift */,
-				E6001A152EF1000000000001 /* hociatec iphone/AppLanguageManager.swift */,
-				E6001A162EF1000000000001 /* hociatec iphone/AppointmentsViews.swift */,
-				E6001A172EF1000000000001 /* hociatec iphone/Formatting.swift */,
 				E6001A182EF1000000000001 /* hociatec iphone/hociatec_iphoneApp.swift */,
-				E6001A192EF1000000000001 /* hociatec iphone/Item.swift */,
-				E6001A1A2EF1000000000001 /* hociatec iphone/ProductDetailView.swift */,
-				E6001A1B2EF1000000000001 /* hociatec iphone/SessionStore.swift */,
-				E6001A1C2EF1000000000001 /* hociatec iphone/ViewModels.swift */,
 				E6001A1D2EF1000000000001 /* Assets.xcassets */,
 			);
 			sourceTree = "<group>";
