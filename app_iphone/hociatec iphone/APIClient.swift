@@ -884,7 +884,7 @@ final class APIClient: ObservableObject {
 
     func newsComments(slug: String, page: Int = 1, perPage: Int = 10) async throws -> NewsCommentListData {
         let encodedSlug = slug.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? slug
-        try await request(
+        return try await request(
             path: "api/public/news/\(encodedSlug)/comments",
             query: [
                 URLQueryItem(name: "page", value: String(page)),
