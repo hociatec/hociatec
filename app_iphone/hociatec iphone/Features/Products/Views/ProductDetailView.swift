@@ -3,9 +3,9 @@ import SwiftUI
 struct ProductDetailView: View {
     @EnvironmentObject private var container: AppContainer
     @Environment(\.dismiss) private var dismiss
-    @StateObject fileprivate var viewModel: ProductDetailViewModel
-    @Binding fileprivate var selectedTab: Int
-    @State fileprivate var alertState = ProductDetailAlertState()
+    @StateObject var viewModel: ProductDetailViewModel
+    @Binding var selectedTab: Int
+    @State var alertState = ProductDetailAlertState()
 
     let initialImageURL: URL?
     @ObservedObject var cart: CartViewModel
