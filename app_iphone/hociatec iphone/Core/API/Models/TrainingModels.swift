@@ -44,6 +44,7 @@ struct Training: Decodable, Identifiable {
 
 struct TrainingSession: Decodable, Identifiable {
     let id: Int
+    let training: Training
     let format: String
     let formatLabel: String
     let startsAt: Date
@@ -72,4 +73,22 @@ struct TrainingCategoryListData: Decodable {
 struct TrainingDetailData: Decodable {
     let training: Training
     let sessions: [TrainingSession]
+}
+
+struct TrainingEnrollment: Decodable, Identifiable {
+    let id: Int
+    let status: String
+    let statusLabel: String
+    let priceCents: Int
+    let scheduledStartsAt: Date
+    let scheduledEndsAt: Date
+    let paidAt: Date?
+    let stripeSessionId: String?
+    let createdAt: Date
+    let session: TrainingSession
+}
+
+struct TrainingEnrollmentListData: Decodable {
+    let items: [TrainingEnrollment]
+    let meta: PaginationMeta
 }

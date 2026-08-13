@@ -276,6 +276,54 @@ final class APIClient: ObservableObject {
         }
     }
 
+    func download(
+        path: String,
+        method: String = "GET",
+        query: [URLQueryItem]? = nil,
+        body: [String: Any]? = nil,
+        authorized: Bool = false,
+        attachCartToken: Bool = false,
+        attempt: Int = 0
+    ) async throws -> Data {
+        let (data, response) = try await rawRequest(
+            path: path,
+            method: method,
+            query: query,
+            body: body,
+            authorized: authorized,
+            attachCartToken: attachCartToken
+        )
+
+        guard let http = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+
+        captureCartToken(from: http)
+
+        if http.statusCode == 401, authorized, attempt == 0 {
+            if await refreshAuthTokenIfPossible() {
+                return try await download(
+                    path: path,
+                    method: method,
+                    query: query,
+                    body: body,
+                    authorized: authorized,
+                    attachCartToken: attachCartToken,
+                    attempt: attempt + 1
+                )
+            }
+        }
+
+        if !(200..<300).contains(http.statusCode) {
+            if let errorPayload = try? decoder.decode(APIErrorPayload.self, from: data) {
+                throw APIError.httpStatus(http.statusCode, errorPayload.message ?? "Erreur \(http.statusCode)")
+            }
+            throw APIError.httpStatus(http.statusCode, "Erreur \(http.statusCode)")
+        }
+
+        return data
+    }
+
     func multipartRequest<T: Decodable>(
         path: String,
         fields: [String: String],
@@ -287,14 +335,36 @@ final class APIClient: ObservableObject {
         attachCartToken: Bool,
         attempt: Int = 0
     ) async throws -> T {
+        try await multipartRequest(
+            path: path,
+            fields: fields,
+            files: [
+                MultipartUploadFile(
+                    fieldName: fileFieldName,
+                    filename: filename,
+                    mimeType: mimeType,
+                    data: fileData
+                )
+            ],
+            authorized: authorized,
+            attachCartToken: attachCartToken,
+            attempt: attempt
+        )
+    }
+
+    func multipartRequest<T: Decodable>(
+        path: String,
+        fields: [String: String],
+        files: [MultipartUploadFile],
+        authorized: Bool,
+        attachCartToken: Bool,
+        attempt: Int = 0
+    ) async throws -> T {
         let boundary = "Boundary-\(UUID().uuidString)"
         let (data, response) = try await rawMultipartRequest(
             path: path,
             fields: fields,
-            fileFieldName: fileFieldName,
-            filename: filename,
-            mimeType: mimeType,
-            fileData: fileData,
+            files: files,
             boundary: boundary,
             authorized: authorized,
             attachCartToken: attachCartToken
@@ -311,10 +381,7 @@ final class APIClient: ObservableObject {
                 return try await multipartRequest(
                     path: path,
                     fields: fields,
-                    fileFieldName: fileFieldName,
-                    filename: filename,
-                    mimeType: mimeType,
-                    fileData: fileData,
+                    files: files,
                     authorized: authorized,
                     attachCartToken: attachCartToken,
                     attempt: attempt + 1
@@ -331,10 +398,7 @@ final class APIClient: ObservableObject {
                     return try await multipartRequest(
                         path: path,
                         fields: fields,
-                        fileFieldName: fileFieldName,
-                        filename: filename,
-                        mimeType: mimeType,
-                        fileData: fileData,
+                        files: files,
                         authorized: authorized,
                         attachCartToken: attachCartToken,
                         attempt: attempt + 1
@@ -356,10 +420,7 @@ final class APIClient: ObservableObject {
     func rawMultipartRequest(
         path: String,
         fields: [String: String],
-        fileFieldName: String,
-        filename: String,
-        mimeType: String,
-        fileData: Data,
+        files: [MultipartUploadFile],
         boundary: String,
         authorized: Bool,
         attachCartToken: Bool
@@ -381,10 +442,7 @@ final class APIClient: ObservableObject {
 
         request.httpBody = buildMultipartBody(
             fields: fields,
-            fileFieldName: fileFieldName,
-            filename: filename,
-            mimeType: mimeType,
-            fileData: fileData,
+            files: files,
             boundary: boundary
         )
 
@@ -397,10 +455,7 @@ final class APIClient: ObservableObject {
 
     func buildMultipartBody(
         fields: [String: String],
-        fileFieldName: String,
-        filename: String,
-        mimeType: String,
-        fileData: Data,
+        files: [MultipartUploadFile],
         boundary: String
     ) -> Data {
         var body = Data()
@@ -413,11 +468,14 @@ final class APIClient: ObservableObject {
             body.append("\(value)\(lineBreak)")
         }
 
-        body.append("--\(boundary)\(lineBreak)")
-        body.append("Content-Disposition: form-data; name=\"\(fileFieldName)\"; filename=\"\(filename)\"\(lineBreak)")
-        body.append("Content-Type: \(mimeType)\(lineBreak)\(lineBreak)")
-        body.append(fileData)
-        body.append(lineBreak)
+        for file in files {
+            body.append("--\(boundary)\(lineBreak)")
+            body.append("Content-Disposition: form-data; name=\"\(file.fieldName)\"; filename=\"\(file.filename)\"\(lineBreak)")
+            body.append("Content-Type: \(file.mimeType)\(lineBreak)\(lineBreak)")
+            body.append(file.data)
+            body.append(lineBreak)
+        }
+
         body.append("--\(boundary)--\(lineBreak)")
 
         return body

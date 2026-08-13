@@ -20,6 +20,10 @@ struct QuotesRepositoryLive: QuotesRepository {
         try await quoteService.myQuotes()
     }
 
+    func downloadQuotePdf(id: Int) async throws -> Data {
+        try await quoteService.myQuotePdf(id: id)
+    }
+
     func deleteQuote(id: Int) async throws {
         try await quoteService.deleteQuote(id: id)
     }

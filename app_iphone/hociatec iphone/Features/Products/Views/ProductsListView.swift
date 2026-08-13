@@ -19,8 +19,10 @@ struct ProductsListView: View {
         viewModel: ProductsViewModel,
         selectedTab: Binding<Int>,
         filtersBadge: Binding<Int?>,
-        navigationTitle: String = "Produits"
+        navigationTitle: String = "Produits",
+        initialSearch: String = ""
     ) {
+        viewModel.search = initialSearch
         _viewModel = StateObject(wrappedValue: viewModel)
         self._selectedTab = selectedTab
         self._filtersBadge = filtersBadge

@@ -30,6 +30,7 @@ protocol AccountServing {
         phoneNumber: String,
         gender: String
     ) async throws
+    func verifyAccount(token: String) async throws
     func requestPasswordReset(email: String) async throws
     func resetPassword(token: String, password: String, confirmPassword: String) async throws
     func createAddress(label: String, address: String, postalCode: String, city: String, isDefault: Bool) async throws
@@ -82,6 +83,7 @@ protocol QuoteServing {
     func quoteServices(page: Int?, perPage: Int?, query: String?) async throws -> QuoteServiceList
     func createQuote(name: String, email: String, company: String?, address: String?, items: [QuoteRequestItem]) async throws -> QuoteSummary
     func myQuotes() async throws -> [QuoteSummary]
+    func myQuotePdf(id: Int) async throws -> Data
     func deleteQuote(id: Int) async throws
 }
 
@@ -102,13 +104,58 @@ protocol TrainingServing {
     func trainingCategories() async throws -> [TrainingCategory]
     func trainings(page: Int, perPage: Int, query: String?, category: String?) async throws -> TrainingListData
     func training(slug: String) async throws -> TrainingDetailData
+    func myEnrollments(page: Int, perPage: Int) async throws -> TrainingEnrollmentListData
+}
+
+protocol WorkspaceServing {
+    func communicationPreferences() async throws -> CommunicationPreferencesData
+    func updateCommunicationPreferences(preferences: [String]) async throws -> CommunicationPreferencesData
+    func loyaltyBalance() async throws -> LoyaltyBalance
+    func convertLoyalty(points: Int) async throws -> LoyaltyConversionData
+}
+
+protocol SupportServing {
+    func mySupportRequests(page: Int, perPage: Int) async throws -> SupportRequestListData
+    func mySupportRequest(id: Int) async throws -> SupportRequestSummary
+    func createSupportRequest(subject: String, reason: String, message: String, orderId: Int?, attachments: [MultipartUploadFile]) async throws -> SupportRequestSummary
+    func replySupportRequest(id: Int, subject: String?, message: String, attachments: [MultipartUploadFile]) async throws -> SupportRequestSummary
+    func mySupportAttachment(id: Int, name: String) async throws -> Data
+}
+
+protocol VoucherServing {
+    func myVouchers(page: Int, perPage: Int) async throws -> VoucherListData
 }
 
 protocol TradeInServing {
     func tradeInMetadata() async throws -> TradeInMetadata
     func createTradeIn(payload: TradeInRequestPayload, ribFilename: String, ribData: Data, authorized: Bool) async throws -> TradeInSummary
+    func myTradeIns(page: Int, perPage: Int) async throws -> TradeInListData
+    func myTradeInReceipt(id: Int) async throws -> Data
+    func respondToTradeIn(id: Int, action: String) async throws
 }
 
 protocol ContactServing {
     func sendContact(name: String, email: String, subject: String, message: String) async throws
+}
+
+protocol AuditServing {
+    func auditMetadata() async throws -> AuditMetadata
+    func createAudit(type: String, url: String, objectives: String?) async throws -> AuditCreateResponse
+    func myAudits(page: Int, perPage: Int) async throws -> AuditListData
+    func myAudit(id: Int) async throws -> AuditDetail
+    func myAuditPdf(id: Int) async throws -> Data
+    func myAuditSummaryPdf(id: Int) async throws -> Data
+}
+
+protocol BetaServing {
+    func betaProfileChoices() async throws -> [String: [BetaChoice]]
+    func myBetaProfile() async throws -> BetaProfile?
+    func updateMyBetaProfile(payload: [String: Any]) async throws -> BetaProfile
+    func deleteMyBetaProfile() async throws
+    func betaCampaigns() async throws -> [BetaCampaign]
+    func myBetaReports(page: Int, perPage: Int) async throws -> BetaReportsData
+    func myBetaReport(id: Int) async throws -> BetaBugReport
+    func createBetaReport(payload: [String: String], screenshots: [MultipartUploadFile]) async throws
+    func betaReportComments(id: Int, page: Int, perPage: Int) async throws -> BetaCommentsData
+    func createBetaReportComment(id: Int, content: String) async throws -> BetaBugReportComment
 }

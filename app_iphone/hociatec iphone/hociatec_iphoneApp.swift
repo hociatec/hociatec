@@ -3,6 +3,7 @@ import SwiftUI
 @main
 struct hociatec_iphoneApp: App {
     @StateObject private var container = AppContainer()
+    @StateObject private var navigation = AppNavigationState()
 
     var body: some Scene {
         WindowGroup {
@@ -10,6 +11,10 @@ struct hociatec_iphoneApp: App {
                 .environmentObject(container)
                 .environmentObject(container.cart)
                 .environmentObject(container.account)
+                .environmentObject(navigation)
+                .onOpenURL { url in
+                    navigation.handle(url: url)
+                }
         }
     }
 }

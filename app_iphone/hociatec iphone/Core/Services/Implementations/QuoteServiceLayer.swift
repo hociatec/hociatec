@@ -10,5 +10,6 @@ struct QuoteServiceLayer: QuoteServing {
         try await api.createQuote(name: name, email: email, company: company, address: address, items: items)
     }
     func myQuotes() async throws -> [QuoteSummary] { try await api.myQuotes() }
+    func myQuotePdf(id: Int) async throws -> Data { try await api.myQuotePdf(id: id) }
     func deleteQuote(id: Int) async throws { try await api.deleteQuote(id: id) }
 }

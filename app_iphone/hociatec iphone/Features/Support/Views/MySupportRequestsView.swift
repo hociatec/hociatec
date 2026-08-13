@@ -1,0 +1,62 @@
+import SwiftUI
+
+struct MySupportRequestsView: View {
+    @EnvironmentObject private var container: AppContainer
+    @StateObject private var viewModel: SupportViewModel
+    @State private var showCreateSheet = false
+
+    init(service: SupportServing) {
+        _viewModel = StateObject(wrappedValue: SupportViewModel(service: service))
+    }
+
+    var body: some View {
+        List {
+            if let error = viewModel.error, !error.isEmpty {
+                Section { Text(error).foregroundStyle(.red) }
+            }
+
+            if let successMessage = viewModel.successMessage, !successMessage.isEmpty {
+                Section { Text(successMessage).foregroundStyle(.green) }
+            }
+
+            Section {
+                Button {
+                    showCreateSheet = true
+                } label: {
+                    Label("Nouvelle demande SAV", systemImage: "plus.bubble")
+                }
+            }
+
+            Section("Mes dossiers") {
+                if viewModel.isLoading && viewModel.items.isEmpty {
+                    ProgressView("Chargement...")
+                } else if viewModel.items.isEmpty {
+                    Text("Aucune demande SAV pour le moment.")
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(viewModel.items) { item in
+                        NavigationLink {
+                            SupportRequestDetailView(viewModel: viewModel, requestId: item.id)
+                        } label: {
+                            SupportRequestRow(item: item)
+                        }
+                    }
+                }
+            }
+        }
+        .navigationTitle("Mes demandes SAV")
+        .sheet(item: $viewModel.sharedFile) { file in
+            ActivityView(activityItems: [file.url])
+        }
+        .task { await viewModel.load() }
+        .refreshable { await viewModel.load(force: true) }
+        .sheet(isPresented: $showCreateSheet) {
+            NavigationStack {
+                CreateSupportRequestView(
+                    viewModel: viewModel,
+                    orders: container.services.orders
+                )
+            }
+        }
+    }
+}

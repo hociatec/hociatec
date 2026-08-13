@@ -47,4 +47,33 @@ extension APIClient {
             attachCartToken: false
         )
     }
+
+    func myTradeIns(page: Int = 1, perPage: Int = 10) async throws -> TradeInListData {
+        try await request(
+            path: "api/trade-ins/me",
+            query: [
+                URLQueryItem(name: "page", value: String(page)),
+                URLQueryItem(name: "perPage", value: String(perPage))
+            ],
+            authorized: true,
+            attachCartToken: false
+        )
+    }
+
+    func respondToTradeIn(id: Int, action: String) async throws {
+        try await send(
+            path: "api/trade-ins/\(id)/respond/\(action)",
+            method: "POST",
+            authorized: true,
+            attachCartToken: false
+        )
+    }
+
+    func myTradeInReceipt(id: Int) async throws -> Data {
+        try await download(
+            path: "api/trade-ins/\(id)/receipt",
+            authorized: true,
+            attachCartToken: false
+        )
+    }
 }

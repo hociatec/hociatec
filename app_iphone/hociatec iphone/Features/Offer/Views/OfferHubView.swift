@@ -65,10 +65,7 @@ struct OfferHubView: View {
                 }
 
                 NavigationLink {
-                    ContactView(
-                        service: services.contact,
-                        initialSubject: "Demande d'audit"
-                    )
+                    MyAuditsView(service: services.audits)
                 } label: {
                     Label("Demander un audit", systemImage: "checklist")
                 }

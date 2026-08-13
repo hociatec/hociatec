@@ -2,8 +2,10 @@ import SwiftUI
 import UIKit
 
 struct CartScreen: View {
+    @EnvironmentObject private var container: AppContainer
     @EnvironmentObject private var cart: CartViewModel
     @State private var screenState = CartScreenState()
+    @State private var completedOrder: OrderSummary?
 
     var body: some View {
         List {
@@ -69,7 +71,7 @@ struct CartScreen: View {
                             if let order = await cart.checkout() {
                                 let generator = UINotificationFeedbackGenerator()
                                 generator.notificationOccurred(.success)
-                                print("Commande créée: \\ (\(order.number))")
+                                completedOrder = order
                             }
                         }
                     },
@@ -113,6 +115,9 @@ struct CartScreen: View {
             }
         }
         .navigationTitle("Panier")
+        .navigationDestination(item: $completedOrder) { order in
+            CheckoutSuccessView(order: order, orderService: container.services.orders)
+        }
         .task { await cart.refresh() }
         .refreshable { await cart.refresh() }
         .onChangeCompat(cart.statusMessage) { _ in }

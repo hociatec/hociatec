@@ -3,6 +3,7 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject private var container: AppContainer
     @EnvironmentObject private var cart: CartViewModel
+    @EnvironmentObject private var navigation: AppNavigationState
     @State private var selectedTab: Int = 0
     @State private var productFiltersBadge: Int? = nil
     @State private var bannerMessage: String? = nil
@@ -46,6 +47,11 @@ struct ContentView: View {
             .tag(4)
         }
         .task { await cart.refresh() }
+        .sheet(item: $navigation.presentedSheet) { route in
+            NavigationStack {
+                sheetDestination(for: route)
+            }
+        }
         .overlay(alignment: .top) {
             if let message = bannerMessage {
                 BannerView(message: message, isError: bannerIsError)
@@ -92,5 +98,29 @@ struct ContentView: View {
         guard let cart = cart.cart else { return "Panier, chargement…" }
         let count = cart.totalQuantity
         return count == 1 ? "Panier, 1 article" : "Panier, \(count) articles"
+    }
+
+    @ViewBuilder
+    private func sheetDestination(for route: AppNavigationState.SheetRoute) -> some View {
+        switch route {
+        case let .resetPassword(token):
+            ResetPasswordView(service: container.services.account, initialToken: token, allowsTokenEditing: false)
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Fermer") {
+                            navigation.dismissSheet()
+                        }
+                    }
+                }
+        case let .activateAccount(token):
+            AccountActivationView(service: container.services.account, token: token)
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Fermer") {
+                            navigation.dismissSheet()
+                        }
+                    }
+                }
+        }
     }
 }

@@ -106,4 +106,16 @@ extension APIClient {
             path: "api/public/trainings/\(encodedSlug)"
         )
     }
+
+    func myTrainingEnrollments(page: Int = 1, perPage: Int = 10) async throws -> TrainingEnrollmentListData {
+        try await request(
+            path: "api/trainings/enrollments/me",
+            query: [
+                URLQueryItem(name: "page", value: String(page)),
+                URLQueryItem(name: "perPage", value: String(perPage))
+            ],
+            authorized: true,
+            attachCartToken: false
+        )
+    }
 }

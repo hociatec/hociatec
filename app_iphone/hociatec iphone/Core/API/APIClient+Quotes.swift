@@ -55,6 +55,15 @@ extension APIClient {
         return data.items
     }
 
+    func myQuotePdf(id: Int) async throws -> Data {
+        try await download(
+            path: "api/quotes/me/\(id)/pdf",
+            method: "POST",
+            authorized: true,
+            attachCartToken: false
+        )
+    }
+
     func deleteQuote(id: Int) async throws {
         try await send(
             path: "api/quotes/me/\(id)",

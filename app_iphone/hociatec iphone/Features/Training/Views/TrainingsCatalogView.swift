@@ -4,9 +4,12 @@ struct TrainingsCatalogView: View {
     let service: TrainingServing
     @StateObject private var viewModel: TrainingsCatalogViewModel
 
-    init(api: TrainingServing) {
+    init(api: TrainingServing, initialSearch: String = "") {
         self.service = api
-        _viewModel = StateObject(wrappedValue: TrainingsCatalogViewModel(service: api))
+        let viewModel = TrainingsCatalogViewModel(service: api)
+        viewModel.searchText = initialSearch
+        viewModel.appliedSearch = initialSearch.trimmingCharacters(in: .whitespacesAndNewlines)
+        _viewModel = StateObject(wrappedValue: viewModel)
     }
 
     var body: some View {

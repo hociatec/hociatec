@@ -32,7 +32,17 @@ struct TradeInSummary: Decodable, Identifiable {
     let description: String
     let estimatedMinCents: Int?
     let estimatedMaxCents: Int?
+    let offerCents: Int?
+    let adminNote: String?
+    let offerExpiresAt: Date?
+    let receiptAvailable: Bool?
+    let voucherCode: String?
     let createdAt: Date
+}
+
+struct TradeInListData: Decodable {
+    let items: [TradeInSummary]
+    let meta: PaginationMeta
 }
 
 struct TradeInRequestPayload {

@@ -25,6 +25,15 @@ struct HomeScreen: View {
                 }
             }
 
+            Section {
+                NavigationLink {
+                    GlobalSearchView(services: container.services)
+                } label: {
+                    Label("Recherche globale", systemImage: "magnifyingglass")
+                        .fontWeight(.semibold)
+                }
+            }
+
             Section("Services") {
                 if home.isLoading && home.services.isEmpty {
                     ProgressView("Chargement...")

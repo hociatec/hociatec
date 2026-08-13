@@ -59,6 +59,7 @@ final class AppContainer: ObservableObject {
             searchProducts: SearchQuoteProductsUseCase(repository: quotesRepository),
             submitQuote: SubmitQuoteUseCase(repository: quotesRepository),
             loadMyQuotes: LoadMyQuotesUseCase(repository: quotesRepository),
+            downloadQuotePdf: DownloadQuotePdfUseCase(repository: quotesRepository),
             deleteQuote: DeleteQuoteUseCase(repository: quotesRepository)
         )
         self.quotesUseCases = quotesUseCases

@@ -1,0 +1,61 @@
+import Foundation
+
+extension ClientDashboardViewModel {
+    func load(force: Bool = false) async {
+        if isLoading && !force { return }
+        isLoading = true
+        error = nil
+        partialError = false
+        conversionMessage = nil
+        defer { isLoading = false }
+
+        async let quotesResult = capture { try await quoteService.myQuotes() }
+        async let appointmentsResult = capture { try await appointmentService.myAppointments() }
+        async let pendingReviewsResult = capture { try await orderService.pendingReviews() }
+        async let loyaltyResult = capture { try await workspaceService.loyaltyBalance() }
+        async let trainingsResult = capture { try await trainingService.myEnrollments(page: 1, perPage: 10) }
+
+        let quotes = await quotesResult
+        let appointments = await appointmentsResult
+        let pendingReviews = await pendingReviewsResult
+        let loyalty = await loyaltyResult
+        let trainings = await trainingsResult
+
+        let failures = [
+            quotes.failure,
+            appointments.failure,
+            pendingReviews.failure,
+            loyalty.failure,
+            trainings.failure
+        ].compactMap { $0 }
+
+        if let firstFailure = failures.first {
+            error = firstFailure.localizedDescription
+        }
+        partialError = !failures.isEmpty && failures.count < 5
+
+        guard let loyaltyValue = loyalty.value else { return }
+        self.loyalty = loyaltyValue
+        syncConvertPointsIfNeeded()
+
+        actions = actionBuilder.makeActions(
+            quotes: quotes.value ?? [],
+            appointments: appointments.value,
+            pendingReviews: pendingReviews.value ?? [],
+            trainings: trainings.value?.items ?? []
+        )
+    }
+
+    private func capture<T>(_ operation: @escaping () async throws -> T) async -> ClientDashboardLoadResult<T> {
+        do {
+            return ClientDashboardLoadResult(value: try await operation(), failure: nil)
+        } catch {
+            return ClientDashboardLoadResult(value: nil, failure: error)
+        }
+    }
+}
+
+private struct ClientDashboardLoadResult<T> {
+    let value: T?
+    let failure: Error?
+}

@@ -39,4 +39,12 @@ enum DateFormatters {
         formatter.dateFormat = "dd/MM/yyyy"
         return formatter
     }()
+
+    static let frDateTime: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "fr_FR")
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter
+    }()
 }

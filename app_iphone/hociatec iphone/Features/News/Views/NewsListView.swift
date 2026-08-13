@@ -4,9 +4,12 @@ struct NewsListView: View {
     let service: NewsServing
     @StateObject private var viewModel: NewsListViewModel
 
-    init(api: NewsServing) {
+    init(api: NewsServing, initialSearch: String = "") {
         self.service = api
-        _viewModel = StateObject(wrappedValue: NewsListViewModel(service: api))
+        let viewModel = NewsListViewModel(service: api)
+        viewModel.searchText = initialSearch
+        viewModel.appliedSearch = initialSearch.trimmingCharacters(in: .whitespacesAndNewlines)
+        _viewModel = StateObject(wrappedValue: viewModel)
     }
 
     var body: some View {

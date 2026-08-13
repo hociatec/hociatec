@@ -55,6 +55,7 @@ struct AccountService: AccountServing {
         )
     }
 
+    func verifyAccount(token: String) async throws { try await api.verifyAccount(token: token) }
     func requestPasswordReset(email: String) async throws { try await api.requestPasswordReset(email: email) }
     func resetPassword(token: String, password: String, confirmPassword: String) async throws { try await api.resetPassword(token: token, password: password, confirmPassword: confirmPassword) }
     func createAddress(label: String, address: String, postalCode: String, city: String, isDefault: Bool) async throws { try await api.createAddress(label: label, address: address, postalCode: postalCode, city: city, isDefault: isDefault) }

@@ -126,6 +126,16 @@ extension APIClient {
         )
     }
 
+    func verifyAccount(token: String) async throws {
+        let encodedToken = token.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? token
+        try await send(
+            path: "api/auth/verify/\(encodedToken)",
+            method: "GET",
+            authorized: false,
+            attachCartToken: false
+        )
+    }
+
     func requestPasswordReset(email: String) async throws {
         try await send(
             path: "api/auth/password-reset/request",

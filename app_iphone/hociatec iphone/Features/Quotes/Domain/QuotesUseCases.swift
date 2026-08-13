@@ -5,6 +5,7 @@ struct QuotesUseCases {
     let searchProducts: SearchQuoteProductsUseCase
     let submitQuote: SubmitQuoteUseCase
     let loadMyQuotes: LoadMyQuotesUseCase
+    let downloadQuotePdf: DownloadQuotePdfUseCase
     let deleteQuote: DeleteQuoteUseCase
 }
 
@@ -45,5 +46,13 @@ struct DeleteQuoteUseCase {
 
     func execute(id: Int) async throws {
         try await repository.deleteQuote(id: id)
+    }
+}
+
+struct DownloadQuotePdfUseCase {
+    let repository: QuotesRepository
+
+    func execute(id: Int) async throws -> Data {
+        try await repository.downloadQuotePdf(id: id)
     }
 }

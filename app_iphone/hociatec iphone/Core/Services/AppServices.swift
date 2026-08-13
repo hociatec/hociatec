@@ -12,7 +12,12 @@ final class AppServices {
     let news: NewsServing
     let serviceCatalog: ServiceCatalogServing
     let training: TrainingServing
+    let workspace: WorkspaceServing
+    let support: SupportServing
+    let vouchers: VoucherServing
+    let audits: AuditServing
     let tradeIn: TradeInServing
+    let beta: BetaServing
     let contact: ContactServing
 
     init(apiClient: APIClient) {
@@ -26,7 +31,12 @@ final class AppServices {
         let news = NewsService(api: apiClient)
         let serviceCatalog = ServiceCatalogService(api: apiClient)
         let training = TrainingService(api: apiClient)
+        let workspace = WorkspaceService(api: apiClient)
+        let support = SupportService(api: apiClient)
+        let vouchers = VoucherService(api: apiClient)
+        let audits = AuditService(api: apiClient)
         let tradeIn = TradeInService(api: apiClient)
+        let beta = BetaService(api: apiClient)
         let contact = ContactService(api: apiClient)
 
         self.assets = products
@@ -40,7 +50,12 @@ final class AppServices {
         self.news = news
         self.serviceCatalog = serviceCatalog
         self.training = training
+        self.workspace = workspace
+        self.support = support
+        self.vouchers = vouchers
+        self.audits = audits
         self.tradeIn = tradeIn
+        self.beta = beta
         self.contact = contact
     }
 }

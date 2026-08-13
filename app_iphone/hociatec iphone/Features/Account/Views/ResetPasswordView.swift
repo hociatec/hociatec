@@ -12,13 +12,29 @@ struct ResetPasswordView: View {
     @State private var errorMessage: String?
 
     private let passwordRule = /^(?=.*[A-Z])(?=.*\d).{8,}$/
+    private let allowsTokenEditing: Bool
+
+    init(
+        service: AccountServing,
+        initialToken: String = "",
+        allowsTokenEditing: Bool = true
+    ) {
+        self.service = service
+        self.allowsTokenEditing = allowsTokenEditing
+        _token = State(initialValue: initialToken)
+    }
 
     var body: some View {
         Form {
             Section {
-                TextField("Token", text: $token)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
+                if allowsTokenEditing {
+                    TextField("Token", text: $token)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                } else {
+                    Label("Lien sécurisé détecté", systemImage: "checkmark.shield")
+                        .foregroundStyle(.secondary)
+                }
                 SecureField("Nouveau mot de passe", text: $password)
                 SecureField("Confirmation", text: $confirmPassword)
                 Text("Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre.")

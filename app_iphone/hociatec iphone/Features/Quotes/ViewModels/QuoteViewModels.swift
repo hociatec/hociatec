@@ -36,11 +36,28 @@ final class MyQuotesViewModel: ObservableObject {
     @Published var quotes: [QuoteSummary] = []
     @Published var isLoading = false
     @Published var error: String?
+    @Published var sharedFile: TemporarySharedFile?
     let loadMyQuotesUseCase: LoadMyQuotesUseCase
+    let downloadQuotePdfUseCase: DownloadQuotePdfUseCase
     let deleteQuoteUseCase: DeleteQuoteUseCase
 
     init(useCases: QuotesUseCases) {
         self.loadMyQuotesUseCase = useCases.loadMyQuotes
+        self.downloadQuotePdfUseCase = useCases.downloadQuotePdf
         self.deleteQuoteUseCase = useCases.deleteQuote
+    }
+
+    func shareQuotePdf(quote: QuoteSummary) async {
+        error = nil
+
+        do {
+            let data = try await downloadQuotePdfUseCase.execute(id: quote.id)
+            sharedFile = try TemporarySharedFileFactory.create(
+                data: data,
+                fileName: "\(quote.number ?? "devis-\(quote.id)").pdf"
+            )
+        } catch {
+            self.error = error.localizedDescription
+        }
     }
 }

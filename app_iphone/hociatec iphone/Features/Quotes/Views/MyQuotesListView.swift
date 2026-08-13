@@ -24,7 +24,7 @@ struct MyQuotesListView: View {
                 Section {
                     ForEach(viewModel.quotes) { quote in
                         NavigationLink {
-                            QuoteDetailView(quote: quote)
+                            QuoteDetailView(viewModel: viewModel, quote: quote)
                         } label: {
                             QuoteRow(quote: quote)
                         }
@@ -40,6 +40,9 @@ struct MyQuotesListView: View {
             }
         }
         .navigationTitle("Mes devis")
+        .sheet(item: $viewModel.sharedFile) { file in
+            ActivityView(activityItems: [file.url])
+        }
         .task { await viewModel.load(force: true) }
         .refreshable { await viewModel.load(force: true) }
         .alert(
@@ -100,6 +103,7 @@ private struct QuoteRow: View {
 }
 
 private struct QuoteDetailView: View {
+    @ObservedObject var viewModel: MyQuotesViewModel
     let quote: QuoteSummary
 
     var body: some View {
@@ -145,6 +149,15 @@ private struct QuoteDetailView: View {
                 LabeledContent("HT") { Text(PriceFormatter.format(cents: quote.totals.ht)) }
                 LabeledContent("TVA") { Text(PriceFormatter.format(cents: quote.totals.vat)) }
                 LabeledContent("TTC") { Text(PriceFormatter.format(cents: quote.totals.ttc)).fontWeight(.semibold) }
+            }
+
+            Section {
+                Button {
+                    Task { await viewModel.shareQuotePdf(quote: quote) }
+                } label: {
+                    Label("Télécharger le PDF", systemImage: "arrow.down.doc")
+                        .fontWeight(.semibold)
+                }
             }
 
             if let conditions = quote.conditions, !conditions.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
