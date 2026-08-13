@@ -51,6 +51,20 @@ struct CategorySummary: Decodable, Equatable, Identifiable {
     let slug: String
 }
 
+struct FavoriteEntry: Decodable {
+    let addedAt: Date
+    let product: Product
+}
+
+struct AddFavoriteResponse: Decodable {
+    let favorite: FavoriteEntry
+    let alreadyFavorite: Bool
+}
+
+struct RemoveFavoriteResponse: Decodable {
+    let removed: Bool
+}
+
 struct Product: Decodable, Identifiable {
     let id: Int
     let name: String

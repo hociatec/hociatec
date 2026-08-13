@@ -1007,22 +1007,8 @@ final class APIClient: ObservableObject {
     
     // MARK: - Favorites
 
-    struct FavoriteEntry: Decodable {
-        let addedAt: Date
-        let product: Product
-    }
-
     struct FavoriteListData: Decodable {
         let items: [FavoriteEntry]
-    }
-
-    struct AddFavoriteResponse: Decodable {
-        let favorite: FavoriteEntry
-        let alreadyFavorite: Bool
-    }
-
-    struct RemoveFavoriteResponse: Decodable {
-        let removed: Bool
     }
 
     func listFavorites() async throws -> [FavoriteEntry] {

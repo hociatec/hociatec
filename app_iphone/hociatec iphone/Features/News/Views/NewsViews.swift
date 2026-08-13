@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import Combine
 
 let newsDateFormatter: DateFormatter = {
     let formatter = DateFormatter()

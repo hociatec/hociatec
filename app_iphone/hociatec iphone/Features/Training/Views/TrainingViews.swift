@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import Combine
 
 struct TrainingsCatalogView: View {
     let service: TrainingServing

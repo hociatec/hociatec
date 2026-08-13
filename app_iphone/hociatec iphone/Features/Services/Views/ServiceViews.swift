@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 struct ServiceDetailView: View {
     let serviceCatalog: ServiceCatalogServing

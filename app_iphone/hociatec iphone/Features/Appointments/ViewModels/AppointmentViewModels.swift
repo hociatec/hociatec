@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 
 enum MyAppointmentsFilter: String, CaseIterable, Identifiable {
     case all
