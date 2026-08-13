@@ -4,7 +4,6 @@ struct ContentView: View {
     @EnvironmentObject private var container: AppContainer
     @EnvironmentObject private var cart: CartViewModel
     @EnvironmentObject private var navigation: AppNavigationState
-    @State private var selectedTab: Int = 0
     @State private var productFiltersBadge: Int? = nil
     @State private var bannerMessage: String? = nil
     @State private var bannerIsError: Bool = false
@@ -14,7 +13,7 @@ struct ContentView: View {
             services: container.services,
             cartAccessibilityLabel: cartAccessibilityLabel,
             cartBadge: cart.cart?.totalQuantity ?? 0,
-            selectedTab: $selectedTab,
+            selectedTab: $navigation.selectedTab,
             productFiltersBadge: $productFiltersBadge
         )
         .task { await cart.refresh() }

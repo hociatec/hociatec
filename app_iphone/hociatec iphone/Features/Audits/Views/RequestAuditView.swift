@@ -1,8 +1,6 @@
 import SwiftUI
 
 struct RequestAuditView: View {
-    @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject private var account: AccountViewModel
     @ObservedObject var viewModel: AuditsViewModel
     @State private var selectedType = "accessibility"
     @State private var url = ""
@@ -44,13 +42,10 @@ struct RequestAuditView: View {
             Section {
                 Button("Envoyer la demande") {
                     Task {
-                        let success = await viewModel.createAudit(type: selectedType, url: url, objectives: objectives)
-                        if success {
-                            dismiss()
-                        }
+                        _ = await viewModel.createAudit(type: selectedType, url: url, objectives: objectives)
                     }
                 }
-                .disabled(!account.isLoggedIn || viewModel.isSubmitting || url.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .disabled(viewModel.isSubmitting || url.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
         }
         .navigationTitle("Demander un audit")

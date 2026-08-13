@@ -19,7 +19,7 @@ struct TrainingDetailView: View {
                 TrainingSessionsSection(training: training, sessions: viewModel.sessions)
             }
         }
-        .navigationTitle("Formation")
+        .navigationTitle(viewModel.training?.title ?? "Formation")
         .task { await viewModel.load() }
     }
 }

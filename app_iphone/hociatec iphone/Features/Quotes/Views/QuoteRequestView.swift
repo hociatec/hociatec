@@ -6,7 +6,6 @@ import UIKit
 struct QuoteRequestView: View {
     @StateObject private var viewModel: QuoteViewModel
     @State private var showingAddLineSheet = false
-    @Environment(\.dismiss) private var dismiss
 
     init(viewModel: QuoteViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -32,7 +31,6 @@ struct QuoteRequestView: View {
 #if canImport(UIKit)
                             UINotificationFeedbackGenerator().notificationOccurred(.success)
 #endif
-                            dismiss()
                         }
                     }
                 }

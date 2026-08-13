@@ -2,6 +2,11 @@ import Foundation
 
 extension QuoteViewModel {
     func submit() async {
+        guard account.isLoggedIn else {
+            error = "Connectez-vous pour enregistrer ce devis dans votre espace client."
+            return
+        }
+
         let validItems = buildValidItems()
         guard !validItems.isEmpty else {
             error = "Ajoutez au moins une ligne valide."
@@ -22,7 +27,6 @@ extension QuoteViewModel {
                 items: validItems
             )
             successMessage = "Demande de devis envoyée."
-            items = []
         } catch let err {
             error = err.localizedDescription
         }

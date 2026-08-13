@@ -93,7 +93,7 @@ struct AppointmentLoginNoticeSection: View {
     var body: some View {
         if !isLoggedIn {
             Section {
-                Text("Connectez-vous pour valider.")
+                Text("Vous pouvez choisir votre créneau librement. Ouvrez l’onglet Compte pour vous connecter avant la confirmation finale.")
                     .foregroundStyle(.secondary)
             }
         }
@@ -103,25 +103,30 @@ struct AppointmentLoginNoticeSection: View {
 struct AppointmentConfirmActionSection: View {
     let isLoggedIn: Bool
     let isConfirming: Bool
+    let onRequireLogin: () -> Void
     let onConfirm: () async -> Void
 
     var body: some View {
         Section {
             Button {
-                Task {
-                    await onConfirm()
+                if isLoggedIn {
+                    Task {
+                        await onConfirm()
+                    }
+                } else {
+                    onRequireLogin()
                 }
             } label: {
                 if isConfirming {
                     ProgressView()
                         .frame(maxWidth: .infinity)
                 } else {
-                    Text("Valider")
+                    Text(isLoggedIn ? "Valider" : "Se connecter pour confirmer")
                         .fontWeight(.semibold)
                         .frame(maxWidth: .infinity)
                 }
             }
-            .disabled(!isLoggedIn || isConfirming)
+            .disabled(isConfirming)
         }
     }
 }

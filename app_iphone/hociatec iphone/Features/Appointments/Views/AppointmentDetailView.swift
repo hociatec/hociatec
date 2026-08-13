@@ -52,6 +52,7 @@ struct AppointmentConfirmationView: View {
     @ObservedObject var viewModel: AppointmentBookingViewModel
     let slot: AppointmentSlot
     @EnvironmentObject private var account: AccountViewModel
+    @EnvironmentObject private var navigation: AppNavigationState
     @Environment(\.dismiss) private var dismiss
     @State private var isConfirming = false
 
@@ -65,7 +66,11 @@ struct AppointmentConfirmationView: View {
             AppointmentLoginNoticeSection(isLoggedIn: account.isLoggedIn)
             AppointmentConfirmActionSection(
                 isLoggedIn: account.isLoggedIn,
-                isConfirming: isConfirming
+                isConfirming: isConfirming,
+                onRequireLogin: {
+                    navigation.showTab(4)
+                    dismiss()
+                }
             ) {
                 await confirmAppointment()
             }
@@ -90,8 +95,6 @@ struct AppointmentConfirmationView: View {
 #if canImport(UIKit)
             UINotificationFeedbackGenerator().notificationOccurred(.success)
 #endif
-            try? await Task.sleep(nanoseconds: 1_000_000_000)
-            dismiss()
         }
     }
 }

@@ -3,7 +3,6 @@ import SwiftUI
 struct AppointmentBookingView: View {
     @EnvironmentObject private var account: AccountViewModel
     @StateObject private var viewModel: AppointmentBookingViewModel
-    @Environment(\.dismiss) private var dismiss
     @State private var startDate = Date()
 
     init(service: AppointmentServing) {
@@ -37,13 +36,6 @@ struct AppointmentBookingView: View {
         }
         .onChangeCompat(startDate) { newDate in
             Task { await viewModel.loadSlots(startDate: newDate) }
-        }
-        .onChangeCompat(viewModel.successMessage) { value in
-            guard value != nil else { return }
-            Task {
-                try? await Task.sleep(nanoseconds: 1_000_000_000)
-                dismiss()
-            }
         }
         .environment(\.locale, Locale(identifier: "fr_FR"))
         .environment(\.calendar, Calendar(identifier: .gregorian))

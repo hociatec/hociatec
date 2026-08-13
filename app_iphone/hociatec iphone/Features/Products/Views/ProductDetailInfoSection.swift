@@ -5,6 +5,8 @@ struct ProductInfoSection: View {
 
     var body: some View {
         Section("Informations") {
+            LabeledContent("Référence", value: product.sku)
+            LabeledContent("Type", value: productSellingContext(product))
             if let configuration = productConfiguration(product) {
                 LabeledContent("Configuration", value: configuration)
             }

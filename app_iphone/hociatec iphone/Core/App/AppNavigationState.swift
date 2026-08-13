@@ -17,11 +17,16 @@ final class AppNavigationState: ObservableObject {
         }
     }
 
+    @Published var selectedTab: Int = 0
     @Published var presentedSheet: SheetRoute?
 
     func handle(url: URL) {
         guard let route = route(from: url) else { return }
         presentedSheet = route
+    }
+
+    func showTab(_ index: Int) {
+        selectedTab = index
     }
 
     func dismissSheet() {
