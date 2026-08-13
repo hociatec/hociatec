@@ -115,8 +115,19 @@ struct CartScreen: View {
             }
         }
         .navigationTitle("Panier")
-        .navigationDestination(item: $completedOrder) { order in
-            CheckoutSuccessView(order: order, orderService: container.services.orders)
+        .navigationDestination(
+            isPresented: Binding(
+                get: { completedOrder != nil },
+                set: { newValue in
+                    if !newValue {
+                        completedOrder = nil
+                    }
+                }
+            )
+        ) {
+            if let order = completedOrder {
+                CheckoutSuccessView(order: order, orderService: container.services.orders)
+            }
         }
         .task { await cart.refresh() }
         .refreshable { await cart.refresh() }

@@ -6,7 +6,7 @@ struct BetaOptionsSection: View {
     @Binding var selection: [String]
 
     var body: some View {
-        Section(title) {
+        Section {
             if options.isEmpty {
                 Text("Aucune option disponible.")
                     .foregroundStyle(.secondary)
@@ -27,6 +27,8 @@ struct BetaOptionsSection: View {
                     .buttonStyle(.plain)
                 }
             }
+        } header: {
+            Text(title)
         }
     }
 

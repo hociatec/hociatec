@@ -11,9 +11,7 @@ struct ProductsListView: View {
     @State private var useGrid: Bool = false
     @State private var showSortSheet: Bool = false
     @State private var showFilterSheet: Bool = false
-    @State private var draftSelectedCategoryID: Int? = nil
-    @State private var draftSelectedType: SellingType? = nil
-    @State private var didInitDraftFilters: Bool = false
+    @State private var filterDraft = ProductCatalogFilterDraft()
 
     init(
         viewModel: ProductsViewModel,
@@ -37,68 +35,26 @@ struct ProductsListView: View {
                 }
             }
 
-            Section {
-                ProductCatalogToolbar(
-                    selectedCategory: viewModel.selectedCategory,
-                    selectedSellingType: viewModel.selectedSellingType,
-                    sort: viewModel.sort,
-                    summaryText: summaryText,
-                    onOpenFilters: { showFilterSheet = true },
-                    onOpenSort: { showSortSheet = true },
-                    onClearCategory: {
-                        viewModel.selectedCategory = nil
-                        Task { await viewModel.load(force: true) }
-                    },
-                    onClearSellingType: {
-                        viewModel.selectedSellingType = nil
-                        Task { await viewModel.load(force: true) }
-                    }
-                )
-            }
-
-            Section {
-                if viewModel.isLoading && viewModel.products.isEmpty {
-                    if useGrid {
-                        let columns = [GridItem(.flexible()), GridItem(.flexible())]
-                        LazyVGrid(columns: columns, spacing: 12) {
-                            ForEach(0..<6, id: \.self) { _ in ShimmerTile() }
-                        }
-                        .listRowInsets(EdgeInsets())
-                    } else {
-                        VStack(spacing: 12) {
-                            ForEach(0..<6, id: \.self) { _ in ShimmerRow() }
-                        }
-                    }
-                } else {
-                    if useGrid {
-                        let columns = [GridItem(.flexible()), GridItem(.flexible())]
-                        LazyVGrid(columns: columns, spacing: 12) {
-                            ForEach(viewModel.products) { product in
-                                ProductCatalogCard(
-                                    product: product,
-                                    imageURL: container.services.assets.assetURL(for: product.imageUrl),
-                                    cart: cart,
-                                    selectedTab: $selectedTab,
-                                    isCompact: true
-                                )
-                                .environmentObject(container)
-                            }
-                        }
-                        .listRowInsets(EdgeInsets())
-                    } else {
-                        ForEach(viewModel.products) { product in
-                            ProductCatalogCard(
-                                product: product,
-                                imageURL: container.services.assets.assetURL(for: product.imageUrl),
-                                cart: cart,
-                                selectedTab: $selectedTab,
-                                isCompact: false
-                            )
-                            .environmentObject(container)
-                        }
-                    }
+            ProductsListToolbarSection(
+                viewModel: viewModel,
+                summaryText: summaryText,
+                onOpenFilters: { showFilterSheet = true },
+                onOpenSort: { showSortSheet = true },
+                onClearCategory: {
+                    viewModel.selectedCategory = nil
+                    Task { await viewModel.load(force: true) }
+                },
+                onClearSellingType: {
+                    viewModel.selectedSellingType = nil
+                    Task { await viewModel.load(force: true) }
                 }
-            }
+            )
+
+            ProductsListContentSection(
+                viewModel: viewModel,
+                selectedTab: $selectedTab,
+                useGrid: useGrid
+            )
         }
         .sheet(isPresented: $showSortSheet) {
             ProductSortSheet(
@@ -113,15 +69,15 @@ struct ProductsListView: View {
         .sheet(isPresented: $showFilterSheet) {
             ProductFiltersSheet(
                 categories: viewModel.categories,
-                selectedCategoryID: $draftSelectedCategoryID,
-                selectedSellingType: $draftSelectedType,
+                selectedCategoryID: $filterDraft.selectedCategoryID,
+                selectedSellingType: $filterDraft.selectedSellingType,
                 currentCategoryID: viewModel.selectedCategory?.id,
                 currentSellingType: viewModel.selectedSellingType,
-                didInitDraftFilters: $didInitDraftFilters,
+                didInitDraftFilters: $filterDraft.didInit,
                 onClose: { showFilterSheet = false },
                 onApply: {
-                    viewModel.selectedCategory = viewModel.categories.first(where: { $0.id == draftSelectedCategoryID })
-                    viewModel.selectedSellingType = draftSelectedType
+                    viewModel.selectedCategory = viewModel.categories.first(where: { $0.id == filterDraft.selectedCategoryID })
+                    viewModel.selectedSellingType = filterDraft.selectedSellingType
                     Task { await viewModel.load(force: true) }
                     showFilterSheet = false
                 }
@@ -153,21 +109,5 @@ struct ProductsListView: View {
                 }
             }
         }
-    }
-
-    private var summaryText: String {
-        var parts: [String] = []
-        if let category = viewModel.selectedCategory {
-            parts.append("Catégorie: \(category.name)")
-        }
-        if let t = viewModel.selectedSellingType {
-            parts.append("Type: " + (t == .rental ? "Location" : "Vente"))
-        }
-        return parts.joined(separator: " • ")
-    }
-
-    private func updateFiltersBadge() {
-        let count = (viewModel.selectedCategory == nil ? 0 : 1) + (viewModel.selectedSellingType == nil ? 0 : 1)
-        filtersBadge = count == 0 ? nil : count
     }
 }
