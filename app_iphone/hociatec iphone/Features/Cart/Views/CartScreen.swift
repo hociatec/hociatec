@@ -26,10 +26,12 @@ struct CartScreen: View {
                     isLoading: cart.isLoading,
                     isEmpty: cart.cart?.items.isEmpty ?? true,
                     canCheckout: canCheckout,
+                    showsAddressRequirement: needsDefaultAddress,
                     checkout: { Task { await checkout() } },
                     clear: {
                         screenState.showingClearConfirm = true
-                    }
+                    },
+                    addressesDestination: AnyView(AddressesManagerView(account: account))
                 )
             } else {
                 CartEmptyStateSection(isLoading: cart.isLoading)
@@ -51,16 +53,33 @@ struct CartScreen: View {
                 CheckoutSuccessView(order: order, orderService: container.services.orders)
             }
         }
-        .task { await cart.refresh() }
-        .refreshable { await cart.refresh() }
-        .onChangeCompat(account.isLoggedIn) { _ in
-            Task { await cart.refresh() }
+        .task {
+            await loadScreenData()
+        }
+        .refreshable {
+            await loadScreenData()
+        }
+        .onChangeCompat(account.isLoggedIn) { isLoggedIn in
+            Task {
+                if isLoggedIn {
+                    await account.loadAddresses()
+                }
+                await cart.refresh()
+            }
         }
         .onChangeCompat(cart.statusMessage) { _ in }
     }
 
     private var canCheckout: Bool {
-        account.isLoggedIn && !(cart.cart?.items.isEmpty ?? true) && !cart.isLoading
+        account.isLoggedIn && hasDefaultAddress && !(cart.cart?.items.isEmpty ?? true) && !cart.isLoading
+    }
+
+    private var hasDefaultAddress: Bool {
+        account.addresses.contains(where: \.isDefault)
+    }
+
+    private var needsDefaultAddress: Bool {
+        account.isLoggedIn && !(cart.cart?.items.isEmpty ?? true) && !hasDefaultAddress
     }
 
     private func checkout() async {
@@ -101,5 +120,12 @@ struct CartScreen: View {
 
     private func increaseQuantity(for item: CartItem) async {
         await cart.update(item: item, quantity: item.quantity + 1)
+    }
+
+    private func loadScreenData() async {
+        if account.isLoggedIn {
+            await account.loadAddresses()
+        }
+        await cart.refresh()
     }
 }

@@ -27,12 +27,14 @@ struct GlobalSearchControlsSection: View {
                     Task { await viewModel.submit() }
                 }
 
-            Picker("Filtre", selection: $viewModel.selectedFilter) {
-                ForEach(GlobalSearchFilter.allCases) { filter in
-                    Text(filter.label).tag(filter)
+            if !viewModel.query.isEmpty {
+                Picker("Filtre", selection: $viewModel.selectedFilter) {
+                    ForEach(GlobalSearchFilter.allCases) { filter in
+                        Text(filter.label).tag(filter)
+                    }
                 }
+                .pickerStyle(.segmented)
             }
-            .pickerStyle(.segmented)
 
             Button("Rechercher") {
                 Task { await viewModel.submit() }

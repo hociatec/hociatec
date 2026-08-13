@@ -8,7 +8,7 @@ struct HomeSearchSection: View {
             NavigationLink {
                 GlobalSearchView(services: container.services)
             } label: {
-                Label("Recherche globale", systemImage: "magnifyingglass")
+                Label("Recherche", systemImage: "magnifyingglass")
                     .fontWeight(.semibold)
             }
         }

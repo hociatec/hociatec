@@ -8,6 +8,7 @@ struct AccountScreen: View {
         Group {
             if account.isLoggedIn {
                 ClientDashboardView(services: container.services)
+                    .id("account-logged-in-\(account.profile?.id ?? 0)")
             } else {
                 Form {
                     if let error = account.error, !error.isEmpty {
@@ -44,6 +45,7 @@ struct AccountScreen: View {
                         }
                     }
                 }
+                .id("account-logged-out")
             }
         }
         .task { await account.loadProfileIfPossible() }

@@ -5,12 +5,17 @@ struct ProductInfoSection: View {
 
     var body: some View {
         Section("Informations") {
-            LabeledContent("Type", value: product.sellingType.label)
-            LabeledContent("Catégorie", value: product.category.name)
-            LabeledContent("Référence", value: product.sku)
-            LabeledContent("Stock") {
-                Text("\(product.stock) disponible(s)")
-                    .foregroundColor(product.stock > 0 ? .primary : .red)
+            if let configuration = productConfiguration(product) {
+                LabeledContent("Configuration", value: configuration)
+            }
+            if let unitLabel = nonEmptyValue(product.priceUnitLabel), product.sellingType == .sale {
+                LabeledContent("Unité de prix", value: unitLabel)
+            }
+            if let variantColors = product.variantColors, !variantColors.isEmpty {
+                LabeledContent("Coloris", value: variantColors.joined(separator: ", "))
+            }
+            if let variantStorages = product.variantStorages, !variantStorages.isEmpty {
+                LabeledContent("Stockages", value: variantStorages.joined(separator: ", "))
             }
             ProductPriceRow(product: product)
             if let createdAt = product.createdAt {
