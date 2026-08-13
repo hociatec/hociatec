@@ -14,54 +14,50 @@ struct ContentView: View {
     @State private var bannerIsError: Bool = false
 
     var body: some View {
-        ZStack(alignment: .top) {
-            VStack(spacing: 0) {
-                Group {
-                    switch selectedTab {
-                    case 0:
-                        NavigationStack {
-                            HomeScreen(api: container.api, selectedTab: $selectedTab)
-                        }
-                    case 1:
-                        NavigationStack {
-                            OfferHubView(api: container.api, selectedTab: $selectedTab, filtersBadge: $productFiltersBadge)
-                        }
-                    case 2:
-                        NavigationStack {
-                            CartScreen()
-                        }
-                    case 3:
-                        NavigationStack {
-                            NewsListView(api: container.api)
-                        }
-                    case 4:
-                        NavigationStack {
-                            AccountScreen()
-                        }
-                    case 5:
-                        NavigationStack {
-                            AboutHubView(api: container.api)
-                        }
-                    default:
-                        NavigationStack {
-                            HomeScreen(api: container.api, selectedTab: $selectedTab)
-                        }
-                    }
-                }
-
-                CustomTabBar(
-                    selectedTab: $selectedTab,
-                    cartCount: cart.cart?.totalQuantity ?? 0,
-                    productFiltersBadge: productFiltersBadge
-                )
+        TabView(selection: $selectedTab) {
+            NavigationStack {
+                HomeScreen(api: container.api, selectedTab: $selectedTab)
             }
+            .tabItem { Label("Accueil", systemImage: "house") }
+            .tag(0)
+
+            NavigationStack {
+                OfferHubView(api: container.api, selectedTab: $selectedTab, filtersBadge: $productFiltersBadge)
+            }
+            .tabItem { Label("Notre offre", systemImage: "square.grid.2x2") }
+            .badge(productFiltersBadge.map { Text("\($0)") })
+            .tag(1)
+
+            NavigationStack {
+                CartScreen()
+            }
+            .tabItem {
+                Label("Panier", systemImage: "cart")
+                    .accessibilityLabel(cartAccessibilityLabel)
+            }
+            .badge(cart.cart?.totalQuantity ?? 0)
+            .tag(2)
+
+            NavigationStack {
+                AccountScreen()
+            }
+            .tabItem { Label("Compte", systemImage: "person") }
+            .tag(3)
+
+            NavigationStack {
+                AboutHubView(api: container.api)
+            }
+            .tabItem { Label("À propos", systemImage: "info.circle") }
+            .tag(4)
+        }
+        .task { await cart.refresh() }
+        .overlay(alignment: .top) {
             if let message = bannerMessage {
                 BannerView(message: message, isError: bannerIsError)
                     .transition(.move(edge: .top).combined(with: .opacity))
                     .padding(.top, 8)
             }
         }
-        .task { await cart.refresh() }
         .animation(.spring(), value: bannerMessage)
         .onChangeCompat(container.cart.statusMessage) { newValue in
             guard let msg = newValue, !msg.isEmpty else { return }
@@ -96,92 +92,11 @@ struct ContentView: View {
             }
         }
     }
-}
 
-private struct CustomTabBar: View {
-    @Binding var selectedTab: Int
-    let cartCount: Int
-    let productFiltersBadge: Int?
-
-    var body: some View {
-        HStack(spacing: 0) {
-            CustomTabBarButton(
-                title: "Accueil",
-                systemImage: "house",
-                isSelected: selectedTab == 0,
-                badge: nil
-            ) { selectedTab = 0 }
-            CustomTabBarButton(
-                title: "Offre",
-                systemImage: "square.grid.2x2",
-                isSelected: selectedTab == 1,
-                badge: productFiltersBadge
-            ) { selectedTab = 1 }
-            CustomTabBarButton(
-                title: "Panier",
-                systemImage: "cart",
-                isSelected: selectedTab == 2,
-                badge: cartCount > 0 ? cartCount : nil
-            ) { selectedTab = 2 }
-            CustomTabBarButton(
-                title: "Actus",
-                systemImage: "newspaper",
-                isSelected: selectedTab == 3,
-                badge: nil
-            ) { selectedTab = 3 }
-            CustomTabBarButton(
-                title: "Compte",
-                systemImage: "person",
-                isSelected: selectedTab == 4,
-                badge: nil
-            ) { selectedTab = 4 }
-            CustomTabBarButton(
-                title: "À propos",
-                systemImage: "info.circle",
-                isSelected: selectedTab == 5,
-                badge: nil
-            ) { selectedTab = 5 }
-        }
-        .padding(.horizontal, 4)
-        .padding(.top, 8)
-        .padding(.bottom, 12)
-        .background(.ultraThinMaterial)
-    }
-}
-
-private struct CustomTabBarButton: View {
-    let title: String
-    let systemImage: String
-    let isSelected: Bool
-    let badge: Int?
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 4) {
-                ZStack(alignment: .topTrailing) {
-                    Image(systemName: systemImage)
-                        .font(.system(size: 18, weight: .semibold))
-                    if let badge {
-                        Text("\(badge)")
-                            .font(.caption2.weight(.bold))
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 5)
-                            .padding(.vertical, 1)
-                            .background(Color.red)
-                            .clipShape(Capsule())
-                            .offset(x: 10, y: -8)
-                    }
-                }
-                Text(title)
-                    .font(.caption2)
-                    .lineLimit(1)
-            }
-            .frame(maxWidth: .infinity)
-            .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
-            .padding(.vertical, 4)
-        }
-        .buttonStyle(.plain)
+    private var cartAccessibilityLabel: String {
+        guard let cart = cart.cart else { return "Panier, chargement…" }
+        let count = cart.totalQuantity
+        return count == 1 ? "Panier, 1 article" : "Panier, \(count) articles"
     }
 }
 
@@ -204,8 +119,8 @@ private struct HomeScreen: View {
                     Text("Retrouvez nos nouveautes, nos offres et un parcours mobile aligne avec nos services.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
-                    Button {
-                        selectedTab = 3
+                    NavigationLink {
+                        NewsListView(api: container.api)
                     } label: {
                         Label("Actualités", systemImage: "newspaper")
                             .fontWeight(.semibold)
