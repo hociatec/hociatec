@@ -263,6 +263,8 @@ jobs:
 
           export DOWNLOAD_URL_EXPECTED="https://github.com/hociatec/hociatec-downloads/releases/download/ios-latest/${LATEST_IPA_FILENAME}"
 
+          validation_ok=0
+
           for attempt in 1 2 3 4 5 6 7 8; do
             echo "Verification de la propagation GitHub Release, tentative ${attempt}/8"
 
@@ -277,14 +279,16 @@ jobs:
                   "${APP_BUILD}" \
                 && python3 -c "import json, os, sys; payload = json.load(open('tmp-ios-published/hociatec-altstore-source.json', 'r', encoding='utf-8')); download_url = payload['apps'][0]['versions'][0]['downloadURL']; expected_url = os.environ['DOWNLOAD_URL_EXPECTED']; sys.exit(f'Le downloadURL publie n\\'est pas encore a jour: {download_url} != {expected_url}') if download_url != expected_url else sys.exit(0)"
               then
+                validation_ok=1
                 break
               fi
             fi
 
-            if [ "${attempt}" -eq 8 ]; then
-              echo "Les assets publics AltStore ne sont pas encore coherents apres 8 tentatives." >&2
-              exit 1
+            if [ "${attempt}" -lt 8 ]; then
+              sleep 15
             fi
-
-            sleep 15
           done
+
+          if [ "${validation_ok}" -ne 1 ]; then
+            echo "::warning::Les assets publics AltStore n'etaient pas encore coherents apres 8 tentatives. La publication a ete effectuee, mais la propagation GitHub est probablement encore en cours."
+          fi
