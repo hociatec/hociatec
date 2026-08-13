@@ -29,10 +29,18 @@ extension ClientDashboardViewModel {
             trainings.failure
         ].compactMap { $0 }
 
-        if let firstFailure = failures.first {
+        let successfulLoads = [
+            quotes.value != nil,
+            appointments.value != nil,
+            pendingReviews.value != nil,
+            loyalty.value != nil,
+            trainings.value != nil
+        ].filter { $0 }.count
+
+        if successfulLoads == 0, let firstFailure = failures.first {
             error = firstFailure.localizedDescription
         }
-        partialError = !failures.isEmpty && failures.count < 5
+        partialError = !failures.isEmpty && successfulLoads > 0
 
         guard let loyaltyValue = loyalty.value else { return }
         self.loyalty = loyaltyValue

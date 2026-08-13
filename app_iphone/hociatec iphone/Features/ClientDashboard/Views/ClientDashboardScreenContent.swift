@@ -9,6 +9,7 @@ struct ClientDashboardScreenContent: View {
     var body: some View {
         Group {
             ClientDashboardHeroSection(firstName: account.profile?.firstName)
+            ClientDashboardTopActionsSection(showDeleteConfirmation: $showDeleteConfirmation)
             ClientDashboardStatusSections(
                 error: viewModel.error,
                 partialError: viewModel.partialError
@@ -18,9 +19,10 @@ struct ClientDashboardScreenContent: View {
                 actions: viewModel.actions
             )
             ClientDashboardLoyaltySection(viewModel: viewModel)
-            ClientDashboardAccountSection()
-            ClientDashboardInformationSection()
-            ClientDashboardSecuritySection(showDeleteConfirmation: $showDeleteConfirmation)
+            ClientDashboardQuickAccessSection()
+            ClientDashboardServicesSection()
+            ClientDashboardProgramsSection()
+            ClientDashboardSettingsSection()
         }
     }
 }

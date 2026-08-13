@@ -1,5 +1,4 @@
 import SwiftUI
-import Combine
 
 @MainActor
 struct OrderDetailView: View {
@@ -13,60 +12,24 @@ struct OrderDetailView: View {
     var body: some View {
         Form {
             if let error = viewModel.error {
-                Section { Text(error).foregroundColor(.red) }
+                OrderDetailErrorSection(error: error)
             }
 
             if viewModel.isLoading {
-                Section { HStack { Spacer(); ProgressView(); Spacer() } }
+                OrderDetailLoadingSection()
             }
 
             if let order = viewModel.order {
-                Section {
-                    LabeledContent("Numéro") { Text(order.number) }
-                    LabeledContent("Statut") { Text(order.statusLabel) }
-                    LabeledContent("Créée le") { Text(OrderStatusPresentation.dateFormatter.string(from: order.createdAt)) }
-                }
-
-                Section {
-                    LabeledContent("Nom") { Text(order.shipping.name) }
-                    LabeledContent("Adresse") { Text(order.shipping.address) }
-                    LabeledContent("Code postal") { Text(order.shipping.postalCode) }
-                    LabeledContent("Ville") { Text(order.shipping.city) }
-                }
-
-                Section {
-                    ForEach(order.items) { item in
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(item.productName).fontWeight(.semibold)
-                            Text("SKU: \(item.productSku)").font(.caption).foregroundStyle(.secondary)
-                            HStack {
-                                Text("Qté: \(item.quantity)")
-                                Spacer()
-                                Text(PriceFormatter.format(cents: item.unitPriceCents))
-                            }
-                            HStack {
-                                Text("Total ligne")
-                                Spacer()
-                                Text(PriceFormatter.format(cents: item.linePriceCents)).fontWeight(.semibold)
-                            }
-                        }
-                        .padding(.vertical, 4)
-                    }
-                }
-
-                Section {
-                    Text(PriceFormatter.format(cents: order.totalPriceCents)).fontWeight(.bold)
-                }
+                OrderDetailSummarySection(order: order)
+                OrderDetailShippingSection(order: order)
+                OrderDetailItemsSection(order: order)
+                OrderDetailTotalSection(order: order)
 
                 if order.status.lowercased() == "pending" {
-                    Section {
-                        Button(role: .destructive) {
-                            showCancelAlert = true
-                        } label: {
-                            Text("Annuler la commande").frame(maxWidth: .infinity)
-                        }
-                        .disabled(viewModel.isLoading)
-                    }
+                    OrderDetailCancelSection(
+                        isDisabled: viewModel.isLoading,
+                        onCancel: { showCancelAlert = true }
+                    )
                 }
             }
         }
@@ -81,51 +44,6 @@ struct OrderDetailView: View {
             }
         } message: {
             Text("Cette action est irréversible. La commande sera annulée si elle est encore en attente.")
-        }
-    }
-}
-
-@MainActor
-private final class OrderDetailViewModel: ObservableObject {
-    @Published var order: OrderSummary?
-    @Published var isLoading = false
-    @Published var error: String?
-
-    private let service: OrderServing
-    private let orderId: Int
-
-    init(service: OrderServing, orderId: Int) {
-        self.service = service
-        self.orderId = orderId
-    }
-
-    func load() async {
-        isLoading = true
-        error = nil
-        defer { isLoading = false }
-        do {
-            order = try await service.order(id: orderId)
-        } catch {
-            self.error = error.localizedDescription
-            order = nil
-        }
-    }
-
-    func cancel() async {
-        guard let order else { return }
-        isLoading = true
-        error = nil
-        defer { isLoading = false }
-        do {
-            self.order = try await service.cancelOrder(id: order.id)
-#if canImport(UIKit)
-            UINotificationFeedbackGenerator().notificationOccurred(.success)
-#endif
-        } catch {
-            self.error = error.localizedDescription
-#if canImport(UIKit)
-            UINotificationFeedbackGenerator().notificationOccurred(.error)
-#endif
         }
     }
 }

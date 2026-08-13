@@ -14,66 +14,18 @@ struct QuoteRequestView: View {
 
     var body: some View {
         Form {
-            if let error = viewModel.error, !error.isEmpty {
-                Section { Text(error).foregroundStyle(.red) }
-            }
-            if let success = viewModel.successMessage, !success.isEmpty {
-                Section { Label(success, systemImage: "checkmark.seal.fill").foregroundStyle(.green) }
-            }
-
-            Section {
-                TextField("Nom", text: $viewModel.name)
-                    .textContentType(.name)
-                TextField("Email", text: $viewModel.email)
-                    .keyboardType(.emailAddress)
-                    .textInputAutocapitalization(.never)
-                    .textContentType(.emailAddress)
-                TextField("Société (optionnel)", text: $viewModel.company)
-                TextField("Adresse (optionnel)", text: $viewModel.address)
-
-                Button("Utiliser mon profil") {
-                    viewModel.prefillFromAccount()
-                }
-                .disabled(viewModel.isSubmitting)
-            }
-
-            Section {
-                if viewModel.items.isEmpty {
-                    Text("Ajoutez une ou plusieurs lignes (service, produit, ou ligne libre).")
-                        .foregroundStyle(.secondary)
-                } else {
-                    ForEach(viewModel.items) { item in
-                        NavigationLink {
-                            QuoteLineEditorView(item: binding(for: item))
-                        } label: {
-                            QuoteLineRow(item: item)
-                        }
-                        .swipeActions {
-                            Button(role: .destructive) { viewModel.removeLine(id: item.id) } label: {
-                                Label("Supprimer", systemImage: "trash")
-                            }
-                        }
-                    }
-                }
-
-                Button("Ajouter une ligne", systemImage: "plus") {
-                    showingAddLineSheet = true
-                }
-                .disabled(viewModel.isSubmitting)
-            }
-
-            Section {
-                LabeledContent("Total estimé") {
-                    Text(PriceFormatter.format(cents: estimatedTotalCents))
-                        .fontWeight(.semibold)
-                }
-                Text("Le total final (TVA, conditions) est calculé par le serveur.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
-
-            Section {
-                Button {
+            QuoteRequestFeedbackSection(error: viewModel.error, success: viewModel.successMessage)
+            QuoteRequestIdentitySection(viewModel: viewModel)
+            QuoteRequestItemsSection(
+                viewModel: viewModel,
+                showingAddLineSheet: $showingAddLineSheet,
+                bindingForItem: binding(for:)
+            )
+            QuoteRequestSummarySection(estimatedTotalCents: estimatedTotalCents)
+            QuoteRequestSubmitSection(
+                isSubmitting: viewModel.isSubmitting,
+                canSubmit: canSubmit,
+                onSubmit: {
                     Task {
                         await viewModel.submit()
                         if viewModel.successMessage != nil {
@@ -83,17 +35,8 @@ struct QuoteRequestView: View {
                             dismiss()
                         }
                     }
-                } label: {
-                    if viewModel.isSubmitting {
-                        ProgressView().frame(maxWidth: .infinity)
-                    } else {
-                        Text("Envoyer la demande")
-                            .fontWeight(.semibold)
-                            .frame(maxWidth: .infinity)
-                    }
                 }
-                .disabled(!canSubmit)
-            }
+            )
         }
         .navigationTitle("Devis")
         .task { await viewModel.loadServices() }

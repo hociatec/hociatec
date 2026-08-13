@@ -63,61 +63,6 @@ struct ClientDashboardActionBuilder {
                 )
             )
         }
-
-        built.append(contentsOf: secondaryActions)
         return built
-    }
-
-    private var secondaryActions: [ClientDashboardAction] {
-        [
-            ClientDashboardAction(
-                id: "favorites",
-                title: "Retrouver vos favoris",
-                detail: "Accédez rapidement à vos produits enregistrés",
-                destination: .favorites
-            ),
-            ClientDashboardAction(
-                id: "orders",
-                title: "Suivre vos commandes",
-                detail: "Consultez l’état et le détail de vos achats",
-                destination: .orders
-            ),
-            ClientDashboardAction(
-                id: "communication-preferences",
-                title: "Gérer vos préférences",
-                detail: "Choisissez vos moyens de communication",
-                destination: .communicationPreferences
-            ),
-            ClientDashboardAction(
-                id: "addresses",
-                title: "Mettre à jour vos adresses",
-                detail: "Facturation et livraison",
-                destination: .addresses
-            ),
-            ClientDashboardAction(
-                id: "support",
-                title: "Suivre vos demandes SAV",
-                detail: "Retrouvez vos échanges avec Hociatec",
-                destination: .support
-            ),
-            ClientDashboardAction(
-                id: "vouchers",
-                title: "Consulter vos bons",
-                detail: "Vos réductions actives et passées",
-                destination: .vouchers
-            ),
-            ClientDashboardAction(
-                id: "audits",
-                title: "Suivre vos audits",
-                detail: "Demandes envoyées et avancement",
-                destination: .audits
-            ),
-            ClientDashboardAction(
-                id: "trade-ins",
-                title: "Suivre vos reprises",
-                detail: "Offres, décisions et avoirs",
-                destination: .tradeIns
-            )
-        ]
     }
 }

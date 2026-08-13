@@ -30,6 +30,11 @@ extension ClientDashboardViewModel {
         return points > 0 && points <= loyalty.points && !isLoading
     }
 
+    var convertedEuroCents: Int {
+        guard loyalty.pointsPerEuroConverted > 0 else { return 0 }
+        return (normalizedConvertPoints / loyalty.pointsPerEuroConverted) * 100
+    }
+
     func syncConvertPointsIfNeeded() {
         let current = normalizedConvertPoints
         if current > 0, current <= loyalty.points {

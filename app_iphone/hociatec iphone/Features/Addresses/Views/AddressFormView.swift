@@ -25,61 +25,27 @@ struct AddressFormView: View {
 
     var body: some View {
         Form {
-            LabeledContent("Intitulé") {
-                TextField("Domicile, bureau…", text: $label)
-                    .textContentType(.nickname)
-            }
-
-            LabeledContent("Adresse") {
-                TextField("Adresse complète", text: $address)
-                    .textContentType(.fullStreetAddress)
-            }
-
-            LabeledContent("Code postal") {
-                TextField("75001", text: $postalCode)
-                    .keyboardType(.numbersAndPunctuation)
-                    .textContentType(.postalCode)
-            }
-
-            LabeledContent("Ville") {
-                TextField("Paris", text: $city)
-                    .textContentType(.addressCity)
-            }
-
-            Toggle("Définir comme adresse par défaut", isOn: $isDefault)
-
-            if let error = account.error {
-                Section {
-                    Text(error)
-                        .foregroundStyle(.red)
-                }
-            }
-            
+            AddressFormFieldsSection(
+                label: $label,
+                address: $address,
+                postalCode: $postalCode,
+                city: $city,
+                isDefault: $isDefault
+            )
+            AddressFormErrorSection(error: account.error)
             if existing?.id != nil {
-                Section {
-                    Button(role: .destructive) {
-                        showDeleteAlert = true
-                    } label: {
-                        Text("Supprimer cette adresse")
-                    }
+                AddressFormDeleteSection {
+                    showDeleteAlert = true
                 }
             }
         }
         .navigationTitle(existing == nil ? "Nouvelle adresse" : "Modifier l’adresse")
         .safeAreaInset(edge: .bottom) {
-            VStack(spacing: 8) {
-                Button(action: save) {
-                    if isSaving {
-                        ProgressView()
-                    } else {
-                        Text("Enregistrer")
-                            .fontWeight(.semibold)
-                            .frame(maxWidth: .infinity)
-                    }
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(isSaving || label.isEmpty || address.isEmpty || postalCode.isEmpty || city.isEmpty)
-            }
+            AddressFormSaveBar(
+                isSaving: isSaving,
+                isDisabled: isSaving || label.isEmpty || address.isEmpty || postalCode.isEmpty || city.isEmpty,
+                onSave: save
+            )
             .padding([.horizontal, .top])
             .padding(.bottom, 8)
             .background(.thinMaterial)

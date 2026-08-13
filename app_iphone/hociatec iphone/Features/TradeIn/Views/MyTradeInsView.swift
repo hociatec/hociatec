@@ -10,64 +10,8 @@ struct MyTradeInsView: View {
 
     var body: some View {
         List {
-            if let error = viewModel.error, !error.isEmpty {
-                Section { Text(error).foregroundStyle(.red) }
-            }
-
-            if let message = viewModel.message, !message.isEmpty {
-                Section { Text(message).foregroundStyle(.green) }
-            }
-
-            Section("Mes reprises") {
-                if viewModel.isLoading && viewModel.items.isEmpty {
-                    ProgressView("Chargement...")
-                } else if viewModel.items.isEmpty {
-                    Text("Aucune demande de reprise pour le moment.")
-                        .foregroundStyle(.secondary)
-                } else {
-                    ForEach(viewModel.items) { item in
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Text(item.reference)
-                                    .fontWeight(.semibold)
-                                Spacer()
-                                Text(item.statusLabel)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            Text(item.productName)
-                            if let offerCents = item.offerCents {
-                                Text(PriceFormatter.format(cents: offerCents))
-                                    .font(.footnote.weight(.semibold))
-                            }
-                            if let adminNote = item.adminNote, !adminNote.isEmpty {
-                                Text(adminNote)
-                                    .font(.footnote)
-                                    .foregroundStyle(.secondary)
-                            }
-                            if let voucherCode = item.voucherCode, !voucherCode.isEmpty {
-                                Text("Avoir client: \(voucherCode)")
-                                    .font(.footnote)
-                            }
-                            if item.status == "offer_sent" {
-                                HStack {
-                                    Button("Accepter") {
-                                        Task { await viewModel.respond(id: item.id, action: "accept") }
-                                    }
-                                    Button("Refuser", role: .destructive) {
-                                        Task { await viewModel.respond(id: item.id, action: "decline") }
-                                    }
-                                }
-                            }
-                            Button("Télécharger le justificatif") {
-                                Task { await viewModel.shareReceipt(id: item.id, reference: item.reference) }
-                            }
-                            .font(.footnote)
-                        }
-                        .padding(.vertical, 6)
-                    }
-                }
-            }
+            TradeInFeedbackSection(error: viewModel.error, message: viewModel.message)
+            TradeInListSection(viewModel: viewModel)
         }
         .navigationTitle("Mes reprises")
         .sheet(item: $viewModel.sharedFile) { file in
@@ -79,7 +23,7 @@ struct MyTradeInsView: View {
 }
 
 @MainActor
-private final class MyTradeInsViewModel: ObservableObject {
+final class MyTradeInsViewModel: ObservableObject {
     @Published var items: [TradeInSummary] = []
     @Published var isLoading = false
     @Published var error: String?

@@ -18,6 +18,10 @@ struct LoyaltyBalance: Decodable {
     let pointsPerEuroConverted: Int
 }
 
+struct LoyaltyBalancePayload: Decodable {
+    let loyalty: LoyaltyBalance
+}
+
 struct VoucherSummary: Decodable {
     let id: Int
     let code: String

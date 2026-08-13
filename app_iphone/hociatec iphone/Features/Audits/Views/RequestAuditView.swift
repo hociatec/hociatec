@@ -1,0 +1,91 @@
+import SwiftUI
+
+struct RequestAuditView: View {
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var account: AccountViewModel
+    @ObservedObject var viewModel: AuditsViewModel
+    @State private var selectedType = "accessibility"
+    @State private var url = ""
+    @State private var objectives = ""
+
+    var body: some View {
+        Form {
+            AuditRequestHeroSection()
+
+            if let error = viewModel.error, !error.isEmpty {
+                Section {
+                    Text(error)
+                        .foregroundStyle(.red)
+                }
+            }
+
+            if let successMessage = viewModel.successMessage, !successMessage.isEmpty {
+                Section {
+                    Text(successMessage)
+                        .foregroundStyle(.green)
+                }
+            }
+
+            Section("Votre demande") {
+                Picker("Type d'audit", selection: $selectedType) {
+                    ForEach(auditTypes, id: \.value) { type in
+                        Text(type.label).tag(type.value)
+                    }
+                }
+
+                TextField("URL ou accès", text: $url)
+                    .textInputAutocapitalization(.never)
+                    .keyboardType(.URL)
+
+                TextEditor(text: $objectives)
+                    .frame(minHeight: 140)
+            }
+
+            if !account.isLoggedIn {
+                Section("Validation") {
+                    Text("Le formulaire reste consultable, mais la connexion est nécessaire pour envoyer la demande.")
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            Section("Envoyer") {
+                Button("Envoyer la demande") {
+                    Task {
+                        let success = await viewModel.createAudit(type: selectedType, url: url, objectives: objectives)
+                        if success {
+                            dismiss()
+                        }
+                    }
+                }
+                .disabled(!account.isLoggedIn || viewModel.isSubmitting || url.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+        }
+        .navigationTitle("Demander un audit")
+        .task {
+            await viewModel.loadMetadata()
+            if let firstType = auditTypes.first?.value {
+                selectedType = firstType
+            }
+        }
+    }
+
+    private var auditTypes: [AuditOption] {
+        viewModel.metadata?.types ?? []
+    }
+}
+
+private struct AuditRequestHeroSection: View {
+    var body: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Demander un audit")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                Text("Décrivez le périmètre à analyser et les objectifs attendus. Hociatec vous recontacte avec un cadrage adapté.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.vertical, 4)
+        }
+    }
+}

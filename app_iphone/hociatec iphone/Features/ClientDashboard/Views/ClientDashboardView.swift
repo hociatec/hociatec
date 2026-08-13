@@ -1,8 +1,8 @@
 import SwiftUI
 
 struct ClientDashboardView: View {
-    @EnvironmentObject private var account: AccountViewModel
     @StateObject private var viewModel: ClientDashboardViewModel
+    @EnvironmentObject private var account: AccountViewModel
     @State private var showDeleteConfirmation = false
 
     init(services: AppServices) {

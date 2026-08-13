@@ -14,15 +14,6 @@ struct ProductCatalogToolbar: View {
         (selectedCategory == nil ? 0 : 1) + (selectedSellingType == nil ? 0 : 1)
     }
 
-    private var sortLabel: String {
-        switch sort {
-        case .relevance: return "Pertinence"
-        case .priceLowHigh: return "Prix croissant"
-        case .priceHighLow: return "Prix décroissant"
-        case .newest: return "Nouveautés"
-        }
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
@@ -31,7 +22,7 @@ struct ProductCatalogToolbar: View {
                 }
                 Spacer()
                 Button(action: onOpenSort) {
-                    Label("Trier (\(sortLabel))", systemImage: "arrow.up.arrow.down")
+                    Label("Trier (\(ProductCatalogFilterPresentation.sortLabel(for: sort)))", systemImage: "arrow.up.arrow.down")
                 }
             }
 
@@ -40,25 +31,12 @@ struct ProductCatalogToolbar: View {
                     .font(.footnote)
                     .foregroundStyle(.secondary)
 
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        if let selectedCategory {
-                            ProductFilterChip(
-                                title: selectedCategory.name,
-                                accessibilityLabel: "Retirer le filtre \(selectedCategory.name)",
-                                onRemove: onClearCategory
-                            )
-                        }
-
-                        if let selectedSellingType {
-                            ProductFilterChip(
-                                title: selectedSellingType == .rental ? "Location" : "Vente",
-                                accessibilityLabel: "Retirer le filtre type",
-                                onRemove: onClearSellingType
-                            )
-                        }
-                    }
-                }
+                ProductCatalogActiveFiltersRow(
+                    selectedCategory: selectedCategory,
+                    selectedSellingType: selectedSellingType,
+                    onClearCategory: onClearCategory,
+                    onClearSellingType: onClearSellingType
+                )
             }
         }
     }
@@ -112,29 +90,11 @@ struct ProductFiltersSheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Catégories") {
-                    if categories.isEmpty {
-                        Text("Chargement...")
-                            .foregroundStyle(.secondary)
-                    } else {
-                        Picker("Catégorie", selection: $selectedCategoryID) {
-                            Text("Toutes").tag(Int?.none)
-                            ForEach(categories) { category in
-                                Text(category.name).tag(Optional(category.id))
-                            }
-                        }
-                        .pickerStyle(.inline)
-                    }
-                }
-
-                Section("Type") {
-                    Picker("Type", selection: $selectedSellingType) {
-                        Text("Tous").tag(SellingType?.none)
-                        Text("Vente").tag(Optional(SellingType.sale))
-                        Text("Location").tag(Optional(SellingType.rental))
-                    }
-                    .pickerStyle(.segmented)
-                }
+                ProductCatalogCategoryFilterSection(
+                    categories: categories,
+                    selectedCategoryID: $selectedCategoryID
+                )
+                ProductCatalogSellingTypeFilterSection(selectedSellingType: $selectedSellingType)
             }
             .onAppear {
                 guard !didInitDraftFilters else { return }
@@ -152,54 +112,14 @@ struct ProductFiltersSheet: View {
                     Button("Annuler", action: onClose)
                 }
                 ToolbarItem(placement: .bottomBar) {
-                    Button("Réinitialiser") {
-                        selectedCategoryID = nil
-                        selectedSellingType = nil
-                    }
+                    ProductCatalogResetFiltersButton(
+                        selectedCategoryID: $selectedCategoryID,
+                        selectedSellingType: $selectedSellingType
+                    )
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Appliquer", action: onApply)
                         .disabled(!hasChanges)
-                }
-            }
-        }
-    }
-}
-
-private struct ProductFilterChip: View {
-    let title: String
-    let accessibilityLabel: String
-    let onRemove: () -> Void
-
-    var body: some View {
-        HStack(spacing: 6) {
-            Text(title)
-            Button(action: onRemove) {
-                Image(systemName: "xmark.circle.fill")
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(accessibilityLabel)
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background(Color.blue.opacity(0.1))
-        .foregroundColor(.blue)
-        .clipShape(Capsule())
-    }
-}
-
-private struct ProductSortOptionRow: View {
-    let title: String
-    let isSelected: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            HStack {
-                Text(title)
-                if isSelected {
-                    Spacer()
-                    Image(systemName: "checkmark")
                 }
             }
         }

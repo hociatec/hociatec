@@ -31,45 +31,13 @@ struct ProductDetailView: View {
                     reviewsAverage: viewModel.reviewsAverage,
                     reviewsTotal: viewModel.reviewsTotal
                 )
-
-                if let detailError = viewModel.detailError {
-                    Label(detailError, systemImage: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.red)
-                        .font(.footnote)
-                }
-
+                ProductDetailErrorBanner(detailError: viewModel.detailError)
                 ProductInfoSection(product: viewModel.product)
-
-                Section("Description") {
-                    Text(viewModel.product.description)
-                        .font(.body)
-                        .foregroundStyle(.primary)
-                }
-                ProductReviewsPreviewSection(
-                    reviewsAverage: viewModel.reviewsAverage,
-                    reviewsTotal: viewModel.reviewsTotal,
-                    reviews: viewModel.reviews,
-                    isLoadingReviews: viewModel.isLoadingReviews,
-                    reviewsError: viewModel.reviewsError,
-                    isLoggedIn: container.account.isLoggedIn,
-                    canLoadMore: viewModel.hasMoreReviews,
-                    loadMoreAction: {
-                        Task {
-                            await viewModel.loadReviews(page: viewModel.nextReviewsPage)
-                        }
-                    },
-                    reviewsDestination: AnyView(
-                        ProductReviewsView(
-                            service: container.services.products,
-                            orderService: container.services.orders,
-                            productName: viewModel.product.name,
-                            productSlug: viewModel.product.slug,
-                            productSku: viewModel.product.sku
-                        )
-                        .environmentObject(container)
-                    )
+                ProductDetailDescriptionSection(description: viewModel.product.description)
+                ProductDetailReviewsSectionContainer(
+                    container: container,
+                    viewModel: viewModel
                 )
-
                 ProductPurchaseSection(
                     currentQuantity: currentQuantity,
                     stockLimit: stockLimit,
@@ -103,42 +71,12 @@ struct ProductDetailView: View {
                 await viewModel.loadReviews(page: 1)
             }
         }
-        .alert("Ajout au panier", isPresented: $alertState.showAddAlert) {
-            Button("Continuer", role: .cancel) { dismiss() }
-            Button("Voir le panier") {
-                selectedTab = 2
-                dismiss()
-            }
-        } message: {
-            Text("\(alertState.addedProductName) a été ajouté au panier.")
-        }
-        .alert("Stock insuffisant", isPresented: $alertState.showStockAlert) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text(alertState.stockAlertMessage)
-        }
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    Task { await viewModel.toggleFavorite() }
-                } label: {
-                    Image(systemName: viewModel.isFavorite ? "heart.fill" : "heart")
-                }
-                .accessibilityLabel(viewModel.isFavorite ? "Retirer des favoris" : "Ajouter aux favoris")
-            }
-        }
+        .productDetailAlerts(alertState: $alertState, dismiss: dismiss, selectedTab: $selectedTab)
+        .productDetailFavoriteToolbar(viewModel: viewModel)
     }
 
     private var imageURL: URL? {
         container.services.assets.assetURL(for: viewModel.product.imageUrl) ?? initialImageURL
     }
-
-    private var placeholder: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 12)
-                .fill(.gray.opacity(0.08))
-            Image(systemName: "photo")
-                .foregroundStyle(.secondary)
-        }
-    }
+    private var placeholder: some View { ProductDetailImagePlaceholder() }
 }

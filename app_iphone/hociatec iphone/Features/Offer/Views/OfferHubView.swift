@@ -9,6 +9,12 @@ struct OfferHubView: View {
 
     var body: some View {
         List {
+            Section {
+                Text("Retrouvez en un seul endroit notre catalogue, nos prestations et les parcours pour acheter, louer, planifier ou demander un accompagnement.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
             Section("Catalogue") {
                 NavigationLink {
                     ProductsListView(
@@ -65,7 +71,7 @@ struct OfferHubView: View {
                 }
 
                 NavigationLink {
-                    MyAuditsView(service: services.audits)
+                    RequestAuditView(viewModel: AuditsViewModel(service: services.audits))
                 } label: {
                     Label("Demander un audit", systemImage: "checklist")
                 }

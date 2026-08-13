@@ -20,11 +20,12 @@ extension APIClient {
     }
 
     func loyaltyBalance() async throws -> LoyaltyBalance {
-        try await request(
+        let payload: LoyaltyBalancePayload = try await request(
             path: "api/loyalty/me",
             authorized: true,
             attachCartToken: false
         )
+        return payload.loyalty
     }
 
     func convertLoyalty(points: Int) async throws -> LoyaltyConversionData {

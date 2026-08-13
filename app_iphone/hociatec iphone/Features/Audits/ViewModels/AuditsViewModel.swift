@@ -36,6 +36,19 @@ final class AuditsViewModel: ObservableObject {
         }
     }
 
+    func loadMetadata(force: Bool = false) async {
+        if isLoading && !force { return }
+        isLoading = true
+        error = nil
+        defer { isLoading = false }
+
+        do {
+            metadata = try await service.auditMetadata()
+        } catch {
+            metadata = Self.fallbackMetadata
+        }
+    }
+
     func loadDetail(id: Int) async {
         isLoading = true
         error = nil
@@ -94,4 +107,16 @@ final class AuditsViewModel: ObservableObject {
             self.error = error.localizedDescription
         }
     }
+
+    private static let fallbackMetadata = AuditMetadata(
+        types: [
+            AuditOption(value: "performance", label: "Performance"),
+            AuditOption(value: "security", label: "Sécurité"),
+            AuditOption(value: "ux", label: "UX"),
+            AuditOption(value: "seo", label: "SEO"),
+            AuditOption(value: "technical", label: "Technique"),
+            AuditOption(value: "accessibility", label: "Accessibilité"),
+        ],
+        statuses: []
+    )
 }
