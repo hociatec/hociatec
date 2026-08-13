@@ -21,7 +21,7 @@ struct ServiceDetailErrorSection: View {
 }
 
 struct ServiceDetailHeroSectionView: View {
-    let service: ServiceSummary
+    let service: QuoteService
     let imageURL: URL?
 
     var body: some View {
@@ -79,7 +79,7 @@ private struct ServiceDetailPlaceholder: View {
 }
 
 struct ServiceDetailFactsSection: View {
-    let service: ServiceSummary
+    let service: QuoteService
 
     var body: some View {
         Section {

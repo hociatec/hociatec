@@ -14,7 +14,7 @@ struct CartErrorSection: View {
 }
 
 struct CartItemsSection: View {
-    let cartData: CartState
+    let cartData: Cart
     let isLoading: Bool
     let onRemoveRequest: (CartItem) -> Void
     let onDecreaseQuantity: (CartItem) async -> Void

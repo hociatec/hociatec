@@ -63,7 +63,7 @@ struct OrderDetailItemsSection: View {
 }
 
 private struct OrderDetailItemRow: View {
-    let item: OrderItemSummary
+    let item: OrderLineItem
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {

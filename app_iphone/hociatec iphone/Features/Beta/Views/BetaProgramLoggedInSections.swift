@@ -137,7 +137,7 @@ struct BetaProgramReportsSection: View {
 }
 
 private struct BetaReportRow: View {
-    let report: BetaReport
+    let report: BetaBugReport
     @ObservedObject var viewModel: BetaProgramViewModel
 
     var body: some View {
