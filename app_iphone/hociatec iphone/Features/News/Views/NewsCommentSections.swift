@@ -33,9 +33,12 @@ private struct NewsCommentRow: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Commentaire de \(comment.author.name). \(NewsDetailPresentation.commentDate(comment.createdAt))")
             Text(comment.content)
         }
         .padding(.vertical, 6)
+        .accessibilityElement(children: .contain)
     }
 }
 

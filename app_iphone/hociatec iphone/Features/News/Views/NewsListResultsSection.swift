@@ -5,7 +5,7 @@ struct NewsListResultsSection: View {
     @ObservedObject var viewModel: NewsListViewModel
 
     var body: some View {
-        Section("Actualités") {
+        Section {
             if viewModel.isLoading && viewModel.articles.isEmpty {
                 ProgressView("Chargement des actualités...")
             } else if let error = viewModel.error {
@@ -44,12 +44,28 @@ private struct NewsListRow: View {
                         .foregroundStyle(.secondary)
                 }
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(metadataAccessibilityLabel)
+
             Text(article.title)
                 .fontWeight(.semibold)
+                .accessibilityAddTraits(.isHeader)
             Text(article.excerpt)
                 .lineLimit(3)
                 .foregroundStyle(.secondary)
         }
         .padding(.vertical, 4)
+        .accessibilityElement(children: .contain)
+    }
+
+    private var metadataAccessibilityLabel: String {
+        let parts = [
+            article.publishedAt.map { "Publié le \(newsDateFormatter.string(from: $0))" },
+            article.category.flatMap { category in
+                category.isEmpty ? nil : "Catégorie \(category)"
+            }
+        ].compactMap { $0 }
+
+        return parts.joined(separator: ". ")
     }
 }

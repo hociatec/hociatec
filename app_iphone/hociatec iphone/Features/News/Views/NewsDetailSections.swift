@@ -42,9 +42,13 @@ struct NewsDetailHeroSection: View {
                             .clipShape(Capsule())
                     }
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel(metadataAccessibilityLabel)
+
                 Text(article.title)
                     .font(.title2)
                     .fontWeight(.bold)
+                    .accessibilityAddTraits(.isHeader)
                 Text(article.excerpt)
                     .foregroundStyle(.secondary)
 #if canImport(UIKit)
@@ -58,7 +62,19 @@ struct NewsDetailHeroSection: View {
                 }
 #endif
             }
+            .accessibilityElement(children: .contain)
         }
+    }
+
+    private var metadataAccessibilityLabel: String {
+        let parts = [
+            article.publishedAt.map { "Publié le \(newsDateFormatter.string(from: $0))" },
+            article.category.flatMap { category in
+                category.isEmpty ? nil : "Catégorie \(category)"
+            }
+        ].compactMap { $0 }
+
+        return parts.joined(separator: ". ")
     }
 }
 
@@ -69,6 +85,7 @@ struct NewsDetailContentSection: View {
         Section("Contenu") {
             Text(content)
                 .textSelection(.enabled)
+                .accessibilityElement(children: .combine)
         }
     }
 }
