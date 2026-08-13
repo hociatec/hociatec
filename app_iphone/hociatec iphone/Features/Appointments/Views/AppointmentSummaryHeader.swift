@@ -9,7 +9,7 @@ struct AppointmentSummaryHeader: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 10) {
-                SummaryPill(title: "Tout", value: allCount, color: .brandPrimary)
+                SummaryPill(title: "Tout", value: allCount, color: .blue)
                 SummaryPill(title: "À venir", value: upcomingCount, color: .blue)
                 SummaryPill(title: "Passés", value: pastCount, color: .gray)
             }
