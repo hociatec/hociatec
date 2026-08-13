@@ -71,6 +71,7 @@ jobs:
       PROJECT_PATH: app_iphone/hociatec iphone.xcodeproj
       PROJECT_FILE: app_iphone/hociatec iphone.xcodeproj/project.pbxproj
       SCHEME: hociatec iphone
+      CI_BUILD_NUMBER: ${{ github.run_number }}
 
     steps:
       - uses: actions/checkout@v5
@@ -79,15 +80,12 @@ jobs:
         id: app_meta
         run: |
           APP_VERSION="$(sed -nE 's/.*MARKETING_VERSION = "?([^";]+)"?;.*/\1/p' "${PROJECT_FILE}" | head -n 1)"
-          APP_BUILD="$(sed -nE 's/.*CURRENT_PROJECT_VERSION = "?([^";]+)"?;.*/\1/p' "${PROJECT_FILE}" | head -n 1)"
+          APP_BUILD="${CI_BUILD_NUMBER}"
 
-          if [ -z "${APP_VERSION}" ] || [ -z "${APP_BUILD}" ]; then
+          if [ -z "${APP_VERSION}" ]; then
             BUILD_SETTINGS="$(xcodebuild -project "${PROJECT_PATH}" -scheme "${SCHEME}" -showBuildSettings 2>/dev/null || true)"
             if [ -z "${APP_VERSION}" ]; then
               APP_VERSION="$(printf '%s\n' "${BUILD_SETTINGS}" | sed -nE 's/^[[:space:]]*MARKETING_VERSION = (.+)$/\1/p' | head -n 1)"
-            fi
-            if [ -z "${APP_BUILD}" ]; then
-              APP_BUILD="$(printf '%s\n' "${BUILD_SETTINGS}" | sed -nE 's/^[[:space:]]*CURRENT_PROJECT_VERSION = (.+)$/\1/p' | head -n 1)"
             fi
           fi
 
@@ -98,7 +96,7 @@ jobs:
           IPA_FILENAME="${IPA_BASENAME}-v${APP_VERSION}-b${APP_BUILD}.ipa"
 
           if [ -z "${APP_VERSION}" ] || [ -z "${APP_BUILD}" ]; then
-            echo "Impossible de lire MARKETING_VERSION ou CURRENT_PROJECT_VERSION depuis ${PROJECT_FILE}." >&2
+            echo "Impossible de lire MARKETING_VERSION depuis ${PROJECT_FILE} ou de calculer le build CI." >&2
             exit 1
           fi
 
@@ -118,6 +116,8 @@ jobs:
             -sdk iphoneos \
             -destination "generic/platform=iOS" \
             -derivedDataPath app_iphone/build \
+            MARKETING_VERSION="${{ steps.app_meta.outputs.app_version }}" \
+            CURRENT_PROJECT_VERSION="${{ steps.app_meta.outputs.app_build }}" \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
