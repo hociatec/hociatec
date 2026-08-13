@@ -170,7 +170,7 @@ struct TrainingDetailView: View {
                                     LabeledContent("Lieu", value: location)
                                 }
                                 if let meetingURL = nonEmptyText(session.meetingUrl) {
-                                    Link(destination: URL(string: meetingURL) ?? URL(string: "https://hociatec.fr/formations/\(slug)")!) {
+                                    Link(destination: URL(string: meetingURL) ?? URL(string: "https://hociatec.fr/formations/\(training.slug)")!) {
                                         Label("Lien de session", systemImage: "link")
                                     }
                                 }

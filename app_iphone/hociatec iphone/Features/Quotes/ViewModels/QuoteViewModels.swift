@@ -169,6 +169,17 @@ final class QuoteViewModel: ObservableObject {
         items.removeAll { $0.id == id }
     }
 
+    func filteredServices(matching query: String) -> [QuoteService] {
+        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedQuery.isEmpty else { return services }
+
+        let normalizedQuery = normalized(trimmedQuery)
+        return services.filter { service in
+            normalized(service.title).contains(normalizedQuery)
+                || normalized(service.description ?? "").contains(normalizedQuery)
+        }
+    }
+
     private func prefill() {
         if let profile = account.profile {
             name = "\(profile.firstName) \(profile.lastName)"
@@ -179,6 +190,12 @@ final class QuoteViewModel: ObservableObject {
             name = ""
             email = account.email
         }
+    }
+
+    private func normalized(_ value: String) -> String {
+        value
+            .folding(options: .diacriticInsensitive, locale: .current)
+            .lowercased()
     }
 }
 

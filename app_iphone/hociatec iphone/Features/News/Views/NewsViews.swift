@@ -347,3 +347,7 @@ private final class NewsDetailViewModel: ObservableObject {
         }
     }
 }
+
+private func newsShareURL(for article: NewsArticle) -> URL {
+    URL(string: "https://hociatec.fr/actualites/\(article.slug)")!
+}
