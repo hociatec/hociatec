@@ -26,58 +26,28 @@ struct ResetPasswordView: View {
 
     var body: some View {
         Form {
-            Section {
-                if allowsTokenEditing {
-                    TextField("Token", text: $token)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                } else {
-                    Label("Lien sécurisé détecté", systemImage: "checkmark.shield")
-                        .foregroundStyle(.secondary)
-                }
-                SecureField("Nouveau mot de passe", text: $password)
-                SecureField("Confirmation", text: $confirmPassword)
-                Text("Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
-
-            if let successMessage {
-                Section {
-                    Text(successMessage)
-                        .foregroundStyle(.green)
-                }
-            }
-
-            if let errorMessage {
-                Section {
-                    Text(errorMessage)
-                        .foregroundStyle(.red)
-                }
-            }
-
-            Section {
-                Button {
-                    Task { await submit() }
-                } label: {
-                    if isSubmitting {
-                        ProgressView()
-                            .frame(maxWidth: .infinity)
-                    } else {
-                        Text("Enregistrer mon nouveau mot de passe")
-                            .fontWeight(.semibold)
-                            .frame(maxWidth: .infinity)
-                    }
-                }
-                .disabled(
-                    isSubmitting
-                    || token.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                    || password.isEmpty
-                    || confirmPassword.isEmpty
-                )
-            }
+            ResetPasswordFormSection(
+                token: $token,
+                password: $password,
+                confirmPassword: $confirmPassword,
+                allowsTokenEditing: allowsTokenEditing
+            )
+            ResetPasswordSuccessSection(message: successMessage)
+            ResetPasswordErrorSection(message: errorMessage)
+            ResetPasswordSubmitSection(
+                isSubmitting: isSubmitting,
+                isDisabled: isSubmitDisabled,
+                onSubmit: { Task { await submit() } }
+            )
         }
         .navigationTitle("Nouveau mot de passe")
+    }
+
+    private var isSubmitDisabled: Bool {
+        isSubmitting
+            || token.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            || password.isEmpty
+            || confirmPassword.isEmpty
     }
 
     private func submit() async {

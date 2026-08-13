@@ -6,7 +6,7 @@ struct HomeIntroSection: View {
     var body: some View {
         Section {
             VStack(alignment: .leading, spacing: 10) {
-                Text("Hociatec accompagne vos besoins en matériel informatique, services numériques, formation et suivi client.")
+                Text("Hociatec accompagne vos besoins en matériel informatique, services numériques, formation et suivi client. Besoin d'un échange rapide ?")
                     .font(.body)
                 NavigationLink {
                     ContactView(service: container.services.contact)

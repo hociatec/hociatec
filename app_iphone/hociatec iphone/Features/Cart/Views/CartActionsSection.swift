@@ -3,6 +3,7 @@ import SwiftUI
 struct CartActionsSection: View {
     let isLoading: Bool
     let isEmpty: Bool
+    let canCheckout: Bool
     let checkout: () -> Void
     let clear: () -> Void
 
@@ -17,7 +18,7 @@ struct CartActionsSection: View {
                         .frame(maxWidth: .infinity)
                 }
             }
-            .disabled(isEmpty)
+            .disabled(!canCheckout)
 
             Button(role: .destructive, action: clear) {
                 Text("Vider le panier").frame(maxWidth: .infinity)

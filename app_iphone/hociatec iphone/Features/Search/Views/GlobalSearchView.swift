@@ -20,7 +20,9 @@ struct GlobalSearchView: View {
             GlobalSearchControlsSection(viewModel: viewModel)
             GlobalSearchStatusSections(viewModel: viewModel)
 
-            if viewModel.isLoading {
+            if viewModel.query.isEmpty {
+                GlobalSearchEmptyQuerySection()
+            } else if viewModel.isLoading {
                 GlobalSearchLoadingSection()
             } else {
                 GlobalSearchResultsView(viewModel: viewModel)

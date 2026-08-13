@@ -27,89 +27,62 @@ extension TradeInViewModel {
         }
     }
 
-    private func submissionContext() -> (payload: TradeInRequestPayload, ribFileName: String, ribData: Data)? {
-        let trimmedFirstName = firstName.trimmingCharacters(in: .whitespacesAndNewlines)
-        let trimmedLastName = lastName.trimmingCharacters(in: .whitespacesAndNewlines)
-        let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
-        let trimmedProductName = productName.trimmingCharacters(in: .whitespacesAndNewlines)
-        let trimmedPhone = phone.trimmingCharacters(in: .whitespacesAndNewlines)
-        let trimmedDescription = description.trimmingCharacters(in: .whitespacesAndNewlines)
-        let trimmedBrand = brand.trimmingCharacters(in: .whitespacesAndNewlines)
-        let trimmedModel = model.trimmingCharacters(in: .whitespacesAndNewlines)
-        let trimmedSerial = serialNumber.trimmingCharacters(in: .whitespacesAndNewlines)
+    private func submissionContext() -> TradeInSubmissionContext? {
+        guard let fields = validatedSubmissionFields() else {
+            return nil
+        }
+        guard let ribAttachment = validatedRIBAttachment() else {
+            return nil
+        }
 
-        guard !trimmedFirstName.isEmpty else {
-            error = "Renseignez votre prénom."
+        return TradeInSubmissionContext(
+            payload: TradeInPayloadBuilder.makePayload(from: fields),
+            ribFileName: ribAttachment.fileName,
+            ribData: ribAttachment.data
+        )
+    }
+
+    private func validatedSubmissionFields() -> TradeInValidatedSubmissionFields? {
+        let draft = TradeInSubmissionDraft.from(viewModel: self)
+
+        switch TradeInSubmissionValidator.validate(draft) {
+        case .success(let fields):
+            return fields
+        case .failure(let message):
+            error = message
             return nil
         }
-        guard !trimmedLastName.isEmpty else {
-            error = "Renseignez votre nom."
-            return nil
-        }
-        guard !trimmedEmail.isEmpty, trimmedEmail.contains("@") else {
-            error = "Renseignez un e-mail valide."
-            return nil
-        }
-        guard !selectedCategory.isEmpty else {
-            error = "Choisissez une catégorie."
-            return nil
-        }
-        guard !selectedCondition.isEmpty else {
-            error = "Choisissez un état."
-            return nil
-        }
-        guard !trimmedProductName.isEmpty else {
-            error = "Renseignez le produit."
-            return nil
-        }
-        guard let purchasePriceCents = TradeInMoneyParser.cents(from: purchasePrice) else {
-            error = "Renseignez un prix d’achat valide."
-            return nil
-        }
-        guard let purchaseYearValue = Int(purchaseYear), (1980...2100).contains(purchaseYearValue) else {
-            error = "Renseignez une année d’achat valide."
-            return nil
-        }
-        guard !trimmedPhone.isEmpty else {
-            error = "Renseignez votre téléphone."
-            return nil
-        }
-        guard !trimmedDescription.isEmpty else {
-            error = "Décrivez l’état du produit."
-            return nil
-        }
-        guard consent else {
-            error = "Vous devez accepter le traitement de la demande."
-            return nil
-        }
+    }
+
+    private func validatedRIBAttachment() -> (fileName: String, data: Data)? {
         guard let ribData, let ribFileName, !ribData.isEmpty else {
             error = "Ajoutez votre RIB en PDF."
             return nil
         }
 
-        return (
-            TradeInRequestPayload(
-                firstName: trimmedFirstName,
-                lastName: trimmedLastName,
-                email: trimmedEmail,
-                phone: trimmedPhone,
-                category: selectedCategory,
-                productName: trimmedProductName,
-                purchasePriceCents: purchasePriceCents,
-                purchaseYear: purchaseYearValue,
-                brand: trimmedBrand.isEmpty ? nil : trimmedBrand,
-                model: trimmedModel.isEmpty ? nil : trimmedModel,
-                serialNumber: trimmedSerial.isEmpty ? nil : trimmedSerial,
-                conditionGrade: selectedCondition,
-                functional: functional,
-                hasAccessories: hasAccessories,
-                hasProofOfPurchase: hasProofOfPurchase,
-                description: trimmedDescription,
-                catalogProductId: nil,
-                consent: true
-            ),
-            ribFileName,
-            ribData
+        return (ribFileName, ribData)
+    }
+
+    private func makeTradeInPayload(from fields: TradeInValidatedSubmissionFields) -> TradeInRequestPayload {
+        TradeInRequestPayload(
+            firstName: fields.firstName,
+            lastName: fields.lastName,
+            email: fields.email,
+            phone: fields.phone,
+            category: fields.category,
+            productName: fields.productName,
+            purchasePriceCents: fields.purchasePriceCents ?? 0,
+            purchaseYear: fields.purchaseYear ?? 0,
+            brand: fields.brand.nonEmptyTradeInValue,
+            model: fields.model.nonEmptyTradeInValue,
+            serialNumber: fields.serialNumber.nonEmptyTradeInValue,
+            conditionGrade: fields.condition,
+            functional: fields.functional,
+            hasAccessories: fields.hasAccessories,
+            hasProofOfPurchase: fields.hasProofOfPurchase,
+            description: fields.description,
+            catalogProductId: nil,
+            consent: true
         )
     }
 

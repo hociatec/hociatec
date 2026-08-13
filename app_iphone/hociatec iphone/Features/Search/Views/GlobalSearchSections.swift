@@ -6,7 +6,7 @@ struct GlobalSearchIntroSection: View {
             VStack(alignment: .leading, spacing: 10) {
                 Text("Trouver un produit, un service ou une formation")
                     .font(.title3.weight(.bold))
-                Text("Lancez une recherche globale, puis ouvrez la fiche qui correspond à votre besoin.")
+                Text("Lancez une recherche, puis ouvrez la fiche qui correspond à votre besoin.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -57,6 +57,15 @@ struct GlobalSearchStatusSections: View {
                         .foregroundStyle(.secondary)
                 }
             }
+        }
+    }
+}
+
+struct GlobalSearchEmptyQuerySection: View {
+    var body: some View {
+        Section {
+            Text("Saisissez un mot-clé pour lancer votre recherche.")
+                .foregroundStyle(.secondary)
         }
     }
 }

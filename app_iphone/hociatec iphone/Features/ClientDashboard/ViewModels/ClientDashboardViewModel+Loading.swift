@@ -4,9 +4,7 @@ extension ClientDashboardViewModel {
     func load(force: Bool = false) async {
         if isLoading && !force { return }
         isLoading = true
-        error = nil
-        partialError = false
-        conversionMessage = nil
+        resetVisibleState()
         defer { isLoading = false }
 
         async let quotesResult = capture { try await self.quoteService.myQuotes() }
@@ -42,9 +40,10 @@ extension ClientDashboardViewModel {
         }
         partialError = !failures.isEmpty && successfulLoads > 0
 
-        guard let loyaltyValue = loyalty.value else { return }
-        self.loyalty = loyaltyValue
-        syncConvertPointsIfNeeded()
+        if let loyaltyValue = loyalty.value {
+            loyalty = loyaltyValue
+            syncConvertPointsIfNeeded()
+        }
 
         actions = actionBuilder.makeActions(
             quotes: quotes.value ?? [],

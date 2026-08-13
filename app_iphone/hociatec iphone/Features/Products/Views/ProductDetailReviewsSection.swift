@@ -13,14 +13,7 @@ struct ProductReviewsPreviewSection: View {
 
     var body: some View {
         Section("Avis") {
-            if let avg = reviewsAverage {
-                HStack(spacing: 6) {
-                    ProductRatingStarsView(average: avg)
-                    Text(String(format: "%.1f/5", avg))
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-            }
+            ProductReviewsHeader(reviewsAverage: reviewsAverage)
 
             if let reviewsError {
                 Text(reviewsError)
@@ -35,43 +28,13 @@ struct ProductReviewsPreviewSection: View {
                     ProductReviewRow(review: review)
                 }
 
-                NavigationLink {
-                    reviewsDestination
-                } label: {
-                    HStack(spacing: 8) {
-                        Text("Voir tous les avis")
-                            .fontWeight(.semibold)
-                        if reviewsTotal > 0 {
-                            Text("(\(reviewsTotal))")
-                                .foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .foregroundStyle(.tertiary)
-                    }
-                    .font(.subheadline)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(Color.blue.opacity(0.12))
-                    .foregroundStyle(.blue)
-                    .clipShape(Capsule())
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(reviewsTotal > 0 ? "Voir tous les avis (\(reviewsTotal))" : "Voir tous les avis")
-
-                if canLoadMore {
-                    Button(action: loadMoreAction) {
-                        if isLoadingReviews {
-                            ProgressView()
-                                .frame(maxWidth: .infinity)
-                        } else {
-                            Text("Charger plus d’avis")
-                                .fontWeight(.semibold)
-                                .frame(maxWidth: .infinity)
-                        }
-                    }
-                    .disabled(isLoadingReviews)
-                }
+                ProductReviewsActions(
+                    reviewsTotal: reviewsTotal,
+                    reviewsDestination: reviewsDestination,
+                    canLoadMore: canLoadMore,
+                    isLoadingReviews: isLoadingReviews,
+                    loadMoreAction: loadMoreAction
+                )
             }
         }
     }

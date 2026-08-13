@@ -26,7 +26,7 @@ struct RequestAuditView: View {
                 }
             }
 
-            Section("Votre demande") {
+            Section {
                 Picker("Type d'audit", selection: $selectedType) {
                     ForEach(auditTypes, id: \.value) { type in
                         Text(type.label).tag(type.value)
@@ -41,14 +41,7 @@ struct RequestAuditView: View {
                     .frame(minHeight: 140)
             }
 
-            if !account.isLoggedIn {
-                Section("Validation") {
-                    Text("Le formulaire reste consultable, mais la connexion est nécessaire pour envoyer la demande.")
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            Section("Envoyer") {
+            Section {
                 Button("Envoyer la demande") {
                     Task {
                         let success = await viewModel.createAudit(type: selectedType, url: url, objectives: objectives)

@@ -5,6 +5,10 @@ struct ClientDashboardView: View {
     @EnvironmentObject private var account: AccountViewModel
     @State private var showDeleteConfirmation = false
 
+    private var loadKey: Int? {
+        account.profile?.id
+    }
+
     init(services: AppServices) {
         _viewModel = StateObject(
             wrappedValue: ClientDashboardViewModel(
@@ -25,13 +29,16 @@ struct ClientDashboardView: View {
             )
         }
         .navigationTitle("Mon espace")
-        .task { await viewModel.load() }
+        .task(id: loadKey) {
+            guard account.isLoggedIn else { return }
+            viewModel.resetVisibleState()
+            await viewModel.load(force: true)
+        }
         .refreshable { await viewModel.load(force: true) }
         .confirmationDialog("Êtes-vous sûr de vouloir supprimer votre compte ?", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
             Button("Supprimer mon compte", role: .destructive) {
                 Task { await account.deleteAccount() }
             }
-            Button("Annuler", role: .cancel) {}
         }
     }
 }

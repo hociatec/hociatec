@@ -4,6 +4,7 @@ import UIKit
 struct CartScreen: View {
     @EnvironmentObject private var container: AppContainer
     @EnvironmentObject private var cart: CartViewModel
+    @EnvironmentObject private var account: AccountViewModel
     @State private var screenState = CartScreenState()
     @State private var completedOrder: OrderSummary?
 
@@ -24,6 +25,7 @@ struct CartScreen: View {
                 CartActionsSection(
                     isLoading: cart.isLoading,
                     isEmpty: cart.cart?.items.isEmpty ?? true,
+                    canCheckout: canCheckout,
                     checkout: { Task { await checkout() } },
                     clear: {
                         screenState.showingClearConfirm = true
@@ -51,10 +53,18 @@ struct CartScreen: View {
         }
         .task { await cart.refresh() }
         .refreshable { await cart.refresh() }
+        .onChangeCompat(account.isLoggedIn) { _ in
+            Task { await cart.refresh() }
+        }
         .onChangeCompat(cart.statusMessage) { _ in }
     }
 
+    private var canCheckout: Bool {
+        account.isLoggedIn && !(cart.cart?.items.isEmpty ?? true) && !cart.isLoading
+    }
+
     private func checkout() async {
+        guard canCheckout else { return }
         if let order = await cart.checkout() {
             UINotificationFeedbackGenerator().notificationOccurred(.success)
             completedOrder = order

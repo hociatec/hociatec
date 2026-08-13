@@ -36,7 +36,7 @@ struct LoginView: View {
                             .frame(maxWidth: .infinity, alignment: .center)
                     }
                 }
-                .disabled(account.isLoading)
+                .disabled(account.isLoading || isSubmitDisabled)
             }
 
             Section {
@@ -53,5 +53,10 @@ struct LoginView: View {
             guard isLoggedIn else { return }
             dismiss()
         }
+    }
+
+    private var isSubmitDisabled: Bool {
+        account.email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            || account.password.isEmpty
     }
 }

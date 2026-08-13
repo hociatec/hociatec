@@ -35,38 +35,7 @@ struct AppointmentRow: View {
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
             DateBadge(date: appointment.startAt)
-            VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                    Text(appointment.prestation.name)
-                        .fontWeight(.semibold)
-                        .lineLimit(1)
-                    Spacer()
-                    if appointment.status != nil {
-                        Text(statusStyle.text)
-                            .font(.caption2)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(statusStyle.color.opacity(0.12))
-                            .foregroundColor(statusStyle.color)
-                            .clipShape(Capsule())
-                    }
-                }
-                Text(dayFormatter.string(from: appointment.startAt))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                Text(timeRange)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                if appointment.canCancel {
-                    Label("Annulable", systemImage: "checkmark.shield")
-                        .font(.caption2)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 3)
-                        .background(Color.orange.opacity(0.15))
-                        .foregroundColor(.orange)
-                        .clipShape(Capsule())
-                }
-            }
+            AppointmentRowContent(appointment: appointment, statusStyle: statusStyle, timeRange: timeRange)
         }
         .padding(.vertical, 8)
         .padding(.horizontal, 4)
@@ -74,26 +43,5 @@ struct AppointmentRow: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(accessibilitySummary))
         .accessibilityHint("Touchez pour ouvrir les détails.")
-    }
-}
-
-private struct DateBadge: View {
-    let date: Date
-
-    private var day: String { dayFormatter.string(from: date) }
-    private var hour: String { timeFormatter.string(from: date) }
-
-    var body: some View {
-        VStack(spacing: 4) {
-            Text(day)
-                .font(.caption)
-                .fontWeight(.semibold)
-            Text(hour)
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-        }
-        .padding(10)
-        .background(RoundedRectangle(cornerRadius: 10).fill(Color.blue.opacity(0.1)))
-        .accessibilityHidden(true)
     }
 }

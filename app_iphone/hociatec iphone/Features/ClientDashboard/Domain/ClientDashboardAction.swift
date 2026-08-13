@@ -10,10 +10,12 @@ struct ClientDashboardAction: Identifiable {
         case trainings
         case communicationPreferences
         case addresses
+        case profile
         case support
         case vouchers
         case audits
         case tradeIns
+        case beta
     }
 
     let id: String

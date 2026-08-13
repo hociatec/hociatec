@@ -31,4 +31,11 @@ final class ClientDashboardViewModel: ObservableObject {
         self.trainingService = trainingService
         self.workspaceService = workspaceService
     }
+
+    func resetVisibleState() {
+        error = nil
+        partialError = false
+        actions = []
+        conversionMessage = nil
+    }
 }

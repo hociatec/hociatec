@@ -25,6 +25,8 @@ struct ClientDashboardActionDestinationView: View {
             CommunicationPreferencesView(service: container.services.workspace)
         case .addresses:
             AddressesManagerView(account: account)
+        case .profile:
+            ProfileView(account: account)
         case .support:
             MySupportRequestsView(service: container.services.support)
         case .vouchers:
@@ -33,6 +35,8 @@ struct ClientDashboardActionDestinationView: View {
             MyAuditsView(service: container.services.audits)
         case .tradeIns:
             MyTradeInsView(service: container.services.tradeIn)
+        case .beta:
+            BetaProgramView(service: container.services.beta)
         }
     }
 }
