@@ -93,45 +93,18 @@ struct AccountScreen: View {
                 }
             } else {
                 Section {
-                    TextField("Email", text: $account.email)
-                        .textInputAutocapitalization(.never)
-                        .keyboardType(.emailAddress)
-                        .textContentType(.username)
-                    SecureField("Mot de passe", text: $account.password)
-                        .textContentType(.password)
-                    Button {
-                        Task { await account.login() }
-                    } label: {
-                        if account.isLoading {
-                            ProgressView()
-                                .frame(maxWidth: .infinity, alignment: .center)
-                        } else {
-                            Text("Se connecter")
-                                .fontWeight(.semibold)
-                                .frame(maxWidth: .infinity, alignment: .center)
-                        }
-                    }
-                    .disabled(account.isLoading)
-
                     NavigationLink {
-                        ForgotPasswordView(api: container.api, initialEmail: account.email)
+                        LoginView(account: account, api: container.api)
                     } label: {
-                        Text("Mot de passe oublié ?")
-                            .font(.footnote)
+                        Label("Connexion", systemImage: "person.crop.circle.badge.checkmark")
+                            .fontWeight(.semibold)
                     }
-                }
 
-                Section {
                     NavigationLink {
                         RegisterView(account: account)
                     } label: {
-                        HStack {
-                            Text("Pas encore de compte ?")
-                                .foregroundStyle(.secondary)
-                            Spacer()
-                            Text("Créer un compte")
-                                .fontWeight(.semibold)
-                        }
+                        Label("Inscription", systemImage: "person.crop.circle.badge.plus")
+                            .fontWeight(.semibold)
                     }
                 }
             }
@@ -143,6 +116,56 @@ struct AccountScreen: View {
                 await account.refreshProfile()
             }
         }
+    }
+}
+
+private struct LoginView: View {
+    @ObservedObject var account: AccountViewModel
+    let api: APIClient
+
+    var body: some View {
+        Form {
+            if let error = account.error, !error.isEmpty {
+                Section {
+                    Text(error).foregroundStyle(.red)
+                }
+            }
+
+            Section {
+                TextField("Email", text: $account.email)
+                    .textInputAutocapitalization(.never)
+                    .keyboardType(.emailAddress)
+                    .textContentType(.username)
+                SecureField("Mot de passe", text: $account.password)
+                    .textContentType(.password)
+            }
+
+            Section {
+                Button {
+                    Task { await account.login() }
+                } label: {
+                    if account.isLoading {
+                        ProgressView()
+                            .frame(maxWidth: .infinity, alignment: .center)
+                    } else {
+                        Text("Se connecter")
+                            .fontWeight(.semibold)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                    }
+                }
+                .disabled(account.isLoading)
+            }
+
+            Section {
+                NavigationLink {
+                    ForgotPasswordView(api: api, initialEmail: account.email)
+                } label: {
+                    Text("Mot de passe oublié ?")
+                        .font(.footnote)
+                }
+            }
+        }
+        .navigationTitle("Connexion")
     }
 }
 
