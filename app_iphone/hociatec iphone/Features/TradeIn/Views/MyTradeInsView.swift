@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 struct MyTradeInsView: View {
     @StateObject private var viewModel: MyTradeInsViewModel

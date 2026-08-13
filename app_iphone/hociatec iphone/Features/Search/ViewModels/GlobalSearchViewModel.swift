@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 
 enum GlobalSearchFilter: String, CaseIterable, Identifiable {
     case all
