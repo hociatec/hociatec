@@ -68,6 +68,12 @@ struct AccountScreen: View {
                     } label: {
                         Label("Contact", systemImage: "questionmark.circle")
                     }
+
+                    NavigationLink {
+                        AboutHubView(services: container.services)
+                    } label: {
+                        Label("À propos", systemImage: "info.circle")
+                    }
                 }
 
                 Section("Sécurité") {
@@ -100,6 +106,14 @@ struct AccountScreen: View {
                     } label: {
                         Label("Inscription", systemImage: "person.crop.circle.badge.plus")
                             .fontWeight(.semibold)
+                    }
+                }
+
+                Section {
+                    NavigationLink {
+                        AboutHubView(services: container.services)
+                    } label: {
+                        Label("À propos", systemImage: "info.circle")
                     }
                 }
             }

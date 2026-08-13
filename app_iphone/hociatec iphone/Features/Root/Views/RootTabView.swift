@@ -44,12 +44,6 @@ struct ContentView: View {
             }
             .tabItem { Label("Compte", systemImage: "person") }
             .tag(4)
-
-            NavigationStack {
-                AboutHubView(services: container.services)
-            }
-            .tabItem { Label("À propos", systemImage: "info.circle") }
-            .tag(5)
         }
         .task { await cart.refresh() }
         .overlay(alignment: .top) {
