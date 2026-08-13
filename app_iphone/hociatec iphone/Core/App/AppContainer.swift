@@ -21,7 +21,7 @@ final class AppContainer: ObservableObject {
         self.services = services
 
         let accountRepository = AccountRepositoryLive(service: services.account)
-        self.accountUseCases = AccountUseCases(
+        let accountUseCases = AccountUseCases(
             login: LoginUseCase(repository: accountRepository),
             logout: LogoutUseCase(repository: accountRepository),
             loadProfile: LoadAccountProfileUseCase(repository: accountRepository),
@@ -34,12 +34,13 @@ final class AppContainer: ObservableObject {
             deleteAddress: DeleteAccountAddressUseCase(repository: accountRepository),
             setDefaultAddress: SetDefaultAccountAddressUseCase(repository: accountRepository)
         )
+        self.accountUseCases = accountUseCases
 
         let productsRepository = ProductsRepositoryLive(
             productsService: services.products,
             favoritesService: services.favorites
         )
-        self.productsUseCases = ProductsUseCases(
+        let productsUseCases = ProductsUseCases(
             loadProducts: LoadProductsUseCase(repository: productsRepository),
             loadCategories: LoadProductCategoriesUseCase(repository: productsRepository),
             loadProductDetail: LoadProductDetailUseCase(repository: productsRepository),
@@ -47,18 +48,20 @@ final class AppContainer: ObservableObject {
             loadFavoriteStatus: LoadProductFavoriteStatusUseCase(repository: productsRepository),
             toggleFavorite: ToggleProductFavoriteUseCase(repository: productsRepository)
         )
+        self.productsUseCases = productsUseCases
 
         let quotesRepository = QuotesRepositoryLive(
             quoteService: services.quotes,
             productService: services.products
         )
-        self.quotesUseCases = QuotesUseCases(
+        let quotesUseCases = QuotesUseCases(
             loadServices: LoadQuoteServicesUseCase(repository: quotesRepository),
             searchProducts: SearchQuoteProductsUseCase(repository: quotesRepository),
             submitQuote: SubmitQuoteUseCase(repository: quotesRepository),
             loadMyQuotes: LoadMyQuotesUseCase(repository: quotesRepository),
             deleteQuote: DeleteQuoteUseCase(repository: quotesRepository)
         )
+        self.quotesUseCases = quotesUseCases
 
         let cartVM = CartViewModel(service: services.cart)
         self.cart = cartVM
