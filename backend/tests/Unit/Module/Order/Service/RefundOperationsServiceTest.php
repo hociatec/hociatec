@@ -104,6 +104,21 @@ final class RefundOperationsServiceTest extends TestCase
                 return 0;
             }
 
+            public function findForUserList(User $user, ?string $status, ?string $search, int $limit, int $offset): array
+            {
+                return [];
+            }
+
+            public function countForUserList(User $user, ?string $status, ?string $search): int
+            {
+                return 0;
+            }
+
+            public function countStatusBucketsForUser(User $user): array
+            {
+                return ['all' => 0, 'open' => 0, 'delivered' => 0, 'cancelled' => 0];
+            }
+
             public function findRecentForAdmin(int $limit = 8): array
             {
                 return [];
@@ -119,12 +134,12 @@ final class RefundOperationsServiceTest extends TestCase
                 return [];
             }
 
-            public function findForAdminList(?string $status, ?string $health, int $limit, int $offset): array
+            public function findForAdminList(?string $status, ?string $health, ?string $search, int $limit, int $offset): array
             {
                 return [];
             }
 
-            public function countForAdminList(?string $status, ?string $health): int
+            public function countForAdminList(?string $status, ?string $health, ?string $search): int
             {
                 return 0;
             }
@@ -672,6 +687,21 @@ final class RefundOperationsServiceTest extends TestCase
                 return 0;
             }
 
+            public function findForUserList(User $user, ?string $status, ?string $search, int $limit, int $offset): array
+            {
+                return [];
+            }
+
+            public function countForUserList(User $user, ?string $status, ?string $search): int
+            {
+                return 0;
+            }
+
+            public function countStatusBucketsForUser(User $user): array
+            {
+                return ['all' => 0, 'open' => 0, 'delivered' => 0, 'cancelled' => 0];
+            }
+
             public function findRecentForAdmin(int $limit = 8): array
             {
                 return [];
@@ -687,12 +717,12 @@ final class RefundOperationsServiceTest extends TestCase
                 return [];
             }
 
-            public function findForAdminList(?string $status, ?string $health, int $limit, int $offset): array
+            public function findForAdminList(?string $status, ?string $health, ?string $search, int $limit, int $offset): array
             {
                 return [];
             }
 
-            public function countForAdminList(?string $status, ?string $health): int
+            public function countForAdminList(?string $status, ?string $health, ?string $search): int
             {
                 return 0;
             }
@@ -730,6 +760,11 @@ final class RefundOperationsServiceTest extends TestCase
             public function findBy(array $criteria, ?array $orderBy = null, ?int $limit = null, ?int $offset = null): array
             {
                 return [];
+            }
+
+            public function count(array $criteria): int
+            {
+                return 0;
             }
 
             public function findIssueEventsGroupedByOrders(array $orders): array

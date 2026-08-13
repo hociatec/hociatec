@@ -15,12 +15,17 @@ extension AccountViewModel {
         }
     }
 
-    func addAddress(label: String, address: String, postalCode: String, city: String, isDefault: Bool) async {
+    func addAddress(type: String, label: String, address: String, addressComplement: String?, postalCode: String, company: String?, companySiren: String?, companyVatNumber: String?, city: String, isDefault: Bool) async {
         await performAddressMutation {
             try await useCases.createAddress.execute(
+                type: type,
                 label: label,
                 address: address,
+                addressComplement: addressComplement,
                 postalCode: postalCode,
+                company: company,
+                companySiren: companySiren,
+                companyVatNumber: companyVatNumber,
                 city: city,
                 isDefault: isDefault
             )
@@ -33,9 +38,14 @@ extension AccountViewModel {
         await performAddressMutation {
             try await useCases.updateAddress.execute(
                 id: id,
+                type: addr.type,
                 label: addr.label,
                 address: addr.address,
+                addressComplement: addr.addressComplement,
                 postalCode: addr.postalCode,
+                company: addr.company,
+                companySiren: addr.companySiren,
+                companyVatNumber: addr.companyVatNumber,
                 city: addr.city,
                 isDefault: addr.isDefault
             )

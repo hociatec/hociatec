@@ -73,15 +73,15 @@ final class CartFormatterTest extends TestCase
         $promotionRepository = $this->createMock(PromotionRepository::class);
         $promotionRepository->method('findActiveForDate')->willReturn([
             (new \App\Module\Promotion\Domain\Entity\Promotion('Promo', 'promo', \App\Module\Promotion\Domain\Entity\Promotion::TYPE_FIXED_CENTS, 5000, 'all_users'))
-                ->setStartsAt(new \DateTimeImmutable('-1 day'))
-                ->setEndsAt(new \DateTimeImmutable('+1 day')),
+                ->setStartsAt(new \DateTimeImmutable('2026-08-10T00:00:00+00:00'))
+                ->setEndsAt(new \DateTimeImmutable('2026-08-12T23:59:59+00:00')),
         ]);
 
         $voucherRepository = $this->createMock(\App\Module\Voucher\Application\Port\VoucherRepositoryPort::class);
         $voucherRepository->method('findOneByCode')->with('VOUCHER8')->willReturn(
             (new \App\Module\Voucher\Domain\Entity\Voucher('Voucher 8', 'VOUCHER8', \App\Module\Voucher\Domain\Entity\Voucher::TYPE_FIXED_CENTS, 8000))
-                ->setStartsAt(new \DateTimeImmutable('-1 day'))
-                ->setEndsAt(new \DateTimeImmutable('+1 day'))
+                ->setStartsAt(new \DateTimeImmutable('2026-08-10T00:00:00+00:00'))
+                ->setEndsAt(new \DateTimeImmutable('2026-08-12T23:59:59+00:00'))
         );
 
         $formatter = new CartFormatter(
@@ -94,7 +94,11 @@ final class CartFormatterTest extends TestCase
                 new \App\Module\Promotion\Application\Policy\PromotionEligibilityPolicy(),
                 new MockClock('2026-08-11T10:00:00+00:00'),
             ),
-            new VoucherEngine($voucherRepository, new \App\Module\Voucher\Application\Projection\VoucherFormatter()),
+            new VoucherEngine(
+                $voucherRepository,
+                new \App\Module\Voucher\Application\Projection\VoucherFormatter(),
+                new MockClock('2026-08-11T10:00:00+00:00'),
+            ),
             new CatalogFormatter(),
         );
 

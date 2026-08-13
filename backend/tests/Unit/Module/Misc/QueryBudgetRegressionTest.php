@@ -271,12 +271,13 @@ final class QueryBudgetRegressionTest extends TestCase
 
         $entityManager->persist(
             (new ShippingAddress($user, 'Ada Lovelace', '1 rue A', '75001', 'Paris'))
-                ->setIsDefault(true)
-                ->setCompany('Hociatec'),
+                ->setType(ShippingAddress::TYPE_PROFESSIONAL)
+                ->setCompany('Hociatec')
+                ->setIsDefault(true),
         );
         $entityManager->persist(
             (new ShippingAddress($user, 'Ada Lovelace', '2 rue B', '75002', 'Paris'))
-                ->setPurchaseOrderNumber('PO-42'),
+                ->setAddressComplement('Entrée cour'),
         );
         $entityManager->flush();
 

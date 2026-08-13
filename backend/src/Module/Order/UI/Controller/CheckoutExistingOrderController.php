@@ -17,7 +17,6 @@ use App\Shared\Infrastructure\Validation\DtoValidator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -40,7 +39,7 @@ final class CheckoutExistingOrderController extends AbstractController
         try {
             $input = JsonRequestInput::decode($request, CheckoutInput::class);
             $this->dtoValidator->validate($input);
-            $result = $this->checkout->checkout($this->currentUser(), $orderId, $input->addressId);
+            $result = $this->checkout->checkout($this->currentUser(), $orderId, $input->addressId, $input->clientPlatform);
         } catch (ApiProblemException $exception) {
             return ApiProblemResponse::fromThrowable($exception, 'Impossible de lancer le règlement.');
         } catch (\InvalidArgumentException $exception) {

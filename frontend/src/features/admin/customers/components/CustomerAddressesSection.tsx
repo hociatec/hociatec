@@ -20,10 +20,6 @@ export const CustomerAddressesSection = ({
                   {address.name} {address.isDefault ? '· Par défaut' : ''}
                 </div>
                 <div>{formatAddress(address)}</div>
-                {address.company ? <div>Société: {address.company}</div> : null}
-                {address.companySiren ? <div>SIREN: {address.companySiren}</div> : null}
-                {address.companyVatNumber ? <div>TVA: {address.companyVatNumber}</div> : null}
-                {address.purchaseOrderNumber ? <div>BC: {address.purchaseOrderNumber}</div> : null}
               </div>
             ))}
           </div>

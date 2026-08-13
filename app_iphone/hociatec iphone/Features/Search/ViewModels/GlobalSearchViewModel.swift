@@ -6,6 +6,7 @@ final class GlobalSearchViewModel: ObservableObject {
     @Published var query = ""
     @Published var draftQuery = ""
     @Published var selectedFilter: GlobalSearchFilter = .all
+    @Published var selectedSort: GlobalSearchSortOption = .relevance
     @Published var products: [Product] = []
     @Published var services: [QuoteService] = []
     @Published var trainings: [Training] = []

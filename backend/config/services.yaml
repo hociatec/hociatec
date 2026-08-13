@@ -184,6 +184,9 @@ services:
     App\Module\Support\Application\Port\SupportRequestRepositoryPort:
         alias: App\Module\Support\Infrastructure\Repository\SupportRequestRepository
 
+    App\Module\Support\Application\Port\SupportAttachmentStoragePort:
+        alias: App\Module\Support\Infrastructure\Storage\SupportAttachmentStorage
+
     App\Module\Appointment\Application\Port\AppointmentRepositoryPort:
         alias: App\Module\Appointment\Infrastructure\Repository\AppointmentRepository
 

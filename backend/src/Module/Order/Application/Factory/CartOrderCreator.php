@@ -6,11 +6,11 @@ namespace App\Module\Order\Application\Factory;
 
 use App\Module\Cart\Application\Port\CartSessionRepositoryPort;
 use App\Module\Cart\Domain\Entity\CartSession;
+use App\Module\Order\Application\DTO\CartOrderSummary;
+use App\Module\Order\Application\DTO\OrderCreationData;
 use App\Module\Order\Application\Exception\CartAlreadyConvertedException;
 use App\Module\Order\Application\Exception\CartCheckoutNotFoundException;
 use App\Module\Order\Application\Exception\CheckoutRequestException;
-use App\Module\Order\Application\DTO\CartOrderSummary;
-use App\Module\Order\Application\DTO\OrderCreationData;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\User\Domain\Entity\ShippingAddress;
 use App\Module\User\Domain\Entity\User;

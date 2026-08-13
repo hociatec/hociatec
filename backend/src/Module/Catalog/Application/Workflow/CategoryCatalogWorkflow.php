@@ -7,8 +7,8 @@ namespace App\Module\Catalog\Application\Workflow;
 use App\Module\Catalog\Application\Port\CategoryRepositoryPort;
 use App\Module\Catalog\Domain\Entity\Category;
 use App\Module\Catalog\Domain\Exception\CatalogOperationException;
-use App\Shared\Application\UnitOfWork;
 use App\Shared\Application\Text\Slugifier;
+use App\Shared\Application\UnitOfWork;
 
 readonly class CategoryCatalogWorkflow
 {

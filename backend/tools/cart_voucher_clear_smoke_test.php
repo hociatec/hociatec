@@ -107,7 +107,7 @@ $voucherEngine = new VoucherEngine(
             return 0;
         }
 
-        public function findActiveForDate(\DateTimeImmutable $now): array
+        public function findActiveForDate(DateTimeImmutable $now): array
         {
             return [];
         }

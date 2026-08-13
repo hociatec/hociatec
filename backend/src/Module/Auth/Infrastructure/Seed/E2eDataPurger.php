@@ -135,7 +135,7 @@ class E2eDataPurger
 
     private function deleteUsers(Connection $connection): int
     {
-        return $connection->executeStatement(
+        return (int) $connection->executeStatement(
             'DELETE FROM users WHERE LOWER(email) IN (:emails)',
             ['emails' => array_map(static fn (string $email): string => strtolower($email), self::STABLE_E2E_EMAILS)],
             ['emails' => Connection::PARAM_STR_ARRAY],
@@ -164,7 +164,7 @@ class E2eDataPurger
             return 0;
         }
 
-        return $connection->executeStatement(
+        return (int) $connection->executeStatement(
             sprintf('DELETE FROM %s WHERE %s', $table, implode(' OR ', $conditions)),
             $parameters,
         );

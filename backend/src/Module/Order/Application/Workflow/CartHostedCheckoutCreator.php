@@ -25,7 +25,7 @@ final readonly class CartHostedCheckoutCreator
     ) {
     }
 
-    public function create(User $user, CartSession $cart, ShippingAddress $address): OrderCheckoutSession
+    public function create(User $user, CartSession $cart, ShippingAddress $address, ?string $clientPlatform = null): OrderCheckoutSession
     {
         $existing = $this->checkoutSessions->findReusableOpenSessionForCart($user, $cart->getToken());
         if (null !== $existing && (null === $existing->getExpiresAt() || $existing->getExpiresAt() > new \DateTimeImmutable())) {
@@ -38,35 +38,40 @@ final readonly class CartHostedCheckoutCreator
         $items = $this->payloads->cartItems($cart);
         $customerName = trim($user->getFirstName().' '.$user->getLastName());
         $localToken = bin2hex(random_bytes(16));
-        $frontendUrl = rtrim($this->frontendUrl, '/');
         $metadata = [
             'local_checkout_token' => $localToken,
             'cart_token' => $cart->getToken(),
             'user_id' => (string) ($user->getId() ?? 0),
         ];
-        $session = $this->stripe->createCheckoutSession(
-            [
-                'mode' => 'payment',
-                'success_url' => $frontendUrl.'/checkout/success?session_id={CHECKOUT_SESSION_ID}',
-                'cancel_url' => $frontendUrl.'/panier?payment=cancelled',
-                'customer_email' => $user->getEmail(),
-                'client_reference_id' => $localToken,
-                'locale' => 'fr',
-                'payment_method_types' => ['card'],
-                'metadata' => $metadata,
-                'payment_intent_data' => ['metadata' => $metadata],
-                'line_items' => [[
-                    'price_data' => [
-                        'currency' => 'eur',
-                        'product_data' => [
-                            'name' => 'Commande Hociatec',
-                            'description' => sprintf('%d article(s)', count($items)),
-                        ],
-                        'unit_amount' => (int) $summary['totalPriceCents'],
+        [$successUrl, $cancelUrl] = $this->checkoutReturnUrls($clientPlatform);
+        $payload = [
+            'mode' => 'payment',
+            'success_url' => $successUrl,
+            'cancel_url' => $cancelUrl,
+            'customer_email' => $user->getEmail(),
+            'client_reference_id' => $localToken,
+            'locale' => 'fr',
+            'payment_method_types' => ['card'],
+            'metadata' => $metadata,
+            'payment_intent_data' => ['metadata' => $metadata],
+            'line_items' => [[
+                'price_data' => [
+                    'currency' => 'eur',
+                    'product_data' => [
+                        'name' => 'Commande Hociatec',
+                        'description' => sprintf('%d article(s)', count($items)),
                     ],
-                    'quantity' => 1,
-                ]],
-            ],
+                    'unit_amount' => (int) $summary['totalPriceCents'],
+                ],
+                'quantity' => 1,
+            ]],
+        ];
+        if ('ios' === $clientPlatform) {
+            $payload['origin_context'] = 'mobile_app';
+        }
+
+        $session = $this->stripe->createCheckoutSession(
+            $payload,
             'cart_checkout:'.hash('sha256', implode('|', [
                 $cart->getToken(),
                 (string) ($user->getId() ?? $user->getEmail()),
@@ -101,10 +106,10 @@ final readonly class CartHostedCheckoutCreator
             ->setShippingPostalCode($address->getPostalCode())
             ->setShippingCity($address->getCity())
             ->setBillingName('' !== $customerName ? $customerName : $address->getName())
-            ->setBillingCompany($address->getCompany())
-            ->setBillingCompanySiren($address->getCompanySiren())
-            ->setBillingCompanyVatNumber($address->getCompanyVatNumber())
-            ->setPurchaseOrderNumber($address->getPurchaseOrderNumber())
+            ->setBillingCompany($address->isProfessional() ? $address->getCompany() : null)
+            ->setBillingCompanySiren($address->isProfessional() ? $address->getCompanySiren() : null)
+            ->setBillingCompanyVatNumber($address->isProfessional() ? $address->getCompanyVatNumber() : null)
+            ->setPurchaseOrderNumber(null)
             ->setBillingEmail($user->getEmail())
             ->setBillingAddress($address->getAddress())
             ->setBillingPostalCode($address->getPostalCode())
@@ -116,5 +121,27 @@ final readonly class CartHostedCheckoutCreator
         $this->persistence->flush();
 
         return $checkout;
+    }
+
+    /**
+     * @return array{0: string, 1: string}
+     */
+    private function checkoutReturnUrls(?string $clientPlatform): array
+    {
+        if ('ios' === $clientPlatform) {
+            $frontendUrl = rtrim($this->frontendUrl, '/');
+
+            return [
+                $frontendUrl.'/checkout/app-return?status=success&session_id={CHECKOUT_SESSION_ID}',
+                $frontendUrl.'/checkout/app-return?status=cancelled',
+            ];
+        }
+
+        $frontendUrl = rtrim($this->frontendUrl, '/');
+
+        return [
+            $frontendUrl.'/checkout/success?session_id={CHECKOUT_SESSION_ID}',
+            $frontendUrl.'/panier?payment=cancelled',
+        ];
     }
 }

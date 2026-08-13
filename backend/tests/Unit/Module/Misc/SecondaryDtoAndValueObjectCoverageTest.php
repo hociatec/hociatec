@@ -173,18 +173,21 @@ final class SecondaryDtoAndValueObjectCoverageTest extends TestCase
         self::assertSame('Paris', $session->location);
 
         $shipping = ShippingAddressInput::fromArray([
+            'type' => 'professional',
             'name' => 'Ada',
             'address' => '1 rue',
+            'addressComplement' => ' Bâtiment A ',
             'postalCode' => '75001',
             'city' => 'Paris',
             'company' => ' OpenAI ',
-            'companySiren' => ' ',
+            'companySiren' => ' 123456789 ',
             'companyVatNumber' => ' FR123 ',
-            'purchaseOrderNumber' => ' PO-1 ',
         ]);
+        self::assertSame('professional', $shipping->type);
         self::assertSame('Ada', $shipping->name);
+        self::assertSame('Bâtiment A', $shipping->addressComplement);
         self::assertSame('OpenAI', $shipping->company);
-        self::assertNull($shipping->companySiren);
+        self::assertSame('123456789', $shipping->companySiren);
         self::assertSame('FR123', $shipping->companyVatNumber);
 
         $updateProfile = UpdateProfileInput::fromArray([

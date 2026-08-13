@@ -19,9 +19,14 @@ struct AddressCreateSection: View {
             Button("Ajouter") {
                 Task {
                     await account.addAddress(
+                        type: "personal",
                         label: draft.label,
                         address: draft.address,
+                        addressComplement: nil,
                         postalCode: draft.postalCode,
+                        company: nil,
+                        companySiren: nil,
+                        companyVatNumber: nil,
                         city: draft.city,
                         isDefault: draft.isDefault
                     )

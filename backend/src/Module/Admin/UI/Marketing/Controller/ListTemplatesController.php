@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Marketing\Controller;
 
 use App\Module\Marketing\Application\Port\EmailTemplateRepositoryPort;
-use App\Module\Marketing\Application\Provider\EmailTemplateScenarioProvider;
 use App\Module\Marketing\Application\Projection\EmailTemplateResponseFormatter;
+use App\Module\Marketing\Application\Provider\EmailTemplateScenarioProvider;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -67,7 +67,7 @@ final class ListTemplatesController extends AbstractController
         return array_keys(
             array_filter(
                 $this->scenarios->getTemplateScenarioDefinitions(),
-                fn (array $definition): bool => ($definition['type'] ?? null) === $usage,
+                fn (array $definition): bool => $definition['type'] === $usage,
             ),
         );
     }

@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Module\Support\Infrastructure\Storage;
 
+use App\Module\Support\Application\Port\SupportAttachmentStoragePort;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
-final readonly class SupportAttachmentStorage
+final readonly class SupportAttachmentStorage implements SupportAttachmentStoragePort
 {
     private const ALLOWED_MIME_TYPES = [
         'application/pdf',
@@ -39,10 +40,10 @@ final readonly class SupportAttachmentStorage
         $stored = [];
         foreach (array_slice($files, 0, 5) as $file) {
             if (
-                !$file instanceof UploadedFile ||
-                !$file->isValid() ||
-                !in_array(strtolower((string) $file->getMimeType()), self::ALLOWED_MIME_TYPES, true) ||
-                $file->getSize() > 5 * 1024 * 1024
+                !$file instanceof UploadedFile
+                || !$file->isValid()
+                || !in_array(strtolower((string) $file->getMimeType()), self::ALLOWED_MIME_TYPES, true)
+                || $file->getSize() > 5 * 1024 * 1024
             ) {
                 continue;
             }
@@ -53,7 +54,7 @@ final readonly class SupportAttachmentStorage
                 'name' => $name,
                 'originalName' => trim((string) $file->getClientOriginalName()) ?: $name,
                 'contentType' => strtolower((string) $file->getMimeType()),
-                'size' => (int) ($file->getSize() ?? 0),
+                'size' => (int) $file->getSize(),
                 'uploadedAt' => (new \DateTimeImmutable())->format(DATE_ATOM),
             ];
         }

@@ -10,8 +10,8 @@ use App\Module\TradeIn\Application\Port\TradeInReceiptRenderer;
 use App\Module\TradeIn\Domain\Entity\TradeInRequest;
 use App\Module\TradeIn\Domain\Enum\TradeInStatus;
 use App\Module\Voucher\Domain\Entity\Voucher;
-use App\Shared\Application\UnitOfWork;
 use App\Shared\Application\TransactionManager;
+use App\Shared\Application\UnitOfWork;
 
 final readonly class TradeInClosureService
 {

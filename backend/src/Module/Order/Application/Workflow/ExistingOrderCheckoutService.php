@@ -24,7 +24,7 @@ final readonly class ExistingOrderCheckoutService
     ) {
     }
 
-    public function checkout(User $user, int $orderId, ?int $addressId): CartCheckoutResult
+    public function checkout(User $user, int $orderId, ?int $addressId, ?string $clientPlatform = null): CartCheckoutResult
     {
         $order = $this->orders->find($orderId);
         if (!$order instanceof Order || !$this->accessPolicy->canCheckout($user, $order)) {
@@ -45,7 +45,7 @@ final readonly class ExistingOrderCheckoutService
 
         $shipping = $this->resolveShippingAddress($user, $addressId);
 
-        return CartCheckoutResult::redirect($this->stripeCheckout->createHostedCheckoutForOrder($user, $order, $shipping));
+        return CartCheckoutResult::redirect($this->stripeCheckout->createHostedCheckoutForOrder($user, $order, $shipping, $clientPlatform));
     }
 
     private function resolveShippingAddress(User $user, ?int $addressId): ShippingAddress

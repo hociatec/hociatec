@@ -409,6 +409,15 @@
 				ENABLE_PREVIEWS = YES;
 				EXCLUDED_SOURCE_FILE_NAMES = "*.xcassets";
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleURLTypes = (
+					{
+						CFBundleURLName = hociatec;
+						CFBundleURLSchemes = (
+							hociatec,
+						);
+					},
+				);
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Votre position est utilisée pour préremplir votre adresse.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -442,6 +451,15 @@
 				ENABLE_PREVIEWS = YES;
 				EXCLUDED_SOURCE_FILE_NAMES = "*.xcassets";
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleURLTypes = (
+					{
+						CFBundleURLName = hociatec;
+						CFBundleURLSchemes = (
+							hociatec,
+						);
+					},
+				);
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Votre position est utilisée pour préremplir votre adresse.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

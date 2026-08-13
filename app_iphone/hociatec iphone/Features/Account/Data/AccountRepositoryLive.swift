@@ -69,12 +69,12 @@ struct AccountRepositoryLive: AccountRepository {
         try await service.listAddresses()
     }
 
-    func createAddress(label: String, address: String, postalCode: String, city: String, isDefault: Bool) async throws {
-        try await service.createAddress(label: label, address: address, postalCode: postalCode, city: city, isDefault: isDefault)
+    func createAddress(type: String, label: String, address: String, addressComplement: String?, postalCode: String, company: String?, companySiren: String?, companyVatNumber: String?, city: String, isDefault: Bool) async throws {
+        try await service.createAddress(type: type, label: label, address: address, addressComplement: addressComplement, postalCode: postalCode, company: company, companySiren: companySiren, companyVatNumber: companyVatNumber, city: city, isDefault: isDefault)
     }
 
-    func updateAddress(id: Int, label: String, address: String, postalCode: String, city: String, isDefault: Bool) async throws {
-        try await service.updateAddress(id: id, label: label, address: address, postalCode: postalCode, city: city, isDefault: isDefault)
+    func updateAddress(id: Int, type: String, label: String, address: String, addressComplement: String?, postalCode: String, company: String?, companySiren: String?, companyVatNumber: String?, city: String, isDefault: Bool) async throws {
+        try await service.updateAddress(id: id, type: type, label: label, address: address, addressComplement: addressComplement, postalCode: postalCode, company: company, companySiren: companySiren, companyVatNumber: companyVatNumber, city: city, isDefault: isDefault)
     }
 
     func deleteAddress(id: Int) async throws {

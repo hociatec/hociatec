@@ -6,6 +6,8 @@ namespace App\Tests\Unit\Module\System;
 
 use App\Module\Outbox\Application\OutboxEventStore;
 use App\Module\Outbox\Application\OutboxMetrics;
+use App\Module\System\Application\Provider\LatestIosAltStoreSourceProvider;
+use App\Module\System\Application\Provider\LatestIosAppDownloadProvider;
 use App\Module\System\Application\Provider\PrometheusMetricContractProvider;
 use App\Module\System\UI\Controller\DownloadLatestIosAppController;
 use App\Module\System\UI\Controller\HealthController;
@@ -136,7 +138,7 @@ final class SystemControllersTest extends TestCase
                 throw new \RuntimeException(sprintf('Unexpected URL %s', $url));
             });
 
-        $response = (new DownloadLatestIosAppController($httpClient, new AttachmentResponseFactory()))();
+        $response = $this->downloadController($httpClient)();
 
         self::assertSame(Response::HTTP_OK, $response->getStatusCode());
         self::assertSame('ipa-bytes', $response->getContent());
@@ -151,7 +153,7 @@ final class SystemControllersTest extends TestCase
         $httpClient->expects(self::once())->method('request')->willThrowException(new class('down') extends \RuntimeException implements TransportExceptionInterface {
         });
 
-        $response = (new DownloadLatestIosAppController($httpClient, new AttachmentResponseFactory()))();
+        $response = $this->downloadController($httpClient)();
         $payload = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
 
         self::assertSame(Response::HTTP_NOT_FOUND, $response->getStatusCode());
@@ -192,7 +194,7 @@ final class SystemControllersTest extends TestCase
                 throw new \RuntimeException(sprintf('Unexpected URL %s', $url));
             });
 
-        $response = (new DownloadLatestIosAppController($httpClient, new AttachmentResponseFactory()))();
+        $response = $this->downloadController($httpClient)();
 
         self::assertSame(Response::HTTP_OK, $response->getStatusCode());
         self::assertStringContainsString('hociatec-altstore-v1.0.1-b2.ipa', (string) $response->headers->get('Content-Disposition'));
@@ -209,7 +211,7 @@ final class SystemControllersTest extends TestCase
             ->with('GET', 'https://github.com/hociatec/hociatec-downloads/releases/download/ios-latest/hociatec-altstore-source.json', self::isArray())
             ->willReturn($upstream);
 
-        $response = (new LatestIosAltStoreSourceController($httpClient))();
+        $response = $this->sourceController($httpClient)();
 
         self::assertSame(Response::HTTP_OK, $response->getStatusCode());
         self::assertSame('{"apps":[{"versions":[{"version":"1.0.1"}]}]}', $response->getContent());
@@ -222,7 +224,7 @@ final class SystemControllersTest extends TestCase
         $httpClient->expects(self::once())->method('request')->willThrowException(new class('down') extends \RuntimeException implements TransportExceptionInterface {
         });
 
-        $response = (new LatestIosAltStoreSourceController($httpClient))();
+        $response = $this->sourceController($httpClient)();
         $payload = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
 
         self::assertSame(Response::HTTP_BAD_GATEWAY, $response->getStatusCode());
@@ -252,5 +254,18 @@ final class SystemControllersTest extends TestCase
                 return 0;
             }
         };
+    }
+
+    private function downloadController(HttpClientInterface $httpClient): DownloadLatestIosAppController
+    {
+        return new DownloadLatestIosAppController(
+            new LatestIosAppDownloadProvider(new LatestIosAltStoreSourceProvider($httpClient), $httpClient),
+            new AttachmentResponseFactory(),
+        );
+    }
+
+    private function sourceController(HttpClientInterface $httpClient): LatestIosAltStoreSourceController
+    {
+        return new LatestIosAltStoreSourceController(new LatestIosAltStoreSourceProvider($httpClient));
     }
 }

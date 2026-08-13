@@ -42,8 +42,8 @@ final class TrainingCompletionRepositoryTest extends TrainingIntegrationTestCase
         self::assertSame(1, $enrollments->countActiveForSession($session));
         self::assertSame(1, $enrollments->countActiveForSessionSlot(
             $session,
-            new \DateTimeImmutable('2026-08-12T09:30:00+00:00'),
-            new \DateTimeImmutable('2026-08-12T10:30:00+00:00'),
+            new \DateTimeImmutable('2026-08-20T09:30:00+00:00'),
+            new \DateTimeImmutable('2026-08-20T10:30:00+00:00'),
         ));
         self::assertSame($enrollment, $enrollments->findOneForUserAndSession($user, $session));
         self::assertSame($enrollment, $enrollments->findOneByStripeSessionId('cs_test'));

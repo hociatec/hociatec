@@ -8,6 +8,30 @@ struct OrderData: Decodable {
     let order: OrderSummary
 }
 
+struct CheckoutResponseData: Decodable {
+    let order: OrderSummary?
+    let mode: String?
+    let checkoutUrl: String?
+    let checkoutSessionId: String?
+}
+
+struct CheckoutResult {
+    let order: OrderSummary?
+    let checkoutURL: URL?
+    let checkoutSessionId: String?
+
+    var requiresRedirect: Bool {
+        checkoutURL != nil
+    }
+}
+
+struct CheckoutSessionStatusData: Decodable {
+    let status: String
+    let checkoutSessionId: String
+    let orderId: Int?
+    let order: OrderSummary?
+}
+
 struct OrderSummary: Decodable, Identifiable {
     let id: Int
     let number: String

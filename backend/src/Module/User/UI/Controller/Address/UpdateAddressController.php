@@ -45,14 +45,15 @@ class UpdateAddressController extends AbstractController
 
         // Update fields
         $address
+            ->setType($input->type)
             ->setName($input->name)
             ->setAddress($input->address)
+            ->setAddressComplement($input->addressComplement)
             ->setPostalCode($input->postalCode)
             ->setCity($input->city)
             ->setCompany($input->company)
             ->setCompanySiren($input->companySiren)
-            ->setCompanyVatNumber($input->companyVatNumber)
-            ->setPurchaseOrderNumber($input->purchaseOrderNumber);
+            ->setCompanyVatNumber($input->companyVatNumber);
 
         $this->writer->save($address);
 

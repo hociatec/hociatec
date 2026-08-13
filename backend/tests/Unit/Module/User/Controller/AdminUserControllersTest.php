@@ -57,7 +57,7 @@ final class AdminUserControllersTest extends TestCase
             ->with('Ada', 'name_asc', 10, 10)
             ->willReturn([['email' => 'ada@example.com']]);
 
-        $response = (new ListCustomersController($users))(Request::create('/?search=Ada&sort=name_asc&page=2&perPage=10'));
+        $response = (new ListCustomersController($users))(Request::create('/?q=Ada&sort=name_asc&page=2&perPage=10'));
         $payload = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
 
         self::assertSame(Response::HTTP_OK, $response->getStatusCode());
@@ -79,8 +79,19 @@ final class AdminUserControllersTest extends TestCase
         $users->expects(self::exactly(2))->method('find')->with(42)->willReturnOnConsecutiveCalls(null, $user);
         $addresses = $this->getMockBuilder(ShippingAddressRepository::class)->disableOriginalConstructor()->onlyMethods(['findAllForUser'])->getMock();
         $addresses->expects(self::once())->method('findAllForUser')->with($user)->willReturn([$address]);
-        $orders = $this->getMockBuilder(OrderRepository::class)->disableOriginalConstructor()->onlyMethods(['findByUser'])->getMock();
-        $orders->expects(self::once())->method('findByUser')->with($user)->willReturn([$order]);
+        $orders = $this->getMockBuilder(OrderRepository::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['findByUser', 'findForUserList', 'countForUserList', 'countStatusBucketsForUser'])
+            ->getMock();
+        $orders->expects(self::once())->method('findByUser')->with($user, 1000, 0)->willReturn([$order]);
+        $orders->expects(self::once())->method('countForUserList')->with($user, 'all', null)->willReturn(1);
+        $orders->expects(self::once())->method('findForUserList')->with($user, 'all', null, 10, 0)->willReturn([$order]);
+        $orders->expects(self::once())->method('countStatusBucketsForUser')->with($user)->willReturn([
+            'all' => 1,
+            'open' => 1,
+            'delivered' => 0,
+            'cancelled' => 0,
+        ]);
         $voucherEntityManager = $this->entityManager([Voucher::class]);
         $voucher->setRecipientUserId(42);
         $voucherEntityManager->persist($voucher);
@@ -97,9 +108,11 @@ final class AdminUserControllersTest extends TestCase
             new \App\Module\Voucher\Application\Projection\VoucherFormatter(),
         ));
 
-        self::assertSame(Response::HTTP_NOT_FOUND, $controller(42)->getStatusCode());
+        $showRequest = Request::create('/');
 
-        $payload = json_decode((string) $controller(42)->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame(Response::HTTP_NOT_FOUND, $controller($showRequest, 42)->getStatusCode());
+
+        $payload = json_decode((string) $controller($showRequest, 42)->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('Ada Lovelace', $payload['data']['customer']['fullName']);
         self::assertSame(2500, $payload['data']['customer']['totalSpentCents']);
         self::assertSame('ORD-1', $payload['data']['customer']['lastOrderNumber']);

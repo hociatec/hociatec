@@ -65,6 +65,10 @@ export const NewsDetailPage = lazyPage(
   'NewsDetailPage',
 );
 export const CartPage = lazyPage(() => import('@/features/cart/pages/CartPage'), 'CartPage');
+export const MobileCheckoutReturnPage = lazyPage(
+  () => import('@/features/orders/pages/MobileCheckoutReturnPage'),
+  'MobileCheckoutReturnPage',
+);
 export const ServicesCatalogPage = lazyPage(
   () => import('@/features/quotes/pages/ServicesCatalogPage'),
   'ServicesCatalogPage',

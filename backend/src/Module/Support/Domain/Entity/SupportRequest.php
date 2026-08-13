@@ -48,11 +48,11 @@ class SupportRequest
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $internalNotes = null;
 
-    /** @var list<array<string, mixed>> */
+    /** @var list<mixed> */
     #[ORM\Column(type: 'json')]
     private ?array $attachments = [];
 
-    /** @var list<array<string, mixed>> */
+    /** @var list<mixed> */
     #[ORM\Column(type: 'json')]
     private ?array $timeline = [];
 
@@ -165,16 +165,16 @@ class SupportRequest
         return $this;
     }
 
-    /** @return list<array<string, mixed>> */
+    /** @return list<mixed> */
     public function getAttachments(): array
     {
-        return is_array($this->attachments) ? array_values($this->attachments) : [];
+        return $this->attachments ?? [];
     }
 
-    /** @param list<array<string, mixed>> $attachments */
+    /** @param list<mixed> $attachments */
     public function setAttachments(array $attachments): self
     {
-        $this->attachments = array_values($attachments);
+        $this->attachments = $attachments;
 
         return $this;
     }
@@ -184,16 +184,16 @@ class SupportRequest
         return $this->createdAt;
     }
 
-    /** @return list<array<string, mixed>> */
+    /** @return list<mixed> */
     public function getTimeline(): array
     {
-        return is_array($this->timeline) ? array_values($this->timeline) : [];
+        return $this->timeline ?? [];
     }
 
-    /** @param list<array<string, mixed>> $timeline */
+    /** @param list<mixed> $timeline */
     public function setTimeline(array $timeline): self
     {
-        $this->timeline = array_values($timeline);
+        $this->timeline = $timeline;
 
         return $this;
     }

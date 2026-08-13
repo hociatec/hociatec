@@ -41,13 +41,15 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 abstract class TrainingIntegrationTestCase extends TestCase
 {
-    protected const SESSION_START = '2026-08-12T08:00:00+00:00';
-    protected const SESSION_END = '2026-08-12T18:00:00+00:00';
-    protected const ENROLLMENT_START = '2026-08-12T09:00:00+00:00';
-    protected const ENROLLMENT_END = '2026-08-12T10:00:00+00:00';
-    protected const PAID_SESSION_START = '2026-08-13T08:00:00+00:00';
-    protected const PAID_SESSION_END = '2026-08-13T18:00:00+00:00';
-    protected const PAID_ENROLLMENT_START = '2026-08-13T09:00:00+00:00';
+    protected const SESSION_START = '2026-08-20T08:00:00+00:00';
+    protected const SESSION_END = '2026-08-20T18:00:00+00:00';
+    protected const ENROLLMENT_START = '2026-08-20T09:00:00+00:00';
+    protected const ENROLLMENT_END = '2026-08-20T10:00:00+00:00';
+    protected const PAID_SESSION_START = '2026-08-21T08:00:00+00:00';
+    protected const PAID_SESSION_END = '2026-08-21T18:00:00+00:00';
+    protected const PAID_ENROLLMENT_START = '2026-08-21T09:00:00+00:00';
+    protected const ADMIN_SESSION_START = '2026-08-22T08:00:00+00:00';
+    protected const ADMIN_SESSION_END = '2026-08-22T18:00:00+00:00';
 
     protected function checkoutService(EntityManager $em): TrainingEnrollmentCheckoutService
     {
@@ -112,8 +114,8 @@ abstract class TrainingIntegrationTestCase extends TestCase
     {
         return $override + [
             'trainingId' => $training->getId(),
-            'startsAt' => '2026-08-14T08:00:00+00:00',
-            'endsAt' => '2026-08-14T18:00:00+00:00',
+            'startsAt' => self::ADMIN_SESSION_START,
+            'endsAt' => self::ADMIN_SESSION_END,
             'dailyStartTime' => '08:00',
             'dailyEndTime' => '18:00',
             'includeWeekends' => true,

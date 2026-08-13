@@ -32,8 +32,8 @@ final class PromotionAndQuoteTailControllerTest extends TestCase
 
         $promotions = $this->createMock(PromotionRepository::class);
         $promotions->expects(self::exactly(2))->method('find')->willReturnOnConsecutiveCalls(null, $promotion);
-        $promotions->expects(self::once())->method('findBy')->with([], ['updatedAt' => 'DESC'], 10, 10)->willReturn([$promotion]);
-        $promotions->expects(self::once())->method('count')->with([])->willReturn(21);
+        $promotions->expects(self::once())->method('findForAdmin')->with(null, null, 10, 10)->willReturn([$promotion]);
+        $promotions->expects(self::once())->method('countForAdmin')->with(null, null)->willReturn(21);
 
         $promotionFormatter = new \App\Module\Promotion\Application\Projection\PromotionFormatter();
         $get = new GetPromotionController($promotions, $promotionFormatter);

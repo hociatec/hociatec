@@ -31,5 +31,9 @@ struct GlobalSearchView: View {
             guard !viewModel.query.isEmpty else { return }
             Task { await viewModel.search() }
         }
+        .onChangeCompat(viewModel.selectedSort) { _ in
+            guard !viewModel.query.isEmpty else { return }
+            viewModel.applyCurrentSort()
+        }
     }
 }

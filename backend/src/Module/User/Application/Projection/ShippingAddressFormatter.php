@@ -15,14 +15,15 @@ final class ShippingAddressFormatter
     {
         return [
             'id' => $address->getId(),
+            'type' => $address->getType(),
             'name' => $address->getName(),
             'address' => $address->getAddress(),
+            'addressComplement' => $address->getAddressComplement(),
             'postalCode' => $address->getPostalCode(),
             'city' => $address->getCity(),
             'company' => $address->getCompany(),
             'companySiren' => $address->getCompanySiren(),
             'companyVatNumber' => $address->getCompanyVatNumber(),
-            'purchaseOrderNumber' => $address->getPurchaseOrderNumber(),
             'isDefault' => $address->isDefault(),
         ];
     }

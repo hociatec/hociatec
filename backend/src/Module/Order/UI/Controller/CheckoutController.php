@@ -51,6 +51,7 @@ final class CheckoutController extends AbstractController
                 $this->currentUser(),
                 $token,
                 $input->addressId,
+                $input->clientPlatform,
             );
         } catch (ApiProblemException $exception) {
             return ApiProblemResponse::fromThrowable($exception, 'Impossible de valider la commande.');

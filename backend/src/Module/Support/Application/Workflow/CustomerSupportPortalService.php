@@ -9,9 +9,9 @@ use App\Module\Admin\Application\Operations\Projection\AdminOperationsFormatter;
 use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Support\Application\DTO\SupportCreateData;
+use App\Module\Support\Application\Port\SupportAttachmentStoragePort;
 use App\Module\Support\Application\Port\SupportRequestRepositoryPort;
 use App\Module\Support\Domain\Entity\SupportRequest;
-use App\Module\Support\Infrastructure\Storage\SupportAttachmentStorage;
 use App\Module\User\Domain\Entity\User;
 
 final readonly class CustomerSupportPortalService
@@ -21,7 +21,7 @@ final readonly class CustomerSupportPortalService
         private OrderRepositoryPort $orders,
         private SupportRequestService $supportService,
         private AdminOperationsFormatter $formatter,
-        private SupportAttachmentStorage $attachmentStorage,
+        private SupportAttachmentStoragePort $attachmentStorage,
     ) {
     }
 
@@ -47,7 +47,9 @@ final readonly class CustomerSupportPortalService
         return $this->formatter->customerSupportRequest($this->findForUser($user, $supportId));
     }
 
-    /** @return array<string,mixed> */
+    /** @param list<object> $files
+     * @return array<string,mixed>
+     */
     public function createForUser(User $user, SupportCreateData $data, array $files = []): array
     {
         $order = null !== $data->orderId ? $this->orders->find($data->orderId) : null;
@@ -61,7 +63,9 @@ final readonly class CustomerSupportPortalService
         return $this->formatter->customerSupportRequest($support);
     }
 
-    /** @return array<string,mixed> */
+    /** @param list<object> $files
+     * @return array<string,mixed>
+     */
     public function replyForUser(User $user, int $supportId, string $message, ?string $subject = null, array $files = []): array
     {
         $support = $this->findForUser($user, $supportId);

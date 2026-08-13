@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\Catalog\Exception;
 
-use App\Shared\Application\Exception\ApiProblemException;
 use App\Shared\Application\Exception\AbstractPublicApiException;
+use App\Shared\Application\Exception\ApiProblemException;
 
 final class ProductFormRequestException extends AbstractPublicApiException
 {

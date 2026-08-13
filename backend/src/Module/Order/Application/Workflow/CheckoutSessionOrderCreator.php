@@ -138,7 +138,7 @@ final readonly class CheckoutSessionOrderCreator
     }
 
     /**
-     * @param list<array<string, mixed>> $items
+     * @param array<int, array<string, mixed>> $items
      *
      * @return list<array<string, mixed>>
      */

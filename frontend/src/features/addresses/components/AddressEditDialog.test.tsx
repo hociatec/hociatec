@@ -41,7 +41,7 @@ describe('AddressEditDialog', () => {
     );
 
     await waitFor(() => {
-      expect(document.activeElement).toBe(screen.getByLabelText('Nom'));
+      expect(document.activeElement).toBe(screen.getByLabelText('Personnel'));
     });
   });
 

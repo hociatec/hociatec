@@ -18,13 +18,13 @@ final readonly class StripeCheckoutService
     ) {
     }
 
-    public function createHostedCheckout(User $user, CartSession $cart, ShippingAddress $address): OrderCheckoutSession
+    public function createHostedCheckout(User $user, CartSession $cart, ShippingAddress $address, ?string $clientPlatform = null): OrderCheckoutSession
     {
-        return $this->cartCheckouts->create($user, $cart, $address);
+        return $this->cartCheckouts->create($user, $cart, $address, $clientPlatform);
     }
 
-    public function createHostedCheckoutForOrder(User $user, Order $order, ShippingAddress $address): OrderCheckoutSession
+    public function createHostedCheckoutForOrder(User $user, Order $order, ShippingAddress $address, ?string $clientPlatform = null): OrderCheckoutSession
     {
-        return $this->orderCheckouts->create($user, $order, $address);
+        return $this->orderCheckouts->create($user, $order, $address, $clientPlatform);
     }
 }

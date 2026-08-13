@@ -5,16 +5,16 @@ declare(strict_types=1);
 namespace App\Module\Support\Application\Workflow;
 
 use App\Module\Admin\Application\Operations\Exception\OperationsResourceNotFoundException;
+use App\Module\Support\Application\Port\SupportAttachmentStoragePort;
 use App\Module\Support\Application\Port\SupportRequestRepositoryPort;
 use App\Module\Support\Domain\Entity\SupportRequest;
-use App\Module\Support\Infrastructure\Storage\SupportAttachmentStorage;
 use App\Module\User\Domain\Entity\User;
 
 final readonly class SupportAttachmentAccessService
 {
     public function __construct(
         private SupportRequestRepositoryPort $supportRequests,
-        private SupportAttachmentStorage $storage,
+        private SupportAttachmentStoragePort $storage,
     ) {
     }
 

@@ -21,14 +21,15 @@ export interface AdminCustomerSummaryDto {
 
 export interface AdminCustomerAddressDto {
   id: number;
+  type: 'personal' | 'professional';
   name: string;
   address: string;
+  addressComplement?: string | null;
   postalCode: string;
   city: string;
   company?: string | null;
   companySiren?: string | null;
   companyVatNumber?: string | null;
-  purchaseOrderNumber?: string | null;
   isDefault: boolean;
 }
 

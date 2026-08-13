@@ -8,23 +8,29 @@ struct GlobalSearchResultsView: View {
 
     var body: some View {
         Group {
-            if viewModel.shouldShow(.products) {
+            if viewModel.totalResults == 0 {
+                Section("Résultats") {
+                    GlobalSearchEmptyRow(message: "Aucun résultat pour cette recherche.")
+                }
+            }
+
+            if viewModel.shouldShow(.products) && viewModel.hasVisibleResults(for: .products) {
                 GlobalSearchProductsSection(viewModel: viewModel)
                     .environmentObject(container)
                     .environmentObject(cart)
             }
 
-            if viewModel.shouldShow(.services) {
+            if viewModel.shouldShow(.services) && viewModel.hasVisibleResults(for: .services) {
                 GlobalSearchServicesSection(viewModel: viewModel)
                     .environmentObject(container)
             }
 
-            if viewModel.shouldShow(.trainings) {
+            if viewModel.shouldShow(.trainings) && viewModel.hasVisibleResults(for: .trainings) {
                 GlobalSearchTrainingsSection(viewModel: viewModel)
                     .environmentObject(container)
             }
 
-            if viewModel.shouldShow(.news) {
+            if viewModel.shouldShow(.news) && viewModel.hasVisibleResults(for: .news) {
                 GlobalSearchNewsSection(viewModel: viewModel)
                     .environmentObject(container)
             }

@@ -124,26 +124,28 @@ final class UserEntitiesTest extends TestCase
         $address = new ShippingAddress($user, 'Ada Lovelace', '1 rue de Paris', '75001', 'Paris');
 
         $address
+            ->setType(ShippingAddress::TYPE_PROFESSIONAL)
             ->setName('Grace Hopper')
             ->setAddress('2 avenue de Lyon')
+            ->setAddressComplement('Bâtiment A')
             ->setPostalCode('69000')
             ->setCity('Lyon')
             ->setCompany('OpenAI')
             ->setCompanySiren('123456789')
             ->setCompanyVatNumber('FR123456789')
-            ->setPurchaseOrderNumber('PO-42')
             ->setIsDefault(true);
 
         self::assertSame($user, $address->getUser());
         self::assertSame('Grace Hopper', $address->getName());
         self::assertSame('2 avenue de Lyon', $address->getAddress());
+        self::assertSame('Bâtiment A', $address->getAddressComplement());
         self::assertSame('69000', $address->getPostalCode());
         self::assertSame('Lyon', $address->getCity());
+        self::assertSame(ShippingAddress::TYPE_PROFESSIONAL, $address->getType());
         self::assertNull($address->getId());
         self::assertSame('OpenAI', $address->getCompany());
         self::assertSame('123456789', $address->getCompanySiren());
         self::assertSame('FR123456789', $address->getCompanyVatNumber());
-        self::assertSame('PO-42', $address->getPurchaseOrderNumber());
         self::assertTrue($address->isDefault());
     }
 }

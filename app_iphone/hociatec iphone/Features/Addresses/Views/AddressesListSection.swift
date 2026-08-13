@@ -24,6 +24,9 @@ private struct AddressRow: View {
             Text(address.label)
                 .font(.headline)
             Text(address.address)
+            if let addressComplement = address.addressComplement, !addressComplement.isEmpty {
+                Text(addressComplement)
+            }
             Text("\(address.postalCode) \(address.city)")
                 .font(.subheadline)
                 .foregroundColor(.secondary)

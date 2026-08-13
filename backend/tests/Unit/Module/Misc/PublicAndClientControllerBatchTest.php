@@ -35,8 +35,8 @@ final class PublicAndClientControllerBatchTest extends TestCase
         $service->setDescription('Desc')->setUnit('jour')->setDurationValue(2)->setDurationUnit('day');
 
         $services = $this->createMock(ServiceOfferingRepository::class);
-        $services->expects(self::once())->method('findPaginated')->with(20, 20)->willReturn([$service]);
-        $services->expects(self::once())->method('countAll')->willReturn(21);
+        $services->expects(self::once())->method('findPublic')->with(null, 20, 20)->willReturn([$service]);
+        $services->expects(self::once())->method('countPublic')->with(null)->willReturn(21);
 
         $publicServices = new ListServicesController($services, new \App\Module\Quote\Application\Projection\QuoteFormatter(new \App\Module\Quote\Application\Calculator\QuoteCalculator(), \App\Tests\Support\OrderFormatterFactory::create()));
         $servicesPayload = json_decode((string) $publicServices(new Request(['page' => '2']))->getContent(), true, 512, JSON_THROW_ON_ERROR);

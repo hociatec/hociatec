@@ -8,6 +8,10 @@ extension GlobalSearchViewModel {
             + visibleTotal(for: .news, count: newsTotal)
     }
 
+    func hasVisibleResults(for filter: GlobalSearchFilter) -> Bool {
+        sectionTotal(for: filter) > 0
+    }
+
     func sectionTotal(for filter: GlobalSearchFilter) -> Int {
         switch filter {
         case .all:

@@ -8,5 +8,5 @@ struct CartService: CartServing {
     func updateCart(productId: Int, quantity: Int, rentalMonths: Int?, currentRentalMonths: Int?) async throws -> Cart { try await api.updateCart(productId: productId, quantity: quantity, rentalMonths: rentalMonths, currentRentalMonths: currentRentalMonths) }
     func removeFromCart(productId: Int) async throws -> Cart { try await api.removeFromCart(productId: productId) }
     func clearCart() async throws -> Cart { try await api.clearCart() }
-    func checkout() async throws -> OrderSummary { try await api.checkout() }
+    func checkout() async throws -> CheckoutResult { try await api.checkout() }
 }

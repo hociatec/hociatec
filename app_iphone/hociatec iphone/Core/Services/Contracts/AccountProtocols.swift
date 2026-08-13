@@ -29,8 +29,8 @@ protocol AccountServing {
     func verifyAccount(token: String) async throws
     func requestPasswordReset(email: String) async throws
     func resetPassword(token: String, password: String, confirmPassword: String) async throws
-    func createAddress(label: String, address: String, postalCode: String, city: String, isDefault: Bool) async throws
-    func updateAddress(id: Int, label: String, address: String, postalCode: String, city: String, isDefault: Bool) async throws
+    func createAddress(type: String, label: String, address: String, addressComplement: String?, postalCode: String, company: String?, companySiren: String?, companyVatNumber: String?, city: String, isDefault: Bool) async throws
+    func updateAddress(id: Int, type: String, label: String, address: String, addressComplement: String?, postalCode: String, company: String?, companySiren: String?, companyVatNumber: String?, city: String, isDefault: Bool) async throws
     func deleteAddress(id: Int) async throws
     func setDefaultAddress(id: Int) async throws
     func listAddresses() async throws -> [UserAddress]

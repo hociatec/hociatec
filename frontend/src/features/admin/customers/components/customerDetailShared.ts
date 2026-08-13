@@ -91,6 +91,13 @@ export const customerEmailPresets: EmailTemplatePreset[] = [
 ];
 
 export const formatAddress = (address: AdminCustomerAddressDto) =>
-  [address.address, `${address.postalCode} ${address.city}`].filter(Boolean).join(', ');
+  [
+    address.type === 'professional' ? address.company : null,
+    address.address,
+    address.addressComplement,
+    `${address.postalCode} ${address.city}`,
+  ]
+    .filter(Boolean)
+    .join(', ');
 
 export const normalizePhoneLink = (phoneNumber: string) => phoneNumber.replace(/[^+\d]/g, '');

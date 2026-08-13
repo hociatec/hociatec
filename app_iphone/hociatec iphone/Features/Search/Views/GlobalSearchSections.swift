@@ -17,6 +17,12 @@ struct GlobalSearchIntroSection: View {
 
 struct GlobalSearchControlsSection: View {
     @ObservedObject var viewModel: GlobalSearchViewModel
+    @State private var showFilterSheet = false
+    @State private var showSortSheet = false
+
+    private var filtersCount: Int {
+        viewModel.selectedFilter == .all ? 0 : 1
+    }
 
     var body: some View {
         Section {
@@ -28,17 +34,38 @@ struct GlobalSearchControlsSection: View {
                 }
 
             if !viewModel.query.isEmpty {
-                Picker("Filtre", selection: $viewModel.selectedFilter) {
-                    ForEach(GlobalSearchFilter.allCases) { filter in
-                        Text(filter.label).tag(filter)
+                HStack {
+                    Button {
+                        showFilterSheet = true
+                    } label: {
+                        Label(filtersCount > 0 ? "Filtrer (\(filtersCount))" : "Filtrer", systemImage: "line.3.horizontal.decrease.circle")
+                    }
+
+                    Spacer()
+
+                    Button {
+                        showSortSheet = true
+                    } label: {
+                        Label("Trier (\(viewModel.selectedSort.label))", systemImage: "arrow.up.arrow.down")
                     }
                 }
-                .pickerStyle(.segmented)
             }
 
             Button("Rechercher") {
                 Task { await viewModel.submit() }
             }
+        }
+        .sheet(isPresented: $showFilterSheet) {
+            GlobalSearchFilterSheet(
+                selectedFilter: $viewModel.selectedFilter,
+                onClose: { showFilterSheet = false }
+            )
+        }
+        .sheet(isPresented: $showSortSheet) {
+            GlobalSearchSortSheet(
+                selectedSort: $viewModel.selectedSort,
+                onClose: { showSortSheet = false }
+            )
         }
     }
 }
@@ -67,6 +94,70 @@ struct GlobalSearchLoadingSection: View {
     var body: some View {
         Section {
             ProgressView("Recherche en cours...")
+        }
+    }
+}
+
+private struct GlobalSearchFilterSheet: View {
+    @Binding var selectedFilter: GlobalSearchFilter
+    let onClose: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            List {
+                ForEach(GlobalSearchFilter.allCases) { filter in
+                    Button {
+                        selectedFilter = filter
+                        onClose()
+                    } label: {
+                        HStack {
+                            Text(filter.label)
+                            if selectedFilter == filter {
+                                Spacer()
+                                Image(systemName: "checkmark")
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Filtrer")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Fermer", action: onClose)
+                }
+            }
+        }
+    }
+}
+
+private struct GlobalSearchSortSheet: View {
+    @Binding var selectedSort: GlobalSearchSortOption
+    let onClose: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            List {
+                ForEach(GlobalSearchSortOption.allCases) { option in
+                    Button {
+                        selectedSort = option
+                        onClose()
+                    } label: {
+                        HStack {
+                            Text(option.label)
+                            if selectedSort == option {
+                                Spacer()
+                                Image(systemName: "checkmark")
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Trier")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Fermer", action: onClose)
+                }
+            }
         }
     }
 }

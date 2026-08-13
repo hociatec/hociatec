@@ -3,6 +3,11 @@ import Combine
 
 /// Stocke les jetons de session (JWT + panier) et le profil utilisateur.
 final class SessionStore: ObservableObject {
+    enum CheckoutCallback: Equatable {
+        case success(String)
+        case cancelled
+    }
+
     @Published var jwtToken: String? {
         didSet { persist(value: jwtToken, forKey: Keys.jwt) }
     }
@@ -29,6 +34,12 @@ final class SessionStore: ObservableObject {
         didSet { UserDefaults.standard.set(rememberSession, forKey: Keys.rememberSession) }
     }
 
+    @Published var pendingCheckoutSessionId: String? {
+        didSet { persist(value: pendingCheckoutSessionId, forKey: Keys.pendingCheckoutSessionId) }
+    }
+
+    @Published var checkoutCallback: CheckoutCallback?
+
     private enum Keys {
         static let jwt = "hociatec.jwt"
         static let cart = "hociatec.cartToken"
@@ -36,6 +47,7 @@ final class SessionStore: ObservableObject {
         static let loginEmail = "hociatec.loginEmail"
         static let loginPassword = "hociatec.loginPassword"
         static let rememberSession = "hociatec.rememberSession"
+        static let pendingCheckoutSessionId = "hociatec.pendingCheckoutSessionId"
     }
 
     init() {
@@ -44,6 +56,7 @@ final class SessionStore: ObservableObject {
         loginEmail = UserDefaults.standard.string(forKey: Keys.loginEmail)
         loginPassword = UserDefaults.standard.string(forKey: Keys.loginPassword)
         rememberSession = UserDefaults.standard.bool(forKey: Keys.rememberSession)
+        pendingCheckoutSessionId = UserDefaults.standard.string(forKey: Keys.pendingCheckoutSessionId)
 
         if let data = UserDefaults.standard.data(forKey: Keys.profile) {
             profile = try? JSONDecoder().decode(UserProfile.self, from: data)
@@ -55,6 +68,8 @@ final class SessionStore: ObservableObject {
         csrfToken = nil
         profile = nil
         loginPassword = nil
+        pendingCheckoutSessionId = nil
+        checkoutCallback = nil
         clearAuthCookies()
     }
     
@@ -67,6 +82,37 @@ final class SessionStore: ObservableObject {
     var storedCredentials: (email: String, password: String)? {
         guard let email = loginEmail, let password = loginPassword else { return nil }
         return (email, password)
+    }
+
+    func handleIncomingURL(_ url: URL) {
+        guard url.scheme?.caseInsensitiveCompare("hociatec") == .orderedSame else { return }
+        guard url.host?.caseInsensitiveCompare("checkout") == .orderedSame else { return }
+
+        let pathComponents = url.pathComponents.filter { $0 != "/" }
+        guard let action = pathComponents.first?.lowercased() else { return }
+
+        switch action {
+        case "success":
+            guard
+                let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+                let sessionId = components.queryItems?.first(where: { $0.name == "session_id" })?.value,
+                !sessionId.isEmpty
+            else {
+                return
+            }
+            pendingCheckoutSessionId = sessionId
+            checkoutCallback = .success(sessionId)
+        case "cancel":
+            checkoutCallback = .cancelled
+        default:
+            return
+        }
+    }
+
+    func consumeCheckoutCallback() -> CheckoutCallback? {
+        let callback = checkoutCallback
+        checkoutCallback = nil
+        return callback
     }
 
     private func persist(value: String?, forKey key: String) {

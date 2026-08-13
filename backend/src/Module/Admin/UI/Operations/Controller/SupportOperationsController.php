@@ -12,14 +12,11 @@ use App\Module\Admin\Application\Operations\Workflow\SupportOperationsService;
 use App\Module\Support\Application\DTO\SupportCreateData;
 use App\Module\Support\Application\DTO\SupportReplyData;
 use App\Module\Support\Application\DTO\SupportUpdateData;
-use App\Module\Support\Application\Workflow\SupportAttachmentAccessService;
 use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
-use App\Shared\Infrastructure\Http\AttachmentResponseFactory;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use App\Shared\Infrastructure\Validation\DtoValidator;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -33,10 +30,7 @@ final readonly class SupportOperationsController
     public function __construct(
         private SupportOperationsService $support,
         private DtoValidator $validator,
-        private AttachmentResponseFactory $attachments,
-        private SupportAttachmentAccessService $attachmentAccess,
-    )
-    {
+    ) {
     }
 
     #[Route('', name: 'api_admin_operations_support_list', methods: ['GET'])]
@@ -57,7 +51,14 @@ final readonly class SupportOperationsController
         try {
             $input = \App\Shared\Infrastructure\Http\JsonRequestInput::decode($request, SupportCreateInput::class);
             $this->validator->validate($input);
-            $item = $this->support->create(new SupportCreateData($input->customerId, $input->subject, $input->reason, $input->message, $input->internalNotes, $input->orderId));
+            $item = $this->support->create(new SupportCreateData(
+                $input->customerId,
+                $input->subject,
+                $input->reason,
+                $input->message,
+                $input->internalNotes,
+                $input->orderId,
+            ));
         } catch (OperationsResourceNotFoundException $exception) {
             return ApiProblemResponse::fromThrowable($exception, 'Client ou commande introuvable.', Response::HTTP_NOT_FOUND);
         } catch (InvalidJsonPayloadException|\JsonException|\RuntimeException) {
@@ -114,23 +115,5 @@ final readonly class SupportOperationsController
         }
 
         return ApiResponse::success(['sent' => true, 'item' => $item]);
-    }
-
-    #[Route('/{id}/attachments/{name}', name: 'api_admin_operations_support_attachment', methods: ['GET'])]
-    public function downloadAttachment(int $id, string $name): BinaryFileResponse|JsonResponse
-    {
-        try {
-            $path = $this->attachmentAccess->pathForAdmin($id, $name);
-        } catch (OperationsResourceNotFoundException $exception) {
-            return ApiProblemResponse::fromThrowable($exception, 'Demande SAV introuvable.', Response::HTTP_NOT_FOUND);
-        }
-
-        if (null === $path) {
-            return ApiResponse::error('Pièce jointe introuvable.', Response::HTTP_NOT_FOUND);
-        }
-
-        $contentType = mime_content_type($path) ?: 'application/octet-stream';
-
-        return $this->attachments->createBinaryFile($path, $name, $contentType);
     }
 }

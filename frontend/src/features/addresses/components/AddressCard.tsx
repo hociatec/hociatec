@@ -18,26 +18,31 @@ export const AddressCard = ({
       <div className="space-y-1">
         <div className="flex flex-wrap items-center gap-2">
           <h3 className="text-base font-semibold text-brand-900">{address.name}</h3>
+          <span className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
+            {address.type === 'professional' ? 'Professionnelle' : 'Personnelle'}
+          </span>
           {address.isDefault && (
             <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
               Par défaut
             </span>
           )}
         </div>
-        {address.company && <p className="text-sm font-medium text-stone-800">{address.company}</p>}
+        {address.type === 'professional' && address.company ? (
+          <p className="text-sm text-stone-700">{address.company}</p>
+        ) : null}
         <p className="text-sm text-stone-700">{address.address}</p>
+        {address.addressComplement ? (
+          <p className="text-sm text-stone-700">{address.addressComplement}</p>
+        ) : null}
         <p className="text-sm text-stone-600">
           {address.postalCode} {address.city}
         </p>
-        {address.companySiren && (
-          <p className="text-xs text-stone-500">SIREN : {address.companySiren}</p>
-        )}
-        {address.companyVatNumber && (
-          <p className="text-xs text-stone-500">TVA : {address.companyVatNumber}</p>
-        )}
-        {address.purchaseOrderNumber && (
-          <p className="text-xs text-stone-500">Bon de commande : {address.purchaseOrderNumber}</p>
-        )}
+        {address.type === 'professional' && address.companySiren ? (
+          <p className="text-sm text-stone-600">SIREN : {address.companySiren}</p>
+        ) : null}
+        {address.type === 'professional' && address.companyVatNumber ? (
+          <p className="text-sm text-stone-600">TVA : {address.companyVatNumber}</p>
+        ) : null}
       </div>
       <div className="flex flex-wrap gap-2 lg:justify-end">
         <button type="button" className="address-button" onClick={onEdit}>

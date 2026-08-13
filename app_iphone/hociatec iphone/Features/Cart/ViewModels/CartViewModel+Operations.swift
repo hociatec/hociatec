@@ -66,17 +66,21 @@ extension CartViewModel {
         isLoading = false
     }
 
-    func checkout() async -> OrderSummary? {
+    func checkout() async -> CheckoutResult? {
         isLoading = true
         error = nil
         statusMessage = nil
         defer { isLoading = false }
 
         do {
-            let order = try await service.checkout()
-            statusMessage = "Commande créée (\(order.number))."
-            cart = nil
-            return order
+            let result = try await service.checkout()
+            if let order = result.order {
+                statusMessage = "Commande créée (\(order.number))."
+                cart = nil
+            } else if result.requiresRedirect {
+                statusMessage = "Redirection vers le paiement."
+            }
+            return result
         } catch let err {
             error = err.localizedDescription
             return nil

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Module\Cart\UI\Controller\PublicApi;
 
+use App\Module\Cart\Application\Exception\CartNotFoundException;
 use App\Module\Cart\Application\Projection\CartFormatter;
 use App\Module\Cart\Application\Workflow\CartSessionWorkflow;
-use App\Module\Cart\Application\Exception\CartNotFoundException;
 use App\Module\Catalog\Application\Port\ProductRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiProblemResponse;

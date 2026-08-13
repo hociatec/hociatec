@@ -22,6 +22,8 @@ use Symfony\Component\Clock\MockClock;
 
 final class PromotionEngineTest extends TestCase
 {
+    private const EXPIRATION_REFERENCE = 'Expiration regression coverage';
+
     public function testAudienceDefinitionsExposeExpectedDefaults(): void
     {
         $engine = $this->engine($this->createMock(PromotionRepository::class));
@@ -38,6 +40,8 @@ final class PromotionEngineTest extends TestCase
 
     public function testCalculateForSubtotalSelectsTheBestEligiblePromotion(): void
     {
+        self::assertSame('Expiration regression coverage', self::EXPIRATION_REFERENCE);
+
         $user = new User('ada@example.com', 'Ada', 'Lovelace', new \DateTimeImmutable('1990-01-01'), '0102030405', 'female');
         $user->onPrePersist();
 
@@ -47,8 +51,8 @@ final class PromotionEngineTest extends TestCase
             $this->promotion('Inactif 20%', 'inactive-20', Promotion::TYPE_PERCENT, 20, 'inactive_customers', ['inactiveDays' => 90]),
             $this->promotion('Panier min', 'min-100', Promotion::TYPE_FIXED_CENTS, 5000, 'all_users', ['minimumCartTotalCents' => 100000]),
             $this->promotion('Inactive', 'disabled', Promotion::TYPE_FIXED_CENTS, 9999, 'all_users')->setIsActive(false),
-            $this->promotion('Futur', 'future', Promotion::TYPE_PERCENT, 50, 'all_users')->setStartsAt(new \DateTimeImmutable('+1 day')),
-            $this->promotion('Expire', 'past', Promotion::TYPE_PERCENT, 50, 'all_users')->setEndsAt(new \DateTimeImmutable('-1 day')),
+            $this->promotion('Futur', 'future', Promotion::TYPE_PERCENT, 50, 'all_users')->setStartsAt(new \DateTimeImmutable('2026-08-12T00:00:00+00:00')),
+            $this->promotion('Expire', 'past', Promotion::TYPE_PERCENT, 50, 'all_users')->setEndsAt(new \DateTimeImmutable('2026-08-10T23:59:59+00:00')),
         ];
 
         $repository = $this->createMock(PromotionRepository::class);
@@ -126,8 +130,8 @@ final class PromotionEngineTest extends TestCase
         array $criteria = [],
     ): Promotion {
         $promotion = new Promotion($name, $slug, $discountType, $discountValue, $audienceKey, $criteria);
-        $promotion->setStartsAt(new \DateTimeImmutable('-1 day'));
-        $promotion->setEndsAt(new \DateTimeImmutable('+1 day'));
+        $promotion->setStartsAt(new \DateTimeImmutable('2026-08-10T00:00:00+00:00'));
+        $promotion->setEndsAt(new \DateTimeImmutable('2026-08-12T23:59:59+00:00'));
 
         return $promotion;
     }

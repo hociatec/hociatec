@@ -222,6 +222,16 @@ SH);
                 return 0;
             }
 
+            public function findForAdmin(?string $search, ?string $scenario, ?string $status, int $limit, int $offset): array
+            {
+                return [];
+            }
+
+            public function countForAdmin(?string $search, ?string $scenario, ?string $status): int
+            {
+                return 0;
+            }
+
             public function findOneBySlug(string $slug): ?EmailTemplate
             {
                 return null;

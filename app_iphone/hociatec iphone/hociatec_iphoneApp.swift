@@ -13,6 +13,7 @@ struct hociatec_iphoneApp: App {
                 .environmentObject(container.account)
                 .environmentObject(navigation)
                 .onOpenURL { url in
+                    container.session.handleIncomingURL(url)
                     navigation.handle(url: url)
                 }
         }

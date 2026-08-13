@@ -6,8 +6,8 @@ namespace App\Module\Order\Application\Workflow;
 
 use App\Module\Cart\Application\Workflow\CartSessionWorkflow;
 use App\Module\Cart\Domain\Entity\CartSession;
-use App\Module\Order\Application\Exception\CartAlreadyConvertedException;
 use App\Module\Order\Application\DTO\CartCheckoutResult;
+use App\Module\Order\Application\Exception\CartAlreadyConvertedException;
 use App\Module\Order\Application\Exception\CartCheckoutConflictException;
 use App\Module\Order\Application\Exception\CartCheckoutNotFoundException;
 use App\Module\Order\Application\Exception\CheckoutRequestException;
@@ -27,7 +27,7 @@ final readonly class CartCheckoutService
     ) {
     }
 
-    public function checkout(User $user, string $cartToken, ?int $addressId): CartCheckoutResult
+    public function checkout(User $user, string $cartToken, ?int $addressId, ?string $clientPlatform = null): CartCheckoutResult
     {
         $cart = $this->carts->findCartByToken($cartToken);
         if (!$cart instanceof CartSession) {
@@ -43,7 +43,7 @@ final readonly class CartCheckoutService
 
         $address = $this->resolveAddress($user, $addressId);
         try {
-            return CartCheckoutResult::redirect($this->stripe->createHostedCheckout($user, $cart, $address));
+            return CartCheckoutResult::redirect($this->stripe->createHostedCheckout($user, $cart, $address, $clientPlatform));
         } catch (CartAlreadyConvertedException) {
             return $this->convertedResult($cart, $user);
         }

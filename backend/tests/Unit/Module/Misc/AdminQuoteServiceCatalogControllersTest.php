@@ -39,10 +39,10 @@ final class AdminQuoteServiceCatalogControllersTest extends MiscSupportTestCase
             ->method('find')
             ->willReturnOnConsecutiveCalls(null, $service, null, $service, $service, $service);
         $repository->expects(self::once())
-            ->method('findBy')
-            ->with([], ['title' => 'ASC'], 10, 10)
+            ->method('findForAdmin')
+            ->with(null, 10, 10)
             ->willReturn([$service]);
-        $repository->expects(self::once())->method('count')->with([])->willReturn(21);
+        $repository->expects(self::once())->method('countForAdmin')->with(null)->willReturn(21);
 
         $get = new GetServiceController($repository, $this->quoteFormatter());
         self::assertSame(Response::HTTP_NOT_FOUND, $get(404)->getStatusCode());

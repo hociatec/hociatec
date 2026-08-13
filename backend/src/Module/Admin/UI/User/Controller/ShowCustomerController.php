@@ -6,6 +6,7 @@ namespace App\Module\Admin\UI\User\Controller;
 
 use App\Module\Admin\Application\User\Provider\CustomerDetailsProvider;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,10 +23,10 @@ final class ShowCustomerController extends AbstractController
 
     public function __invoke(Request $request, int $userId): JsonResponse
     {
-        $orderStatus = (string) $request->query->get('orderStatus', 'all');
-        $orderPage = max(1, (int) $request->query->get('orderPage', 1));
-        $orderPerPage = max(1, min(100, (int) $request->query->get('orderPerPage', 10)));
-        $orderQuery = trim((string) $request->query->get('orderQuery', ''));
+        $orderStatus = RequestQueryMapper::string($request, 'orderStatus', 'all');
+        $orderPage = RequestQueryMapper::intOrNull($request, 'orderPage') ?? 1;
+        $orderPerPage = RequestQueryMapper::intOrNull($request, 'orderPerPage') ?? 10;
+        $orderQuery = RequestQueryMapper::nullableString($request, 'orderQuery');
         $details = $this->customers->details($userId, $orderStatus, $orderPage, $orderPerPage, '' !== $orderQuery ? $orderQuery : null);
         if (null === $details) {
             return ApiResponse::error('Client introuvable.', JsonResponse::HTTP_NOT_FOUND);

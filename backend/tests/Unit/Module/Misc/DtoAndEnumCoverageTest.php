@@ -129,8 +129,9 @@ final class DtoAndEnumCoverageTest extends TestCase
         $context->expects(self::once())->method('buildViolation')->with('Les mots de passe doivent être identiques.')->willReturn($builder);
         $reset->validatePasswords($context);
 
-        $checkout = CheckoutInput::fromArray(['addressId' => '12']);
+        $checkout = CheckoutInput::fromArray(['addressId' => '12', 'clientPlatform' => ' IOS ']);
         self::assertSame(12, $checkout->addressId);
+        self::assertSame('ios', $checkout->clientPlatform);
 
         $criteria = new ProductSearchCriteria([
             'page' => 3,

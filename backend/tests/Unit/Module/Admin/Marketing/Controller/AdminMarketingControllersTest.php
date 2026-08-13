@@ -62,6 +62,8 @@ final class AdminMarketingControllersTest extends TestCase
         $templates = $this->createMock(EmailTemplateRepository::class);
         $templates->method('findBy')->willReturn([$template]);
         $templates->method('count')->willReturn(1);
+        $templates->method('findForAdmin')->willReturn([$template]);
+        $templates->method('countForAdmin')->willReturn(1);
         $templates->method('find')->willReturnCallback(static fn (int $id): ?EmailTemplate => 10 === $id ? $template : null);
         $templates->method('findOneBySlug')->willReturnCallback(static fn (string $slug): ?EmailTemplate => 'duplicate' === $slug ? new EmailTemplate('Duplicate', 'duplicate', $scenarioKey, 'S', '<p>H</p>', null) : null);
 
@@ -74,7 +76,7 @@ final class AdminMarketingControllersTest extends TestCase
         $requestMapper = new MarketingRequestMapper();
         $templateFormatter = new EmailTemplateResponseFormatter(new EmailTemplatePreviewSanitizer());
 
-        $listPayload = $this->payload((new ListTemplatesController($templates, $templateFormatter))(Request::create('/?page=1&perPage=5')));
+        $listPayload = $this->payload((new ListTemplatesController($templates, $templateFormatter, $scenarioProvider))(Request::create('/?page=1&perPage=5')));
         self::assertSame('welcome', $listPayload['data']['items'][0]['slug']);
         self::assertSame(1, $listPayload['data']['meta']['total']);
 

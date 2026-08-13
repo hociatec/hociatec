@@ -104,18 +104,14 @@ final class AuthSupportTest extends TestCase
         $seeder->expects(self::once())->method('seed');
 
         $tester = new CommandTester(new SeedE2eDataCommand($seeder));
-        $previousFlag = $_SERVER['APP_E2E'] ?? null;
-        $_SERVER['APP_E2E'] = '1';
+        $previousFlag = getenv('APP_E2E');
+        putenv('APP_E2E=1');
 
         try {
             self::assertSame(Command::SUCCESS, $tester->execute([]));
             self::assertStringContainsString('E2E users and orders seeded.', $tester->getDisplay());
         } finally {
-            if (null === $previousFlag) {
-                unset($_SERVER['APP_E2E']);
-            } else {
-                $_SERVER['APP_E2E'] = $previousFlag;
-            }
+            false === $previousFlag ? putenv('APP_E2E') : putenv('APP_E2E='.$previousFlag);
         }
     }
 
@@ -125,18 +121,14 @@ final class AuthSupportTest extends TestCase
         $seeder->expects(self::never())->method('seed');
 
         $tester = new CommandTester(new SeedE2eDataCommand($seeder));
-        $previousFlag = $_SERVER['APP_E2E'] ?? null;
-        unset($_SERVER['APP_E2E']);
+        $previousFlag = getenv('APP_E2E');
+        putenv('APP_E2E');
 
         try {
             self::assertSame(Command::FAILURE, $tester->execute([]));
             self::assertStringContainsString('APP_E2E=1', $tester->getDisplay());
         } finally {
-            if (null === $previousFlag) {
-                unset($_SERVER['APP_E2E']);
-            } else {
-                $_SERVER['APP_E2E'] = $previousFlag;
-            }
+            false === $previousFlag ? putenv('APP_E2E') : putenv('APP_E2E='.$previousFlag);
         }
     }
 
@@ -146,18 +138,14 @@ final class AuthSupportTest extends TestCase
         $purger->expects(self::once())->method('purge')->willReturn(7);
 
         $tester = new CommandTester(new PurgeE2eDataCommand($purger));
-        $previousFlag = $_SERVER['APP_E2E'] ?? null;
-        $_SERVER['APP_E2E'] = '1';
+        $previousFlag = getenv('APP_E2E');
+        putenv('APP_E2E=1');
 
         try {
             self::assertSame(Command::SUCCESS, $tester->execute([]));
             self::assertStringContainsString('E2E data purged (7 deleted rows).', $tester->getDisplay());
         } finally {
-            if (null === $previousFlag) {
-                unset($_SERVER['APP_E2E']);
-            } else {
-                $_SERVER['APP_E2E'] = $previousFlag;
-            }
+            false === $previousFlag ? putenv('APP_E2E') : putenv('APP_E2E='.$previousFlag);
         }
     }
 }

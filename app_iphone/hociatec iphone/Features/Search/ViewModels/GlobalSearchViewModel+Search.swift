@@ -28,10 +28,10 @@ extension GlobalSearchViewModel {
             let loadedTrainings = try await trainingsTask
             let loadedNews = try await newsTask
 
-            products = Array(loadedProducts.prefix(6))
-            services = loadedServices.items
-            trainings = loadedTrainings.items
-            news = loadedNews.items
+            products = Array(sortProducts(loadedProducts).prefix(6))
+            services = sortServices(loadedServices.items)
+            trainings = sortTrainings(loadedTrainings.items)
+            news = sortNews(loadedNews.items)
             productTotal = loadedProducts.count
             serviceTotal = loadedServices.meta?.total ?? loadedServices.items.count
             trainingTotal = loadedTrainings.meta.total
@@ -86,5 +86,56 @@ extension GlobalSearchViewModel {
         }
 
         return try await newsService.newsArticles(page: 1, perPage: 6, query: query)
+    }
+
+    func applyCurrentSort() {
+        products = Array(sortProducts(products).prefix(6))
+        services = sortServices(services)
+        trainings = sortTrainings(trainings)
+        news = sortNews(news)
+    }
+
+    private func sortProducts(_ items: [Product]) -> [Product] {
+        switch selectedSort {
+        case .relevance:
+            return items
+        case .alphabeticalAsc:
+            return items.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        case .alphabeticalDesc:
+            return items.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedDescending }
+        }
+    }
+
+    private func sortServices(_ items: [QuoteService]) -> [QuoteService] {
+        switch selectedSort {
+        case .relevance:
+            return items
+        case .alphabeticalAsc:
+            return items.sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
+        case .alphabeticalDesc:
+            return items.sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedDescending }
+        }
+    }
+
+    private func sortTrainings(_ items: [Training]) -> [Training] {
+        switch selectedSort {
+        case .relevance:
+            return items
+        case .alphabeticalAsc:
+            return items.sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
+        case .alphabeticalDesc:
+            return items.sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedDescending }
+        }
+    }
+
+    private func sortNews(_ items: [NewsArticle]) -> [NewsArticle] {
+        switch selectedSort {
+        case .relevance:
+            return items
+        case .alphabeticalAsc:
+            return items.sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
+        case .alphabeticalDesc:
+            return items.sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedDescending }
+        }
     }
 }

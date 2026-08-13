@@ -27,8 +27,8 @@ protocol AccountRepository {
         gender: String
     ) async throws
     func listAddresses() async throws -> [UserAddress]
-    func createAddress(label: String, address: String, postalCode: String, city: String, isDefault: Bool) async throws
-    func updateAddress(id: Int, label: String, address: String, postalCode: String, city: String, isDefault: Bool) async throws
+    func createAddress(type: String, label: String, address: String, addressComplement: String?, postalCode: String, company: String?, companySiren: String?, companyVatNumber: String?, city: String, isDefault: Bool) async throws
+    func updateAddress(id: Int, type: String, label: String, address: String, addressComplement: String?, postalCode: String, company: String?, companySiren: String?, companyVatNumber: String?, city: String, isDefault: Bool) async throws
     func deleteAddress(id: Int) async throws
     func setDefaultAddress(id: Int) async throws
 }

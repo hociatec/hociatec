@@ -6,18 +6,28 @@ struct AddressListData: Decodable {
 
 struct UserAddress: Codable, Identifiable, Equatable {
     let id: Int?
+    var type: String
     var label: String
     var address: String
+    var addressComplement: String?
     var postalCode: String
     var city: String
+    var company: String?
+    var companySiren: String?
+    var companyVatNumber: String?
     var isDefault: Bool
 
     private enum CodingKeys: String, CodingKey {
         case id
+        case type
         case label = "name"
         case address
+        case addressComplement
         case postalCode
         case city
+        case company
+        case companySiren
+        case companyVatNumber
         case isDefault
     }
 }

@@ -50,13 +50,32 @@ extension APIClient {
         return data.review
     }
 
-    func checkout() async throws -> OrderSummary {
-        let data: OrderData = try await request(
+    func checkout() async throws -> CheckoutResult {
+        let data: CheckoutResponseData = try await request(
             path: "api/orders/checkout",
             method: "POST",
+            body: ["clientPlatform": "ios"],
             authorized: true,
             attachCartToken: true
         )
-        return data.order
+
+        if let order = data.order {
+            return CheckoutResult(order: order, checkoutURL: nil, checkoutSessionId: nil)
+        }
+
+        let url = data.checkoutUrl.flatMap(URL.init(string:))
+        if data.mode == "redirect", url != nil {
+            return CheckoutResult(order: nil, checkoutURL: url, checkoutSessionId: data.checkoutSessionId)
+        }
+
+        throw APIError.invalidResponse
+    }
+
+    func checkoutSessionStatus(stripeSessionId: String) async throws -> CheckoutSessionStatusData {
+        try await request(
+            path: "api/orders/checkout/sessions/\(stripeSessionId)",
+            authorized: true,
+            attachCartToken: false
+        )
     }
 }

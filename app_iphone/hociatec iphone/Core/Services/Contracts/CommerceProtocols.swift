@@ -6,7 +6,7 @@ protocol CartServing {
     func updateCart(productId: Int, quantity: Int, rentalMonths: Int?, currentRentalMonths: Int?) async throws -> Cart
     func removeFromCart(productId: Int) async throws -> Cart
     func clearCart() async throws -> Cart
-    func checkout() async throws -> OrderSummary
+    func checkout() async throws -> CheckoutResult
 }
 
 protocol ProductServing: AssetServing {
@@ -27,6 +27,7 @@ protocol OrderServing {
     func myOrders() async throws -> [OrderSummary]
     func order(id: Int) async throws -> OrderSummary
     func cancelOrder(id: Int) async throws -> OrderSummary
+    func checkoutSessionStatus(stripeSessionId: String) async throws -> CheckoutSessionStatusData
     func pendingReviews() async throws -> [PendingReviewItem]
     func createReview(orderId: Int, orderItemId: Int, score: Int, comment: String?) async throws -> Review
 }

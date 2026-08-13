@@ -294,11 +294,14 @@ final class RoadmapConcurrencyClosureTest extends TestCase
                         public function hasActiveForUser(User $user): bool { return false; }
                         public function findByUser(User $user, int $limit = 20, int $offset = 0): array { return []; }
                         public function countByUser(User $user): int { return 0; }
+                        public function findForUserList(User $user, ?string $status, ?string $search, int $limit, int $offset): array { return []; }
+                        public function countForUserList(User $user, ?string $status, ?string $search): int { return 0; }
+                        public function countStatusBucketsForUser(User $user): array { return ['all' => 0, 'open' => 0, 'delivered' => 0, 'cancelled' => 0]; }
                         public function findRecentForAdmin(int $limit = 8): array { return []; }
                         public function findPendingPaymentForAdmin(int $limit = 10): array { return []; }
                         public function findFulfillmentQueue(int $limit = 30): array { return []; }
-                        public function findForAdminList(?string $status, ?string $health, int $limit, int $offset): array { return []; }
-                        public function countForAdminList(?string $status, ?string $health): int { return 0; }
+                        public function findForAdminList(?string $status, ?string $health, ?string $search, int $limit, int $offset): array { return []; }
+                        public function countForAdminList(?string $status, ?string $health, ?string $search): int { return 0; }
                         public function getSummaryBetween(\DateTimeImmutable $from, \DateTimeImmutable $to): array { return ['count' => 0, 'totalCents' => 0]; }
                         public function getStatusCounts(): array { return []; }
                         public function countWithOperationalIssues(): int { return 0; }
@@ -307,6 +310,7 @@ final class RoadmapConcurrencyClosureTest extends TestCase
                     new class implements OrderEventRepositoryPort {
                         public function findByOrder(Order $order, string $direction = 'DESC'): array { return []; }
                         public function findBy(array $criteria, ?array $orderBy = null, ?int $limit = null, ?int $offset = null): array { return []; }
+                        public function count(array $criteria): int { return 0; }
                         public function findIssueEventsGroupedByOrders(array $orders): array { return []; }
                     },
                 ),

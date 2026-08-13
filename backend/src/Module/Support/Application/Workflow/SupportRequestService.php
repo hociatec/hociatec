@@ -19,9 +19,12 @@ final readonly class SupportRequestService
     public function __construct(
         private UnitOfWork $persistence,
         private ?SupportCustomerMessengerPort $messenger = null,
+        private ?SupportTimelineEntryFactory $timelineEntries = null,
+        private ?SupportAttachmentNormalizer $attachments = null,
     ) {
     }
 
+    /** @param list<array<string, mixed>> $attachments */
     public function create(User $customer, SupportCreateData $data, ?Order $order = null, array $attachments = []): SupportRequest
     {
         $support = new SupportRequest($customer, $data->subject);
@@ -29,18 +32,15 @@ final readonly class SupportRequestService
             ->setReason($data->reason)
             ->setMessage($data->message)
             ->setInternalNotes($data->internalNotes)
-            ->setAttachments($this->normalizeAttachments($attachments));
+            ->setAttachments($this->attachments()->normalize($attachments));
 
-        if ($order instanceof Order) {
-            $support->setOrderId($order->getId(), $order->getNumber());
-        } else {
-            $support->setOrderId(null);
-        }
+        $order instanceof Order
+            ? $support->setOrderId($order->getId(), $order->getNumber())
+            : $support->setOrderId(null);
 
-        $initialAttachments = $this->normalizeAttachments($support->getAttachments());
-
+        $initialAttachments = $this->attachments()->normalize($support->getAttachments());
         if (null !== $support->getMessage() && '' !== $support->getMessage()) {
-            $support->appendTimelineEntry($this->buildTimelineEntry(
+            $support->appendTimelineEntry($this->timelineEntries()->create(
                 'customer_message',
                 'customer',
                 'customer',
@@ -54,7 +54,7 @@ final readonly class SupportRequestService
         }
 
         if (null !== $support->getInternalNotes() && '' !== $support->getInternalNotes()) {
-            $support->appendTimelineEntry($this->buildTimelineEntry(
+            $support->appendTimelineEntry($this->timelineEntries()->create(
                 'internal_note',
                 'admin',
                 'internal',
@@ -92,7 +92,7 @@ final readonly class SupportRequestService
         }
 
         if (null !== $data->subject && $support->getSubject() !== $previousSubject) {
-            $support->appendTimelineEntry($this->buildTimelineEntry(
+            $support->appendTimelineEntry($this->timelineEntries()->create(
                 'subject_change',
                 'admin',
                 'customer',
@@ -108,7 +108,7 @@ final readonly class SupportRequestService
         }
 
         if (null !== $data->internalNotes && $support->getInternalNotes() !== $previousInternalNotes) {
-            $support->appendTimelineEntry($this->buildTimelineEntry(
+            $support->appendTimelineEntry($this->timelineEntries()->create(
                 'internal_note',
                 'admin',
                 'internal',
@@ -120,7 +120,7 @@ final readonly class SupportRequestService
         }
 
         if (null !== $data->status && $data->status !== $previousStatus) {
-            $support->appendTimelineEntry($this->buildTimelineEntry(
+            $support->appendTimelineEntry($this->timelineEntries()->create(
                 'status_change',
                 'admin',
                 'customer',
@@ -158,7 +158,7 @@ final readonly class SupportRequestService
             $subject,
         ));
         $support
-            ->appendTimelineEntry($this->buildTimelineEntry(
+            ->appendTimelineEntry($this->timelineEntries()->create(
                 'admin_reply',
                 'admin',
                 'customer',
@@ -173,7 +173,7 @@ final readonly class SupportRequestService
             ->setStatus($data->status ?? SupportRequest::STATUS_WAITING_CUSTOMER);
 
         if ($support->getStatus() !== $previousStatus) {
-            $support->appendTimelineEntry($this->buildTimelineEntry(
+            $support->appendTimelineEntry($this->timelineEntries()->create(
                 'status_change',
                 'admin',
                 'customer',
@@ -189,6 +189,7 @@ final readonly class SupportRequestService
         return $support;
     }
 
+    /** @param list<array<string, mixed>> $attachments */
     public function replyFromCustomer(SupportRequest $support, User $customer, string $message, ?string $subject = null, array $attachments = []): SupportRequest
     {
         $message = trim($message);
@@ -196,17 +197,16 @@ final readonly class SupportRequestService
             throw new \InvalidArgumentException('Le message de réponse est obligatoire.');
         }
 
-        $subject = trim($subject ?? '');
-        $subject = '' !== $subject ? $subject : ('Complément à votre demande SAV #'.$support->getId());
+        $subject = '' !== ($subject = trim($subject ?? '')) ? $subject : ('Complément à votre demande SAV #'.$support->getId());
         $now = new \DateTimeImmutable();
         $previousStatus = $support->getStatus();
-        $normalizedAttachments = $this->normalizeAttachments($attachments);
+        $normalizedAttachments = $this->attachments()->normalize($attachments);
 
         if ([] !== $normalizedAttachments) {
             $support->setAttachments(array_merge($support->getAttachments(), $normalizedAttachments));
         }
 
-        $support->appendTimelineEntry($this->buildTimelineEntry(
+        $support->appendTimelineEntry($this->timelineEntries()->create(
             'customer_reply',
             'customer',
             'customer',
@@ -220,7 +220,7 @@ final readonly class SupportRequestService
 
         if (SupportRequest::STATUS_IN_PROGRESS !== $previousStatus) {
             $support->setStatus(SupportRequest::STATUS_IN_PROGRESS);
-            $support->appendTimelineEntry($this->buildTimelineEntry(
+            $support->appendTimelineEntry($this->timelineEntries()->create(
                 'status_change',
                 'customer',
                 'customer',
@@ -237,48 +237,13 @@ final readonly class SupportRequestService
         return $support;
     }
 
-    private function buildTimelineEntry(
-        string $type,
-        string $actor,
-        string $visibility,
-        string $authorLabel,
-        ?string $subject,
-        ?string $message,
-        ?string $status,
-        ?\DateTimeImmutable $createdAt = null,
-        array $attachments = [],
-    ): array {
-        return [
-            'id' => bin2hex(random_bytes(8)),
-            'type' => $type,
-            'actor' => $actor,
-            'visibility' => $visibility,
-            'authorLabel' => trim($authorLabel),
-            'subject' => null !== $subject ? trim($subject) : null,
-            'message' => null !== $message ? trim($message) : null,
-            'status' => $status,
-            'attachments' => $attachments,
-            'createdAt' => ($createdAt ?? new \DateTimeImmutable())->format(DATE_ATOM),
-        ];
+    private function timelineEntries(): SupportTimelineEntryFactory
+    {
+        return $this->timelineEntries ?? new SupportTimelineEntryFactory();
     }
 
-    /** @param list<array<string, mixed>> $attachments */
-    private function normalizeAttachments(array $attachments): array
+    private function attachments(): SupportAttachmentNormalizer
     {
-        return array_values(array_filter(array_map(static function (array $attachment): ?array {
-            $name = isset($attachment['name']) && is_string($attachment['name']) ? trim($attachment['name']) : '';
-            $originalName = isset($attachment['originalName']) && is_string($attachment['originalName']) ? trim($attachment['originalName']) : '';
-            if ('' === $name || '' === $originalName) {
-                return null;
-            }
-
-            return [
-                'name' => $name,
-                'originalName' => $originalName,
-                'contentType' => isset($attachment['contentType']) && is_string($attachment['contentType']) ? trim($attachment['contentType']) : 'application/octet-stream',
-                'size' => isset($attachment['size']) && is_numeric($attachment['size']) ? (int) $attachment['size'] : 0,
-                'uploadedAt' => isset($attachment['uploadedAt']) && is_string($attachment['uploadedAt']) ? $attachment['uploadedAt'] : (new \DateTimeImmutable())->format(DATE_ATOM),
-            ];
-        }, $attachments), static fn (?array $attachment): bool => null !== $attachment));
+        return $this->attachments ?? new SupportAttachmentNormalizer();
     }
 }

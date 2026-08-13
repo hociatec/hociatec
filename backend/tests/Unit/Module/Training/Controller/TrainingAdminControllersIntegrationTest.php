@@ -36,7 +36,8 @@ final class TrainingAdminControllersIntegrationTest extends TrainingIntegrationT
 
         $sessionController = new SaveTrainingSessionController($trainings, $sessions, $formatter, $this->writer($em), $validator);
         self::assertSame(Response::HTTP_UNPROCESSABLE_ENTITY, $sessionController(Request::create('/', 'POST', [], [], [], [], json_encode($this->sessionPayload($training, [
-            'endsAt' => self::SESSION_START,
+            'startsAt' => self::ADMIN_SESSION_START,
+            'endsAt' => self::ADMIN_SESSION_START,
         ]), JSON_THROW_ON_ERROR)))->getStatusCode());
         self::assertSame(Response::HTTP_UNPROCESSABLE_ENTITY, $sessionController(Request::create('/', 'POST', [], [], [], [], json_encode($this->sessionPayload($training, [
             'dailyStartTime' => '18:00',

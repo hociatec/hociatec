@@ -20,12 +20,9 @@ final readonly class CartOrderLineConverter
 
     public function addLines(Order $order, CartSession $cart): void
     {
+        /** @var list<\App\Module\Cart\Domain\Entity\CartItem> $items */
         $items = $cart->getItems()->toArray();
-        usort($items, static function (object $left, object $right): int {
-            if (!$left instanceof \App\Module\Cart\Domain\Entity\CartItem || !$right instanceof \App\Module\Cart\Domain\Entity\CartItem) {
-                return 0;
-            }
-
+        usort($items, static function (\App\Module\Cart\Domain\Entity\CartItem $left, \App\Module\Cart\Domain\Entity\CartItem $right): int {
             return ($left->getProduct()->getId() ?? 0) <=> ($right->getProduct()->getId() ?? 0);
         });
 

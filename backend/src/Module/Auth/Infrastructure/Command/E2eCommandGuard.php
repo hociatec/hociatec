@@ -35,14 +35,14 @@ final class E2eCommandGuard
 
     private static function environment(): ?string
     {
-        $value = $_SERVER['APP_ENV'] ?? $_ENV['APP_ENV'] ?? getenv('APP_ENV') ?: null;
+        $value = getenv('APP_ENV') ?: null;
 
         return is_string($value) ? strtolower(trim($value)) : null;
     }
 
     private static function flagEnabled(): bool
     {
-        $value = $_SERVER['APP_E2E'] ?? $_ENV['APP_E2E'] ?? getenv('APP_E2E') ?: null;
+        $value = getenv('APP_E2E') ?: null;
         if (!is_string($value)) {
             return false;
         }

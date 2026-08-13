@@ -2,19 +2,31 @@ import Foundation
 
 extension APIClient {
     func createAddress(
+        type: String,
         label: String,
         address: String,
+        addressComplement: String?,
         postalCode: String,
+        company: String?,
+        companySiren: String?,
+        companyVatNumber: String?,
         city: String,
         isDefault: Bool
     ) async throws {
-        let body: [String: Any] = [
+        var body: [String: Any] = [
+            "type": type,
             "name": label,
             "address": address,
             "postalCode": postalCode,
             "city": city,
             "isDefault": isDefault
         ]
+        if let addressComplement, !addressComplement.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            body["addressComplement"] = addressComplement
+        }
+        body["company"] = type == "professional" && company?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false ? company : NSNull()
+        body["companySiren"] = type == "professional" && companySiren?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false ? companySiren : NSNull()
+        body["companyVatNumber"] = type == "professional" && companyVatNumber?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false ? companyVatNumber : NSNull()
         try await send(
             path: "api/addresses",
             method: "POST",
@@ -26,18 +38,30 @@ extension APIClient {
 
     func updateAddress(
         id: Int,
+        type: String,
         label: String,
         address: String,
+        addressComplement: String?,
         postalCode: String,
+        company: String?,
+        companySiren: String?,
+        companyVatNumber: String?,
         city: String,
         isDefault: Bool
     ) async throws {
-        let body: [String: Any] = [
+        var body: [String: Any] = [
+            "type": type,
             "name": label,
             "address": address,
             "postalCode": postalCode,
             "city": city
         ]
+        body["addressComplement"] = addressComplement?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+            ? addressComplement
+            : NSNull()
+        body["company"] = type == "professional" && company?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false ? company : NSNull()
+        body["companySiren"] = type == "professional" && companySiren?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false ? companySiren : NSNull()
+        body["companyVatNumber"] = type == "professional" && companyVatNumber?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false ? companyVatNumber : NSNull()
         try await send(
             path: "api/addresses/\(id)",
             method: "PUT",

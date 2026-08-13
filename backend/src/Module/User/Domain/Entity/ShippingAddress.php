@@ -10,6 +10,9 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Table(name: 'user_shipping_addresses')]
 class ShippingAddress
 {
+    public const TYPE_PERSONAL = 'personal';
+    public const TYPE_PROFESSIONAL = 'professional';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -25,11 +28,17 @@ class ShippingAddress
     #[ORM\Column(type: 'text')]
     private string $address;
 
+    #[ORM\Column(length: 180, nullable: true)]
+    private ?string $addressComplement = null;
+
     #[ORM\Column(length: 20)]
     private string $postalCode;
 
     #[ORM\Column(length: 100)]
     private string $city;
+
+    #[ORM\Column(length: 20, options: ['default' => self::TYPE_PERSONAL])]
+    private string $type = self::TYPE_PERSONAL;
 
     #[ORM\Column(length: 180, nullable: true)]
     private ?string $company = null;
@@ -39,9 +48,6 @@ class ShippingAddress
 
     #[ORM\Column(length: 32, nullable: true)]
     private ?string $companyVatNumber = null;
-
-    #[ORM\Column(length: 80, nullable: true)]
-    private ?string $purchaseOrderNumber = null;
 
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
     private bool $isDefault = false;
@@ -80,9 +86,19 @@ class ShippingAddress
         return $this->postalCode;
     }
 
+    public function getAddressComplement(): ?string
+    {
+        return $this->addressComplement;
+    }
+
     public function getCity(): string
     {
         return $this->city;
+    }
+
+    public function getType(): string
+    {
+        return $this->type;
     }
 
     public function getCompany(): ?string
@@ -100,9 +116,9 @@ class ShippingAddress
         return $this->companyVatNumber;
     }
 
-    public function getPurchaseOrderNumber(): ?string
+    public function isProfessional(): bool
     {
-        return $this->purchaseOrderNumber;
+        return self::TYPE_PROFESSIONAL === $this->type;
     }
 
     public function isDefault(): bool
@@ -131,9 +147,30 @@ class ShippingAddress
         return $this;
     }
 
+    public function setAddressComplement(?string $addressComplement): self
+    {
+        $this->addressComplement = $addressComplement;
+
+        return $this;
+    }
+
     public function setCity(string $city): self
     {
         $this->city = $city;
+
+        return $this;
+    }
+
+    public function setType(string $type): self
+    {
+        $normalized = trim($type);
+        $this->type = self::TYPE_PROFESSIONAL === $normalized ? self::TYPE_PROFESSIONAL : self::TYPE_PERSONAL;
+
+        if (self::TYPE_PERSONAL === $this->type) {
+            $this->company = null;
+            $this->companySiren = null;
+            $this->companyVatNumber = null;
+        }
 
         return $this;
     }
@@ -155,13 +192,6 @@ class ShippingAddress
     public function setCompanyVatNumber(?string $companyVatNumber): self
     {
         $this->companyVatNumber = $companyVatNumber;
-
-        return $this;
-    }
-
-    public function setPurchaseOrderNumber(?string $purchaseOrderNumber): self
-    {
-        $this->purchaseOrderNumber = $purchaseOrderNumber;
 
         return $this;
     }

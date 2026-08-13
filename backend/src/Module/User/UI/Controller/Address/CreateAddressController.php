@@ -40,10 +40,11 @@ class CreateAddressController extends AbstractController
         $user = $this->currentUser();
         $address = new ShippingAddress($user, $input->name, $input->address, $input->postalCode, $input->city);
         $address
+            ->setType($input->type)
+            ->setAddressComplement($input->addressComplement)
             ->setCompany($input->company)
             ->setCompanySiren($input->companySiren)
-            ->setCompanyVatNumber($input->companyVatNumber)
-            ->setPurchaseOrderNumber($input->purchaseOrderNumber);
+            ->setCompanyVatNumber($input->companyVatNumber);
         $isDefault = isset($payload['isDefault']) ? (bool) $payload['isDefault'] : false;
         $this->writer->saveWithDefaultPolicy($user, $address, $isDefault);
 
