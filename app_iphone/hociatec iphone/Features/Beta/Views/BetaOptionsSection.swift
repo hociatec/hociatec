@@ -1,35 +1,38 @@
 import SwiftUI
 
 struct BetaOptionsSection: View {
-    let title: String
+    let headerTitle: String
     let options: [BetaChoice]
     @Binding var selection: [String]
 
     var body: some View {
-        Section {
-            if options.isEmpty {
-                Text("Aucune option disponible.")
-                    .foregroundStyle(.secondary)
-            } else {
-                ForEach(options) { option in
-                    Button {
-                        toggle(option.value)
-                    } label: {
-                        HStack {
-                            Text(option.label)
-                            Spacer()
-                            if selection.contains(option.value) {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundStyle(.accent)
+        Section(
+            content: {
+                if options.isEmpty {
+                    Text("Aucune option disponible.")
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(options, id: \.id) { option in
+                        Button {
+                            toggle(option.value)
+                        } label: {
+                            HStack {
+                                Text(option.label)
+                                Spacer()
+                                if selection.contains(option.value) {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundStyle(.accent)
+                                }
                             }
                         }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
+            },
+            header: {
+                Text(verbatim: headerTitle)
             }
-        } header: {
-            Text(title)
-        }
+        )
     }
 
     private func toggle(_ value: String) {

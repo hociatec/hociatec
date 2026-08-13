@@ -17,14 +17,14 @@ struct BetaProfileEditorView: View {
                 Text("Motivation")
             }
 
-            BetaOptionsSection(title: "Disponibilités", options: viewModel.choices["availability"] ?? [], selection: $viewModel.availability)
-            BetaOptionsSection(title: "Expérience des tests", options: viewModel.choices["testingExperience"] ?? [], selection: $viewModel.testingExperience)
-            BetaOptionsSection(title: "Capacité à décrire un bug", options: viewModel.choices["bugDescriptionAbility"] ?? [], selection: $viewModel.bugDescriptionAbility)
-            BetaOptionsSection(title: "Connaissances techniques", options: viewModel.choices["technicalKnowledge"] ?? [], selection: $viewModel.technicalKnowledge)
-            BetaOptionsSection(title: "Outils utilisés", options: viewModel.choices["assistiveTools"] ?? [], selection: $viewModel.assistiveTools)
-            BetaOptionsSection(title: "Matériel", options: viewModel.choices["devices"] ?? [], selection: $viewModel.devices)
-            BetaOptionsSection(title: "Navigateurs", options: viewModel.choices["browsers"] ?? [], selection: $viewModel.browsers)
-            BetaOptionsSection(title: "Types de tests souhaités", options: viewModel.choices["testingTypes"] ?? [], selection: $viewModel.testingTypes)
+            BetaOptionsSection(headerTitle: "Disponibilités", options: viewModel.choices["availability"] ?? [], selection: $viewModel.availability)
+            BetaOptionsSection(headerTitle: "Expérience des tests", options: viewModel.choices["testingExperience"] ?? [], selection: $viewModel.testingExperience)
+            BetaOptionsSection(headerTitle: "Capacité à décrire un bug", options: viewModel.choices["bugDescriptionAbility"] ?? [], selection: $viewModel.bugDescriptionAbility)
+            BetaOptionsSection(headerTitle: "Connaissances techniques", options: viewModel.choices["technicalKnowledge"] ?? [], selection: $viewModel.technicalKnowledge)
+            BetaOptionsSection(headerTitle: "Outils utilisés", options: viewModel.choices["assistiveTools"] ?? [], selection: $viewModel.assistiveTools)
+            BetaOptionsSection(headerTitle: "Matériel", options: viewModel.choices["devices"] ?? [], selection: $viewModel.devices)
+            BetaOptionsSection(headerTitle: "Navigateurs", options: viewModel.choices["browsers"] ?? [], selection: $viewModel.browsers)
+            BetaOptionsSection(headerTitle: "Types de tests souhaités", options: viewModel.choices["testingTypes"] ?? [], selection: $viewModel.testingTypes)
 
             Section {
                 TextField("Besoin d’accessibilité", text: $viewModel.accessibilityNeed)
