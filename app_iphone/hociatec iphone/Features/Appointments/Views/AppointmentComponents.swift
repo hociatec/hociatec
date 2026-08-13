@@ -1,6 +1,6 @@
 import SwiftUI
 
-private let timeFormatter: DateFormatter = {
+let timeFormatter: DateFormatter = {
     let formatter = DateFormatter()
     formatter.locale = Locale(identifier: "fr_FR")
     formatter.timeStyle = .short
@@ -8,7 +8,7 @@ private let timeFormatter: DateFormatter = {
     return formatter
 }()
 
-private let dayFormatter: DateFormatter = {
+let dayFormatter: DateFormatter = {
     let formatter = DateFormatter()
     formatter.locale = Locale(identifier: "fr_FR")
     formatter.dateFormat = "dd/MM/yyyy"
