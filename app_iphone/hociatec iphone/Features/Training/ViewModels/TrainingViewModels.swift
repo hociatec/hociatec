@@ -60,6 +60,8 @@ final class TrainingDetailViewModel: ObservableObject {
     @Published var sessions: [TrainingSession] = []
     @Published var isLoading = false
     @Published var error: String?
+    @Published var statusMessage: String?
+    @Published var submittingSessionId: Int?
 
     private let service: TrainingServing
     private let slug: String
@@ -73,6 +75,7 @@ final class TrainingDetailViewModel: ObservableObject {
         guard !isLoading else { return }
         isLoading = true
         error = nil
+        statusMessage = nil
         defer { isLoading = false }
 
         do {
@@ -81,6 +84,26 @@ final class TrainingDetailViewModel: ObservableObject {
             sessions = data.sessions
         } catch {
             self.error = error.localizedDescription
+        }
+    }
+
+    func enroll(sessionId: Int, startsAt: Date) async -> TrainingEnrollmentCheckoutResult? {
+        guard submittingSessionId == nil else { return nil }
+
+        submittingSessionId = sessionId
+        error = nil
+        statusMessage = nil
+        defer { submittingSessionId = nil }
+
+        do {
+            let result = try await service.enroll(sessionId: sessionId, startsAt: startsAt)
+            statusMessage = result.checkoutURL == nil
+                ? "Votre inscription a bien été enregistrée."
+                : "Poursuivez votre inscription pour finaliser le paiement."
+            return result
+        } catch {
+            self.error = error.localizedDescription
+            return nil
         }
     }
 }

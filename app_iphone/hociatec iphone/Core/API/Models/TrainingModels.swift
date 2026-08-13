@@ -84,6 +84,7 @@ struct TrainingEnrollment: Decodable, Identifiable {
     let scheduledEndsAt: Date
     let paidAt: Date?
     let stripeSessionId: String?
+    let checkoutUrl: String?
     let createdAt: Date
     let session: TrainingSession
 }
@@ -91,4 +92,9 @@ struct TrainingEnrollment: Decodable, Identifiable {
 struct TrainingEnrollmentListData: Decodable {
     let items: [TrainingEnrollment]
     let meta: PaginationMeta
+}
+
+struct TrainingEnrollmentCheckoutResult {
+    let enrollment: TrainingEnrollment
+    let checkoutURL: URL?
 }

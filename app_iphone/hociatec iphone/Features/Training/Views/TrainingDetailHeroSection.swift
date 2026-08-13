@@ -22,8 +22,20 @@ struct TrainingDetailHeroSection: View {
                 )
                 LabeledContent("Durée", value: trainingDurationLabel(training.durationMinutes))
                 LabeledContent("Tarif", value: PriceFormatter.format(cents: training.priceCents))
+                if
+                    let shortDescription = nonEmptyText(training.shortDescription),
+                    shortDescription != nonEmptyText(training.objective)
+                {
+                    LabeledContent("Présentation", value: shortDescription)
+                }
                 if let audience = nonEmptyText(training.audience) {
                     LabeledContent("Public concerné", value: audience)
+                }
+                if
+                    let objective = nonEmptyText(training.objective),
+                    objective != nonEmptyText(training.shortDescription)
+                {
+                    LabeledContent("Objectif", value: objective)
                 }
             }
             .padding(.vertical, 4)

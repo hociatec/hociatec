@@ -17,5 +17,6 @@ protocol TrainingServing {
     func trainingCategories() async throws -> [TrainingCategory]
     func trainings(page: Int, perPage: Int, query: String?, category: String?) async throws -> TrainingListData
     func training(slug: String) async throws -> TrainingDetailData
+    func enroll(sessionId: Int, startsAt: Date) async throws -> TrainingEnrollmentCheckoutResult
     func myEnrollments(page: Int, perPage: Int) async throws -> TrainingEnrollmentListData
 }

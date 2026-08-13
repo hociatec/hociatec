@@ -16,7 +16,7 @@ struct TrainingDetailView: View {
             } else if let training = viewModel.training {
                 TrainingDetailHeroSection(training: training)
                 TrainingRoadmapSection(training: training)
-                TrainingSessionsSection(training: training, sessions: viewModel.sessions)
+                TrainingSessionsSection(training: training, viewModel: viewModel)
             }
         }
         .navigationTitle(viewModel.training?.title ?? "Formation")

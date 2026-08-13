@@ -107,6 +107,24 @@ extension APIClient {
         )
     }
 
+    func createTrainingEnrollment(sessionId: Int, startsAt: Date) async throws -> TrainingEnrollmentCheckoutResult {
+        let data: TrainingEnrollment = try await request(
+            path: "api/trainings/enrollments",
+            method: "POST",
+            body: [
+                "sessionId": sessionId,
+                "startsAt": isoFormatter.string(from: startsAt)
+            ],
+            authorized: true,
+            attachCartToken: false
+        )
+
+        return TrainingEnrollmentCheckoutResult(
+            enrollment: data,
+            checkoutURL: data.checkoutUrl.flatMap(URL.init(string:))
+        )
+    }
+
     func myTrainingEnrollments(page: Int = 1, perPage: Int = 10) async throws -> TrainingEnrollmentListData {
         try await request(
             path: "api/trainings/enrollments/me",

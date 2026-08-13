@@ -23,16 +23,20 @@ struct ClientTrainingsView: View {
             } else {
                 Section {
                     ForEach(viewModel.items) { enrollment in
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(enrollment.session.training.title)
-                                .font(.headline)
-                            Text("\(enrollment.statusLabel) · \(DateFormatters.frDateTime.string(from: enrollment.scheduledStartsAt))")
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                            Text(PriceFormatter.format(cents: enrollment.priceCents))
-                                .font(.footnote.weight(.semibold))
+                        NavigationLink {
+                            TrainingEnrollmentDetailView(enrollment: enrollment)
+                        } label: {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(enrollment.session.training.title)
+                                    .font(.headline)
+                                Text("\(enrollment.statusLabel) · \(DateFormatters.frDateTime.string(from: enrollment.scheduledStartsAt))")
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                                Text(PriceFormatter.format(cents: enrollment.priceCents))
+                                    .font(.footnote.weight(.semibold))
+                            }
+                            .padding(.vertical, 4)
                         }
-                        .padding(.vertical, 4)
                     }
                 }
             }
