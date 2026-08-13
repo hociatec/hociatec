@@ -16,14 +16,14 @@ extension ClientDashboardViewModel {
         let quotes = await quotesResult
         let appointments = await appointmentsResult
         let pendingReviews = await pendingReviewsResult
-        let loyalty = await loyaltyResult
+        let loyaltyResponse = await loyaltyResult
         let trainings = await trainingsResult
 
         let failures = [
             quotes.failure,
             appointments.failure,
             pendingReviews.failure,
-            loyalty.failure,
+            loyaltyResponse.failure,
             trainings.failure
         ].compactMap { $0 }
 
@@ -31,7 +31,7 @@ extension ClientDashboardViewModel {
             quotes.value != nil,
             appointments.value != nil,
             pendingReviews.value != nil,
-            loyalty.value != nil,
+            loyaltyResponse.value != nil,
             trainings.value != nil
         ].filter { $0 }.count
 
@@ -40,8 +40,8 @@ extension ClientDashboardViewModel {
         }
         partialError = !failures.isEmpty && successfulLoads > 0
 
-        if let loyaltyValue = loyalty.value {
-            loyalty = loyaltyValue
+        if let loyaltyValue = loyaltyResponse.value {
+            self.loyalty = loyaltyValue
             syncConvertPointsIfNeeded()
         }
 
