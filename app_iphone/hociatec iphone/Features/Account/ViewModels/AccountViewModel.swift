@@ -30,6 +30,7 @@ final class AccountViewModel: ObservableObject {
     @Published var roles: [String] = []
     @Published var addresses: [UserAddress] = []
     @Published var isLoggedIn: Bool
+    @Published var rememberSession: Bool
 
     let useCases: AccountUseCases
     let session: SessionStore
@@ -39,6 +40,7 @@ final class AccountViewModel: ObservableObject {
         self.useCases = useCases
         self.session = session
         self.isLoggedIn = session.jwtToken != nil
+        self.rememberSession = session.rememberSession
         self.profile = session.profile
         self.email = session.profile?.email ?? session.loginEmail ?? ""
         if let p = session.profile {
@@ -91,7 +93,7 @@ final class AccountViewModel: ObservableObject {
 
         do {
             try await useCases.login.execute(email: email, password: password)
-            session.storeCredentials(email: email, password: password)
+            session.storeCredentials(email: email, password: password, rememberSession: rememberSession)
             let profile = try await useCases.loadProfile.execute()
             await applyAuthenticatedState(profile: profile)
         } catch let err {

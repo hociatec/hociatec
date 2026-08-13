@@ -20,6 +20,7 @@ struct LoginView: View {
                     .textContentType(.username)
                 SecureField("Mot de passe", text: $account.password)
                     .textContentType(.password)
+                Toggle("Rester connecté", isOn: $account.rememberSession)
             }
 
             Section {

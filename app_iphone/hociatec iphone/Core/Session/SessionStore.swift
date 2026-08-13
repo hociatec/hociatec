@@ -25,12 +25,17 @@ final class SessionStore: ObservableObject {
         didSet { persist(value: loginPassword, forKey: Keys.loginPassword) }
     }
 
+    @Published var rememberSession: Bool {
+        didSet { UserDefaults.standard.set(rememberSession, forKey: Keys.rememberSession) }
+    }
+
     private enum Keys {
         static let jwt = "hociatec.jwt"
         static let cart = "hociatec.cartToken"
         static let profile = "hociatec.profile"
         static let loginEmail = "hociatec.loginEmail"
         static let loginPassword = "hociatec.loginPassword"
+        static let rememberSession = "hociatec.rememberSession"
     }
 
     init() {
@@ -38,6 +43,7 @@ final class SessionStore: ObservableObject {
         cartToken = UserDefaults.standard.string(forKey: Keys.cart)
         loginEmail = UserDefaults.standard.string(forKey: Keys.loginEmail)
         loginPassword = UserDefaults.standard.string(forKey: Keys.loginPassword)
+        rememberSession = UserDefaults.standard.bool(forKey: Keys.rememberSession)
 
         if let data = UserDefaults.standard.data(forKey: Keys.profile) {
             profile = try? JSONDecoder().decode(UserProfile.self, from: data)
@@ -52,9 +58,10 @@ final class SessionStore: ObservableObject {
         clearAuthCookies()
     }
     
-    func storeCredentials(email: String, password: String) {
+    func storeCredentials(email: String, password: String, rememberSession: Bool) {
         loginEmail = email
-        loginPassword = password
+        self.rememberSession = rememberSession
+        loginPassword = rememberSession ? password : nil
     }
     
     var storedCredentials: (email: String, password: String)? {
