@@ -21,6 +21,7 @@
 
 - `Features/<Module>/Views`: écrans SwiftUI du module.
 - `Features/<Module>/ViewModels`: état et orchestration du module.
+- `Features/<Module>/Support`: helpers de présentation, formatters et types locaux non-UI.
 - `Features/<Module>/Components`: composants locaux si un module grossit.
 - `Features/Root`: navigation racine et composition d’onglets.
 - `Features/Home`: accueil et chargement de ses données.
@@ -48,5 +49,6 @@
 ## Remaining conventions
 
 - Scinder les fichiers qui mélangent encore plusieurs responsabilités internes lorsqu’un module devient plus dense.
+- Préférer plusieurs fichiers petits par feature plutôt qu’un fichier unique qui mélange vues, état et helpers.
 - Ajouter une stratégie de tests unitaires ciblant chaque `ViewModel`.
 - Garder à la racine uniquement `hociatec_iphoneApp.swift`, qui reste le point d’entrée naturel de l’application.
