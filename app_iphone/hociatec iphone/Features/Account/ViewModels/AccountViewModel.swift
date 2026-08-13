@@ -29,11 +29,11 @@ final class AccountViewModel: ObservableObject {
     @Published var gender: String = "autre"
     @Published var roles: [String] = []
     @Published var addresses: [UserAddress] = []
-    @Published private(set) var isLoggedIn: Bool
+    @Published var isLoggedIn: Bool
 
-    private let useCases: AccountUseCases
-    private let session: SessionStore
-    private var cancellables = Set<AnyCancellable>()
+    let useCases: AccountUseCases
+    let session: SessionStore
+    var cancellables = Set<AnyCancellable>()
 
     init(useCases: AccountUseCases, session: SessionStore) {
         self.useCases = useCases
