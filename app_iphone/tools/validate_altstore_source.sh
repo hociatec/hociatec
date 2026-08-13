@@ -33,6 +33,10 @@ versions = apps[0].get("versions") or []
 if not versions:
     raise SystemExit("Le fichier source AltStore ne contient aucune version.")
 
+app_download_url = apps[0].get("downloadURL", "")
+if not app_download_url.endswith(".ipa"):
+    raise SystemExit("Le downloadURL AltStore au niveau de l'application ne pointe pas vers un .ipa.")
+
 entry = versions[0]
 
 if entry.get("version") != expected_version:

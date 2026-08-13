@@ -162,6 +162,7 @@ jobs:
                 "iconURL": "${ICON_URL}",
                 "tintColor": "#16324F",
                 "category": "business",
+                "downloadURL": "${IPA_URL}",
                 "versions": [
                   {
                     "version": "${APP_VERSION}",
