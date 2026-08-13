@@ -84,6 +84,7 @@ struct ProductsListView: View {
                                     .background(Color.blue.opacity(0.1))
                                     .foregroundColor(.blue)
                                     .clipShape(Capsule())
+                                }
                                 if let t = viewModel.selectedSellingType {
                                     HStack(spacing: 6) {
                                         Text(t == .rental ? "Location" : "Vente")
