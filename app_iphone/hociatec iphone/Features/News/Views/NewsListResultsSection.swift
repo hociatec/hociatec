@@ -11,7 +11,11 @@ struct NewsListResultsSection: View {
             } else if let error = viewModel.error {
                 Text(error).foregroundStyle(.red)
             } else if viewModel.articles.isEmpty {
-                Text("Aucune actualité disponible pour le moment.")
+                Text(
+                    viewModel.appliedSearch.isEmpty
+                        ? "Aucune actualité disponible pour le moment."
+                        : "Aucune actualité ne correspond à cette recherche."
+                )
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(viewModel.articles) { article in

@@ -33,6 +33,12 @@ struct AccountScreen: View {
 
                     Section {
                         NavigationLink {
+                            ContactView(service: container.services.contact)
+                        } label: {
+                            Label("Contact", systemImage: "envelope")
+                        }
+
+                        NavigationLink {
                             AboutHubView(services: container.services)
                         } label: {
                             Label("À propos", systemImage: "info.circle")

@@ -5,7 +5,7 @@ struct HomeServicesSection: View {
     @ObservedObject var home: HomeViewModel
 
     var body: some View {
-        Section("Services") {
+        Section("Services mis en avant") {
             if home.isLoading && home.services.isEmpty {
                 ProgressView("Chargement...")
                     .frame(maxWidth: .infinity, alignment: .center)

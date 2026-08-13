@@ -6,7 +6,7 @@ struct GlobalSearchIntroSection: View {
             VStack(alignment: .leading, spacing: 10) {
                 Text("Trouver un produit, un service ou une formation")
                     .font(.title3.weight(.bold))
-                Text("Lancez une recherche, puis ouvrez la fiche qui correspond à votre besoin.")
+                Text("Lancez une recherche globale, puis ouvrez la fiche qui correspond à votre besoin.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -54,6 +54,7 @@ struct GlobalSearchControlsSection: View {
             Button("Rechercher") {
                 Task { await viewModel.submit() }
             }
+            .disabled(viewModel.draftQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || viewModel.isLoading)
         }
         .sheet(isPresented: $showFilterSheet) {
             GlobalSearchFilterSheet(

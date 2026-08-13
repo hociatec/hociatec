@@ -5,7 +5,7 @@ struct HomeFeaturedProductsSection: View {
     @ObservedObject var home: HomeViewModel
 
     var body: some View {
-        Section("Produits en vedette") {
+        Section("Produits recommandés") {
             if home.isLoading && home.featured.isEmpty {
                 ProgressView("Chargement...")
                     .frame(maxWidth: .infinity, alignment: .center)

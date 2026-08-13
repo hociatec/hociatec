@@ -14,6 +14,16 @@ struct NewsListView: View {
 
     var body: some View {
         List {
+            Section {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Actualités")
+                        .font(.title3.weight(.bold))
+                    Text("Suivez les annonces, les évolutions de service et les informations utiles autour de l’accompagnement numérique Hociatec.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.vertical, 4)
+            }
             NewsListSearchSection(viewModel: viewModel, onSearch: performSearch)
             NewsListResultsSection(service: service, viewModel: viewModel)
             NewsListPaginationSection(
