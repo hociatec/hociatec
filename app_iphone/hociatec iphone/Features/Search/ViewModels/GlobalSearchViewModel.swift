@@ -17,10 +17,10 @@ final class GlobalSearchViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var error: String?
 
-    private let productsService: ProductServing
-    private let servicesService: ServiceCatalogServing
-    private let trainingService: TrainingServing
-    private let newsService: NewsServing
+    let productsService: ProductServing
+    let servicesService: ServiceCatalogServing
+    let trainingService: TrainingServing
+    let newsService: NewsServing
 
     init(
         productsService: ProductServing,
