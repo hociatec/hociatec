@@ -30,7 +30,8 @@ const prestationLinks = [
   { path: '/audits/request', label: 'Demander un audit', Icon: ClipboardCheck },
 ] as const;
 
-const altStoreSourcePath = 'https://hociatec.fr/hociatec-altstore-source.json';
+const altStoreSourcePath =
+  'https://github.com/hociatec/hociatec-downloads/releases/download/ios-latest/hociatec-altstore-source.json';
 const iosDownloadProxyPath = 'https://hociatec.fr/api/public/ios/latest-download';
 const sideStoreAddSourcePath = `sidestore://source?url=${encodeURIComponent(altStoreSourcePath)}`;
 
