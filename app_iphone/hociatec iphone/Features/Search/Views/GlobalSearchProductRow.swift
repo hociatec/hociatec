@@ -2,11 +2,26 @@ import SwiftUI
 
 struct GlobalSearchProductRow: View {
     let product: Product
+    var showsTitle: Bool = true
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(product.name)
-                .fontWeight(.semibold)
+            if showsTitle {
+                Text(product.name)
+                    .fontWeight(.semibold)
+                    .accessibilityAddTraits(.isHeader)
+            }
+            Text("Référence : \(product.sku)")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+            Text("Type : \(productSellingContext(product))")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+            if let configuration = productConfiguration(product) {
+                Text("Configuration : \(configuration)")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
             Text(product.shortDescription)
                 .font(.footnote)
                 .foregroundStyle(.secondary)
@@ -14,6 +29,6 @@ struct GlobalSearchProductRow: View {
             Text(PriceFormatter.format(cents: product.priceCents))
                 .font(.footnote.weight(.semibold))
         }
-        .padding(.vertical, 4)
+        .accessibilityElement(children: .contain)
     }
 }

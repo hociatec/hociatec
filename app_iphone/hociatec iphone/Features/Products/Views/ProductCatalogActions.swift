@@ -3,6 +3,7 @@ import SwiftUI
 struct ProductCatalogActions: View {
     let product: Product
     let cart: CartViewModel
+    @Environment(\.openURL) private var openURL
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -16,12 +17,16 @@ struct ProductCatalogActions: View {
             .buttonStyle(.borderedProminent)
 
             HStack(spacing: 12) {
-                Link(destination: facebookShareURL(for: product)) {
+                Button {
+                    openURL(facebookShareURL(for: product))
+                } label: {
                     Label("Partager sur Facebook", systemImage: "square.and.arrow.up")
                         .font(.footnote)
                 }
 
-                Link(destination: emailShareURL(for: product)) {
+                Button {
+                    openURL(emailShareURL(for: product))
+                } label: {
                     Label("Partager par e-mail", systemImage: "envelope")
                         .font(.footnote)
                 }

@@ -17,31 +17,40 @@ struct HomeNewsSection: View {
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(home.news) { article in
-                    NavigationLink {
-                        NewsDetailView(api: container.services.news, slug: article.slug)
-                    } label: {
-                        VStack(alignment: .leading, spacing: 6) {
-                            HStack {
-                                if let publishedAt = article.publishedAt {
-                                    Text(newsDateFormatter.string(from: publishedAt))
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                                if let category = article.category, !category.isEmpty {
-                                    Spacer()
-                                    Text(category)
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack {
+                            if let publishedAt = article.publishedAt {
+                                Text(newsDateFormatter.string(from: publishedAt))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
                             }
+                            if let category = article.category, !category.isEmpty {
+                                Spacer()
+                                Text(category)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .accessibilityHidden(true)
+
+                        NavigationLink {
+                            NewsDetailView(api: container.services.news, slug: article.slug)
+                        } label: {
                             Text(article.title)
                                 .fontWeight(.semibold)
-                            Text(article.excerpt)
-                                .lineLimit(3)
-                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.leading)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                         }
-                        .padding(.vertical, 4)
+                        .buttonStyle(.plain)
+                        .accessibilityAddTraits(.isHeader)
+                        .accessibilityHint("Ouvrir l’actualité")
+
+                        Text(article.excerpt)
+                            .lineLimit(3)
+                            .foregroundStyle(.secondary)
                     }
+                    .padding(.vertical, 4)
+                    .accessibilityElement(children: .contain)
                 }
             }
         }

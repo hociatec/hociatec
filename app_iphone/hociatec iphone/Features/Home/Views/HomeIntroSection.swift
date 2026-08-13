@@ -6,7 +6,7 @@ struct HomeIntroSection: View {
     var body: some View {
         Section {
             VStack(alignment: .leading, spacing: 10) {
-                Text("Hociatec accompagne vos besoins en matériel informatique, services numériques, formation et suivi client. Besoin d'un échange rapide ?")
+                Text("Hociatec accompagne vos besoins en matériel informatique, services numériques, formation et suivi client. Retrouvez nos nouveautés, nos offres et un parcours mobile aligné avec nos services.")
                     .font(.body)
                 NavigationLink {
                     ContactView(service: container.services.contact)
@@ -15,7 +15,7 @@ struct HomeIntroSection: View {
                         .fontWeight(.semibold)
                 }
                 .buttonStyle(.borderedProminent)
-                Text("Retrouvez nos nouveautés, nos offres et un parcours mobile aligné avec nos services.")
+                Text("Besoin d'un échange rapide ? Utilisez le contact pour nous écrire directement.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }

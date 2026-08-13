@@ -4,16 +4,21 @@ struct ProductCatalogCardContent: View {
     let product: Product
     let imageURL: URL?
     let isCompact: Bool
+    var showsTitle: Bool = true
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             ProductCatalogImage(imageURL: imageURL, height: isCompact ? 140 : 180)
+                .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 8) {
-                Text(product.name)
-                    .font(isCompact ? .subheadline.weight(.semibold) : .headline)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
+                if showsTitle {
+                    Text(product.name)
+                        .font(isCompact ? .subheadline.weight(.semibold) : .headline)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                        .accessibilityAddTraits(.isHeader)
+                }
 
                 ProductCatalogFactGroup(product: product)
 

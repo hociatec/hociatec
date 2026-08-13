@@ -19,11 +19,7 @@ struct ServicesCatalogResultsSection: View {
                 .foregroundStyle(.secondary)
             } else {
                 ForEach(viewModel.services) { service in
-                    NavigationLink {
-                        ServiceDetailView(api: serviceCatalog, serviceID: service.id)
-                    } label: {
-                        ServiceCatalogRow(service: service)
-                    }
+                    ServiceCatalogRow(serviceCatalog: serviceCatalog, service: service)
                 }
             }
         }
@@ -31,27 +27,38 @@ struct ServicesCatalogResultsSection: View {
 }
 
 private struct ServiceCatalogRow: View {
+    let serviceCatalog: ServiceCatalogServing
     let service: QuoteService
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(service.title)
-                .fontWeight(.semibold)
+            NavigationLink {
+                ServiceDetailView(api: serviceCatalog, serviceID: service.id)
+            } label: {
+                Text(service.title)
+                    .fontWeight(.semibold)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .buttonStyle(.plain)
+            .accessibilityAddTraits(.isHeader)
+
             if let description = service.description, !description.isEmpty {
                 Text(description)
                     .lineLimit(2)
                     .foregroundStyle(.secondary)
             }
-            HStack {
-                Text(PriceFormatter.format(cents: service.priceCents))
-                    .font(.footnote)
-                    .fontWeight(.semibold)
-                Spacer()
-                Text(service.durationLabel ?? "Sur étude")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
+            Text("Mode de facturation : \(serviceBillingModeLabel(service.unit))")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+            Text("Prix HT : \(PriceFormatter.format(cents: service.priceCents))")
+                .font(.footnote)
+                .fontWeight(.semibold)
+            Text("Durée : \(service.durationLabel ?? "Sur étude")")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
         }
         .padding(.vertical, 4)
+        .accessibilityElement(children: .contain)
     }
 }

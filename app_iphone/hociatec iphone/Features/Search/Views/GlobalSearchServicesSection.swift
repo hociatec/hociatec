@@ -11,11 +11,22 @@ struct GlobalSearchServicesSection: View {
                 GlobalSearchEmptyRow(message: "Aucun résultat service.")
             } else {
                 ForEach(viewModel.services) { service in
-                    NavigationLink {
-                        ServiceDetailView(api: container.services.serviceCatalog, serviceID: service.id)
-                    } label: {
-                        GlobalSearchServiceRow(service: service)
+                    VStack(alignment: .leading, spacing: 6) {
+                        NavigationLink {
+                            ServiceDetailView(api: container.services.serviceCatalog, serviceID: service.id)
+                        } label: {
+                            Text(service.title)
+                                .fontWeight(.semibold)
+                                .multilineTextAlignment(.leading)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityAddTraits(.isHeader)
+
+                        GlobalSearchServiceRow(service: service, showsTitle: false)
                     }
+                    .padding(.vertical, 4)
+                    .accessibilityElement(children: .contain)
                 }
             }
         } header: {

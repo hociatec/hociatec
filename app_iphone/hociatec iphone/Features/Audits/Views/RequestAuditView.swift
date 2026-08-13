@@ -71,9 +71,6 @@ private struct AuditRequestHeroSection: View {
     var body: some View {
         Section {
             VStack(alignment: .leading, spacing: 10) {
-                Text("Demander un audit")
-                    .font(.title2)
-                    .fontWeight(.semibold)
                 Text("Décrivez le périmètre à analyser et les objectifs attendus. Hociatec vous recontacte avec un cadrage adapté.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)

@@ -17,26 +17,31 @@ struct HomeFeaturedProductsSection: View {
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(home.featured.prefix(5)) { product in
-                    NavigationLink {
-                        ProductDetailView(
-                            viewModel: container.makeProductDetailViewModel(product: product),
-                            imageURL: container.services.assets.assetURL(for: product.imageUrl),
-                            cart: container.cart,
-                            selectedTab: .constant(0)
-                        )
-                        .environmentObject(container)
-                    } label: {
-                        VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        NavigationLink {
+                            ProductDetailView(
+                                viewModel: container.makeProductDetailViewModel(product: product),
+                                imageURL: container.services.assets.assetURL(for: product.imageUrl),
+                                cart: container.cart,
+                                selectedTab: .constant(0)
+                            )
+                            .environmentObject(container)
+                        } label: {
                             Text(product.name)
                                 .fontWeight(.semibold)
-                            Text(product.shortDescription)
-                                .lineLimit(2)
-                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.leading)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                         }
-                        .accessibilityElement(children: .ignore)
-                        .accessibilityLabel("Produit: \(product.name)")
+                        .buttonStyle(.plain)
+                        .accessibilityAddTraits(.isHeader)
                         .accessibilityHint("Afficher le détail du produit")
+
+                        Text(product.shortDescription)
+                            .lineLimit(2)
+                            .foregroundStyle(.secondary)
                     }
+                    .padding(.vertical, 4)
+                    .accessibilityElement(children: .contain)
                 }
             }
         }

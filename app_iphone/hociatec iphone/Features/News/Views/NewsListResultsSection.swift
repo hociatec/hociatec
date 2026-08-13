@@ -15,11 +15,7 @@ struct NewsListResultsSection: View {
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(viewModel.articles) { article in
-                    NavigationLink {
-                        NewsDetailView(api: service, slug: article.slug)
-                    } label: {
-                        NewsListRow(article: article)
-                    }
+                    NewsListRow(service: service, article: article)
                 }
             }
         }
@@ -27,6 +23,7 @@ struct NewsListResultsSection: View {
 }
 
 private struct NewsListRow: View {
+    let service: NewsServing
     let article: NewsArticle
 
     var body: some View {
@@ -44,28 +41,25 @@ private struct NewsListRow: View {
                         .foregroundStyle(.secondary)
                 }
             }
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel(metadataAccessibilityLabel)
+            .accessibilityHidden(true)
 
-            Text(article.title)
-                .fontWeight(.semibold)
-                .accessibilityAddTraits(.isHeader)
+            NavigationLink {
+                NewsDetailView(api: service, slug: article.slug)
+            } label: {
+                Text(article.title)
+                    .fontWeight(.semibold)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .buttonStyle(.plain)
+            .accessibilityAddTraits(.isHeader)
+            .accessibilityHint("Ouvrir l’actualité")
+
             Text(article.excerpt)
                 .lineLimit(3)
                 .foregroundStyle(.secondary)
         }
         .padding(.vertical, 4)
         .accessibilityElement(children: .contain)
-    }
-
-    private var metadataAccessibilityLabel: String {
-        let parts = [
-            article.publishedAt.map { "Publié le \(newsDateFormatter.string(from: $0))" },
-            article.category.flatMap { category in
-                category.isEmpty ? nil : "Catégorie \(category)"
-            }
-        ].compactMap { $0 }
-
-        return parts.joined(separator: ". ")
     }
 }

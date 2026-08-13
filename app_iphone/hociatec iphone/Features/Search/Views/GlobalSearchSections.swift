@@ -61,15 +61,6 @@ struct GlobalSearchStatusSections: View {
     }
 }
 
-struct GlobalSearchEmptyQuerySection: View {
-    var body: some View {
-        Section {
-            Text("Saisissez un mot-clé pour lancer votre recherche.")
-                .foregroundStyle(.secondary)
-        }
-    }
-}
-
 struct GlobalSearchLoadingSection: View {
     var body: some View {
         Section {

@@ -20,14 +20,21 @@ struct ProductCatalogCard: View {
                 )
                 .environmentObject(container)
             } label: {
-                ProductCatalogCardContent(
-                    product: product,
-                    imageURL: imageURL,
-                    isCompact: isCompact
-                )
+                Text(product.name)
+                    .font(isCompact ? .subheadline.weight(.semibold) : .headline)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
             .buttonStyle(.plain)
             .accessibilityHint("Afficher le détail du produit")
+            .accessibilityAddTraits(.isHeader)
+
+            ProductCatalogCardContent(
+                product: product,
+                imageURL: imageURL,
+                isCompact: isCompact,
+                showsTitle: false
+            )
 
             ProductCatalogActions(product: product, cart: cart)
         }

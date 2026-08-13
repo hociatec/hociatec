@@ -17,31 +17,38 @@ struct HomeServicesSection: View {
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(home.services.prefix(6)) { service in
-                    NavigationLink {
-                        ServiceDetailView(api: container.services.serviceCatalog, serviceID: service.id)
-                    } label: {
-                        VStack(alignment: .leading, spacing: 6) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        NavigationLink {
+                            ServiceDetailView(api: container.services.serviceCatalog, serviceID: service.id)
+                        } label: {
                             Text(service.title)
                                 .fontWeight(.semibold)
-                            if let description = service.description, !description.isEmpty {
-                                Text(description)
-                                    .lineLimit(2)
-                                    .foregroundStyle(.secondary)
-                            }
-                            HStack {
-                                Text(PriceFormatter.format(cents: service.priceCents))
-                                    .font(.footnote)
-                                    .fontWeight(.semibold)
-                                Spacer()
-                                if let durationLabel = service.durationLabel, !durationLabel.isEmpty {
-                                    Text(durationLabel)
-                                        .font(.footnote)
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
+                                .multilineTextAlignment(.leading)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                         }
-                        .padding(.vertical, 4)
+                        .buttonStyle(.plain)
+                        .accessibilityAddTraits(.isHeader)
+
+                        if let description = service.description, !description.isEmpty {
+                            Text(description)
+                                .lineLimit(2)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        Text("Mode de facturation : \(serviceBillingModeLabel(service.unit))")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                        Text("Prix HT : \(PriceFormatter.format(cents: service.priceCents))")
+                            .font(.footnote)
+                            .fontWeight(.semibold)
+                        if let durationLabel = service.durationLabel, !durationLabel.isEmpty {
+                            Text("Durée : \(durationLabel)")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
                     }
+                    .padding(.vertical, 4)
+                    .accessibilityElement(children: .contain)
                 }
             }
         }
