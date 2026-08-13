@@ -15,10 +15,10 @@ final class ProductDetailViewModel: ObservableObject {
     @Published var reviewsError: String?
     @Published var isFavorite = false
 
-    private let loadDetailUseCase: LoadProductDetailUseCase
-    private let loadReviewsUseCase: LoadProductReviewsUseCase
-    private let loadFavoriteStatusUseCase: LoadProductFavoriteStatusUseCase
-    private let toggleFavoriteUseCase: ToggleProductFavoriteUseCase
+    let loadDetailUseCase: LoadProductDetailUseCase
+    let loadReviewsUseCase: LoadProductReviewsUseCase
+    let loadFavoriteStatusUseCase: LoadProductFavoriteStatusUseCase
+    let toggleFavoriteUseCase: ToggleProductFavoriteUseCase
 
     init(product: Product, useCases: ProductsUseCases) {
         self.product = product
