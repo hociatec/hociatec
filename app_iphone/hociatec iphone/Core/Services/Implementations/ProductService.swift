@@ -5,6 +5,15 @@ struct ProductService: ProductServing {
 
     func assetURL(for path: String?) -> URL? { api.assetURL(for: path) }
     func featuredProducts() async throws -> [Product] { try await api.featuredProducts() }
+    func productList(search: String?, categorySlug: String?, sellingType: SellingType?, page: Int?, perPage: Int?) async throws -> ProductListData {
+        try await api.productList(
+            search: search,
+            categorySlug: categorySlug,
+            sellingType: sellingType,
+            page: page,
+            perPage: perPage
+        )
+    }
     func products(search: String?, categorySlug: String?, sellingType: SellingType?) async throws -> [Product] {
         try await api.products(search: search, categorySlug: categorySlug, sellingType: sellingType)
     }

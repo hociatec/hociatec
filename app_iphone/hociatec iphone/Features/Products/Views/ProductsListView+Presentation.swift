@@ -3,6 +3,9 @@ import Foundation
 extension ProductsListView {
     var summaryText: String {
         var parts: [String] = []
+        if !viewModel.search.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            parts.append("\(viewModel.totalResults) résultat\(viewModel.totalResults > 1 ? "s" : "")")
+        }
         if let category = viewModel.selectedCategory {
             parts.append("Catégorie: \(category.name)")
         }

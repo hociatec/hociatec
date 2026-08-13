@@ -9,11 +9,39 @@ struct ProductsListContentSection: View {
     let useGrid: Bool
 
     var body: some View {
-        Section {
-            if viewModel.isLoading && viewModel.products.isEmpty {
-                loadingContent
-            } else {
-                productContent
+        Group {
+            Section {
+                if viewModel.isLoading && viewModel.products.isEmpty {
+                    loadingContent
+                } else {
+                    productContent
+                }
+            }
+
+            if viewModel.totalPages > 1 {
+                Section {
+                    HStack {
+                        Button("Précédent") {
+                            viewModel.previousPage()
+                            Task { await viewModel.load() }
+                        }
+                        .disabled(viewModel.page <= 1 || viewModel.isLoading)
+
+                        Spacer()
+
+                        Text("\(viewModel.page)/\(viewModel.totalPages)")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+
+                        Spacer()
+
+                        Button("Suivant") {
+                            viewModel.nextPage()
+                            Task { await viewModel.load() }
+                        }
+                        .disabled(viewModel.page >= viewModel.totalPages || viewModel.isLoading)
+                    }
+                }
             }
         }
     }

@@ -1,12 +1,33 @@
 import Foundation
 
 struct ProductsUseCases {
+    let loadProductList: LoadProductListUseCase
     let loadProducts: LoadProductsUseCase
     let loadCategories: LoadProductCategoriesUseCase
     let loadProductDetail: LoadProductDetailUseCase
     let loadProductReviews: LoadProductReviewsUseCase
     let loadFavoriteStatus: LoadProductFavoriteStatusUseCase
     let toggleFavorite: ToggleProductFavoriteUseCase
+}
+
+struct LoadProductListUseCase {
+    let repository: ProductsRepository
+
+    func execute(
+        search: String?,
+        categorySlug: String?,
+        sellingType: SellingType?,
+        page: Int,
+        perPage: Int
+    ) async throws -> ProductListData {
+        try await repository.fetchProductList(
+            search: search,
+            categorySlug: categorySlug,
+            sellingType: sellingType,
+            page: page,
+            perPage: perPage
+        )
+    }
 }
 
 struct LoadProductsUseCase {

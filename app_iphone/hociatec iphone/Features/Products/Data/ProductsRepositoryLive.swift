@@ -4,6 +4,22 @@ struct ProductsRepositoryLive: ProductsRepository {
     let productsService: ProductServing
     let favoritesService: FavoritesServing
 
+    func fetchProductList(
+        search: String?,
+        categorySlug: String?,
+        sellingType: SellingType?,
+        page: Int,
+        perPage: Int
+    ) async throws -> ProductListData {
+        try await productsService.productList(
+            search: search,
+            categorySlug: categorySlug,
+            sellingType: sellingType,
+            page: page,
+            perPage: perPage
+        )
+    }
+
     func fetchProducts(search: String?, categorySlug: String?, sellingType: SellingType?) async throws -> [Product] {
         try await productsService.products(search: search, categorySlug: categorySlug, sellingType: sellingType)
     }

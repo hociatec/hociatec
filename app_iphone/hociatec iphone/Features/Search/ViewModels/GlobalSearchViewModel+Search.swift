@@ -28,11 +28,11 @@ extension GlobalSearchViewModel {
             let loadedTrainings = try await trainingsTask
             let loadedNews = try await newsTask
 
-            products = Array(sortProducts(loadedProducts).prefix(6))
+            products = sortProducts(loadedProducts.items)
             services = sortServices(loadedServices.items)
             trainings = sortTrainings(loadedTrainings.items)
             news = sortNews(loadedNews.items)
-            productTotal = loadedProducts.count
+            productTotal = loadedProducts.meta.total
             serviceTotal = loadedServices.meta?.total ?? loadedServices.items.count
             trainingTotal = loadedTrainings.meta.total
             newsTotal = loadedNews.meta.total
@@ -53,9 +53,21 @@ extension GlobalSearchViewModel {
         error = nil
     }
 
-    private func loadProducts(query: String) async throws -> [Product] {
-        guard shouldLoad(.products) else { return [] }
-        return try await productsService.products(search: query, categorySlug: nil, sellingType: nil)
+    private func loadProducts(query: String) async throws -> ProductListData {
+        guard shouldLoad(.products) else {
+            return ProductListData(
+                items: [],
+                meta: PaginationMeta(page: 1, perPage: 6, total: 0, totalPages: 1)
+            )
+        }
+
+        return try await productsService.productList(
+            search: query,
+            categorySlug: nil,
+            sellingType: nil,
+            page: 1,
+            perPage: 6
+        )
     }
 
     private func loadServices(query: String) async throws -> QuoteServiceList {
@@ -89,7 +101,7 @@ extension GlobalSearchViewModel {
     }
 
     func applyCurrentSort() {
-        products = Array(sortProducts(products).prefix(6))
+        products = sortProducts(products)
         services = sortServices(services)
         trainings = sortTrainings(trainings)
         news = sortNews(news)

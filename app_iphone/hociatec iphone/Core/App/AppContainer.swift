@@ -41,6 +41,7 @@ final class AppContainer: ObservableObject {
             favoritesService: services.favorites
         )
         let productsUseCases = ProductsUseCases(
+            loadProductList: LoadProductListUseCase(repository: productsRepository),
             loadProducts: LoadProductsUseCase(repository: productsRepository),
             loadCategories: LoadProductCategoriesUseCase(repository: productsRepository),
             loadProductDetail: LoadProductDetailUseCase(repository: productsRepository),

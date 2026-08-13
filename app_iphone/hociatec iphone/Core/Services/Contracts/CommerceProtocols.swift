@@ -11,6 +11,7 @@ protocol CartServing {
 
 protocol ProductServing: AssetServing {
     func featuredProducts() async throws -> [Product]
+    func productList(search: String?, categorySlug: String?, sellingType: SellingType?, page: Int?, perPage: Int?) async throws -> ProductListData
     func products(search: String?, categorySlug: String?, sellingType: SellingType?) async throws -> [Product]
     func categories() async throws -> [CategorySummary]
     func product(slug: String) async throws -> Product

@@ -3,21 +3,26 @@ import Combine
 
 @MainActor
 final class ProductsViewModel: ObservableObject {
+    static let pageSize = 12
+
     @Published var products: [Product] = []
     @Published var categories: [CategorySummary] = []
     @Published var selectedCategory: CategorySummary?
     @Published var selectedSellingType: SellingType? = nil
     @Published var sort: ProductSortOption = .relevance
     @Published var search = ""
+    @Published var page = 1
+    @Published var totalPages = 1
+    @Published var totalResults = 0
     @Published var isLoading = false
     @Published var error: String?
 
-    private let loadProductsUseCase: LoadProductsUseCase
+    private let loadProductListUseCase: LoadProductListUseCase
     private let loadCategoriesUseCase: LoadProductCategoriesUseCase
     private var isLoadingCategories = false
 
     init(useCases: ProductsUseCases, initialSellingType: SellingType? = nil) {
-        self.loadProductsUseCase = useCases.loadProducts
+        self.loadProductListUseCase = useCases.loadProductList
         self.loadCategoriesUseCase = useCases.loadCategories
         self.selectedSellingType = initialSellingType
     }
@@ -28,16 +33,22 @@ final class ProductsViewModel: ObservableObject {
         error = nil
 
         do {
-            let items = try await loadProductsUseCase.execute(
+            let result = try await loadProductListUseCase.execute(
                 search: search.isEmpty ? nil : search,
                 categorySlug: selectedCategory?.slug,
-                sellingType: selectedSellingType
+                sellingType: selectedSellingType,
+                page: page,
+                perPage: Self.pageSize
             )
-            products = applySorting(on: items)
+            products = applySorting(on: result.items)
+            totalResults = result.meta.total
+            totalPages = max(1, result.meta.totalPages)
         } catch let err {
             self.error = err.localizedDescription
             if force {
                 products = []
+                totalResults = 0
+                totalPages = 1
             }
         }
 
@@ -76,6 +87,20 @@ final class ProductsViewModel: ObservableObject {
     func updateSort(_ newSort: ProductSortOption) {
         sort = newSort
         products = applySorting(on: products)
+    }
+
+    func applySearch() {
+        page = 1
+    }
+
+    func previousPage() {
+        guard page > 1 else { return }
+        page -= 1
+    }
+
+    func nextPage() {
+        guard page < totalPages else { return }
+        page += 1
     }
 }
 

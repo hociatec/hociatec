@@ -63,6 +63,7 @@ struct Product: Decodable, Identifiable {
 
 struct ProductListData: Decodable {
     let items: [Product]
+    let meta: PaginationMeta
 }
 
 struct CategoryListData: Decodable {

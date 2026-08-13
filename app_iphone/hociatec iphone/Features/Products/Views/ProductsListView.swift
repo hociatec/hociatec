@@ -86,6 +86,7 @@ struct ProductsListView: View {
         .navigationTitle(navigationTitle)
         .searchable(text: $viewModel.search, placement: .navigationBarDrawer(displayMode: .always), prompt: "Rechercher")
         .onSubmit(of: .search) {
+            viewModel.applySearch()
             Task { await viewModel.load(force: true) }
         }
         .task {

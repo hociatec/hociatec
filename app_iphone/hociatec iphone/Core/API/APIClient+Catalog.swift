@@ -9,7 +9,13 @@ extension APIClient {
         return data.items
     }
 
-    func products(search: String? = nil, categorySlug: String? = nil, sellingType: SellingType? = nil) async throws -> [Product] {
+    func productList(
+        search: String? = nil,
+        categorySlug: String? = nil,
+        sellingType: SellingType? = nil,
+        page: Int? = nil,
+        perPage: Int? = nil
+    ) async throws -> ProductListData {
         var query: [URLQueryItem] = []
         if let search, !search.isEmpty {
             query.append(.init(name: "q", value: search))
@@ -20,12 +26,25 @@ extension APIClient {
         if let sellingType {
             query.append(.init(name: "sellingType", value: sellingType.rawValue))
         }
+        if let page {
+            query.append(.init(name: "page", value: String(page)))
+        }
+        if let perPage {
+            query.append(.init(name: "perPage", value: String(perPage)))
+        }
 
-        let data: ProductListData = try await request(
+        return try await request(
             path: "api/public/catalog/products",
             query: query.isEmpty ? nil : query
         )
-        return data.items
+    }
+
+    func products(search: String? = nil, categorySlug: String? = nil, sellingType: SellingType? = nil) async throws -> [Product] {
+        try await productList(
+            search: search,
+            categorySlug: categorySlug,
+            sellingType: sellingType
+        ).items
     }
 
     func product(slug: String) async throws -> Product {
