@@ -21,6 +21,7 @@ final class HomeNotificationsViewModel: ObservableObject {
         guard isLoggedIn else {
             unreadCount = 0
             isLoading = false
+            isOpen = false
             loadError = nil
             return
         }

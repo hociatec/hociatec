@@ -46,6 +46,12 @@ struct HomeNotificationsShortcutSection: View {
         .onChangeCompat(viewModel.isOpen) { newValue in
             isExpanded = newValue
         }
+        .onDisappear {
+            isExpanded = false
+            Task {
+                await viewModel.setOpen(false, isLoggedIn: account.isLoggedIn)
+            }
+        }
     }
 
     @ViewBuilder
