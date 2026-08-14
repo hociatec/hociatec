@@ -227,12 +227,13 @@ struct hociatec_iphoneTests {
         )
         let service = MockCartService()
         service.cartToReturn = cart
+        let feedbackCenter = AppFeedbackCenter()
 
-        let viewModel = CartViewModel(service: service)
+        let viewModel = CartViewModel(service: service, feedbackCenter: feedbackCenter)
         await viewModel.add(product: product)
 
-        #expect(viewModel.globalDialog?.title == "Succès")
-        #expect(viewModel.globalDialog?.message == "Routeur ajouté au panier.")
+        #expect(feedbackCenter.dialog?.title == "Succès")
+        #expect(feedbackCenter.dialog?.message == "Routeur ajouté au panier.")
         #expect(viewModel.cart?.totalQuantity == 1)
     }
 
@@ -900,7 +901,7 @@ private actor MockProductsRepository: ProductsRepository {
     }
 
     func fetchReviews(slug: String, page: Int, perPage: Int) async throws -> ReviewListData {
-        ReviewListData(items: [], meta: PaginationMeta(page: page, perPage: perPage, total: 0, totalPages: 1))
+        ReviewListData(items: [], meta: ReviewListMeta(page: page, perPage: perPage, total: 0, average: nil))
     }
 
     func fetchFavorites() async throws -> [FavoriteEntry] {
