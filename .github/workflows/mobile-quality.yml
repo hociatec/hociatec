@@ -54,6 +54,8 @@ jobs:
             /iPhone 16/ { print $2; exit }
             /iPhone 15 Pro/ { print $2; exit }
             /iPhone 15/ { print $2; exit }
+            /iPhone/ && fallback == "" { fallback = $2 }
+            END { if (fallback != "") { print fallback } }
           ')"
 
           if [ -z "${SIMULATOR_UDID}" ]; then
