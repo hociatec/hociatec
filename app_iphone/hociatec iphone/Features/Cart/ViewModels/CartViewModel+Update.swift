@@ -44,7 +44,7 @@ extension CartViewModel {
             )
         } catch {
             cart = previousCart
-            self.error = error.localizedDescription
+            presentError(error.localizedDescription)
             statusMessage = "La mise à jour du panier a échoué. Réessayez ou vérifiez le stock disponible."
         }
     }

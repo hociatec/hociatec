@@ -22,28 +22,22 @@ struct ContentView: View {
             }
         }
         .feedbackDialog($dialog)
+        .onChangeCompat(container.cart.globalDialog?.id) { _ in
+            dialog = container.cart.globalDialog
+            container.cart.globalDialog = nil
+        }
+        .onChangeCompat(container.account.globalDialog?.id) { _ in
+            dialog = container.account.globalDialog
+            container.account.globalDialog = nil
+        }
         .onChangeCompat(container.cart.statusMessage) { newValue in
-            showDialog(newValue, isError: false)
             if newValue != nil {
                 container.cart.statusMessage = nil
             }
         }
-        .onChangeCompat(container.account.statusMessage) { newValue in
-            showDialog(newValue, isError: false)
-            if newValue != nil {
-                container.account.statusMessage = nil
-            }
-        }
         .onChangeCompat(container.cart.error) { newValue in
-            showDialog(newValue, isError: true)
             if newValue != nil {
                 container.cart.error = nil
-            }
-        }
-        .onChangeCompat(container.account.error) { newValue in
-            showDialog(newValue, isError: true)
-            if newValue != nil {
-                container.account.error = nil
             }
         }
     }
@@ -52,11 +46,6 @@ struct ContentView: View {
         guard let cart = cart.cart else { return "Panier, chargement…" }
         let count = cart.totalQuantity
         return count == 1 ? "Panier, 1 article" : "Panier, \(count) articles"
-    }
-
-    private func showDialog(_ newValue: String?, isError: Bool) {
-        guard let msg = newValue, !msg.isEmpty else { return }
-        dialog = isError ? .error(msg, title: "Échec") : .success(msg, title: "Succès")
     }
 
     @ViewBuilder

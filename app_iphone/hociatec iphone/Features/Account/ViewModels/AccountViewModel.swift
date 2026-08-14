@@ -17,6 +17,7 @@ final class AccountViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var error: String?
     @Published var statusMessage: String?
+    @Published var globalDialog: FeedbackDialogState?
     @Published var profile: UserProfile?
 
     @Published var firstName: String = ""

@@ -10,7 +10,7 @@ extension CartViewModel {
         do {
             cart = try await service.fetchCart()
         } catch let err {
-            error = err.localizedDescription
+            presentError(err.localizedDescription)
         }
 
         isLoading = false
@@ -27,12 +27,12 @@ extension CartViewModel {
                 rentalMonths: rentalMonths
             )
             if product.sellingType == .rental, let rentalMonths {
-                statusMessage = "\(product.name) loué pour \(rentalMonths) mois."
+                presentSuccess("\(product.name) loué pour \(rentalMonths) mois.")
             } else {
-                statusMessage = "\(product.name) ajouté au panier."
+                presentSuccess("\(product.name) ajouté au panier.")
             }
         } catch let err {
-            error = err.localizedDescription
+            presentError(err.localizedDescription)
         }
         isLoading = false
     }
@@ -45,7 +45,7 @@ extension CartViewModel {
         do {
             cart = try await service.removeFromCart(productId: item.product.id)
         } catch let err {
-            error = err.localizedDescription
+            presentError(err.localizedDescription)
         }
 
         isLoading = false
@@ -58,9 +58,9 @@ extension CartViewModel {
 
         do {
             cart = try await service.clearCart()
-            statusMessage = "Panier vidé."
+            presentSuccess("Panier vidé.")
         } catch let err {
-            error = err.localizedDescription
+            presentError(err.localizedDescription)
         }
 
         isLoading = false
@@ -75,15 +75,25 @@ extension CartViewModel {
         do {
             let result = try await service.checkout()
             if let order = result.order {
-                statusMessage = "Commande créée (\(order.number))."
+                presentSuccess("Commande créée (\(order.number)).")
                 cart = nil
             } else if result.requiresRedirect {
-                statusMessage = "Redirection vers le paiement."
+                presentSuccess("Redirection vers le paiement.")
             }
             return result
         } catch let err {
-            error = err.localizedDescription
+            presentError(err.localizedDescription)
             return nil
         }
+    }
+
+    fileprivate func presentSuccess(_ message: String) {
+        statusMessage = message
+        globalDialog = .success(message)
+    }
+
+    fileprivate func presentError(_ message: String) {
+        error = message
+        globalDialog = .error(message)
     }
 }
