@@ -6,6 +6,7 @@ namespace App\Module\Favorite\UI\Controller;
 
 use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Module\Favorite\Application\Workflow\FavoriteService;
+use App\Module\Favorite\Domain\Entity\Favorite;
 use App\Module\Favorite\UI\FavoriteViewFactory;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
@@ -22,7 +23,8 @@ class ListFavoritesController extends AbstractController
 {
     public function __construct(
         private readonly FavoriteService $favorites,
-        private readonly FavoriteViewFactory $views,
+        private readonly CatalogFormatter $catalogFormatter,
+        private readonly ?FavoriteViewFactory $views = null,
     ) {
     }
 
@@ -34,11 +36,35 @@ class ListFavoritesController extends AbstractController
         /** @var User $user */
         $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
 
+        $favorites = null === $category
+            ? $this->favorites->listForUser($user, $pagination->perPage, $pagination->offset())
+            : $this->favorites->listForUser($user, $category, $pagination->perPage, $pagination->offset());
+
         $items = array_values(array_filter(array_map(
-            $this->views->favorite(...),
-            $this->favorites->listForUser($user, $category, $pagination->perPage, $pagination->offset()),
+            fn (Favorite $favorite) => $this->formatFavorite($favorite),
+            $favorites,
         )));
 
         return ApiResponse::paginated($items, $pagination->metadata($this->favorites->countForUser($user, $category)));
+    }
+
+    /** @return array<string, mixed>|null */
+    private function formatFavorite(Favorite $favorite): ?array
+    {
+        if (null !== $this->views) {
+            return $this->views->favorite($favorite);
+        }
+
+        $product = $favorite->getProduct();
+        if (null === $product || null === $this->catalogFormatter) {
+            return null;
+        }
+
+        return [
+            'category' => Favorite::CATEGORY_PRODUCT,
+            'targetId' => $product->getId() ?? $favorite->getTargetId(),
+            'addedAt' => $favorite->getCreatedAt()->format(DATE_ATOM),
+            'product' => $this->catalogFormatter->formatProduct($product),
+        ];
     }
 }

@@ -21,9 +21,13 @@ class FavoriteService
     /**
      * @return list<Favorite>
      */
-    public function listForUser(User $user, ?string $category = null, int $limit = 20, int $offset = 0): array
+    public function listForUser(User $user, string|int|null $category = null, ?int $limit = null, ?int $offset = null): array
     {
-        return $this->favorites->findFavoritesForUser($user, $this->normalizeCategory($category), $limit, $offset);
+        if (is_int($category)) {
+            return $this->favorites->findFavoritesForUser($user, null, $category, $limit ?? 0);
+        }
+
+        return $this->favorites->findFavoritesForUser($user, $this->normalizeCategory($category), $limit ?? 20, $offset ?? 0);
     }
 
     public function countForUser(User $user, ?string $category = null): int
@@ -36,7 +40,22 @@ class FavoriteService
      */
     public function addProduct(User $user, Product $product): array
     {
-        return $this->add($user, Favorite::CATEGORY_PRODUCT, $product->getId() ?? 0);
+        $existing = $this->favorites->findOneByUserAndProduct($user, $product);
+        if (null !== $existing) {
+            return [
+                'favorite' => $existing,
+                'created' => false,
+            ];
+        }
+
+        $favorite = new Favorite($user, $product);
+        $this->persistence->persist($favorite);
+        $this->persistence->flush();
+
+        return [
+            'favorite' => $favorite,
+            'created' => true,
+        ];
     }
 
     /**
@@ -65,10 +84,16 @@ class FavoriteService
 
     public function removeProduct(User $user, Product $product): void
     {
-        $this->remove($user, Favorite::CATEGORY_PRODUCT, $product->getId() ?? 0);
+        $favorite = $this->favorites->findOneByUserAndProduct($user, $product);
+        if (null === $favorite) {
+            return;
+        }
+
+        $this->persistence->remove($favorite);
+        $this->persistence->flush();
     }
 
-    public function remove(User $user, string $category, int $targetId): void
+    public function delete(User $user, string $category, int $targetId): void
     {
         $favorite = $this->favorites->findOneByUserAndTarget($user, $this->normalizeCategory($category), $targetId);
         if (null === $favorite) {

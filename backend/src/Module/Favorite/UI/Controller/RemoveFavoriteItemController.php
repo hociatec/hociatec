@@ -25,7 +25,7 @@ final class RemoveFavoriteItemController extends AbstractController
     {
         /** @var User $user */
         $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
-        $this->favorites->remove($user, $category, $targetId);
+        $this->favorites->delete($user, $category, $targetId);
 
         return ApiResponse::successItem('removed', true);
     }

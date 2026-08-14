@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Favorite\UI\Controller;
 
 use App\Module\Catalog\Application\Port\ProductRepositoryPort;
+use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Module\Favorite\Application\Workflow\FavoriteService;
-use App\Module\Favorite\Domain\Entity\Favorite;
 use App\Module\Favorite\UI\FavoriteViewFactory;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
@@ -23,7 +23,8 @@ class AddFavoriteController extends AbstractController
     public function __construct(
         private readonly ProductRepositoryPort $products,
         private readonly FavoriteService $favorites,
-        private readonly FavoriteViewFactory $views,
+        private readonly CatalogFormatter $catalogFormatter,
+        private readonly ?FavoriteViewFactory $views = null,
     ) {
     }
 
@@ -38,15 +39,35 @@ class AddFavoriteController extends AbstractController
         /** @var User $user */
         $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
 
-        ['favorite' => $favorite, 'created' => $created] = $this->favorites->add($user, Favorite::CATEGORY_PRODUCT, $productId);
+        ['favorite' => $favorite, 'created' => $created] = $this->favorites->addProduct($user, $product);
 
         $payload = [
-            'favorite' => $this->views->favorite($favorite),
+            'favorite' => $this->formatFavorite($favorite),
             'alreadyFavorite' => false === $created,
         ];
 
         $status = $created ? Response::HTTP_CREATED : Response::HTTP_OK;
 
         return ApiResponse::success($payload, $status);
+    }
+
+    /** @return array<string, mixed>|null */
+    private function formatFavorite(\App\Module\Favorite\Domain\Entity\Favorite $favorite): ?array
+    {
+        if (null !== $this->views) {
+            return $this->views->favorite($favorite);
+        }
+
+        $product = $favorite->getProduct();
+        if (null === $product || null === $this->catalogFormatter) {
+            return null;
+        }
+
+        return [
+            'category' => \App\Module\Favorite\Domain\Entity\Favorite::CATEGORY_PRODUCT,
+            'targetId' => $product->getId() ?? $favorite->getTargetId(),
+            'addedAt' => $favorite->getCreatedAt()->format(DATE_ATOM),
+            'product' => $this->catalogFormatter->formatProduct($product),
+        ];
     }
 }

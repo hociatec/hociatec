@@ -6,9 +6,11 @@ namespace App\Module\Favorite\Domain\Entity;
 
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\User\Domain\Entity\User;
+use Doctrine\ORM\Event\PrePersistEventArgs;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
+#[ORM\HasLifecycleCallbacks]
 #[ORM\Table(name: 'user_favorites')]
 class Favorite
 {
@@ -43,7 +45,7 @@ class Favorite
         if ($category instanceof Product) {
             $this->legacyProduct = $category;
             $this->category = self::CATEGORY_PRODUCT;
-            $this->targetId = max(0, $category->getId() ?? 0);
+            $this->targetId = $this->legacyProductTargetId($category);
         } else {
             $this->category = self::normalizeCategory($category);
             $this->targetId = max(1, $targetId ?? 0);
@@ -99,5 +101,23 @@ class Favorite
     public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
+    }
+
+    #[ORM\PrePersist]
+    public function syncLegacyProductTargetId(): void
+    {
+        if (self::CATEGORY_PRODUCT === $this->category && null !== $this->legacyProduct && ($this->targetId < 1)) {
+            $this->targetId = $this->legacyProductTargetId($this->legacyProduct);
+        }
+    }
+
+    private function legacyProductTargetId(Product $product): int
+    {
+        $productId = $product->getId();
+        if (null !== $productId && $productId > 0) {
+            return $productId;
+        }
+
+        return max(1, abs((int) crc32($product->getSlug())));
     }
 }

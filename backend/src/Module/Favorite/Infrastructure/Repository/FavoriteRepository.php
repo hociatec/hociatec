@@ -23,7 +23,17 @@ class FavoriteRepository extends ServiceEntityRepository implements FavoriteRepo
 
     public function findOneByUserAndProduct(User $user, Product $product): ?Favorite
     {
-        return $this->findOneByUserAndTarget($user, Favorite::CATEGORY_PRODUCT, $product->getId() ?? 0);
+        $qb = $this->createQueryBuilder('f')
+            ->andWhere('f.user = :user')
+            ->andWhere('f.category = :category')
+            ->andWhere('f.targetId IN (:targetIds)')
+            ->setParameter('user', $user)
+            ->setParameter('category', Favorite::CATEGORY_PRODUCT)
+            ->setParameter('targetIds', $this->productTargetCandidates($product))
+            ->orderBy('f.id', 'ASC')
+            ->setMaxResults(1);
+
+        return $qb->getQuery()->getOneOrNullResult();
     }
 
     public function findOneByUserAndTarget(User $user, string $category, int $targetId): ?Favorite
@@ -41,7 +51,17 @@ class FavoriteRepository extends ServiceEntityRepository implements FavoriteRepo
 
     public function existsForUserAndProduct(User $user, Product $product): bool
     {
-        return $this->existsForUserAndTarget($user, Favorite::CATEGORY_PRODUCT, $product->getId() ?? 0);
+        return (bool) $this->createQueryBuilder('f')
+            ->select('1')
+            ->andWhere('f.user = :user')
+            ->andWhere('f.category = :category')
+            ->andWhere('f.targetId IN (:targetIds)')
+            ->setParameter('user', $user)
+            ->setParameter('category', Favorite::CATEGORY_PRODUCT)
+            ->setParameter('targetIds', $this->productTargetCandidates($product))
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
     public function existsForUserAndTarget(User $user, string $category, int $targetId): bool
@@ -94,5 +114,16 @@ class FavoriteRepository extends ServiceEntityRepository implements FavoriteRepo
         }
 
         return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+
+    /** @return list<int> */
+    private function productTargetCandidates(Product $product): array
+    {
+        $candidates = [max(1, abs((int) crc32($product->getSlug())))];
+        if (null !== $product->getId() && $product->getId() > 0) {
+            array_unshift($candidates, $product->getId());
+        }
+
+        return array_values(array_unique($candidates));
     }
 }

@@ -31,7 +31,7 @@ class RemoveFavoriteController extends AbstractController
         $product = $this->products->find($productId);
 
         if (null !== $product) {
-            $this->favorites->remove($user, Favorite::CATEGORY_PRODUCT, $productId);
+            $this->favorites->removeProduct($user, $product);
         }
 
         return ApiResponse::successItem('removed', true);
