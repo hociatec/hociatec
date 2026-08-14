@@ -39,7 +39,7 @@ extension AccountViewModel {
         error = nil
         apply(profile: profile)
         session.profile = profile
-        await loadAddresses()
+        await loadAddresses(reportErrors: false)
     }
 
     func applyLoggedOutState() {

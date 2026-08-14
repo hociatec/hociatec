@@ -1,7 +1,7 @@
 import Foundation
 
 extension AccountViewModel {
-    func loadAddresses() async {
+    func loadAddresses(reportErrors: Bool = true) async {
         guard isLoggedIn else {
             addresses = []
             return
@@ -12,12 +12,15 @@ extension AccountViewModel {
             addresses = items
         } catch let err {
             if shouldIgnore(error: err) { return }
-            error = err.localizedDescription
+            if reportErrors {
+                error = err.localizedDescription
+            }
         }
     }
 
-    func addAddress(type: String, label: String, address: String, addressComplement: String?, postalCode: String, company: String?, companySiren: String?, companyVatNumber: String?, city: String, isDefault: Bool) async {
-        await performAddressMutation {
+    @discardableResult
+    func addAddress(type: String, label: String, address: String, addressComplement: String?, postalCode: String, company: String?, companySiren: String?, companyVatNumber: String?, city: String, isDefault: Bool, reportErrors: Bool = true) async -> String? {
+        await performAddressMutation(reportErrors: reportErrors) {
             try await useCases.createAddress.execute(
                 type: type,
                 label: label,
@@ -33,10 +36,11 @@ extension AccountViewModel {
         }
     }
 
-    func updateAddress(_ addr: UserAddress) async {
-        guard let id = addr.id else { return }
+    @discardableResult
+    func updateAddress(_ addr: UserAddress, reportErrors: Bool = true) async -> String? {
+        guard let id = addr.id else { return "Adresse invalide." }
 
-        await performAddressMutation {
+        return await performAddressMutation(reportErrors: reportErrors) {
             try await useCases.updateAddress.execute(
                 id: id,
                 type: addr.type,
@@ -53,19 +57,24 @@ extension AccountViewModel {
         }
     }
 
-    func deleteAddress(id: Int) async {
-        await performAddressMutation {
+    @discardableResult
+    func deleteAddress(id: Int, reportErrors: Bool = true) async -> String? {
+        await performAddressMutation(reportErrors: reportErrors) {
             try await useCases.deleteAddress.execute(id: id)
         }
     }
 
-    func makeDefaultAddress(id: Int) async {
-        await performAddressMutation {
+    @discardableResult
+    func makeDefaultAddress(id: Int, reportErrors: Bool = true) async -> String? {
+        await performAddressMutation(reportErrors: reportErrors) {
             try await useCases.setDefaultAddress.execute(id: id)
         }
     }
 
-    private func performAddressMutation(_ operation: () async throws -> Void) async {
+    private func performAddressMutation(
+        reportErrors: Bool,
+        _ operation: () async throws -> Void
+    ) async -> String? {
         isLoading = true
         error = nil
         defer { isLoading = false }
@@ -73,9 +82,13 @@ extension AccountViewModel {
         do {
             try await operation()
             await refreshProfile()
+            return nil
         } catch let err {
-            if shouldIgnore(error: err) { return }
-            error = err.localizedDescription
+            if shouldIgnore(error: err) { return nil }
+            if reportErrors {
+                error = err.localizedDescription
+            }
+            return err.localizedDescription
         }
     }
 }

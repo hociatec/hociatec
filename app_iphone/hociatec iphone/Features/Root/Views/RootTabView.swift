@@ -24,15 +24,27 @@ struct ContentView: View {
         .feedbackDialog($dialog)
         .onChangeCompat(container.cart.statusMessage) { newValue in
             showDialog(newValue, isError: false)
+            if newValue != nil {
+                container.cart.statusMessage = nil
+            }
         }
         .onChangeCompat(container.account.statusMessage) { newValue in
             showDialog(newValue, isError: false)
+            if newValue != nil {
+                container.account.statusMessage = nil
+            }
         }
         .onChangeCompat(container.cart.error) { newValue in
             showDialog(newValue, isError: true)
+            if newValue != nil {
+                container.cart.error = nil
+            }
         }
         .onChangeCompat(container.account.error) { newValue in
             showDialog(newValue, isError: true)
+            if newValue != nil {
+                container.account.error = nil
+            }
         }
     }
 

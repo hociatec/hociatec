@@ -83,6 +83,11 @@ struct AddressFormView: View {
                 dismiss()
             }
         }
+        .onChangeCompat(locationLookup.error) { newValue in
+            guard let newValue, !newValue.isEmpty else { return }
+            shouldDismissAfterFeedback = false
+            feedbackDialog = .error(newValue)
+        }
     }
 
     private func save() {
@@ -90,7 +95,7 @@ struct AddressFormView: View {
             isSaving = true
             feedbackDialog = nil
             locationLookup.error = nil
-            account.error = nil
+            let mutationError: String?
             if let existing {
                 var updated = existing
                 updated.type = type
@@ -103,9 +108,9 @@ struct AddressFormView: View {
                 updated.companySiren = type == "professional" ? companySiren.nilIfBlank : nil
                 updated.companyVatNumber = type == "professional" ? companyVatNumber.nilIfBlank : nil
                 updated.isDefault = isDefault
-                await account.updateAddress(updated)
+                mutationError = await account.updateAddress(updated, reportErrors: false)
             } else {
-                await account.addAddress(
+                mutationError = await account.addAddress(
                     type: type,
                     label: label,
                     address: address,
@@ -115,14 +120,16 @@ struct AddressFormView: View {
                     companySiren: type == "professional" ? companySiren.nilIfBlank : nil,
                     companyVatNumber: type == "professional" ? companyVatNumber.nilIfBlank : nil,
                     city: city,
-                    isDefault: isDefault
+                    isDefault: isDefault,
+                    reportErrors: false
                 )
             }
             isSaving = false
-            if account.error == nil {
+            if mutationError == nil {
                 shouldDismissAfterFeedback = true
                 feedbackDialog = .success(existing == nil ? "Adresse enregistrée." : "Adresse mise à jour.")
-            } else if let message = account.error, !message.isEmpty {
+            } else if let message = mutationError, !message.isEmpty {
+                shouldDismissAfterFeedback = false
                 feedbackDialog = .error(message)
             }
         }
@@ -133,13 +140,13 @@ struct AddressFormView: View {
         Task {
             isSaving = true
             feedbackDialog = nil
-            account.error = nil
-            await account.deleteAddress(id: id)
+            let mutationError = await account.deleteAddress(id: id, reportErrors: false)
             isSaving = false
-            if account.error == nil {
+            if mutationError == nil {
                 shouldDismissAfterFeedback = true
                 feedbackDialog = .success("Adresse supprimée.")
-            } else if let message = account.error, !message.isEmpty {
+            } else if let message = mutationError, !message.isEmpty {
+                shouldDismissAfterFeedback = false
                 feedbackDialog = .error(message)
             }
         }

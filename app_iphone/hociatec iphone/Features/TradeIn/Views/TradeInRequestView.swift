@@ -72,8 +72,17 @@ struct TradeInRequestView: View {
             } catch {
                 viewModel.error = "Impossible de lire le PDF sélectionné."
             }
-        case .failure:
-            viewModel.error = "Sélection du PDF annulée ou invalide."
+        case let .failure(error):
+            if error is CancellationError {
+                return
+            }
+
+            let nsError = error as NSError
+            if nsError.domain == NSCocoaErrorDomain, nsError.code == NSUserCancelledError {
+                return
+            }
+
+            viewModel.error = "Impossible d’utiliser le PDF sélectionné."
         }
     }
 }
