@@ -46,7 +46,8 @@ struct hociatec_iphoneTests {
 
         let viewModel = AccountViewModel(
             useCases: makeUseCases(repository: repository),
-            session: session
+            session: session,
+            feedbackCenter: AppFeedbackCenter()
         )
         viewModel.email = expectedProfile.email
         viewModel.password = "Secret123"
@@ -70,7 +71,8 @@ struct hociatec_iphoneTests {
 
         let viewModel = AccountViewModel(
             useCases: makeUseCases(repository: repository),
-            session: session
+            session: session,
+            feedbackCenter: AppFeedbackCenter()
         )
 
         await viewModel.loadAddresses(reportErrors: false)
@@ -90,7 +92,8 @@ struct hociatec_iphoneTests {
 
         let viewModel = AccountViewModel(
             useCases: makeUseCases(repository: repository),
-            session: session
+            session: session,
+            feedbackCenter: AppFeedbackCenter()
         )
 
         let error = await viewModel.addAddress(
@@ -475,6 +478,7 @@ struct hociatec_iphoneTests {
             login: LoginUseCase(repository: repository),
             logout: LogoutUseCase(repository: repository),
             loadProfile: LoadAccountProfileUseCase(repository: repository),
+            restoreProfile: RestoreAccountProfileUseCase(repository: repository),
             updateProfile: UpdateAccountProfileUseCase(repository: repository),
             deleteAccount: DeleteAccountUseCase(repository: repository),
             register: RegisterAccountUseCase(repository: repository),
@@ -767,6 +771,10 @@ private final class MockAccountRepository: AccountRepository {
         profileToReturn
     }
 
+    func restoreProfileIfPossible() async throws -> UserProfile? {
+        profileToReturn
+    }
+
     func updateProfile(
         firstName: String,
         lastName: String,
@@ -1034,19 +1042,20 @@ private actor MockNewsService: NewsServing {
     }
 }
 
-private actor MockServiceCatalogService: ServiceCatalogServing {
+@MainActor
+private final class MockServiceCatalogService: ServiceCatalogServing {
     var quoteServiceResponses: [MockQuoteServiceListResponse] = []
     var quoteServiceContinuations: [String: (Result<QuoteServiceList, Error>) -> Void] = [:]
 
-    func setQuoteServiceResponses(_ responses: [MockQuoteServiceListResponse]) {
+    func setQuoteServiceResponses(_ responses: [MockQuoteServiceListResponse]) async {
         quoteServiceResponses = responses
     }
 
-    func hasPendingQuoteServiceContinuation(for key: String) -> Bool {
+    func hasPendingQuoteServiceContinuation(for key: String) async -> Bool {
         quoteServiceContinuations[key] != nil
     }
 
-    func resolvePendingQuoteServiceContinuation(for key: String, with result: Result<QuoteServiceList, Error>) {
+    func resolvePendingQuoteServiceContinuation(for key: String, with result: Result<QuoteServiceList, Error>) async {
         quoteServiceContinuations[key]?(result)
         quoteServiceContinuations[key] = nil
     }
@@ -1082,19 +1091,20 @@ private actor MockServiceCatalogService: ServiceCatalogServing {
     }
 }
 
-private actor MockProductService: ProductServing {
+@MainActor
+private final class MockProductService: ProductServing {
     var reviewResponses: [MockReviewListResponse] = []
     var reviewContinuations: [String: (Result<ReviewListData, Error>) -> Void] = [:]
 
-    func setReviewResponses(_ responses: [MockReviewListResponse]) {
+    func setReviewResponses(_ responses: [MockReviewListResponse]) async {
         reviewResponses = responses
     }
 
-    func hasPendingReviewContinuation(for key: String) -> Bool {
+    func hasPendingReviewContinuation(for key: String) async -> Bool {
         reviewContinuations[key] != nil
     }
 
-    func resolvePendingReviewContinuation(for key: String, with result: Result<ReviewListData, Error>) {
+    func resolvePendingReviewContinuation(for key: String, with result: Result<ReviewListData, Error>) async {
         reviewContinuations[key]?(result)
         reviewContinuations[key] = nil
     }
