@@ -87,12 +87,12 @@ extension CartViewModel {
         }
     }
 
-    fileprivate func presentSuccess(_ message: String) {
+    func presentSuccess(_ message: String) {
         statusMessage = message
         feedbackCenter.presentSuccess(message)
     }
 
-    fileprivate func presentError(_ message: String) {
+    func presentError(_ message: String) {
         error = message
         feedbackCenter.presentError(message)
     }
