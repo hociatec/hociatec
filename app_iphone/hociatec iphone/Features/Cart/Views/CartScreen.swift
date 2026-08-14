@@ -63,11 +63,7 @@ struct CartScreen: View {
             await loadScreenData()
             if let sessionId = container.session.pendingCheckoutSessionId {
                 screenState.pendingCheckoutSessionId = sessionId
-                presentCheckoutDialog(
-                    title: "Paiement en attente",
-                    message: "Vérification du paiement en cours."
-                )
-                await verifyPendingCheckoutIfNeeded()
+                await resolvePendingCheckoutAfterAppReturn()
             }
         }
         .refreshable {
@@ -88,7 +84,7 @@ struct CartScreen: View {
         .onChangeCompat(scenePhase) { phase in
             guard phase == .active else { return }
             guard screenState.pendingCheckoutSessionId != nil else { return }
-            Task { await verifyPendingCheckoutIfNeeded() }
+            Task { await resolvePendingCheckoutAfterAppReturn() }
         }
     }
 
@@ -177,6 +173,49 @@ struct CartScreen: View {
         }
     }
 
+    private func resolvePendingCheckoutAfterAppReturn() async {
+        guard !screenState.isCheckingCheckoutStatus else { return }
+        guard let sessionId = screenState.pendingCheckoutSessionId ?? container.session.pendingCheckoutSessionId else { return }
+
+        screenState.pendingCheckoutSessionId = sessionId
+        container.session.pendingCheckoutSessionId = sessionId
+        screenState.isCheckingCheckoutStatus = true
+        cart.error = nil
+        defer { screenState.isCheckingCheckoutStatus = false }
+
+        do {
+            let status = try await container.services.orders.checkoutSessionStatus(stripeSessionId: sessionId)
+
+            if status.status == "paid" {
+                let order: OrderSummary?
+                if let existingOrder = status.order {
+                    order = existingOrder
+                } else if let orderId = status.orderId {
+                    order = try await container.services.orders.order(id: orderId)
+                } else {
+                    order = nil
+                }
+
+                if let order {
+                    await cart.refresh()
+                    resetCheckoutFlow()
+                    completedOrder = order
+                    return
+                }
+            }
+
+            await cancelPendingCheckout(
+                sessionId: sessionId,
+                message: "Le paiement n’a pas été finalisé. Votre panier reste disponible."
+            )
+        } catch {
+            await cancelPendingCheckout(
+                sessionId: sessionId,
+                message: "Le paiement n’a pas été finalisé. Votre panier reste disponible."
+            )
+        }
+    }
+
     private func handleCheckoutCallback() async {
         guard let callback = container.session.consumeCheckoutCallback() else { return }
 
@@ -190,12 +229,8 @@ struct CartScreen: View {
             )
             await verifyPendingCheckoutIfNeeded()
         case .cancelled:
-            if let sessionId = screenState.pendingCheckoutSessionId ?? container.session.pendingCheckoutSessionId {
-                _ = try? await container.services.orders.cancelCheckoutSession(stripeSessionId: sessionId)
-            }
-            resetCheckoutFlow()
-            presentCheckoutDialog(
-                title: "Paiement annulé",
+            await cancelPendingCheckout(
+                sessionId: screenState.pendingCheckoutSessionId ?? container.session.pendingCheckoutSessionId,
                 message: "Le paiement a été annulé. Vous pouvez reprendre la validation quand vous voulez."
             )
         }
@@ -250,5 +285,19 @@ struct CartScreen: View {
         screenState.isCheckingCheckoutStatus = false
         screenState.checkoutDialog = nil
         cart.error = nil
+        cart.statusMessage = nil
+    }
+
+    private func cancelPendingCheckout(sessionId: String?, message: String) async {
+        if let sessionId {
+            _ = try? await container.services.orders.cancelCheckoutSession(stripeSessionId: sessionId)
+        }
+
+        resetCheckoutFlow()
+        await cart.refresh()
+        presentCheckoutDialog(
+            title: "Paiement annulé",
+            message: message
+        )
     }
 }

@@ -29,11 +29,18 @@ struct ClientDashboardView: View {
                 showDeleteConfirmation: $showDeleteConfirmation
             )
         }
+        .id(loadKey ?? "guest-dashboard")
         .navigationTitle("Mon espace")
         .task(id: loadKey) {
             guard account.isLoggedIn, loadKey != nil else { return }
             viewModel.resetVisibleState()
             await viewModel.load(force: true)
+        }
+        .onChangeCompat(account.isLoggedIn) { isLoggedIn in
+            viewModel.resetVisibleState()
+            if !isLoggedIn {
+                showDeleteConfirmation = false
+            }
         }
         .refreshable { await viewModel.load(force: true) }
         .alert("Supprimer mon compte ?", isPresented: $showDeleteConfirmation) {
