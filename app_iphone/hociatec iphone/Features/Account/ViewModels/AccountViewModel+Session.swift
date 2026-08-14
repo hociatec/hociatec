@@ -36,6 +36,7 @@ extension AccountViewModel {
     }
 
     func applyAuthenticatedState(profile: UserProfile) async {
+        isLoggedIn = true
         error = nil
         apply(profile: profile)
         session.profile = profile
@@ -43,6 +44,7 @@ extension AccountViewModel {
     }
 
     func applyLoggedOutState() {
+        isLoggedIn = false
         profile = nil
         error = nil
         statusMessage = nil
