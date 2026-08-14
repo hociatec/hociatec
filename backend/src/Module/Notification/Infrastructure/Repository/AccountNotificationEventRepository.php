@@ -33,8 +33,8 @@ final class AccountNotificationEventRepository extends ServiceEntityRepository i
         return $this->count(['user' => $user]);
     }
 
-    public function existsForKey(string $key): bool
+    public function existsForUserAndKey(User $user, string $key): bool
     {
-        return null !== $this->findOneBy(['key' => $key]);
+        return null !== $this->findOneBy(['user' => $user, 'key' => $key]);
     }
 }

@@ -3,6 +3,26 @@ import Foundation
 struct WorkspaceService: WorkspaceServing {
     let api: APIClient
 
+    func accountNotifications() async throws -> [AccountNotificationItem] {
+        try await api.accountNotifications()
+    }
+
+    func accountNotificationsReadState() async throws -> AccountNotificationsReadState {
+        try await api.accountNotificationsReadState()
+    }
+
+    func markAccountNotificationsSeen(keys: [String]) async throws -> AccountNotificationsReadState {
+        try await api.markAccountNotificationsSeen(keys: keys)
+    }
+
+    func dismissAccountNotification(key: String) async throws -> AccountNotificationsReadState {
+        try await api.dismissAccountNotification(key: key)
+    }
+
+    func dismissAccountNotifications(keys: [String]) async throws -> AccountNotificationsReadState {
+        try await api.dismissAccountNotifications(keys: keys)
+    }
+
     func communicationPreferences() async throws -> CommunicationPreferencesData {
         try await api.communicationPreferences()
     }

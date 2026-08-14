@@ -1,0 +1,118 @@
+import SwiftUI
+
+struct HomeNotificationsShortcutSection: View {
+    @EnvironmentObject private var container: AppContainer
+    @EnvironmentObject private var account: AccountViewModel
+    @StateObject private var viewModel: HomeNotificationsViewModel
+
+    init(workspaceService: WorkspaceServing) {
+        _viewModel = StateObject(wrappedValue: HomeNotificationsViewModel(workspaceService: workspaceService))
+    }
+
+    var body: some View {
+        if account.isLoggedIn {
+            Section {
+                Button {
+                    Task {
+                        await viewModel.toggleOpen(isLoggedIn: account.isLoggedIn)
+                    }
+                } label: {
+                    HStack {
+                        Label(
+                            viewModel.isLoading
+                                ? "Notifications (...)"
+                                : "Notifications (\(viewModel.unreadCount))",
+                            systemImage: "bell.badge"
+                        )
+                        .fontWeight(.semibold)
+
+                        Spacer()
+
+                        Image(systemName: viewModel.isOpen ? "chevron.up" : "chevron.down")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .accessibilityHint("Ouvre ou ferme la liste des notifications.")
+            }
+
+            if viewModel.isOpen {
+                Section {
+                    if viewModel.isLoading && viewModel.visibleNotifications.isEmpty {
+                        ProgressView("Chargement...")
+                            .frame(maxWidth: .infinity, alignment: .center)
+                    } else if viewModel.visibleNotifications.isEmpty {
+                        Text("Aucune notification prioritaire.")
+                            .foregroundStyle(.secondary)
+                    } else {
+                        if viewModel.visibleNotifications.count > 1 {
+                            Button("Tout supprimer", role: .destructive) {
+                                Task { await viewModel.dismissAll() }
+                            }
+                        }
+
+                        ForEach(viewModel.visibleNotifications) { notification in
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text(notification.label)
+                                    .font(.headline)
+                                    .foregroundStyle(viewModel.isUnread(notification) ? .primary : .secondary)
+
+                                Text(notification.message)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+
+                                HStack {
+                                    NavigationLink {
+                                        destination(for: notification)
+                                    } label: {
+                                        Text(notificationLinkLabel(for: notification))
+                                            .fontWeight(.semibold)
+                                    }
+
+                                    Spacer()
+
+                                    Button("Supprimer", role: .destructive) {
+                                        Task { await viewModel.dismiss(notification) }
+                                    }
+                                }
+                                .font(.footnote)
+                            }
+                            .padding(.vertical, 4)
+                            .accessibilityElement(children: .contain)
+                        }
+                    }
+                }
+            }
+            .task {
+                await viewModel.loadIfNeeded(isLoggedIn: account.isLoggedIn)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func destination(for notification: AccountNotificationItem) -> some View {
+        if let slug = newsSlug(from: notification.to) {
+            NewsDetailView(api: container.services.news, slug: slug)
+        } else if notification.to == "/actualites" || notification.to.hasPrefix("/actualites?") {
+            NewsListView(api: container.services.news)
+        } else if notification.to == "/mon-espace" || notification.to.hasPrefix("/profile") || notification.to.hasPrefix("/orders") || notification.to.hasPrefix("/beta") {
+            AccountScreen()
+        } else {
+            AccountScreen()
+        }
+    }
+
+    private func notificationLinkLabel(for notification: AccountNotificationItem) -> String {
+        if notification.type.hasPrefix("beta_") || notification.to.hasPrefix("/beta") {
+            return "Accéder à l’espace bêta"
+        }
+
+        return "Consulter"
+    }
+
+    private func newsSlug(from path: String) -> String? {
+        let cleaned = path.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard cleaned.hasPrefix("/actualites/") else { return nil }
+        let slug = String(cleaned.dropFirst("/actualites/".count))
+        return slug.isEmpty ? nil : slug
+    }
+}

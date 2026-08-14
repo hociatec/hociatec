@@ -10,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity]
 #[ORM\Table(name: 'account_notification_events')]
 #[ORM\Index(name: 'IDX_ACCOUNT_NOTIFICATION_USER', columns: ['user_id'])]
-#[ORM\UniqueConstraint(name: 'UNIQ_ACCOUNT_NOTIFICATION_KEY', columns: ['notification_key'])]
+#[ORM\UniqueConstraint(name: 'UNIQ_ACCOUNT_NOTIFICATION_USER_KEY', columns: ['user_id', 'notification_key'])]
 class AccountNotificationEvent
 {
     #[ORM\Id, ORM\GeneratedValue, ORM\Column]

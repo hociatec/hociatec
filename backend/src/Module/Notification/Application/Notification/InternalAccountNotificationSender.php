@@ -23,7 +23,7 @@ final readonly class InternalAccountNotificationSender
     public function send(User $user, string $key, string $title, string $message, string $targetUrl, string $type): void
     {
         try {
-            if (!$this->preferences->allowsInternal($user) || $this->notifications->existsForKey($key)) {
+            if (!$this->preferences->allowsInternal($user) || $this->notifications->existsForUserAndKey($user, $key)) {
                 return;
             }
 

@@ -37,6 +37,11 @@ protocol AccountServing {
 }
 
 protocol WorkspaceServing {
+    func accountNotifications() async throws -> [AccountNotificationItem]
+    func accountNotificationsReadState() async throws -> AccountNotificationsReadState
+    func markAccountNotificationsSeen(keys: [String]) async throws -> AccountNotificationsReadState
+    func dismissAccountNotification(key: String) async throws -> AccountNotificationsReadState
+    func dismissAccountNotifications(keys: [String]) async throws -> AccountNotificationsReadState
     func communicationPreferences() async throws -> CommunicationPreferencesData
     func updateCommunicationPreferences(preferences: [String]) async throws -> CommunicationPreferencesData
     func loyaltyBalance() async throws -> LoyaltyBalance

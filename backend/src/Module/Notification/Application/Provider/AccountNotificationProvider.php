@@ -73,12 +73,18 @@ final readonly class AccountNotificationProvider
     {
         $now = $this->clock->now();
         $notifications = [];
+        $seenKeys = [];
 
         foreach ($this->computedProviders as $provider) {
-            $notifications = [
-                ...$notifications,
-                ...$provider->provide($user, $now),
-            ];
+            foreach ($provider->provide($user, $now) as $notification) {
+                $key = is_string($notification['key'] ?? null) ? $notification['key'] : null;
+                if (null === $key || isset($seenKeys[$key])) {
+                    continue;
+                }
+
+                $seenKeys[$key] = true;
+                $notifications[] = $notification;
+            }
         }
 
         return $notifications;

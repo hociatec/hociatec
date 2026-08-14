@@ -14,5 +14,5 @@ interface AccountNotificationEventRepositoryPort
 
     public function countForUser(User $user): int;
 
-    public function existsForKey(string $key): bool;
+    public function existsForUserAndKey(User $user, string $key): bool;
 }

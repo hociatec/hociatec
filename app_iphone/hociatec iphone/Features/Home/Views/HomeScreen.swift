@@ -1,9 +1,12 @@
 import SwiftUI
 
 struct HomeScreen: View {
+    @EnvironmentObject private var account: AccountViewModel
     @StateObject private var home: HomeViewModel
+    private let workspaceService: WorkspaceServing
 
     init(services: AppServices) {
+        self.workspaceService = services.workspace
         _home = StateObject(wrappedValue: HomeViewModel(
             productsService: services.products,
             serviceCatalogService: services.serviceCatalog,
@@ -14,6 +17,7 @@ struct HomeScreen: View {
     var body: some View {
         List {
             HomeIntroSection()
+            HomeNotificationsShortcutSection(workspaceService: workspaceService)
             HomeSearchSection()
             HomeServicesSection(home: home)
             HomeFeaturedProductsSection(home: home)
@@ -21,5 +25,8 @@ struct HomeScreen: View {
         }
         .navigationTitle("Accueil")
         .task { await home.load() }
+        .refreshable {
+            await home.load(force: true)
+        }
     }
 }

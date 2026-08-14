@@ -11,6 +11,23 @@ struct CommunicationPreferencesData: Decodable {
     let choices: [CommunicationPreferenceChoice]
 }
 
+struct AccountNotificationItem: Decodable, Identifiable {
+    let key: String
+    let label: String
+    let message: String
+    let to: String
+    let type: String
+    let createdAt: String
+
+    var id: String { key }
+}
+
+struct AccountNotificationsReadState: Decodable {
+    let seenSignature: String
+    let seenKeys: [String]
+    let dismissedKeys: [String]
+}
+
 struct LoyaltyBalance: Decodable {
     let points: Int
     let euroCents: Int

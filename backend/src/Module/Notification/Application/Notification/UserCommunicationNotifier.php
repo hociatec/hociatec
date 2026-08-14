@@ -19,7 +19,7 @@ final readonly class UserCommunicationNotifier
 
     public function notify(User $user, string $key, string $title, string $message, string $targetUrl, string $type): void
     {
-        if ($this->notifications->existsForKey($key)) {
+        if ($this->notifications->existsForUserAndKey($user, $key)) {
             return;
         }
 
