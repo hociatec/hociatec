@@ -30,6 +30,8 @@ final class AppointmentBookingViewModel: ObservableObject {
     private let service: AppointmentServing
     private let mode: Mode
     private let calendar = Calendar(identifier: .gregorian)
+    private var prestationsRequestID = 0
+    private var availabilityRequestID = 0
 
     init(service: AppointmentServing, mode: Mode = .booking) {
         self.service = service
@@ -53,20 +55,27 @@ final class AppointmentBookingViewModel: ObservableObject {
 
     func loadPrestations() async {
         guard !isLoading else { return }
+        prestationsRequestID += 1
+        let requestID = prestationsRequestID
         isLoading = true
         error = nil
         successMessage = nil
 
         do {
-            prestations = try await service.appointmentPrestations()
+            let loadedPrestations = try await service.appointmentPrestations()
+            guard requestID == prestationsRequestID else { return }
+            prestations = loadedPrestations
             if selectedPrestationId == nil {
                 selectedPrestationId = prestations.first?.id
             }
         } catch let err {
+            guard requestID == prestationsRequestID else { return }
             self.error = err.localizedDescription
         }
 
-        isLoading = false
+        if requestID == prestationsRequestID {
+            isLoading = false
+        }
     }
 
     func didChangePrestation() async {
@@ -120,6 +129,8 @@ final class AppointmentBookingViewModel: ObservableObject {
     func loadAvailabilityForVisibleMonth() async {
         guard let prestationId = selectedPrestationId else { return }
         guard !isLoading else { return }
+        availabilityRequestID += 1
+        let requestID = availabilityRequestID
         isLoading = true
         error = nil
         successMessage = nil
@@ -132,7 +143,9 @@ final class AppointmentBookingViewModel: ObservableObject {
         let end = calendar.date(byAdding: .month, value: 1, to: monthStart) ?? start
 
         do {
-            slots = try await service.appointmentAvailability(prestationId: prestationId, start: start, end: end)
+            let loadedSlots = try await service.appointmentAvailability(prestationId: prestationId, start: start, end: end)
+            guard requestID == availabilityRequestID else { return }
+            slots = loadedSlots
             if let selectedDate, AppointmentBookingPresentation.daySlots(for: selectedDate, from: slots).isEmpty {
                 self.selectedDate = nil
                 if step == .slot {
@@ -140,10 +153,13 @@ final class AppointmentBookingViewModel: ObservableObject {
                 }
             }
         } catch let err {
+            guard requestID == availabilityRequestID else { return }
             self.error = err.localizedDescription
         }
 
-        isLoading = false
+        if requestID == availabilityRequestID {
+            isLoading = false
+        }
     }
 
     func book(slot: AppointmentSlot) async -> AppointmentSummary? {

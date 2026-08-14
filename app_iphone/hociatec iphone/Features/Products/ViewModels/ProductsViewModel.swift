@@ -20,6 +20,8 @@ final class ProductsViewModel: ObservableObject {
     private let loadProductListUseCase: LoadProductListUseCase
     private let loadCategoriesUseCase: LoadProductCategoriesUseCase
     private var isLoadingCategories = false
+    private var loadRequestID = 0
+    private var categoriesRequestID = 0
 
     init(useCases: ProductsUseCases, initialSellingType: SellingType? = nil) {
         self.loadProductListUseCase = useCases.loadProductList
@@ -29,6 +31,8 @@ final class ProductsViewModel: ObservableObject {
 
     func load(force: Bool = false) async {
         if isLoading && !force { return }
+        loadRequestID += 1
+        let requestID = loadRequestID
         isLoading = true
         error = nil
 
@@ -40,10 +44,12 @@ final class ProductsViewModel: ObservableObject {
                 page: page,
                 perPage: Self.pageSize
             )
+            guard requestID == loadRequestID else { return }
             products = applySorting(on: result.items)
             totalResults = result.meta.total
             totalPages = max(1, result.meta.totalPages)
         } catch let err {
+            guard requestID == loadRequestID else { return }
             self.error = err.localizedDescription
             if force {
                 products = []
@@ -52,22 +58,31 @@ final class ProductsViewModel: ObservableObject {
             }
         }
 
-        isLoading = false
+        if requestID == loadRequestID {
+            isLoading = false
+        }
     }
 
     func loadCategoriesIfNeeded() async {
         if isLoadingCategories || !categories.isEmpty { return }
+        categoriesRequestID += 1
+        let requestID = categoriesRequestID
         isLoadingCategories = true
-        defer { isLoadingCategories = false }
         do {
-            categories = try await loadCategoriesUseCase.execute()
+            let loadedCategories = try await loadCategoriesUseCase.execute()
+            guard requestID == categoriesRequestID else { return }
+            categories = loadedCategories
             if let current = selectedCategory {
                 selectedCategory = categories.first(where: { $0.id == current.id || $0.slug == current.slug })
             }
         } catch let err {
+            guard requestID == categoriesRequestID else { return }
             if error == nil {
                 error = err.localizedDescription
             }
+        }
+        if requestID == categoriesRequestID {
+            isLoadingCategories = false
         }
     }
 

@@ -17,6 +17,7 @@ final class ClientDashboardViewModel: ObservableObject {
     let trainingService: TrainingServing
     let workspaceService: WorkspaceServing
     let actionBuilder = ClientDashboardActionBuilder()
+    var loadRequestID = 0
 
     init(
         quoteService: QuoteServing,

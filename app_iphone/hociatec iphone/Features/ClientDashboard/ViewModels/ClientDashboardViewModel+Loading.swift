@@ -3,9 +3,10 @@ import Foundation
 extension ClientDashboardViewModel {
     func load(force: Bool = false) async {
         if isLoading && !force { return }
+        loadRequestID += 1
+        let requestID = loadRequestID
         isLoading = true
         resetVisibleState()
-        defer { isLoading = false }
 
         async let quotesResult = capture { try await self.quoteService.myQuotes() }
         async let appointmentsResult = capture { try await self.appointmentService.myAppointments() }
@@ -18,6 +19,7 @@ extension ClientDashboardViewModel {
         let pendingReviews = await pendingReviewsResult
         let loyaltyResponse = await loyaltyResult
         let trainings = await trainingsResult
+        guard requestID == loadRequestID else { return }
 
         let failures = [
             quotes.failure,
@@ -51,6 +53,10 @@ extension ClientDashboardViewModel {
             pendingReviews: pendingReviews.value ?? [],
             trainings: trainings.value?.items ?? []
         )
+
+        if requestID == loadRequestID {
+            isLoading = false
+        }
     }
 
     private func capture<T>(_ operation: @escaping () async throws -> T) async -> ClientDashboardLoadResult<T> {
