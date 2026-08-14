@@ -5,6 +5,15 @@ import Testing
 @MainActor
 struct hociatec_iphoneTests {
     @Test
+    func benignCancellationDetectsTransportWrappedURLCancellation() {
+        let wrappedCancellation = APIError.transport(
+            NSError(domain: NSURLErrorDomain, code: NSURLErrorCancelled)
+        )
+
+        #expect(wrappedCancellation.isBenignCancellation)
+    }
+
+    @Test
     func loginSuccessDoesNotSurfaceAddressLoadingFailure() async throws {
         let session = makeCleanSession()
         let expectedProfile = sampleProfile()

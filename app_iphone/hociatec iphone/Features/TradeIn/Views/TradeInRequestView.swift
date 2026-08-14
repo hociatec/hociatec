@@ -73,12 +73,7 @@ struct TradeInRequestView: View {
                 viewModel.error = "Impossible de lire le PDF sélectionné."
             }
         case let .failure(error):
-            if error is CancellationError {
-                return
-            }
-
-            let nsError = error as NSError
-            if nsError.domain == NSCocoaErrorDomain, nsError.code == NSUserCancelledError {
+            if error.isBenignCancellation {
                 return
             }
 
