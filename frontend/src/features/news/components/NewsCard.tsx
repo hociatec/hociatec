@@ -21,7 +21,7 @@ export const NewsCard = ({ article }: { article: NewsArticleDto }) => (
       </h2>
     </div>
     <p className="mt-3 line-clamp-4 text-sm leading-6 text-stone-600">{article.excerpt}</p>
-    <div className="mt-auto flex flex-col gap-4 pt-5">
+    <div className="mt-auto pt-5">
       <div className="flex flex-wrap items-center gap-3">
         <FavoriteToggleButton category="news" targetId={article.id} />
         <Link
@@ -30,8 +30,8 @@ export const NewsCard = ({ article }: { article: NewsArticleDto }) => (
         >
           Lire l’actualité
         </Link>
+        <NewsShareActions article={article} compact />
       </div>
-      <NewsShareActions article={article} compact />
     </div>
   </article>
 );
