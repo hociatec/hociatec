@@ -25,7 +25,7 @@ jobs:
       cancel-in-progress: true
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
 
       - name: Run SwiftLint
         run: swiftlint lint --strict --config app_iphone/.swiftlint.yml
@@ -41,7 +41,7 @@ jobs:
       SCHEME: hociatec iphone
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
 
       - name: Show Xcode version
         run: xcodebuild -version
@@ -91,7 +91,7 @@ jobs:
       CI_BUILD_NUMBER: ${{ github.run_number }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
 
       - name: Read app version metadata
         id: app_meta
@@ -163,7 +163,7 @@ jobs:
         run: ./app_iphone/tools/validate_altstore_ipa.sh "app_iphone/build/ipa-export/${{ steps.app_meta.outputs.ipa_filename }}"
 
       - name: Upload unsigned IPA artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v5
         with:
           name: hociatec-ios-unsigned-ipa-v${{ steps.app_meta.outputs.app_version }}-b${{ steps.app_meta.outputs.app_build }}
           path: app_iphone/build/ipa-export/${{ steps.app_meta.outputs.ipa_filename }}
