@@ -8,6 +8,7 @@ final class VouchersViewModel: ObservableObject {
     @Published var error: String?
 
     private let service: VoucherServing
+    private var loadRequestID = 0
 
     init(service: VoucherServing) {
         self.service = service
@@ -15,15 +16,23 @@ final class VouchersViewModel: ObservableObject {
 
     func load(force: Bool = false) async {
         if isLoading && !force { return }
+        loadRequestID += 1
+        let requestID = loadRequestID
         isLoading = true
         error = nil
-        defer { isLoading = false }
 
         do {
-            items = try await service.myVouchers(page: 1, perPage: 30).items
+            let loadedItems = try await service.myVouchers(page: 1, perPage: 30).items
+            guard requestID == loadRequestID else { return }
+            items = loadedItems
         } catch {
+            guard requestID == loadRequestID else { return }
             self.error = error.localizedDescription
             items = []
+        }
+
+        if requestID == loadRequestID {
+            isLoading = false
         }
     }
 }

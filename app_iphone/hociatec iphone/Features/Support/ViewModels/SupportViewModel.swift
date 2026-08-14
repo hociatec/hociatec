@@ -12,6 +12,9 @@ final class SupportViewModel: ObservableObject {
     @Published var sharedFile: TemporarySharedFile?
 
     private let service: SupportServing
+    private var loadRequestID = 0
+    private var detailRequestID = 0
+    private var attachmentRequestID = 0
 
     init(service: SupportServing) {
         self.service = service
@@ -19,35 +22,49 @@ final class SupportViewModel: ObservableObject {
 
     func load(force: Bool = false) async {
         if isLoading && !force { return }
+        loadRequestID += 1
+        let requestID = loadRequestID
         isLoading = true
         error = nil
-        defer { isLoading = false }
 
         do {
             let data = try await service.mySupportRequests(page: 1, perPage: 20)
+            guard requestID == loadRequestID else { return }
             items = data.items
             if let selectedId = selectedItem?.id {
                 selectedItem = data.items.first(where: { $0.id == selectedId })
             }
         } catch {
+            guard requestID == loadRequestID else { return }
             self.error = error.localizedDescription
             items = []
+        }
+
+        if requestID == loadRequestID {
+            isLoading = false
         }
     }
 
     func loadDetail(id: Int) async {
+        detailRequestID += 1
+        let requestID = detailRequestID
         isLoading = true
         error = nil
-        defer { isLoading = false }
 
         do {
             let detail = try await service.mySupportRequest(id: id)
+            guard requestID == detailRequestID else { return }
             selectedItem = detail
             if let index = items.firstIndex(where: { $0.id == detail.id }) {
                 items[index] = detail
             }
         } catch {
+            guard requestID == detailRequestID else { return }
             self.error = error.localizedDescription
+        }
+
+        if requestID == detailRequestID {
+            isLoading = false
         }
     }
 
@@ -90,12 +107,16 @@ final class SupportViewModel: ObservableObject {
     }
 
     func shareAttachment(requestId: Int, attachment: SupportAttachment) async {
+        attachmentRequestID += 1
+        let currentRequestID = attachmentRequestID
         error = nil
 
         do {
             let data = try await service.mySupportAttachment(id: requestId, name: attachment.name)
+            guard currentRequestID == attachmentRequestID else { return }
             sharedFile = try TemporarySharedFileFactory.create(data: data, fileName: attachment.originalName)
         } catch {
+            guard currentRequestID == attachmentRequestID else { return }
             self.error = error.localizedDescription
         }
     }

@@ -32,7 +32,7 @@ struct FavoritesScreen: View {
         }
         .navigationTitle("Mes favoris")
         .task { await viewModel.load() }
-        .refreshable { await viewModel.load() }
+        .refreshable { await viewModel.load(force: true) }
         .feedbackDialog(error: $viewModel.error)
     }
 }
