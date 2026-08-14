@@ -52,13 +52,17 @@ struct NewsDetailHeroSection: View {
                 Text(article.excerpt)
                     .foregroundStyle(.secondary)
 #if canImport(UIKit)
-                ShareLink(
-                    item: newsShareURL(for: article),
-                    subject: Text(article.title),
-                    message: Text(article.excerpt)
-                ) {
-                    Label("Partager l’actualité", systemImage: "square.and.arrow.up")
-                        .fontWeight(.semibold)
+                HStack(spacing: 12) {
+                    FavoriteToggleButton(category: .news, targetId: article.id)
+
+                    ShareLink(
+                        item: newsShareURL(for: article),
+                        subject: Text(article.title),
+                        message: Text(article.excerpt)
+                    ) {
+                        Label("Partager l’actualité", systemImage: "square.and.arrow.up")
+                            .fontWeight(.semibold)
+                    }
                 }
 #endif
             }

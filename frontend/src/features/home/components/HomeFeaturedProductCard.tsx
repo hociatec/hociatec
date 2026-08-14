@@ -7,7 +7,6 @@ import {
   resolveDisplayPriceCents,
   type CatalogProduct,
 } from '@/features/catalog/publicApi';
-import { FavoriteToggleButton } from '@/features/favorites/publicApi';
 import { ProductActionToolbar } from '@/features/catalog/uiApi';
 import { formatEuroCents } from '@/shared/lib/formatters';
 
@@ -55,14 +54,11 @@ export const HomeFeaturedProductCard = ({
 
       <div className="home-product-card__content">
         <header className="flex flex-col gap-2">
-          <div className="flex items-start justify-between gap-3">
-            <h3>
-              <Link to={productLink} prefetch="intent" className="home-product-card__title-link">
-                {productDisplayName}
-              </Link>
-            </h3>
-            <FavoriteToggleButton category="product" targetId={product.id} />
-          </div>
+          <h3>
+            <Link to={productLink} prefetch="intent" className="home-product-card__title-link">
+              {productDisplayName}
+            </Link>
+          </h3>
           <div className="home-product-card__facts" aria-label={`Informations clés pour ${productDisplayName}`}>
             <p className="home-product-card__fact">
               <span className="home-product-card__fact-label">Référence:</span> {product.sku}

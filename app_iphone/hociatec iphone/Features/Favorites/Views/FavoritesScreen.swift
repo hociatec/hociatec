@@ -12,6 +12,10 @@ struct FavoritesScreen: View {
     var body: some View {
         List {
             Section {
+                Text("Catégories favoris")
+                    .font(.headline)
+                    .accessibilityAddTraits(.isHeader)
+
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 10) {
                         categoryButton(title: "Tous", isSelected: viewModel.selectedCategory == nil) {
@@ -25,6 +29,7 @@ struct FavoritesScreen: View {
                     }
                     .padding(.vertical, 4)
                 }
+                .accessibilityLabel("Catégories favoris")
                 .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
             }
             if viewModel.isLoading && viewModel.items.isEmpty {
@@ -122,5 +127,8 @@ struct FavoritesScreen: View {
                 )
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(title)
+        .accessibilityValue(isSelected ? "Sélectionnée" : "Non sélectionnée")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }

@@ -14,17 +14,19 @@ struct ProductCatalogActions: View {
             ) { addToCart() }
 
             HStack(spacing: 12) {
-                Button {
-                    openURL(facebookShareURL(for: product))
-                } label: {
-                    Label("Partager sur Facebook", systemImage: "square.and.arrow.up")
-                        .font(.footnote)
-                }
+                FavoriteToggleButton(category: .product, targetId: product.id)
 
                 Button {
                     openURL(emailShareURL(for: product))
                 } label: {
                     Label("Partager par e-mail", systemImage: "envelope")
+                        .font(.footnote)
+                }
+
+                Button {
+                    openURL(facebookShareURL(for: product))
+                } label: {
+                    Label("Partager sur Facebook", systemImage: "square.and.arrow.up")
                         .font(.footnote)
                 }
             }

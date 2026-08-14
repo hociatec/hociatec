@@ -46,6 +46,8 @@ private struct NewsListRow: View {
             .accessibilityHidden(true)
 
             HStack(alignment: .top, spacing: 12) {
+                FavoriteToggleButton(category: .news, targetId: article.id)
+
                 NavigationLink {
                     NewsDetailView(api: service, slug: article.slug)
                 } label: {
@@ -57,8 +59,6 @@ private struct NewsListRow: View {
                 .buttonStyle(.plain)
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityHint("Ouvrir l’actualité")
-
-                FavoriteToggleButton(category: .news, targetId: article.id)
             }
 
             Text(article.excerpt)

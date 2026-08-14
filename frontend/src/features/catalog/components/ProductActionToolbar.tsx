@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Facebook, Mail } from 'lucide-react';
 
 import { ProductCartActions } from '@/features/cart/publicApi';
+import { FavoriteToggleButton } from '@/features/favorites/publicApi';
 import type { CatalogProduct } from '@/features/catalog/api';
 import { SITE_URL } from '@/shared/config/seoConfig';
 import { openTrustedExternalUrl } from '@/shared/lib/externalUrls';
@@ -21,16 +22,7 @@ export const ProductActionToolbar = ({ product }: ProductActionToolbarProps) => 
     <>
       <div className="product-action-toolbar" aria-label="Actions du produit">
         <ProductCartActions product={product} />
-        <button
-          type="button"
-          onClick={() => openTrustedExternalUrl(facebookShareUrl)}
-          className="product-action-toolbar__button"
-          title="Partager sur Facebook"
-          aria-label="Partager sur Facebook"
-        >
-          <Facebook size={16} />
-          <span>Facebook</span>
-        </button>
+        <FavoriteToggleButton category="product" targetId={product.id} />
         <button
           type="button"
           onClick={() => {
@@ -43,6 +35,16 @@ export const ProductActionToolbar = ({ product }: ProductActionToolbarProps) => 
         >
           <Mail size={16} />
           <span>Email</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => openTrustedExternalUrl(facebookShareUrl)}
+          className="product-action-toolbar__button"
+          title="Partager sur Facebook"
+          aria-label="Partager sur Facebook"
+        >
+          <Facebook size={16} />
+          <span>Facebook</span>
         </button>
       </div>
       <ProductShareDialog

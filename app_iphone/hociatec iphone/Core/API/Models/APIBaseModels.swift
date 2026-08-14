@@ -22,7 +22,24 @@ enum APIError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .transport(let error):
-            return error.localizedDescription
+            if let urlError = error as? URLError {
+                switch urlError.code {
+                case .notConnectedToInternet:
+                    return "Aucune connexion Internet."
+                case .timedOut:
+                    return "Le serveur met trop de temps à répondre."
+                case .cannotFindHost, .cannotConnectToHost, .dnsLookupFailed, .networkConnectionLost:
+                    return "Connexion au serveur impossible."
+                case .userAuthenticationRequired, .userCancelledAuthentication:
+                    return "Authentification requise."
+                case .cancelled:
+                    return "Requête annulée."
+                default:
+                    return "La requête réseau a échoué."
+                }
+            }
+
+            return "La requête réseau a échoué."
         case .invalidResponse:
             return "Réponse invalide du serveur."
         case .httpStatus(_, let message):

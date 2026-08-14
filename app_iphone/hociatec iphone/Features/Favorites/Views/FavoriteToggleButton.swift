@@ -20,6 +20,9 @@ struct FavoriteToggleButton: View {
         .buttonStyle(.plain)
         .disabled(!account.isLoggedIn || isLoading)
         .accessibilityLabel(isFavorite ? "Retirer des favoris" : "Ajouter aux favoris")
+        .accessibilityValue(isFavorite ? "Sélectionné" : "Non sélectionné")
+        .accessibilityHint("Met à jour ce favori")
+        .accessibilityAddTraits(isFavorite ? .isSelected : [])
         .task(id: account.isLoggedIn) {
             await loadStatus()
         }
@@ -55,7 +58,7 @@ struct FavoriteToggleButton: View {
                 container.feedbackCenter.presentSuccess("Favori ajouté.")
             }
         } catch {
-            container.feedbackCenter.presentError(error.localizedDescription)
+            container.feedbackCenter.presentError("Impossible de mettre à jour ce favori. \(error.localizedDescription)")
         }
     }
 }

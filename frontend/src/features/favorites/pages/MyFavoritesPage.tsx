@@ -65,25 +65,36 @@ export const MyFavoritesPage = () => {
               </button>
             )}
           </div>
-          <div className="flex flex-wrap gap-3">
-            {CATEGORY_OPTIONS.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => {
-                  setPage(1);
-                  setCategory(option.value);
-                }}
-                className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                  category === option.value
-                    ? 'border-brand-900 bg-brand-900 text-white'
-                    : 'border-brand-200 bg-white text-stone-700 hover:border-brand-600'
-                }`}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
+          <section aria-labelledby="favorites-category-heading" className="space-y-3">
+            <h2 id="favorites-category-heading" className="text-base font-semibold text-brand-900">
+              Catégories favoris
+            </h2>
+            <div className="flex flex-wrap gap-3" aria-labelledby="favorites-category-heading">
+              {CATEGORY_OPTIONS.map((option) => {
+                const isSelected = category === option.value;
+
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    aria-pressed={isSelected}
+                    aria-label={isSelected ? `${option.label}, catégorie sélectionnée` : option.label}
+                    onClick={() => {
+                      setPage(1);
+                      setCategory(option.value);
+                    }}
+                    className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                      isSelected
+                        ? 'border-brand-900 bg-brand-900 text-white'
+                        : 'border-brand-200 bg-white text-stone-700 hover:border-brand-600'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
         </header>
 
         {status === 'loading' && <LoadingState>Chargement de vos favoris...</LoadingState>}
