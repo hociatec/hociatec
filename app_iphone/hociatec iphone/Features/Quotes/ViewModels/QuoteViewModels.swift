@@ -21,6 +21,8 @@ final class QuoteViewModel: ObservableObject {
     let searchProductsUseCase: SearchQuoteProductsUseCase
     let submitQuoteUseCase: SubmitQuoteUseCase
     let account: AccountViewModel
+    var servicesRequestID = 0
+    var productSearchRequestID = 0
 
     init(useCases: QuotesUseCases, account: AccountViewModel) {
         self.loadServicesUseCase = useCases.loadServices
@@ -40,6 +42,8 @@ final class MyQuotesViewModel: ObservableObject {
     let loadMyQuotesUseCase: LoadMyQuotesUseCase
     let downloadQuotePdfUseCase: DownloadQuotePdfUseCase
     let deleteQuoteUseCase: DeleteQuoteUseCase
+    var loadRequestID = 0
+    var shareRequestID = 0
 
     init(useCases: QuotesUseCases) {
         self.loadMyQuotesUseCase = useCases.loadMyQuotes
@@ -48,15 +52,19 @@ final class MyQuotesViewModel: ObservableObject {
     }
 
     func shareQuotePdf(quote: QuoteSummary) async {
+        shareRequestID += 1
+        let requestID = shareRequestID
         error = nil
 
         do {
             let data = try await downloadQuotePdfUseCase.execute(id: quote.id)
+            guard requestID == shareRequestID else { return }
             sharedFile = try TemporarySharedFileFactory.create(
                 data: data,
                 fileName: "\(quote.number ?? "devis-\(quote.id)").pdf"
             )
         } catch {
+            guard requestID == shareRequestID else { return }
             self.error = error.localizedDescription
         }
     }

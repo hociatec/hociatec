@@ -10,6 +10,7 @@ final class OrderDetailViewModel: ObservableObject {
 
     private let service: OrderServing
     private let orderId: Int
+    private var loadRequestID = 0
 
     init(service: OrderServing, orderId: Int) {
         self.service = service
@@ -17,16 +18,24 @@ final class OrderDetailViewModel: ObservableObject {
     }
 
     func load() async {
+        loadRequestID += 1
+        let requestID = loadRequestID
         isLoading = true
         error = nil
         statusMessage = nil
-        defer { isLoading = false }
 
         do {
-            order = try await service.order(id: orderId)
+            let loadedOrder = try await service.order(id: orderId)
+            guard requestID == loadRequestID else { return }
+            order = loadedOrder
         } catch {
+            guard requestID == loadRequestID else { return }
             self.error = error.localizedDescription
             order = nil
+        }
+
+        if requestID == loadRequestID {
+            isLoading = false
         }
     }
 

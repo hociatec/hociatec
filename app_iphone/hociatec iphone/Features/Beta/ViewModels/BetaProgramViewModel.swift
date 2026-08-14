@@ -34,6 +34,9 @@ final class BetaProgramViewModel: ObservableObject {
     @Published var selectedCampaignID = ""
 
     let service: BetaServing
+    var loadRequestID = 0
+    var choicesRequestID = 0
+    var reportRequestID = 0
 
     init(service: BetaServing) {
         self.service = service

@@ -3,14 +3,21 @@ import Foundation
 extension MyQuotesViewModel {
     func load(force: Bool = false) async {
         if isLoading && !force { return }
+        loadRequestID += 1
+        let requestID = loadRequestID
         isLoading = true
         error = nil
         do {
-            quotes = try await loadMyQuotesUseCase.execute()
+            let loadedQuotes = try await loadMyQuotesUseCase.execute()
+            guard requestID == loadRequestID else { return }
+            quotes = loadedQuotes
         } catch let err {
+            guard requestID == loadRequestID else { return }
             error = err.localizedDescription
         }
-        isLoading = false
+        if requestID == loadRequestID {
+            isLoading = false
+        }
     }
 
     func delete(id: Int) async {

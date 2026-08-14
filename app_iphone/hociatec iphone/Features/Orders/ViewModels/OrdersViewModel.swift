@@ -9,6 +9,8 @@ final class OrdersViewModel: ObservableObject {
     @Published var cancellingOrderID: Int?
 
     private let service: OrderServing
+    private var loadRequestID = 0
+    private var detailRequestID = 0
 
     init(service: OrderServing) {
         self.service = service
@@ -16,16 +18,23 @@ final class OrdersViewModel: ObservableObject {
 
     func load(force: Bool = false) async {
         if isLoading && !force { return }
+        loadRequestID += 1
+        let requestID = loadRequestID
         isLoading = true
         error = nil
 
         do {
-            orders = try await service.myOrders()
+            let loadedOrders = try await service.myOrders()
+            guard requestID == loadRequestID else { return }
+            orders = loadedOrders
         } catch let err {
+            guard requestID == loadRequestID else { return }
             self.error = err.localizedDescription
         }
 
-        isLoading = false
+        if requestID == loadRequestID {
+            isLoading = false
+        }
     }
 
     func cancel(order: OrderSummary) async -> OrderSummary? {
@@ -46,13 +55,17 @@ final class OrdersViewModel: ObservableObject {
     }
 
     func detail(for id: Int) async -> OrderSummary? {
+        detailRequestID += 1
+        let requestID = detailRequestID
         do {
             let detail = try await service.order(id: id)
+            guard requestID == detailRequestID else { return nil }
             if let idx = orders.firstIndex(where: { $0.id == detail.id }) {
                 orders[idx] = detail
             }
             return detail
         } catch let err {
+            guard requestID == detailRequestID else { return nil }
             self.error = err.localizedDescription
             return nil
         }

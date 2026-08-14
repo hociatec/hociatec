@@ -3,14 +3,21 @@ import Foundation
 extension QuoteViewModel {
     func loadServices() async {
         if isLoadingServices { return }
+        servicesRequestID += 1
+        let requestID = servicesRequestID
         isLoadingServices = true
         error = nil
         do {
-            services = try await loadServicesUseCase.execute(query: nil)
+            let loadedServices = try await loadServicesUseCase.execute(query: nil)
+            guard requestID == servicesRequestID else { return }
+            services = loadedServices
         } catch let err {
+            guard requestID == servicesRequestID else { return }
             error = err.localizedDescription
         }
-        isLoadingServices = false
+        if requestID == servicesRequestID {
+            isLoadingServices = false
+        }
     }
 
     func searchProducts() async {
@@ -19,12 +26,19 @@ extension QuoteViewModel {
             productResults = []
             return
         }
+        productSearchRequestID += 1
+        let requestID = productSearchRequestID
         isSearching = true
-        defer { isSearching = false }
         do {
-            productResults = try await searchProductsUseCase.execute(query: query)
+            let results = try await searchProductsUseCase.execute(query: query)
+            guard requestID == productSearchRequestID else { return }
+            productResults = results
         } catch let err {
+            guard requestID == productSearchRequestID else { return }
             error = err.localizedDescription
+        }
+        if requestID == productSearchRequestID {
+            isSearching = false
         }
     }
 
