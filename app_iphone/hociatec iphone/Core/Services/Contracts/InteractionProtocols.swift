@@ -4,6 +4,7 @@ protocol AppointmentServing {
     func appointmentPrestations() async throws -> [AppointmentPrestation]
     func appointmentAvailability(prestationId: Int, start: Date, end: Date) async throws -> [AppointmentSlot]
     func bookAppointment(prestationId: Int, startAt: Date) async throws -> AppointmentSummary
+    func rescheduleAppointment(id: Int, startAt: Date) async throws -> AppointmentSummary
     func cancelAppointment(id: Int) async throws
     func myAppointments() async throws -> AppointmentList
 }

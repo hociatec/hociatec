@@ -7,6 +7,7 @@ struct AppointmentBookingSlotsSection: View {
     let isLoading: Bool
     let error: String?
     let viewModel: AppointmentBookingViewModel
+    let onCompleted: ((AppointmentSummary) -> Void)?
     let onBack: () -> Void
 
     var body: some View {
@@ -27,7 +28,7 @@ struct AppointmentBookingSlotsSection: View {
 
                 ForEach(slots) { slot in
                     NavigationLink {
-                        AppointmentConfirmationView(viewModel: viewModel, slot: slot)
+                        AppointmentConfirmationView(viewModel: viewModel, slot: slot, onCompleted: onCompleted)
                     } label: {
                         AppointmentBookingSlotRow(slot: slot, selectedPrestation: selectedPrestation)
                     }

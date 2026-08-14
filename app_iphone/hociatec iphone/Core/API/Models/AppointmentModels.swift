@@ -33,6 +33,7 @@ struct AppointmentSummary: Decodable, Identifiable {
     let status: String?
     let statusCode: String?
     let isCancelable: Bool?
+    let isReschedulable: Bool?
     let prestation: AppointmentPrestation
 }
 
@@ -52,6 +53,14 @@ extension AppointmentSummary {
         let normalized = raw.folding(options: .diacriticInsensitive, locale: .current).lowercased()
         let isConfirmed = normalized == "confirmed" || normalized.contains("conf")
         return isConfirmed && startAt > Date()
+    }
+
+    var canReschedule: Bool {
+        if let isReschedulable {
+            return isReschedulable
+        }
+
+        return !isCancelledStatus && startAt > Date()
     }
 }
 

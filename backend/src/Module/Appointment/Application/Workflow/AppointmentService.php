@@ -123,6 +123,42 @@ final class AppointmentService
         }
     }
 
+    public function reschedule(Appointment $appointment, \DateTimeImmutable $startAt): Appointment
+    {
+        if ($appointment->isCancelled()) {
+            throw new \RuntimeException('Un rendez-vous annulé ne peut pas être reporté.');
+        }
+
+        $now = $this->clock->now();
+        if ($appointment->getStartAt() <= $now) {
+            throw new \RuntimeException('Seuls les rendez-vous à venir peuvent être reportés.');
+        }
+
+        if ($startAt < $now) {
+            throw new InvalidAppointmentSlotException('Ce créneau n\'est plus disponible.');
+        }
+
+        try {
+            return $this->transactions->transactional(function () use ($appointment, $startAt): Appointment {
+                $dayOfWeek = (int) $startAt->format('N') - 1;
+                $this->workingDayRepository->findOneByDayForUpdate($dayOfWeek);
+
+                if (!$this->availabilityService->isSlotAvailable($startAt, $appointment->getPrestation(), $appointment)) {
+                    throw new InvalidAppointmentSlotException('Ce creneau n\'est plus disponible.');
+                }
+
+                $appointment->setStartAt($startAt);
+                $this->persistence->flush();
+
+                return $appointment;
+            });
+        } catch (InvalidAppointmentSlotException $exception) {
+            throw $exception;
+        } catch (\RuntimeException $exception) {
+            throw AppointmentOperationException::failed('Impossible de reporter ce rendez-vous.', $exception);
+        }
+    }
+
     public function changeStatus(Appointment $appointment, string $targetStatus): void
     {
         $this->changeAppointmentStatus->change($appointment, $targetStatus);

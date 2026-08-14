@@ -133,6 +133,7 @@ final class AppointmentServicesTest extends TestCase
         self::assertSame($appointment->getPrestation()->getName(), $data['prestation']['name']);
         self::assertSame($appointment->getPrestation()->getDurationMinutes(), $data['prestation']['durationMinutes']);
         self::assertSame($appointment->getPrestation()->getPriceCents(), $data['prestation']['priceCents']);
+        self::assertTrue($data['isReschedulable']);
     }
 
     public function testAppointmentServiceBooksAvailableSlotAndPersistsAppointment(): void
@@ -262,6 +263,53 @@ final class AppointmentServicesTest extends TestCase
 
         $service->changeStatus($appointment, Appointment::STATUS_CONFIRMED);
         self::assertSame(Appointment::STATUS_CONFIRMED, $appointment->getStatus());
+    }
+
+    public function testAppointmentServiceReschedulesAppointmentAndIgnoresItsCurrentSlot(): void
+    {
+        $prestation = new Prestation('Diagnostic', 60, 9000);
+        $appointment = new Appointment(
+            new User('ada@example.com', 'Ada', 'Lovelace', new \DateTimeImmutable('1990-01-01'), '0102030405', 'female'),
+            $prestation,
+            new \DateTimeImmutable('2026-08-17T09:00:00+00:00'),
+        );
+        $targetStart = new \DateTimeImmutable('2026-08-17T10:00:00+00:00');
+
+        $workingDays = $this->createMock(WorkingDayConfigurationRepository::class);
+        $workingDays->method('findAllOrdered')->willReturn([
+            new WorkingDayConfiguration(
+                0,
+                true,
+                new \DateTimeImmutable('09:00'),
+                new \DateTimeImmutable('12:00'),
+            ),
+        ]);
+
+        $appointments = $this->createMock(AppointmentRepository::class);
+        $appointments->expects(self::once())
+            ->method('findBetween')
+            ->with(
+                self::anything(),
+                self::anything(),
+                self::identicalTo($appointment),
+            )
+            ->willReturn([$appointment]);
+
+        $service = new AppointmentService(
+            $appointments,
+            $workingDays,
+            new AvailabilityService($workingDays, $appointments),
+            new ChangeAppointmentStatusHandler(new AppointmentStatusWorkflow(), $this->persistence),
+            $this->persistence,
+            new DoctrineTransactionManager($this->entityManager),
+            new MockClock('2026-08-11T08:00:00+00:00'),
+        );
+
+        $this->entityManager->expects(self::once())->method('flush');
+
+        $updated = $service->reschedule($appointment, $targetStart);
+        self::assertSame($targetStart, $updated->getStartAt());
+        self::assertSame('2026-08-17T11:00:00+00:00', $updated->getEndAt()->format(DATE_ATOM));
     }
 
     public function testPrestationServiceCreatesUpdatesListsAndDeletesWithNormalizedData(): void

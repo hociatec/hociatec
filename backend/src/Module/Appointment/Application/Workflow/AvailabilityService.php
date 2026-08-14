@@ -6,6 +6,7 @@ namespace App\Module\Appointment\Application\Workflow;
 
 use App\Module\Appointment\Application\Port\AppointmentRepositoryPort;
 use App\Module\Appointment\Application\Port\WorkingDayConfigurationRepositoryPort;
+use App\Module\Appointment\Domain\Entity\Appointment;
 use App\Module\Appointment\Domain\Entity\Prestation;
 use App\Module\Appointment\Domain\Entity\WorkingDayConfiguration;
 
@@ -20,7 +21,12 @@ final class AvailabilityService
     /**
      * @return list<array{start: string, end: string}>
      */
-    public function getAvailableSlots(\DateTimeImmutable $rangeStart, \DateTimeImmutable $rangeEnd, Prestation $prestation): array
+    public function getAvailableSlots(
+        \DateTimeImmutable $rangeStart,
+        \DateTimeImmutable $rangeEnd,
+        Prestation $prestation,
+        ?Appointment $ignoredAppointment = null,
+    ): array
     {
         $workingDays = $this->workingDayRepository->findAllOrdered();
         $workingDayByIndex = [];
@@ -29,7 +35,7 @@ final class AvailabilityService
             $workingDayByIndex[$workingDay->getDayOfWeek()] = $workingDay;
         }
 
-        $appointments = $this->appointmentRepository->findBetween($rangeStart, $rangeEnd);
+        $appointments = $this->appointmentRepository->findBetween($rangeStart, $rangeEnd, $ignoredAppointment);
 
         $slots = [];
         $cursor = $rangeStart->setTime(0, 0);
@@ -51,14 +57,19 @@ final class AvailabilityService
         return $slots;
     }
 
-    public function isSlotAvailable(\DateTimeImmutable $startAt, Prestation $prestation): bool
+    public function isSlotAvailable(
+        \DateTimeImmutable $startAt,
+        Prestation $prestation,
+        ?Appointment $ignoredAppointment = null,
+    ): bool
     {
         $endAt = $startAt->add($prestation->getDurationInterval());
 
         $slots = $this->getAvailableSlots(
             $startAt->sub(new \DateInterval('P1D')),
             $endAt->add(new \DateInterval('P1D')),
-            $prestation
+            $prestation,
+            $ignoredAppointment,
         );
 
         foreach ($slots as $slot) {

@@ -59,4 +59,23 @@ final readonly class CustomerAppointmentPortalService
 
         return $this->formatter->format($appointment);
     }
+
+    /**
+     * @return array<string,mixed>|null
+     */
+    public function rescheduleForUser(User $actor, int $appointmentId, \DateTimeImmutable $startAt): ?array
+    {
+        $appointment = $this->appointments->find($appointmentId);
+        if (!$appointment instanceof Appointment) {
+            return null;
+        }
+
+        if (!$actor->isAdmin() && !$this->accessPolicy->canChangeStatus($actor, $appointment)) {
+            throw new \DomainException('Vous n\'êtes pas autorisé à modifier ce rendez-vous.');
+        }
+
+        $this->service->reschedule($appointment, $startAt);
+
+        return $this->formatter->format($appointment);
+    }
 }

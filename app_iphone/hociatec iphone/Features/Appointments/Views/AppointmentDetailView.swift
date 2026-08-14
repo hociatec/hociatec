@@ -6,6 +6,7 @@ import UIKit
 struct AppointmentDetailScreen: View {
     let appointment: AppointmentSummary
     @ObservedObject var viewModel: MyAppointmentsViewModel
+    let service: AppointmentServing
     @State private var isCancelling = false
     @State private var showCancelAlert = false
     @Environment(\.dismiss) private var dismiss
@@ -16,9 +17,26 @@ struct AppointmentDetailScreen: View {
             AppointmentDetailsSection(appointment: appointment)
             AppointmentCancelSection(
                 canCancel: appointment.canCancel,
-                isCancelling: isCancelling
+                isCancelling: isCancelling,
             ) {
                 showCancelAlert = true
+            }
+            if appointment.canReschedule {
+                Section {
+                    NavigationLink {
+                        AppointmentBookingView(
+                            service: service,
+                            mode: .rescheduling(appointment)
+                        ) { _ in
+                            Task {
+                                await viewModel.load(force: true)
+                            }
+                            dismiss()
+                        }
+                    } label: {
+                        Text("Choisir un nouveau créneau")
+                    }
+                }
             }
         }
         .navigationTitle("Rendez-vous")
@@ -51,6 +69,7 @@ struct AppointmentDetailScreen: View {
 struct AppointmentConfirmationView: View {
     @ObservedObject var viewModel: AppointmentBookingViewModel
     let slot: AppointmentSlot
+    let onCompleted: ((AppointmentSummary) -> Void)?
     @EnvironmentObject private var account: AccountViewModel
     @EnvironmentObject private var navigation: AppNavigationState
     @Environment(\.dismiss) private var dismiss
@@ -91,10 +110,11 @@ struct AppointmentConfirmationView: View {
         isConfirming = true
         let result = await viewModel.book(slot: slot)
         isConfirming = false
-        if result != nil {
+        if let result {
 #if canImport(UIKit)
             UINotificationFeedbackGenerator().notificationOccurred(.success)
 #endif
+            onCompleted?(result)
         }
     }
 }

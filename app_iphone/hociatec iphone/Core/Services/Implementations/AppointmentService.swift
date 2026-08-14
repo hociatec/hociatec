@@ -10,6 +10,9 @@ struct AppointmentService: AppointmentServing {
     func bookAppointment(prestationId: Int, startAt: Date) async throws -> AppointmentSummary {
         try await api.bookAppointment(prestationId: prestationId, startAt: startAt)
     }
+    func rescheduleAppointment(id: Int, startAt: Date) async throws -> AppointmentSummary {
+        try await api.rescheduleAppointment(id: id, startAt: startAt)
+    }
     func cancelAppointment(id: Int) async throws { try await api.cancelAppointment(id: id) }
     func myAppointments() async throws -> AppointmentList { try await api.myAppointments() }
 }

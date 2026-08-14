@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Module\Misc;
 
 use App\Module\Appointment\Application\DTO\CreateAppointmentInput;
+use App\Module\Appointment\Application\DTO\RescheduleAppointmentInput;
 use App\Module\Appointment\Application\DTO\UpdateAppointmentStatusInput;
 use App\Module\Appointment\Application\DTO\WorkingDayData;
 use App\Module\BetaTest\Application\DTO\BetaProfileInput;
@@ -54,6 +55,9 @@ final class SecondaryDtoAndValueObjectCoverageTest extends TestCase
 
         $appointmentStatus = UpdateAppointmentStatusInput::fromArray(['status' => ' confirmed ']);
         self::assertSame('confirmed', $appointmentStatus->status);
+
+        $reschedule = RescheduleAppointmentInput::fromArray(['startAt' => ' 2026-08-05T14:00:00+00:00 ']);
+        self::assertSame('2026-08-05T14:00:00+00:00', $reschedule->startAt);
 
         $workingDay = new WorkingDayData(1, true, '08:00', '18:00', [['start' => '12:00', 'end' => '13:00']]);
         self::assertSame(1, $workingDay->dayOfWeek);

@@ -3,9 +3,15 @@ import SwiftUI
 struct AppointmentBookingView: View {
     @EnvironmentObject private var account: AccountViewModel
     @StateObject private var viewModel: AppointmentBookingViewModel
+    private let onCompleted: ((AppointmentSummary) -> Void)?
 
-    init(service: AppointmentServing) {
-        _viewModel = StateObject(wrappedValue: AppointmentBookingViewModel(service: service))
+    init(
+        service: AppointmentServing,
+        mode: AppointmentBookingViewModel.Mode = .booking,
+        onCompleted: ((AppointmentSummary) -> Void)? = nil
+    ) {
+        _viewModel = StateObject(wrappedValue: AppointmentBookingViewModel(service: service, mode: mode))
+        self.onCompleted = onCompleted
     }
 
     var body: some View {
@@ -15,7 +21,7 @@ struct AppointmentBookingView: View {
             stepContent
             AppointmentBookingSuccessSection(successMessage: viewModel.successMessage)
         }
-        .navigationTitle("Rendez-vous")
+        .navigationTitle(viewModel.isRescheduling ? "Reporter" : "Rendez-vous")
         .task { await viewModel.initialize() }
         .onChangeCompat(viewModel.selectedPrestationId) { _ in
             Task { await viewModel.didChangePrestation() }
@@ -68,7 +74,8 @@ struct AppointmentBookingView: View {
                 selectedPrestation: selectedPrestation,
                 isLoading: viewModel.isLoading,
                 error: viewModel.error,
-                viewModel: viewModel
+                viewModel: viewModel,
+                onCompleted: onCompleted
             ) {
                 viewModel.backToDaySelection()
             }

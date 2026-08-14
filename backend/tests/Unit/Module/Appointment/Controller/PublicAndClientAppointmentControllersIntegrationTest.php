@@ -9,6 +9,7 @@ use App\Module\Appointment\Domain\Entity\Appointment;
 use App\Module\Appointment\Domain\Security\AppointmentAccessPolicy;
 use App\Module\Appointment\UI\Controller\Client\CreateAppointmentController;
 use App\Module\Appointment\UI\Controller\Client\ListMyAppointmentsController;
+use App\Module\Appointment\UI\Controller\Client\RescheduleAppointmentController;
 use App\Module\Appointment\UI\Controller\Client\UpdateAppointmentStatusController;
 use App\Module\Appointment\UI\Controller\PublicApi\PublicAvailabilityController;
 use App\Tests\Unit\Module\Appointment\AppointmentIntegrationTestCase;
@@ -72,5 +73,27 @@ final class PublicAndClientAppointmentControllersIntegrationTest extends Appoint
 
         $update->setContainer($this->container($other, true));
         self::assertSame(200, $update($appointmentId, $this->jsonRequest(['status' => Appointment::STATUS_CONFIRMED], 'PATCH'))->getStatusCode());
+
+        $reschedule = new RescheduleAppointmentController($portal, $this->validator());
+        $reschedule->setContainer($this->container($user));
+        self::assertSame(404, $reschedule(999, $this->jsonRequest(['startAt' => '2026-08-17T10:00:00+00:00'], 'PATCH'))->getStatusCode());
+        self::assertSame(422, $reschedule($appointmentId, $this->jsonRequest(['startAt' => 'not-a-date'], 'PATCH'))->getStatusCode());
+
+        $rescheduled = $reschedule($appointmentId, $this->jsonRequest(['startAt' => '2026-08-17T10:00:00+00:00'], 'PATCH'));
+        self::assertSame(200, $rescheduled->getStatusCode());
+        self::assertSame('2026-08-17T10:00:00+00:00', $this->appointments()->find($appointmentId)?->getStartAt()->format(DATE_ATOM));
+
+        $availability = new PublicAvailabilityController($this->availability(), $this->prestations());
+        $availabilityPayload = $this->payload($availability(Request::create(sprintf(
+            '/?start=2026-08-17T08:00:00%%2B00:00&end=2026-08-17T12:00:00%%2B00:00&prestationId=%d',
+            $prestation->getId(),
+        ))));
+        $starts = array_map(
+            static fn (array $slot): string => (string) ($slot['start'] ?? ''),
+            $availabilityPayload['data']['slots'] ?? [],
+        );
+
+        self::assertContains('2026-08-17T09:00:00+00:00', $starts);
+        self::assertNotContains('2026-08-17T10:00:00+00:00', $starts);
     }
 }

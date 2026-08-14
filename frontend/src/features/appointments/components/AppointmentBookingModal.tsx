@@ -11,6 +11,7 @@ type AppointmentBookingModalProps = {
   modalMode: 'recap' | 'success';
   selectedPrestation: Prestation | null;
   selectedSlot: AvailabilitySlot | null;
+  isRescheduling?: boolean;
   onClose: () => void;
   onConfirm: () => void;
 };
@@ -20,13 +21,21 @@ export const AppointmentBookingModal = ({
   modalMode,
   selectedPrestation,
   selectedSlot,
+  isRescheduling = false,
   onClose,
   onConfirm,
 }: AppointmentBookingModalProps) => {
   const titleId = useId();
   const descriptionId = useId();
   const canDismiss = modalMode === 'recap' && !booking;
-  const modalModeLabel = modalMode === 'recap' ? 'Récapitulatif du rendez-vous' : 'Rendez-vous confirmé';
+  const modalModeLabel =
+    modalMode === 'recap'
+      ? isRescheduling
+        ? 'Récapitulatif du report'
+        : 'Récapitulatif du rendez-vous'
+      : isRescheduling
+        ? 'Rendez-vous reporté'
+        : 'Rendez-vous confirmé';
 
   const modalProps = canDismiss ? { onClose } : {};
 
@@ -39,9 +48,11 @@ export const AppointmentBookingModal = ({
     >
       {modalMode === 'recap' ? (
         <>
-          <h2 id={titleId}>Récapitulatif du rendez-vous</h2>
+          <h2 id={titleId}>{modalModeLabel}</h2>
           <p id={descriptionId}>
-            Confirmez vos informations avant d&apos;envoyer la réservation.
+            {isRescheduling
+              ? 'Confirmez le nouveau créneau avant d’envoyer le report.'
+              : 'Confirmez vos informations avant d’envoyer la réservation.'}
           </p>
           <ul className="recap-list">
             <li>
@@ -74,7 +85,7 @@ export const AppointmentBookingModal = ({
               Annuler
             </button>
             <button onClick={onConfirm} disabled={booking} className="register-form__submit">
-              {booking ? 'Réservation...' : 'Confirmer'}
+              {booking ? (isRescheduling ? 'Report...' : 'Réservation...') : 'Confirmer'}
             </button>
           </div>
         </>
@@ -82,7 +93,7 @@ export const AppointmentBookingModal = ({
         <>
           <h2 id={titleId}>{modalModeLabel}</h2>
           <p id={descriptionId}>
-            Votre rendez-vous pour <strong>{selectedPrestation?.name}</strong> est confirmé le{' '}
+            Votre rendez-vous pour <strong>{selectedPrestation?.name}</strong> est {isRescheduling ? 'reporté' : 'confirmé'} le{' '}
             {selectedSlot &&
               format(new Date(selectedSlot.start), "EEEE dd MMM yyyy 'à' HH:mm", { locale: fr })}
             .

@@ -31,5 +31,6 @@ export interface AppointmentItem {
   status?: string;
   statusCode?: string;
   isCancelable?: boolean;
+  isReschedulable?: boolean;
   prestation: Prestation;
 }

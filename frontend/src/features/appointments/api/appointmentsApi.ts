@@ -75,3 +75,13 @@ export const cancelAppointment = async (id: number) => {
   const payload = unwrapApiData(data, "Erreur lors de l'annulation du rendez-vous");
   return payload.appointment;
 };
+
+export const rescheduleAppointment = async ({ id, startAt }: { id: number; startAt: string }) => {
+  const { data } = await httpClient.patch<ApiResponse<{ appointment: AppointmentItem }>>(
+    `/api/appointments/${id}/reschedule`,
+    { startAt },
+  );
+
+  const payload = unwrapApiData(data, 'Erreur lors du report du rendez-vous');
+  return payload.appointment;
+};

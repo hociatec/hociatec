@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { PublicPageSection, PublicPageShell } from '@/shared/components/layout/PublicPageShell';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
@@ -55,6 +56,7 @@ const getStatusBadgeClassName = (status?: string) => {
 export const MyAppointmentsPage = () => {
   useDocumentTitle('Mes rendez-vous');
 
+  const navigate = useNavigate();
   const [pastPage, setPastPage] = useState(1);
   const { loading, error, upcoming, past, cancellingId, cancel } = useMyAppointments();
   const confirm = useConfirm();
@@ -83,6 +85,7 @@ export const MyAppointmentsPage = () => {
       {items.map((appointment) => {
         const isCancelled = appointment.status === 'Annulé';
         const canCancel = showCancelButton && !isCancelled;
+        const canReschedule = showCancelButton && !isCancelled && appointment.isReschedulable !== false;
         const statusLabel = appointment.status ?? 'Planifié';
         const isPastTone = tone === 'past';
 
@@ -150,14 +153,35 @@ export const MyAppointmentsPage = () => {
                 >
                   {isPastTone ? 'Historique' : 'Réservation'}
                 </span>
-                {canCancel && (
-                  <button
-                    onClick={() => void handleCancel(appointment.id)}
-                    disabled={cancellingId === appointment.id}
-                    className="inline-flex rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:border-red-300 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {cancellingId === appointment.id ? 'Annulation...' : 'Annuler le rendez-vous'}
-                  </button>
+                {showCancelButton && (
+                  <div className="flex flex-wrap gap-2">
+                    {canReschedule && (
+                      <button
+                        onClick={() =>
+                          navigate('/appointments/book', {
+                            state: {
+                              reschedule: {
+                                appointmentId: appointment.id,
+                                prestationId: appointment.prestation.id,
+                              },
+                            },
+                          })
+                        }
+                        className="inline-flex rounded-full border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-800 transition hover:border-brand-300 hover:bg-brand-100"
+                      >
+                        Reporter
+                      </button>
+                    )}
+                    {canCancel && (
+                      <button
+                        onClick={() => void handleCancel(appointment.id)}
+                        disabled={cancellingId === appointment.id}
+                        className="inline-flex rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:border-red-300 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {cancellingId === appointment.id ? 'Annulation...' : 'Annuler le rendez-vous'}
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             </div>

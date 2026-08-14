@@ -25,6 +25,7 @@ final class AppointmentFormatter
             'status' => $this->statusWorkflow->label($statusCode),
             'statusCode' => $statusCode,
             'isCancelable' => $this->isCancelable($appointment),
+            'isReschedulable' => $this->isReschedulable($appointment),
             'prestation' => [
                 'id' => $appointment->getPrestation()->getId(),
                 'name' => $appointment->getPrestation()->getName(),
@@ -37,5 +38,10 @@ final class AppointmentFormatter
     private function isCancelable(Appointment $appointment): bool
     {
         return $this->statusWorkflow->canBeCancelled($appointment);
+    }
+
+    private function isReschedulable(Appointment $appointment): bool
+    {
+        return !$appointment->isCancelled() && $appointment->getStartAt() > new \DateTimeImmutable();
     }
 }

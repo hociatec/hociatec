@@ -28,14 +28,6 @@ const stepDescriptions = {
 const bookingSteps = [1, 2, 3] as const;
 
 export const AppointmentBookingPage = () => {
-  useDocumentTitle('Prendre un rendez-vous');
-  useMetaTags({
-    title: 'Prendre un rendez-vous',
-    description:
-      'Choisissez une prestation Hociatec, sélectionnez un jour disponible puis confirmez votre créneau.',
-    canonicalUrl: `${SITE_URL}/appointments/book`,
-    robots: PRIVATE_ROBOTS_CONTENT,
-  });
   const {
     step,
     setStep,
@@ -43,7 +35,6 @@ export const AppointmentBookingPage = () => {
     prestationsError,
     selectedPrestation,
     setSelectedPrestation,
-    setSlots,
     selectedDate,
     setSelectedDate,
     selectedSlot,
@@ -62,7 +53,18 @@ export const AppointmentBookingPage = () => {
     setVisibleMonth,
     slotsByDay,
     currentMonth,
+    isRescheduling,
+    resetFlow,
   } = useAppointmentBooking();
+  useDocumentTitle(isRescheduling ? 'Reporter un rendez-vous' : 'Prendre un rendez-vous');
+  useMetaTags({
+    title: isRescheduling ? 'Reporter un rendez-vous' : 'Prendre un rendez-vous',
+    description: isRescheduling
+      ? 'Choisissez un nouveau créneau disponible pour reporter votre rendez-vous.'
+      : 'Choisissez une prestation Hociatec, sélectionnez un jour disponible puis confirmez votre créneau.',
+    canonicalUrl: `${SITE_URL}/appointments/book`,
+    robots: PRIVATE_ROBOTS_CONTENT,
+  });
   const availableDays = useMemo(() => {
     const keys = Array.from(slotsByDay.keys()).sort();
 
@@ -98,8 +100,12 @@ export const AppointmentBookingPage = () => {
     <SiteLayout headerVariant="light">
       <PublicPageShell
         size="medium"
-        title="Prendre un rendez-vous"
-        description="Réservez votre créneau en trois étapes claires : prestation, jour disponible, puis horaire de passage."
+        title={isRescheduling ? 'Reporter un rendez-vous' : 'Prendre un rendez-vous'}
+        description={
+          isRescheduling
+            ? 'Choisissez un nouveau créneau en trois étapes claires : prestation, jour disponible, puis horaire.'
+            : 'Réservez votre créneau en trois étapes claires : prestation, jour disponible, puis horaire de passage.'
+        }
       >
         <section className="grid gap-3 sm:grid-cols-3">
           {bookingSteps.map((stepNumber) => {
@@ -206,14 +212,11 @@ export const AppointmentBookingPage = () => {
               modalMode={modalMode}
               selectedPrestation={selectedPrestation}
               selectedSlot={selectedSlot}
+              isRescheduling={isRescheduling}
               onClose={() => {
                 setModalOpen(false);
                 if (modalMode === 'success') {
-                  setStep(1);
-                  setSelectedPrestation(null);
-                  setSelectedSlot(null);
-                  setSelectedDate(null);
-                  setSlots([]);
+                  resetFlow();
                 }
               }}
               onConfirm={() => void handleBooking()}

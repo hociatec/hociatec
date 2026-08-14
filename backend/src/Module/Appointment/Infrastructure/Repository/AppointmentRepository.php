@@ -33,18 +33,24 @@ class AppointmentRepository extends ServiceEntityRepository implements Appointme
     /**
      * @return list<Appointment>
      */
-    public function findBetween(\DateTimeImmutable $start, \DateTimeImmutable $end): array
+    public function findBetween(\DateTimeImmutable $start, \DateTimeImmutable $end, ?Appointment $ignoredAppointment = null): array
     {
-        return $this->createQueryBuilder('a')
+        $qb = $this->createQueryBuilder('a')
             ->andWhere('a.startAt < :end')
             ->andWhere('a.endAt > :start')
             ->andWhere('a.status != :cancelledStatus')
             ->setParameter('start', $start)
             ->setParameter('end', $end)
             ->setParameter('cancelledStatus', Appointment::STATUS_CANCELLED)
-            ->orderBy('a.startAt', 'ASC')
-            ->getQuery()
-            ->getResult();
+            ->orderBy('a.startAt', 'ASC');
+
+        if ($ignoredAppointment?->getId() !== null) {
+            $qb
+                ->andWhere('a.id != :ignoredAppointmentId')
+                ->setParameter('ignoredAppointmentId', $ignoredAppointment->getId());
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
     /**

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router';
 import { addDays, addMonths, format, isAfter, isBefore, startOfDay, startOfMonth } from 'date-fns';
-import { bookAppointment, fetchAvailability, fetchPrestations } from '../api/appointmentsApi';
+import { bookAppointment, fetchAvailability, fetchPrestations, rescheduleAppointment } from '../api/appointmentsApi';
 import type { AvailabilitySlot, Prestation } from '../types/appointments';
 import { useAuth } from '@/features/auth/publicApi';
 import { useToast } from '@/shared/components/ui/toast';
@@ -12,6 +12,7 @@ const ymd = (date: Date) => format(startOfDay(date), 'yyyy-MM-dd');
 
 const formatWithOffset = (date: Date) => format(date, "yyyy-MM-dd'T'HH:mm:ssXXX");
 type BookingState = { bookingConfirm?: { prestationId: number; slot: AvailabilitySlot } };
+type RescheduleState = { reschedule?: { appointmentId: number; prestationId: number } };
 
 const monthRange = (month: Date) => {
   const today = startOfDay(new Date());
@@ -40,6 +41,7 @@ export const useAppointmentBooking = () => {
   const [selectedSlot, setSelectedSlot] = useState<AvailabilitySlot | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'recap' | 'success'>('recap');
+  const [rescheduleAppointmentId, setRescheduleAppointmentId] = useState<number | null>(null);
   const prestationsQuery = useQuery<Prestation[], Error>({
     queryKey: appointmentQueryKeys.prestations(),
     queryFn: fetchPrestations,
@@ -60,6 +62,13 @@ export const useAppointmentBooking = () => {
   });
   const bookingMutation = useMutation({
     mutationFn: bookAppointment,
+    onSuccess: () => {
+      setModalMode('success');
+      void queryClient.invalidateQueries({ queryKey: appointmentQueryKeys.mine() });
+    },
+  });
+  const rescheduleMutation = useMutation({
+    mutationFn: rescheduleAppointment,
     onSuccess: () => {
       setModalMode('success');
       void queryClient.invalidateQueries({ queryKey: appointmentQueryKeys.mine() });
@@ -127,6 +136,11 @@ export const useAppointmentBooking = () => {
       });
       return;
     }
+    if (rescheduleAppointmentId !== null) {
+      rescheduleMutation.mutate({ id: rescheduleAppointmentId, startAt: selectedSlot.start });
+      return;
+    }
+
     bookingMutation.mutate({ prestationId: selectedPrestation.id, startAt: selectedSlot.start });
   };
   useEffect(() => {
@@ -143,11 +157,33 @@ export const useAppointmentBooking = () => {
     navigate(location.pathname, { replace: true });
   }, [location.pathname, location.state, navigate, prestations]);
   useEffect(() => {
+    const reschedule = (location.state as RescheduleState | null)?.reschedule;
+    if (!reschedule || prestations.length === 0) return;
+
+    const prestation = prestations.find((item) => item.id === reschedule.prestationId) ?? null;
+    setRescheduleAppointmentId(reschedule.appointmentId);
+    setSelectedPrestation(prestation);
+    setSelectedDate(null);
+    setSelectedSlot(null);
+    setModalOpen(false);
+    setStep(prestation ? 2 : 1);
+    navigate(location.pathname, { replace: true });
+  }, [location.pathname, location.state, navigate, prestations]);
+  useEffect(() => {
     if (selectedSlot && step === 3) {
       setModalMode('recap');
       setModalOpen(true);
     }
   }, [selectedSlot, step]);
+
+  const resetFlow = () => {
+    setStep(1);
+    setSelectedPrestation(null);
+    setSelectedDate(null);
+    setSelectedSlot(null);
+    setSlots([]);
+    setRescheduleAppointmentId(null);
+  };
 
   return {
     status,
@@ -163,7 +199,7 @@ export const useAppointmentBooking = () => {
     setSelectedDate,
     selectedSlot,
     setSelectedSlot,
-    booking: bookingMutation.isPending,
+    booking: bookingMutation.isPending || rescheduleMutation.isPending,
     modalOpen,
     setModalOpen,
     modalMode,
@@ -178,5 +214,7 @@ export const useAppointmentBooking = () => {
     goToday: () => setMonth(new Date()),
     handleBooking,
     currentMonth,
+    isRescheduling: rescheduleAppointmentId !== null,
+    resetFlow,
   };
 };

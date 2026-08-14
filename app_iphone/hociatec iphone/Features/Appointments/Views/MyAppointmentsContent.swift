@@ -34,7 +34,7 @@ struct MyAppointmentsContent: View {
                         appointment: next,
                         accentColor: .blue.opacity(0.15)
                     ) {
-                        AppointmentDetailScreen(appointment: next, viewModel: viewModel)
+                        AppointmentDetailScreen(appointment: next, viewModel: viewModel, service: service)
                     }
                 }
             }
@@ -53,7 +53,7 @@ struct MyAppointmentsContent: View {
                 } else {
                     ForEach(viewModel.visibleAppointments(for: tab)) { appointment in
                         AppointmentCard(appointment: appointment) {
-                            AppointmentDetailScreen(appointment: appointment, viewModel: viewModel)
+                            AppointmentDetailScreen(appointment: appointment, viewModel: viewModel, service: service)
                         }
                         .listRowInsets(EdgeInsets())
                         .listRowSeparator(.hidden)

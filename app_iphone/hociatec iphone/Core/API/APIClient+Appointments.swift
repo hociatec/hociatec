@@ -57,6 +57,18 @@ extension APIClient {
         }
     }
 
+    func rescheduleAppointment(id: Int, startAt: Date) async throws -> AppointmentSummary {
+        let data: AppointmentData = try await request(
+            path: "api/appointments/\(id)/reschedule",
+            method: "PATCH",
+            body: ["startAt": isoFormatter.string(from: startAt)],
+            authorized: true,
+            attachCartToken: false
+        )
+
+        return data.appointment
+    }
+
     func myAppointments() async throws -> AppointmentList {
         try await request(
             path: "api/appointments/me",

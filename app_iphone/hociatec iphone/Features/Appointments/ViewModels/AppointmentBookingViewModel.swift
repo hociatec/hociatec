@@ -3,6 +3,11 @@ import Combine
 
 @MainActor
 final class AppointmentBookingViewModel: ObservableObject {
+    enum Mode {
+        case booking
+        case rescheduling(AppointmentSummary)
+    }
+
     enum Step: Int {
         case prestation = 1
         case day = 2
@@ -23,10 +28,17 @@ final class AppointmentBookingViewModel: ObservableObject {
     @Published var bookingMessage: String?
 
     private let service: AppointmentServing
+    private let mode: Mode
     private let calendar = Calendar(identifier: .gregorian)
 
-    init(service: AppointmentServing) {
+    init(service: AppointmentServing, mode: Mode = .booking) {
         self.service = service
+        self.mode = mode
+
+        if case let .rescheduling(appointment) = mode {
+            self.selectedPrestationId = appointment.prestation.id
+            self.step = .day
+        }
     }
 
     func initialize() async {
@@ -148,15 +160,33 @@ final class AppointmentBookingViewModel: ObservableObject {
         defer { isBooking = false }
 
         do {
-            let appointment = try await service.bookAppointment(prestationId: prestationId, startAt: slot.startAt)
-            successMessage = "Rendez-vous confirmé."
-            bookingMessage = "Rendez-vous confirmé avec succès."
+            let appointment: AppointmentSummary
+
+            switch mode {
+            case .booking:
+                appointment = try await service.bookAppointment(prestationId: prestationId, startAt: slot.startAt)
+                successMessage = "Rendez-vous confirmé."
+                bookingMessage = "Rendez-vous confirmé avec succès."
+            case let .rescheduling(currentAppointment):
+                appointment = try await service.rescheduleAppointment(id: currentAppointment.id, startAt: slot.startAt)
+                successMessage = "Rendez-vous reporté."
+                bookingMessage = "Le rendez-vous a été reporté avec succès."
+            }
+
             selectedSlot = slot
             return appointment
         } catch let err {
             self.error = err.localizedDescription
             return nil
         }
+    }
+
+    var isRescheduling: Bool {
+        if case .rescheduling = mode {
+            return true
+        }
+
+        return false
     }
 
     private func updateVisibleMonth(byAdding months: Int) {
