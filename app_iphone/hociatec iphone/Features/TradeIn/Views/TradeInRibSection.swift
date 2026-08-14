@@ -9,6 +9,7 @@ struct TradeInRibSection: View {
             Button("Choisir un PDF") {
                 onPickPDF()
             }
+            .accessibilityHint("Ouvre le sélecteur de fichiers pour ajouter votre RIB au format PDF")
 
             if let ribFileName {
                 Text(ribFileName)

@@ -52,16 +52,34 @@ private struct TradeInRow: View {
                     Button("Accepter") {
                         Task { await viewModel.respond(id: item.id, action: "accept") }
                     }
+                    .disabled(viewModel.respondingTradeInID != nil)
+                    .accessibilityLabel("Accepter l’offre de reprise \(item.reference)")
                     Button("Refuser", role: .destructive) {
                         Task { await viewModel.respond(id: item.id, action: "decline") }
                     }
+                    .disabled(viewModel.respondingTradeInID != nil)
+                    .accessibilityLabel("Refuser l’offre de reprise \(item.reference)")
                 }
             }
             Button("Télécharger le justificatif") {
                 Task { await viewModel.shareReceipt(id: item.id, reference: item.reference) }
             }
             .font(.footnote)
+            .accessibilityHint("Télécharge le justificatif PDF de la reprise")
         }
         .padding(.vertical, 6)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilityLabel)
+    }
+
+    private var accessibilityLabel: String {
+        var components = [item.reference, item.productName, item.statusLabel]
+        if let offerCents = item.offerCents {
+            components.append(PriceFormatter.format(cents: offerCents))
+        }
+        if let voucherCode = item.voucherCode, !voucherCode.isEmpty {
+            components.append("Avoir client \(voucherCode)")
+        }
+        return components.joined(separator: ", ")
     }
 }

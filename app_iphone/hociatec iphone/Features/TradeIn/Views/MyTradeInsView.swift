@@ -29,8 +29,12 @@ final class MyTradeInsViewModel: ObservableObject {
     @Published var error: String?
     @Published var message: String?
     @Published var sharedFile: TemporarySharedFile?
+    @Published var respondingTradeInID: Int?
 
     private let service: TradeInServing
+    private var loadRequestID = 0
+    private var respondRequestID = 0
+    private var shareRequestID = 0
 
     init(service: TradeInServing) {
         self.service = service
@@ -38,42 +42,64 @@ final class MyTradeInsViewModel: ObservableObject {
 
     func load(force: Bool = false) async {
         if isLoading && !force { return }
+        loadRequestID += 1
+        let requestID = loadRequestID
         isLoading = true
         error = nil
-        defer { isLoading = false }
 
         do {
-            items = try await service.myTradeIns(page: 1, perPage: 20).items
+            let loadedItems = try await service.myTradeIns(page: 1, perPage: 20).items
+            guard requestID == loadRequestID else { return }
+            items = loadedItems
         } catch {
+            guard requestID == loadRequestID else { return }
             self.error = error.localizedDescription
+        }
+        if requestID == loadRequestID {
+            isLoading = false
         }
     }
 
     func respond(id: Int, action: String) async {
+        guard respondingTradeInID == nil else { return }
+        respondRequestID += 1
+        let requestID = respondRequestID
+        respondingTradeInID = id
         isLoading = true
         error = nil
         message = nil
-        defer { isLoading = false }
 
         do {
             try await service.respondToTradeIn(id: id, action: action)
+            guard requestID == respondRequestID else { return }
             message = action == "accept" ? "Votre accord a été enregistré." : "Votre refus a été enregistré."
-            items = try await service.myTradeIns(page: 1, perPage: 20).items
+            let refreshedItems = try await service.myTradeIns(page: 1, perPage: 20).items
+            guard requestID == respondRequestID else { return }
+            items = refreshedItems
         } catch {
+            guard requestID == respondRequestID else { return }
             self.error = error.localizedDescription
+        }
+        if requestID == respondRequestID {
+            respondingTradeInID = nil
+            isLoading = false
         }
     }
 
     func shareReceipt(id: Int, reference: String) async {
+        shareRequestID += 1
+        let requestID = shareRequestID
         error = nil
 
         do {
             let data = try await service.myTradeInReceipt(id: id)
+            guard requestID == shareRequestID else { return }
             sharedFile = try TemporarySharedFileFactory.create(
                 data: data,
                 fileName: "justificatif-reprise-\(reference).pdf"
             )
         } catch {
+            guard requestID == shareRequestID else { return }
             self.error = error.localizedDescription
         }
     }

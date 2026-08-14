@@ -76,6 +76,7 @@ struct QuoteDetailView: View {
                 Label("Télécharger le PDF", systemImage: "arrow.down.doc")
                     .fontWeight(.semibold)
             }
+            .accessibilityHint("Télécharge le devis au format PDF")
         }
     }
 
