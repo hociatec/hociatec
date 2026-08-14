@@ -8,7 +8,7 @@ import {
   removeFavoriteItem,
   type FavoriteCategory,
 } from '@/features/favorites/api/favoritesApi';
-import { favoriteQueryKeys } from '@/features/favorites/publicApi';
+import { favoriteQueryKeys } from '@/features/favorites/queryKeys';
 
 export const useFavoriteItem = (category: FavoriteCategory, targetId?: number | null) => {
   const { status } = useAuth();

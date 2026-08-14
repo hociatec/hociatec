@@ -3,7 +3,7 @@ import { unwrapApiData } from '@/shared/lib/responseHelpers';
 import { type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 import type { CatalogProduct } from '@/features/catalog/publicApi';
 import type { QuoteServiceDto } from '@/features/quotes/publicApi';
-import type { NewsArticleDto } from '@/features/news/api/newsApi';
+import type { NewsArticleDto } from '@/features/news/publicApi';
 
 export type FavoriteCategory = 'product' | 'service' | 'news' | 'podcast';
 

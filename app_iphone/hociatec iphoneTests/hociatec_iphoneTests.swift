@@ -908,6 +908,10 @@ private actor MockProductsRepository: ProductsRepository {
         []
     }
 
+    func fetchFavoriteStatus(productId: Int) async throws -> Bool {
+        false
+    }
+
     func addFavorite(productId: Int) async throws {}
 
     func removeFavorite(productId: Int) async throws {}
