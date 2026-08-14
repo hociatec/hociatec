@@ -61,7 +61,7 @@ final class MyAppointmentsViewModel: ObservableObject {
         }
     }
 
-    private func apply(list: AppointmentListData) {
+    private func apply(list: AppointmentList) {
         upcoming = list.upcoming
         past = list.past
     }
