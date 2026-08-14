@@ -1,12 +1,17 @@
 import SwiftUI
 
+private struct RootMessageDialog: Identifiable {
+    let id = UUID()
+    let title: String
+    let message: String
+}
+
 struct ContentView: View {
     @EnvironmentObject private var container: AppContainer
     @EnvironmentObject private var cart: CartViewModel
     @EnvironmentObject private var navigation: AppNavigationState
     @State private var productFiltersBadge: Int? = nil
-    @State private var bannerMessage: String? = nil
-    @State private var bannerIsError: Bool = false
+    @State private var dialog: RootMessageDialog?
 
     var body: some View {
         RootTabContainer(
@@ -22,21 +27,24 @@ struct ContentView: View {
                 sheetDestination(for: route)
             }
         }
-        .overlay(alignment: .top) {
-            RootBannerOverlay(message: bannerMessage, isError: bannerIsError)
+        .alert(item: $dialog) { dialog in
+            Alert(
+                title: Text(dialog.title),
+                message: Text(dialog.message),
+                dismissButton: .default(Text("OK"))
+            )
         }
-        .animation(.spring(), value: bannerMessage)
         .onChangeCompat(container.cart.statusMessage) { newValue in
-            showBanner(newValue, isError: false, duration: 2.5)
+            showDialog(newValue, isError: false)
         }
         .onChangeCompat(container.account.statusMessage) { newValue in
-            showBanner(newValue, isError: false, duration: 2.5)
+            showDialog(newValue, isError: false)
         }
         .onChangeCompat(container.cart.error) { newValue in
-            showBanner(newValue, isError: true, duration: 4.0)
+            showDialog(newValue, isError: true)
         }
         .onChangeCompat(container.account.error) { newValue in
-            showBanner(newValue, isError: true, duration: 4.0)
+            showDialog(newValue, isError: true)
         }
     }
 
@@ -46,15 +54,12 @@ struct ContentView: View {
         return count == 1 ? "Panier, 1 article" : "Panier, \(count) articles"
     }
 
-    private func showBanner(_ newValue: String?, isError: Bool, duration: TimeInterval) {
+    private func showDialog(_ newValue: String?, isError: Bool) {
         guard let msg = newValue, !msg.isEmpty else { return }
-        bannerIsError = isError
-        bannerMessage = msg
-        DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
-            if bannerMessage == msg {
-                bannerMessage = nil
-            }
-        }
+        dialog = RootMessageDialog(
+            title: isError ? "Erreur" : "Information",
+            message: msg
+        )
     }
 
     @ViewBuilder

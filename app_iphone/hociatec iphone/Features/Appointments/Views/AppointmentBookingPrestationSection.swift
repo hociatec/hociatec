@@ -36,7 +36,7 @@ struct AppointmentBookingPrestationSection: View {
                     }
                 }
 
-                Button("Suivant") {
+                Button("Aller") {
                     onNext()
                 }
                 .buttonStyle(.borderedProminent)

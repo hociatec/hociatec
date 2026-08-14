@@ -98,7 +98,7 @@ struct AppointmentBookingCalendarSection: View {
                         .foregroundStyle(.secondary)
                 }
 
-                Button("Étape précédente") {
+                Button("Retour") {
                     onBack()
                 }
                 .buttonStyle(.bordered)
