@@ -7,14 +7,3 @@ struct TrainingDetailLoadingSection: View {
         }
     }
 }
-
-struct TrainingDetailErrorSection: View {
-    let error: String
-
-    var body: some View {
-        Section {
-            Text(error)
-                .foregroundStyle(.red)
-        }
-    }
-}

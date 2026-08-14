@@ -432,6 +432,44 @@ struct hociatec_iphoneTests {
         #expect(viewModel.items.first?.number == "AUD-002")
     }
 
+    @Test
+    func supportReplyInvalidatesOlderDetailResponse() async throws {
+        let staleDetail = sampleSupportRequest(id: 10, subject: "Ancien sujet", timelineMessage: "Ancien message")
+        let updatedDetail = sampleSupportRequest(id: 10, subject: "Sujet mis a jour", timelineMessage: "Réponse envoyée")
+        let service = MockSupportService()
+        await service.setDetailResponses([
+            .pending("first")
+        ])
+        await service.setReplyResult(updatedDetail)
+
+        let viewModel = SupportViewModel(service: service)
+
+        let firstLoad = Task { await viewModel.loadDetail(id: 10) }
+        while await !service.hasPendingDetailContinuation(for: "first") {
+            await Task.yield()
+        }
+
+        let replySuccess = await viewModel.reply(
+            id: 10,
+            subject: nil,
+            message: "Réponse envoyée",
+            attachments: []
+        )
+
+        #expect(replySuccess)
+        #expect(viewModel.selectedItem?.subject == updatedDetail.subject)
+        #expect(viewModel.successMessage == "Réponse envoyée.")
+
+        await service.resolvePendingDetailContinuation(
+            for: "first",
+            with: .success(staleDetail)
+        )
+        await firstLoad.value
+
+        #expect(viewModel.selectedItem?.subject == updatedDetail.subject)
+        #expect(viewModel.selectedItem?.timeline.first?.message == updatedDetail.timeline.first?.message)
+    }
+
     private func makeUseCases(repository: AccountRepository) -> AccountUseCases {
         AccountUseCases(
             login: LoginUseCase(repository: repository),
@@ -615,6 +653,40 @@ struct hociatec_iphoneTests {
             createdAt: Date()
         )
     }
+
+    private func sampleSupportRequest(id: Int, subject: String, timelineMessage: String) -> SupportRequestSummary {
+        SupportRequestSummary(
+            id: id,
+            status: "open",
+            statusLabel: "Ouvert",
+            reason: "other",
+            subject: subject,
+            message: "Message initial",
+            customer: SupportCustomer(id: 1, name: "Client Test", email: "client@test.fr"),
+            order: SupportOrderReference(id: 1, number: "CMD-001"),
+            attachments: [],
+            awaitingReplyFrom: "customer",
+            awaitingReplyLabel: "Client",
+            timeline: [
+                SupportTimelineEntry(
+                    id: "entry-\(id)",
+                    type: "message",
+                    actor: "customer",
+                    visibility: "public",
+                    authorLabel: "Client Test",
+                    subject: subject,
+                    message: timelineMessage,
+                    status: "open",
+                    statusLabel: "Ouvert",
+                    attachments: [],
+                    createdAt: Date()
+                )
+            ],
+            createdAt: Date(),
+            updatedAt: Date(),
+            resolvedAt: nil
+        )
+    }
 }
 
 private struct SampleError: LocalizedError {
@@ -656,6 +728,11 @@ private enum MockTrainingListResponse {
 
 private enum MockAuditListResponse {
     case success(AuditListData)
+    case pending(String)
+}
+
+private enum MockSupportDetailResponse {
+    case success(SupportRequestSummary)
     case pending(String)
 }
 
@@ -1149,6 +1226,65 @@ private actor MockAuditService: AuditServing {
     func myAudit(id: Int) async throws -> AuditDetail { throw SampleError(message: "Unused") }
     func myAuditPdf(id: Int) async throws -> Data { Data() }
     func myAuditSummaryPdf(id: Int) async throws -> Data { Data() }
+}
+
+private actor MockSupportService: SupportServing {
+    var detailResponses: [MockSupportDetailResponse] = []
+    var pendingDetailContinuations: [String: (Result<SupportRequestSummary, Error>) -> Void] = [:]
+    var replyResult: SupportRequestSummary?
+
+    func setDetailResponses(_ responses: [MockSupportDetailResponse]) {
+        detailResponses = responses
+    }
+
+    func hasPendingDetailContinuation(for key: String) -> Bool {
+        pendingDetailContinuations[key] != nil
+    }
+
+    func resolvePendingDetailContinuation(for key: String, with result: Result<SupportRequestSummary, Error>) {
+        pendingDetailContinuations[key]?(result)
+        pendingDetailContinuations[key] = nil
+    }
+
+    func setReplyResult(_ value: SupportRequestSummary) {
+        replyResult = value
+    }
+
+    func mySupportRequests(page: Int, perPage: Int) async throws -> SupportRequestListData {
+        SupportRequestListData(items: [], meta: PaginationMeta(page: page, perPage: perPage, total: 0, totalPages: 1))
+    }
+
+    func mySupportRequest(id: Int) async throws -> SupportRequestSummary {
+        if !detailResponses.isEmpty {
+            let response = detailResponses.removeFirst()
+            switch response {
+            case let .success(item):
+                return item
+            case let .pending(key):
+                return try await withCheckedThrowingContinuation { continuation in
+                    pendingDetailContinuations[key] = { result in continuation.resume(with: result) }
+                }
+            }
+        }
+
+        throw SampleError(message: "Unused")
+    }
+
+    func createSupportRequest(subject: String, reason: String, message: String, orderId: Int?, attachments: [MultipartUploadFile]) async throws -> SupportRequestSummary {
+        throw SampleError(message: "Unused")
+    }
+
+    func replySupportRequest(id: Int, subject: String?, message: String, attachments: [MultipartUploadFile]) async throws -> SupportRequestSummary {
+        if let replyResult {
+            return replyResult
+        }
+
+        throw SampleError(message: "Unused")
+    }
+
+    func mySupportAttachment(id: Int, name: String) async throws -> Data {
+        Data()
+    }
 }
 
 private struct MockWorkspaceService: WorkspaceServing {

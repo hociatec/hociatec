@@ -45,8 +45,7 @@ struct AppointmentBookingView: View {
                 prestations: viewModel.prestations,
                 selectedPrestationId: $viewModel.selectedPrestationId,
                 selectedPrestation: selectedPrestation,
-                isLoading: viewModel.isLoading,
-                error: viewModel.error
+                isLoading: viewModel.isLoading
             ) {
                 Task { await viewModel.goToDaySelection() }
             }
@@ -56,7 +55,6 @@ struct AppointmentBookingView: View {
                 availableDays: AppointmentBookingPresentation.availableDays(from: viewModel.slots),
                 selectedDate: viewModel.selectedDate,
                 isLoading: viewModel.isLoading,
-                error: viewModel.error,
                 onSelectDay: viewModel.selectDay
             ) {
                 Task { await viewModel.showPreviousMonth() }
@@ -73,7 +71,6 @@ struct AppointmentBookingView: View {
                 selectedDate: viewModel.selectedDate,
                 selectedPrestation: selectedPrestation,
                 isLoading: viewModel.isLoading,
-                error: viewModel.error,
                 viewModel: viewModel,
                 onCompleted: onCompleted
             ) {

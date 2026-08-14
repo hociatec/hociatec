@@ -5,7 +5,6 @@ struct AppointmentBookingPrestationSection: View {
     @Binding var selectedPrestationId: Int?
     let selectedPrestation: AppointmentPrestation?
     let isLoading: Bool
-    let error: String?
     let onNext: () -> Void
 
     var body: some View {

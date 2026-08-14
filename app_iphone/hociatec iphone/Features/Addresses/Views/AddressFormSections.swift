@@ -94,19 +94,6 @@ struct AddressFormFieldsSection: View {
     }
 }
 
-struct AddressFormErrorSection: View {
-    let error: String?
-
-    var body: some View {
-        if let error {
-            Section {
-                Text(error)
-                    .foregroundStyle(.red)
-            }
-        }
-    }
-}
-
 struct AddressFormDeleteSection: View {
     let onDelete: () -> Void
 

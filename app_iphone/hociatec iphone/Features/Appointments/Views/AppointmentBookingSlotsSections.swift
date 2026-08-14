@@ -5,7 +5,6 @@ struct AppointmentBookingSlotsSection: View {
     let selectedDate: Date?
     let selectedPrestation: AppointmentPrestation?
     let isLoading: Bool
-    let error: String?
     let viewModel: AppointmentBookingViewModel
     let onCompleted: ((AppointmentSummary) -> Void)?
     let onBack: () -> Void

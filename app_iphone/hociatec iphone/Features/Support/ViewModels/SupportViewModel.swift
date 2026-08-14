@@ -76,6 +76,8 @@ final class SupportViewModel: ObservableObject {
 
         do {
             let created = try await service.createSupportRequest(subject: subject, reason: reason, message: message, orderId: orderId, attachments: attachments)
+            loadRequestID += 1
+            detailRequestID += 1
             items.insert(created, at: 0)
             selectedItem = created
             successMessage = "Demande SAV créée."
@@ -94,6 +96,7 @@ final class SupportViewModel: ObservableObject {
 
         do {
             let updated = try await service.replySupportRequest(id: id, subject: subject, message: message, attachments: attachments)
+            detailRequestID += 1
             selectedItem = updated
             if let index = items.firstIndex(where: { $0.id == updated.id }) {
                 items[index] = updated

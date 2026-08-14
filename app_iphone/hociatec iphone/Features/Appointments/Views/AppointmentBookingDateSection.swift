@@ -49,7 +49,6 @@ struct AppointmentBookingCalendarSection: View {
     let availableDays: [Date]
     let selectedDate: Date?
     let isLoading: Bool
-    let error: String?
     let onSelectDay: (Date) -> Void
     let onPreviousMonth: () -> Void
     let onNextMonth: () -> Void
