@@ -21,5 +21,6 @@ struct AuditDetailView: View {
         }
         .navigationTitle("Détail audit")
         .task { await viewModel.loadDetail(id: auditId) }
+        .feedbackDialog(error: $viewModel.error, success: $viewModel.successMessage)
     }
 }

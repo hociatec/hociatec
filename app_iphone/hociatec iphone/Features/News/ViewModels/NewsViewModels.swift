@@ -12,6 +12,7 @@ final class NewsListViewModel: ObservableObject {
     @Published var error: String?
 
     private let service: NewsServing
+    private var loadRequestID = 0
 
     init(service: NewsServing) {
         self.service = service
@@ -25,18 +26,27 @@ final class NewsListViewModel: ObservableObject {
     func previousPage() { guard page > 1 else { return }; page -= 1 }
     func nextPage() { guard page < totalPages else { return }; page += 1 }
 
-    func load() async {
-        guard !isLoading else { return }
+    func load(force: Bool = false) async {
+        if isLoading && !force { return }
+        loadRequestID += 1
+        let requestID = loadRequestID
         isLoading = true
         error = nil
-        defer { isLoading = false }
+        let requestedPage = page
+        let requestedSearch = appliedSearch.isEmpty ? nil : appliedSearch
 
         do {
-            let data = try await service.newsArticles(page: page, perPage: 9, query: appliedSearch.isEmpty ? nil : appliedSearch)
+            let data = try await service.newsArticles(page: requestedPage, perPage: 9, query: requestedSearch)
+            guard requestID == loadRequestID else { return }
             articles = data.items
             totalPages = max(1, data.meta.totalPages)
         } catch {
+            guard requestID == loadRequestID else { return }
             self.error = error.localizedDescription
+        }
+
+        if requestID == loadRequestID {
+            isLoading = false
         }
     }
 }
@@ -56,6 +66,8 @@ final class NewsDetailViewModel: ObservableObject {
 
     private let service: NewsServing
     private let slug: String
+    private var articleRequestID = 0
+    private var commentsRequestID = 0
 
     init(service: NewsServing, slug: String) {
         self.service = service
@@ -65,31 +77,47 @@ final class NewsDetailViewModel: ObservableObject {
     func previousCommentsPage() { guard commentsPage > 1 else { return }; commentsPage -= 1 }
     func nextCommentsPage() { guard commentsPage < commentsTotalPages else { return }; commentsPage += 1 }
 
-    func loadArticle() async {
-        guard !isLoading else { return }
+    func loadArticle(force: Bool = false) async {
+        if isLoading && !force { return }
+        articleRequestID += 1
+        let requestID = articleRequestID
         isLoading = true
         error = nil
-        defer { isLoading = false }
 
         do {
-            article = try await service.newsArticle(slug: slug)
+            let loadedArticle = try await service.newsArticle(slug: slug)
+            guard requestID == articleRequestID else { return }
+            article = loadedArticle
         } catch {
+            guard requestID == articleRequestID else { return }
             self.error = error.localizedDescription
+        }
+
+        if requestID == articleRequestID {
+            isLoading = false
         }
     }
 
-    func loadComments() async {
-        guard !isLoadingComments else { return }
+    func loadComments(force: Bool = false) async {
+        if isLoadingComments && !force { return }
+        commentsRequestID += 1
+        let requestID = commentsRequestID
         isLoadingComments = true
         commentsError = nil
-        defer { isLoadingComments = false }
+        let requestedPage = commentsPage
 
         do {
-            let data = try await service.newsComments(slug: slug, page: commentsPage, perPage: 10)
+            let data = try await service.newsComments(slug: slug, page: requestedPage, perPage: 10)
+            guard requestID == commentsRequestID else { return }
             comments = data.items
             commentsTotalPages = max(1, data.meta.totalPages)
         } catch {
+            guard requestID == commentsRequestID else { return }
             self.commentsError = error.localizedDescription
+        }
+
+        if requestID == commentsRequestID {
+            isLoadingComments = false
         }
     }
 
@@ -105,7 +133,7 @@ final class NewsDetailViewModel: ObservableObject {
             _ = try await service.createNewsComment(slug: slug, content: content)
             newComment = ""
             commentsPage = 1
-            await loadComments()
+            await loadComments(force: true)
         } catch {
             commentsError = error.localizedDescription
         }

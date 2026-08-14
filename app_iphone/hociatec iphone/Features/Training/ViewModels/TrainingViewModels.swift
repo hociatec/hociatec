@@ -45,15 +45,18 @@ final class TrainingsCatalogViewModel: ObservableObject {
         }
     }
 
-    func load() async {
-        guard !isLoading else { return }
+    func load(force: Bool = false) async {
+        if isLoading && !force { return }
         loadRequestID += 1
         let requestID = loadRequestID
         isLoading = true
         error = nil
+        let requestedPage = page
+        let requestedSearch = appliedSearch.isEmpty ? nil : appliedSearch
+        let requestedCategory = selectedCategorySlug.isEmpty ? nil : selectedCategorySlug
 
         do {
-            let data = try await service.trainings(page: page, perPage: 8, query: appliedSearch.isEmpty ? nil : appliedSearch, category: selectedCategorySlug.isEmpty ? nil : selectedCategorySlug)
+            let data = try await service.trainings(page: requestedPage, perPage: 8, query: requestedSearch, category: requestedCategory)
             guard requestID == loadRequestID else { return }
             trainings = data.items
             totalPages = max(1, data.meta.totalPages)
@@ -86,8 +89,8 @@ final class TrainingDetailViewModel: ObservableObject {
         self.slug = slug
     }
 
-    func load() async {
-        guard !isLoading else { return }
+    func load(force: Bool = false) async {
+        if isLoading && !force { return }
         loadRequestID += 1
         let requestID = loadRequestID
         isLoading = true

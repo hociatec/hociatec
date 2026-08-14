@@ -9,22 +9,31 @@ final class ServiceDetailViewModel: ObservableObject {
 
     private let serviceCatalog: ServiceCatalogServing
     private let serviceID: Int
+    private var loadRequestID = 0
 
     init(serviceCatalog: ServiceCatalogServing, serviceID: Int) {
         self.serviceCatalog = serviceCatalog
         self.serviceID = serviceID
     }
 
-    func load() async {
-        guard !isLoading else { return }
+    func load(force: Bool = false) async {
+        if isLoading && !force { return }
+        loadRequestID += 1
+        let requestID = loadRequestID
         isLoading = true
         error = nil
-        defer { isLoading = false }
 
         do {
-            service = try await serviceCatalog.publicService(id: serviceID)
+            let loadedService = try await serviceCatalog.publicService(id: serviceID)
+            guard requestID == loadRequestID else { return }
+            service = loadedService
         } catch {
+            guard requestID == loadRequestID else { return }
             self.error = error.localizedDescription
+        }
+
+        if requestID == loadRequestID {
+            isLoading = false
         }
     }
 }
@@ -40,6 +49,7 @@ final class ServicesCatalogViewModel: ObservableObject {
     @Published var error: String?
 
     private let serviceCatalog: ServiceCatalogServing
+    private var loadRequestID = 0
 
     init(serviceCatalog: ServiceCatalogServing) {
         self.serviceCatalog = serviceCatalog
@@ -60,18 +70,27 @@ final class ServicesCatalogViewModel: ObservableObject {
         page += 1
     }
 
-    func load() async {
-        guard !isLoading else { return }
+    func load(force: Bool = false) async {
+        if isLoading && !force { return }
+        loadRequestID += 1
+        let requestID = loadRequestID
         isLoading = true
         error = nil
-        defer { isLoading = false }
+        let requestedPage = page
+        let requestedSearch = appliedSearch.isEmpty ? nil : appliedSearch
 
         do {
-            let data = try await serviceCatalog.quoteServices(page: page, perPage: 7, query: appliedSearch.isEmpty ? nil : appliedSearch)
+            let data = try await serviceCatalog.quoteServices(page: requestedPage, perPage: 7, query: requestedSearch)
+            guard requestID == loadRequestID else { return }
             services = data.items
             totalPages = max(1, data.meta?.totalPages ?? 1)
         } catch {
+            guard requestID == loadRequestID else { return }
             self.error = error.localizedDescription
+        }
+
+        if requestID == loadRequestID {
+            isLoading = false
         }
     }
 }

@@ -55,9 +55,9 @@ struct ProductReviewsView: View {
         .task { await viewModel.load(productService: productService, orderService: orderService, page: 1, replace: true, isLoggedIn: container.account.isLoggedIn) }
         .onChangeCompat(container.account.isLoggedIn) { isLoggedIn in
             guard isLoggedIn else { return }
-            Task { await viewModel.load(productService: productService, orderService: orderService, page: 1, replace: true, isLoggedIn: isLoggedIn) }
+            Task { await viewModel.load(productService: productService, orderService: orderService, page: 1, replace: true, isLoggedIn: isLoggedIn, force: true) }
         }
-        .refreshable { await viewModel.load(productService: productService, orderService: orderService, page: 1, replace: true, isLoggedIn: container.account.isLoggedIn) }
+        .refreshable { await viewModel.load(productService: productService, orderService: orderService, page: 1, replace: true, isLoggedIn: container.account.isLoggedIn, force: true) }
         .accessibilityLabel("Avis sur \(productName)")
         .feedbackDialog(error: $viewModel.error)
     }

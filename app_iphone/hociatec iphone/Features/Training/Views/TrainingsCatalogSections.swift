@@ -16,7 +16,7 @@ struct TrainingsCatalogFiltersSection: View {
             }
             Button("Rechercher") {
                 viewModel.applySearch()
-                Task { await viewModel.load() }
+                Task { await viewModel.load(force: true) }
             }
         }
     }
@@ -55,7 +55,7 @@ struct TrainingsCatalogPaginationSection: View {
                 HStack {
                     Button("Précédent") {
                         viewModel.previousPage()
-                        Task { await viewModel.load() }
+                        Task { await viewModel.load(force: true) }
                     }
                     .disabled(viewModel.page <= 1 || viewModel.isLoading)
                     Spacer()
@@ -65,7 +65,7 @@ struct TrainingsCatalogPaginationSection: View {
                     Spacer()
                     Button("Suivant") {
                         viewModel.nextPage()
-                        Task { await viewModel.load() }
+                        Task { await viewModel.load(force: true) }
                     }
                     .disabled(viewModel.page >= viewModel.totalPages || viewModel.isLoading)
                 }

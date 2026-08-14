@@ -233,6 +233,205 @@ struct hociatec_iphoneTests {
         #expect(viewModel.cart?.totalQuantity == 1)
     }
 
+    @Test
+    func newsListKeepsLatestForcedLoadResultWhenOlderRequestFinishesLast() async throws {
+        let service = MockNewsService()
+        let oldArticle = sampleNewsArticle(id: 1, title: "Ancien", slug: "ancien")
+        let newArticle = sampleNewsArticle(id: 2, title: "Nouveau", slug: "nouveau")
+        await service.setArticleListResponses([
+            .pending("first"),
+            .success(NewsArticleListData(
+                items: [newArticle],
+                meta: PaginationMeta(page: 1, perPage: 9, total: 1, totalPages: 1)
+            ))
+        ])
+
+        let viewModel = NewsListViewModel(service: service)
+
+        let firstLoad = Task { await viewModel.load() }
+        while await !service.hasPendingArticleListContinuation(for: "first") {
+            await Task.yield()
+        }
+
+        let secondLoad = Task { await viewModel.load(force: true) }
+        await secondLoad.value
+
+        await service.resolvePendingArticleListContinuation(
+            for: "first",
+            with: .success(NewsArticleListData(
+                items: [oldArticle],
+                meta: PaginationMeta(page: 1, perPage: 9, total: 1, totalPages: 1)
+            ))
+        )
+        await firstLoad.value
+
+        #expect(viewModel.articles.map(\.id) == [newArticle.id])
+        #expect(viewModel.articles.first?.title == "Nouveau")
+    }
+
+    @Test
+    func servicesCatalogKeepsLatestForcedLoadResultWhenOlderRequestFinishesLast() async throws {
+        let service = MockServiceCatalogService()
+        let oldService = sampleQuoteService(id: 1, title: "Ancien service")
+        let newService = sampleQuoteService(id: 2, title: "Nouveau service")
+        await service.setQuoteServiceResponses([
+            .pending("first"),
+            .success(QuoteServiceList(
+                items: [newService],
+                meta: PaginationMeta(page: 1, perPage: 7, total: 1, totalPages: 1)
+            ))
+        ])
+
+        let viewModel = ServicesCatalogViewModel(serviceCatalog: service)
+
+        let firstLoad = Task { await viewModel.load() }
+        while await !service.hasPendingQuoteServiceContinuation(for: "first") {
+            await Task.yield()
+        }
+
+        let secondLoad = Task { await viewModel.load(force: true) }
+        await secondLoad.value
+
+        await service.resolvePendingQuoteServiceContinuation(
+            for: "first",
+            with: .success(QuoteServiceList(
+                items: [oldService],
+                meta: PaginationMeta(page: 1, perPage: 7, total: 1, totalPages: 1)
+            ))
+        )
+        await firstLoad.value
+
+        #expect(viewModel.services.map(\.id) == [newService.id])
+        #expect(viewModel.services.first?.title == "Nouveau service")
+    }
+
+    @Test
+    func productReviewsKeepLatestForcedReloadResultWhenOlderRequestFinishesLast() async throws {
+        let productService = MockProductService()
+        let oldReview = sampleReview(id: 1, comment: "Ancien avis")
+        let newReview = sampleReview(id: 2, comment: "Nouvel avis")
+        await productService.setReviewResponses([
+            .pending("first"),
+            .success(ReviewListData(
+                items: [newReview],
+                meta: ReviewListMeta(page: 1, perPage: 20, total: 1, average: 5)
+            ))
+        ])
+
+        let viewModel = ProductReviewsViewModel(productSlug: "routeur", productSku: "SKU-1")
+        let orderService = MockOrderService()
+
+        let firstLoad = Task {
+            await viewModel.load(
+                productService: productService,
+                orderService: orderService,
+                page: 1,
+                replace: true,
+                isLoggedIn: false
+            )
+        }
+        while await !productService.hasPendingReviewContinuation(for: "first") {
+            await Task.yield()
+        }
+
+        let secondLoad = Task {
+            await viewModel.load(
+                productService: productService,
+                orderService: orderService,
+                page: 1,
+                replace: true,
+                isLoggedIn: false,
+                force: true
+            )
+        }
+        await secondLoad.value
+
+        await productService.resolvePendingReviewContinuation(
+            for: "first",
+            with: .success(ReviewListData(
+                items: [oldReview],
+                meta: ReviewListMeta(page: 1, perPage: 20, total: 1, average: 3)
+            ))
+        )
+        await firstLoad.value
+
+        #expect(viewModel.reviews.map(\.id) == [newReview.id])
+        #expect(viewModel.reviews.first?.comment == "Nouvel avis")
+        #expect(viewModel.average == 5)
+    }
+
+    @Test
+    func trainingsCatalogKeepsLatestForcedLoadResultWhenOlderRequestFinishesLast() async throws {
+        let service = MockTrainingService()
+        let oldTraining = sampleTraining(id: 1, title: "Ancienne formation", slug: "ancienne-formation")
+        let newTraining = sampleTraining(id: 2, title: "Nouvelle formation", slug: "nouvelle-formation")
+        await service.setTrainingListResponses([
+            .pending("first"),
+            .success(TrainingListData(
+                items: [newTraining],
+                meta: PaginationMeta(page: 1, perPage: 8, total: 1, totalPages: 1)
+            ))
+        ])
+
+        let viewModel = TrainingsCatalogViewModel(service: service)
+
+        let firstLoad = Task { await viewModel.load() }
+        while await !service.hasPendingTrainingListContinuation(for: "first") {
+            await Task.yield()
+        }
+
+        let secondLoad = Task { await viewModel.load(force: true) }
+        await secondLoad.value
+
+        await service.resolvePendingTrainingListContinuation(
+            for: "first",
+            with: .success(TrainingListData(
+                items: [oldTraining],
+                meta: PaginationMeta(page: 1, perPage: 8, total: 1, totalPages: 1)
+            ))
+        )
+        await firstLoad.value
+
+        #expect(viewModel.trainings.map(\.id) == [newTraining.id])
+        #expect(viewModel.trainings.first?.title == "Nouvelle formation")
+    }
+
+    @Test
+    func auditsViewModelKeepsLatestForcedLoadResultWhenOlderRequestFinishesLast() async throws {
+        let service = MockAuditService()
+        let oldAudit = sampleAuditListItem(id: 1, number: "AUD-001", statusLabel: "Ancien état")
+        let newAudit = sampleAuditListItem(id: 2, number: "AUD-002", statusLabel: "Nouvel état")
+        await service.setAuditListResponses([
+            .pending("first"),
+            .success(AuditListData(
+                items: [newAudit],
+                meta: PaginationMeta(page: 1, perPage: 20, total: 1, totalPages: 1)
+            ))
+        ])
+
+        let viewModel = AuditsViewModel(service: service)
+
+        let firstLoad = Task { await viewModel.load() }
+        while await !service.hasPendingAuditListContinuation(for: "first") {
+            await Task.yield()
+        }
+
+        let secondLoad = Task { await viewModel.load(force: true) }
+        await secondLoad.value
+
+        await service.resolvePendingAuditListContinuation(
+            for: "first",
+            with: .success(AuditListData(
+                items: [oldAudit],
+                meta: PaginationMeta(page: 1, perPage: 20, total: 1, totalPages: 1)
+            ))
+        )
+        await firstLoad.value
+
+        #expect(viewModel.items.map(\.id) == [newAudit.id])
+        #expect(viewModel.items.first?.number == "AUD-002")
+    }
+
     private func makeUseCases(repository: AccountRepository) -> AccountUseCases {
         AccountUseCases(
             login: LoginUseCase(repository: repository),
@@ -340,6 +539,82 @@ struct hociatec_iphoneTests {
             category: category
         )
     }
+
+    private func sampleNewsArticle(id: Int, title: String, slug: String) -> NewsArticle {
+        NewsArticle(
+            id: id,
+            title: title,
+            slug: slug,
+            excerpt: "Résumé",
+            content: "Contenu",
+            category: "Infos",
+            isPublished: true,
+            viewsCount: 10,
+            publishedAt: Date(),
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+    }
+
+    private func sampleQuoteService(id: Int, title: String) -> QuoteService {
+        QuoteService(
+            id: id,
+            title: title,
+            description: "Description",
+            unit: "heure",
+            isFeaturedHome: false,
+            imageUrl: nil,
+            imageAlt: nil,
+            durationValue: 1,
+            durationUnit: "hour",
+            durationLabel: "1 heure",
+            priceCents: 1000,
+            vatRate: 20
+        )
+    }
+
+    private func sampleReview(id: Int, comment: String) -> Review {
+        Review(
+            id: id,
+            score: 5,
+            comment: comment,
+            createdAt: Date(),
+            author: ReviewAuthor(id: id, displayName: "Client \(id)"),
+            orderItemId: id
+        )
+    }
+
+    private func sampleTraining(id: Int, title: String, slug: String) -> Training {
+        Training(
+            id: id,
+            title: title,
+            slug: slug,
+            shortDescription: "Résumé",
+            objective: "Objectif",
+            audience: "Audience",
+            category: "Numerique",
+            durationMinutes: 120,
+            priceCents: 15000,
+            availableFormats: ["remote"],
+            isActive: true,
+            roadmap: [],
+            categoryDetails: TrainingCategoryReference(id: 1, name: "Numérique", slug: "numerique"),
+            availableFormatDetails: [TrainingFormatOption(value: "remote", label: "À distance")]
+        )
+    }
+
+    private func sampleAuditListItem(id: Int, number: String, statusLabel: String) -> AuditListItem {
+        AuditListItem(
+            id: id,
+            number: number,
+            type: "accessibility",
+            status: "open",
+            typeLabel: "Accessibilité",
+            statusLabel: statusLabel,
+            url: "https://example.com",
+            createdAt: Date()
+        )
+    }
 }
 
 private struct SampleError: LocalizedError {
@@ -357,6 +632,31 @@ private enum MockAppointmentListResponse {
     case immediate(AppointmentList)
     case pending(String)
     case success(AppointmentList)
+}
+
+private enum MockNewsArticleListResponse {
+    case success(NewsArticleListData)
+    case pending(String)
+}
+
+private enum MockQuoteServiceListResponse {
+    case success(QuoteServiceList)
+    case pending(String)
+}
+
+private enum MockReviewListResponse {
+    case success(ReviewListData)
+    case pending(String)
+}
+
+private enum MockTrainingListResponse {
+    case success(TrainingListData)
+    case pending(String)
+}
+
+private enum MockAuditListResponse {
+    case success(AuditListData)
+    case pending(String)
 }
 
 @MainActor
@@ -601,6 +901,160 @@ private struct MockQuoteService: QuoteServing {
     func deleteQuote(id: Int) async throws {}
 }
 
+private actor MockNewsService: NewsServing {
+    var articleListResponses: [MockNewsArticleListResponse] = []
+    var articleListContinuations: [String: (Result<NewsArticleListData, Error>) -> Void] = [:]
+
+    func setArticleListResponses(_ responses: [MockNewsArticleListResponse]) {
+        articleListResponses = responses
+    }
+
+    func hasPendingArticleListContinuation(for key: String) -> Bool {
+        articleListContinuations[key] != nil
+    }
+
+    func resolvePendingArticleListContinuation(for key: String, with result: Result<NewsArticleListData, Error>) {
+        articleListContinuations[key]?(result)
+        articleListContinuations[key] = nil
+    }
+
+    func latestNews(limit: Int) async throws -> [NewsArticle] { [] }
+
+    func newsArticles(page: Int, perPage: Int, query: String?) async throws -> NewsArticleListData {
+        guard !articleListResponses.isEmpty else {
+            return NewsArticleListData(
+                items: [],
+                meta: PaginationMeta(page: page, perPage: perPage, total: 0, totalPages: 1)
+            )
+        }
+
+        let response = articleListResponses.removeFirst()
+        switch response {
+        case let .success(data):
+            return data
+        case let .pending(key):
+            return try await withCheckedThrowingContinuation { continuation in
+                articleListContinuations[key] = { result in
+                    continuation.resume(with: result)
+                }
+            }
+        }
+    }
+
+    func newsArticle(slug: String) async throws -> NewsArticle {
+        throw SampleError(message: "Unused")
+    }
+
+    func newsComments(slug: String, page: Int, perPage: Int) async throws -> NewsCommentListData {
+        NewsCommentListData(
+            items: [],
+            meta: PaginationMeta(page: page, perPage: perPage, total: 0, totalPages: 1)
+        )
+    }
+
+    func createNewsComment(slug: String, content: String) async throws -> NewsComment {
+        throw SampleError(message: "Unused")
+    }
+}
+
+private actor MockServiceCatalogService: ServiceCatalogServing {
+    var quoteServiceResponses: [MockQuoteServiceListResponse] = []
+    var quoteServiceContinuations: [String: (Result<QuoteServiceList, Error>) -> Void] = [:]
+
+    func setQuoteServiceResponses(_ responses: [MockQuoteServiceListResponse]) {
+        quoteServiceResponses = responses
+    }
+
+    func hasPendingQuoteServiceContinuation(for key: String) -> Bool {
+        quoteServiceContinuations[key] != nil
+    }
+
+    func resolvePendingQuoteServiceContinuation(for key: String, with result: Result<QuoteServiceList, Error>) {
+        quoteServiceContinuations[key]?(result)
+        quoteServiceContinuations[key] = nil
+    }
+
+    nonisolated func assetURL(for path: String?) -> URL? { nil }
+
+    func quoteServices(page: Int?, perPage: Int?, query: String?) async throws -> QuoteServiceList {
+        let currentPage = page ?? 1
+        let currentPerPage = perPage ?? 7
+
+        guard !quoteServiceResponses.isEmpty else {
+            return QuoteServiceList(
+                items: [],
+                meta: PaginationMeta(page: currentPage, perPage: currentPerPage, total: 0, totalPages: 1)
+            )
+        }
+
+        let response = quoteServiceResponses.removeFirst()
+        switch response {
+        case let .success(data):
+            return data
+        case let .pending(key):
+            return try await withCheckedThrowingContinuation { continuation in
+                quoteServiceContinuations[key] = { result in
+                    continuation.resume(with: result)
+                }
+            }
+        }
+    }
+
+    func publicService(id: Int) async throws -> QuoteService {
+        throw SampleError(message: "Unused")
+    }
+}
+
+private actor MockProductService: ProductServing {
+    var reviewResponses: [MockReviewListResponse] = []
+    var reviewContinuations: [String: (Result<ReviewListData, Error>) -> Void] = [:]
+
+    func setReviewResponses(_ responses: [MockReviewListResponse]) {
+        reviewResponses = responses
+    }
+
+    func hasPendingReviewContinuation(for key: String) -> Bool {
+        reviewContinuations[key] != nil
+    }
+
+    func resolvePendingReviewContinuation(for key: String, with result: Result<ReviewListData, Error>) {
+        reviewContinuations[key]?(result)
+        reviewContinuations[key] = nil
+    }
+
+    nonisolated func assetURL(for path: String?) -> URL? { nil }
+    func featuredProducts() async throws -> [Product] { [] }
+
+    func productList(search: String?, categorySlug: String?, sellingType: SellingType?, page: Int?, perPage: Int?) async throws -> ProductListData {
+        ProductListData(items: [], meta: PaginationMeta(page: page ?? 1, perPage: perPage ?? 12, total: 0, totalPages: 1))
+    }
+
+    func products(search: String?, categorySlug: String?, sellingType: SellingType?) async throws -> [Product] { [] }
+    func categories() async throws -> [CategorySummary] { [] }
+    func product(slug: String) async throws -> Product { throw SampleError(message: "Unused") }
+
+    func productReviews(slug: String, page: Int, perPage: Int) async throws -> ReviewListData {
+        guard !reviewResponses.isEmpty else {
+            return ReviewListData(
+                items: [],
+                meta: ReviewListMeta(page: page, perPage: perPage, total: 0, average: nil)
+            )
+        }
+
+        let response = reviewResponses.removeFirst()
+        switch response {
+        case let .success(data):
+            return data
+        case let .pending(key):
+            return try await withCheckedThrowingContinuation { continuation in
+                reviewContinuations[key] = { result in
+                    continuation.resume(with: result)
+                }
+            }
+        }
+    }
+}
+
 private struct MockOrderService: OrderServing {
     func myOrders() async throws -> [OrderSummary] { [] }
     func order(id: Int) async throws -> OrderSummary { throw SampleError(message: "Unused") }
@@ -611,16 +1065,90 @@ private struct MockOrderService: OrderServing {
     func createReview(orderId: Int, orderItemId: Int, score: Int, comment: String?) async throws -> Review { throw SampleError(message: "Unused") }
 }
 
-private struct MockTrainingService: TrainingServing {
+private actor MockTrainingService: TrainingServing {
+    var trainingListResponses: [MockTrainingListResponse] = []
+    var pendingTrainingListContinuations: [String: (Result<TrainingListData, Error>) -> Void] = [:]
+
+    func setTrainingListResponses(_ responses: [MockTrainingListResponse]) {
+        trainingListResponses = responses
+    }
+
+    func hasPendingTrainingListContinuation(for key: String) -> Bool {
+        pendingTrainingListContinuations[key] != nil
+    }
+
+    func resolvePendingTrainingListContinuation(for key: String, with result: Result<TrainingListData, Error>) {
+        pendingTrainingListContinuations[key]?(result)
+        pendingTrainingListContinuations[key] = nil
+    }
+
     func trainingCategories() async throws -> [TrainingCategory] { [] }
     func trainings(page: Int, perPage: Int, query: String?, category: String?) async throws -> TrainingListData {
-        TrainingListData(items: [], meta: PaginationMeta(page: page, perPage: perPage, total: 0, totalPages: 1))
+        if !trainingListResponses.isEmpty {
+            let response = trainingListResponses.removeFirst()
+            switch response {
+            case let .success(data):
+                return data
+            case let .pending(key):
+                return try await withCheckedThrowingContinuation { continuation in
+                    pendingTrainingListContinuations[key] = { result in continuation.resume(with: result) }
+                }
+            }
+        }
+
+        return TrainingListData(items: [], meta: PaginationMeta(page: page, perPage: perPage, total: 0, totalPages: 1))
     }
     func training(slug: String) async throws -> TrainingDetailData { throw SampleError(message: "Unused") }
     func enroll(sessionId: Int, startsAt: Date) async throws -> TrainingEnrollmentCheckoutResult { throw SampleError(message: "Unused") }
     func myEnrollments(page: Int, perPage: Int) async throws -> TrainingEnrollmentListData {
         TrainingEnrollmentListData(items: [], meta: PaginationMeta(page: page, perPage: perPage, total: 0, totalPages: 1))
     }
+}
+
+private actor MockAuditService: AuditServing {
+    var auditListResponses: [MockAuditListResponse] = []
+    var pendingAuditListContinuations: [String: (Result<AuditListData, Error>) -> Void] = [:]
+
+    func setAuditListResponses(_ responses: [MockAuditListResponse]) {
+        auditListResponses = responses
+    }
+
+    func hasPendingAuditListContinuation(for key: String) -> Bool {
+        pendingAuditListContinuations[key] != nil
+    }
+
+    func resolvePendingAuditListContinuation(for key: String, with result: Result<AuditListData, Error>) {
+        pendingAuditListContinuations[key]?(result)
+        pendingAuditListContinuations[key] = nil
+    }
+
+    func auditMetadata() async throws -> AuditMetadata {
+        AuditMetadata(types: [AuditOption(value: "accessibility", label: "Accessibilité")], statuses: [])
+    }
+
+    func createAudit(type: String, url: String, objectives: String?) async throws -> AuditCreateResponse {
+        AuditCreateResponse(id: 1, number: "AUD-001")
+    }
+
+    func myAudits(page: Int, perPage: Int) async throws -> AuditListData {
+        if !auditListResponses.isEmpty {
+            let response = auditListResponses.removeFirst()
+            switch response {
+            case let .success(data):
+                return data
+            case let .pending(key):
+                return try await withCheckedThrowingContinuation { continuation in
+                    pendingAuditListContinuations[key] = { result in continuation.resume(with: result) }
+                }
+            }
+        }
+
+        return AuditListData(items: [], meta: PaginationMeta(page: page, perPage: perPage, total: 0, totalPages: 1))
+    }
+
+    func myAudit(id: Int) async throws -> AuditDetail { throw SampleError(message: "Unused") }
+    func myAuditPdf(id: Int) async throws -> Data { Data() }
+    func myAuditSummaryPdf(id: Int) async throws -> Data { Data() }
 }
 
 private struct MockWorkspaceService: WorkspaceServing {

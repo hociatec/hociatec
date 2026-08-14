@@ -30,11 +30,11 @@ struct NewsListView: View {
                 viewModel: viewModel,
                 onPrevious: {
                     viewModel.previousPage()
-                    Task { await viewModel.load() }
+                    Task { await viewModel.load(force: true) }
                 },
                 onNext: {
                     viewModel.nextPage()
-                    Task { await viewModel.load() }
+                    Task { await viewModel.load(force: true) }
                 }
             )
         }
@@ -45,6 +45,6 @@ struct NewsListView: View {
 
     private func performSearch() {
         viewModel.applySearch()
-        Task { await viewModel.load() }
+        Task { await viewModel.load(force: true) }
     }
 }

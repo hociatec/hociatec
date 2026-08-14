@@ -14,6 +14,7 @@ final class ProductReviewsViewModel: ObservableObject {
 
     private let productSlug: String
     private let productSku: String
+    private var loadRequestID = 0
 
     init(productSlug: String, productSku: String) {
         self.productSlug = productSlug
@@ -37,15 +38,19 @@ final class ProductReviewsViewModel: ObservableObject {
         orderService: OrderServing,
         page: Int,
         replace: Bool,
-        isLoggedIn: Bool
+        isLoggedIn: Bool,
+        force: Bool = false
     ) async {
-        guard !isLoading else { return }
+        if isLoading && !force { return }
+        loadRequestID += 1
+        let requestID = loadRequestID
         isLoading = true
         error = nil
-        defer { isLoading = false }
+        let requestedPage = page
 
         do {
-            let data = try await productService.productReviews(slug: productSlug, page: page, perPage: perPage)
+            let data = try await productService.productReviews(slug: productSlug, page: requestedPage, perPage: perPage)
+            guard requestID == loadRequestID else { return }
             self.page = data.meta.page
             self.perPage = data.meta.perPage
             self.total = data.meta.total
@@ -55,20 +60,26 @@ final class ProductReviewsViewModel: ObservableObject {
             } else {
                 reviews.append(contentsOf: data.items)
             }
-            await loadMyReviewIfNeeded(orderService: orderService, isLoggedIn: isLoggedIn)
+            await loadMyReviewIfNeeded(orderService: orderService, isLoggedIn: isLoggedIn, requestID: requestID)
         } catch {
+            guard requestID == loadRequestID else { return }
             self.error = error.localizedDescription
             if replace {
                 reviews = []
                 total = 0
                 average = nil
             }
-            await loadMyReviewIfNeeded(orderService: orderService, isLoggedIn: isLoggedIn)
+            await loadMyReviewIfNeeded(orderService: orderService, isLoggedIn: isLoggedIn, requestID: requestID)
+        }
+
+        if requestID == loadRequestID {
+            isLoading = false
         }
     }
 
-    private func loadMyReviewIfNeeded(orderService: OrderServing, isLoggedIn: Bool) async {
+    private func loadMyReviewIfNeeded(orderService: OrderServing, isLoggedIn: Bool, requestID: Int) async {
         guard isLoggedIn else {
+            guard requestID == loadRequestID else { return }
             myReview = nil
             return
         }
@@ -76,6 +87,7 @@ final class ProductReviewsViewModel: ObservableObject {
 
         do {
             let orders = try await orderService.myOrders()
+            guard requestID == loadRequestID else { return }
             var candidates: [Review] = []
             for order in orders {
                 for item in order.items where item.productSku == productSku {
@@ -86,6 +98,7 @@ final class ProductReviewsViewModel: ObservableObject {
             }
             myReview = candidates.sorted(by: { $0.createdAt > $1.createdAt }).first
         } catch {
+            guard requestID == loadRequestID else { return }
             myReview = nil
         }
     }

@@ -25,7 +25,7 @@ struct TrainingsCatalogView: View {
         }
         .onChangeCompat(viewModel.selectedCategorySlug) { _ in
             viewModel.page = 1
-            Task { await viewModel.load() }
+            Task { await viewModel.load(force: true) }
         }
         .feedbackDialog(error: $viewModel.error)
     }

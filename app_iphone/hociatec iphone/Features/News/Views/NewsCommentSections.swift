@@ -47,7 +47,7 @@ struct NewsCommentsPaginationSection: View {
             HStack {
                 Button("Précédents") {
                     viewModel.previousCommentsPage()
-                    Task { await viewModel.loadComments() }
+                    Task { await viewModel.loadComments(force: true) }
                 }
                 .disabled(viewModel.commentsPage <= 1 || viewModel.isLoadingComments)
                 Spacer()
@@ -57,7 +57,7 @@ struct NewsCommentsPaginationSection: View {
                 Spacer()
                 Button("Suivants") {
                     viewModel.nextCommentsPage()
-                    Task { await viewModel.loadComments() }
+                    Task { await viewModel.loadComments(force: true) }
                 }
                 .disabled(viewModel.commentsPage >= viewModel.commentsTotalPages || viewModel.isLoadingComments)
             }
