@@ -35,12 +35,15 @@ extension APIClient {
     }
 
     func refreshAuthTokenIfPossible() async -> Bool {
-        guard let credentials = sessionStore.storedCredentials else {
-            return false
-        }
-
         do {
-            _ = try await login(email: credentials.email, password: credentials.password)
+            try await send(
+                path: "api/auth/refresh",
+                method: "POST",
+                authorized: false,
+                attachCartToken: false
+            )
+            sessionStore.jwtToken = authenticatedSessionMarker
+            sessionStore.csrfToken = nil
             return true
         } catch {
             sessionStore.clearSession()

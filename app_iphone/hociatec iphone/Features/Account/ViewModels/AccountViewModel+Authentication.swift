@@ -16,7 +16,7 @@ extension AccountViewModel {
 
         do {
             try await useCases.login.execute(email: email, password: password)
-            session.storeCredentials(email: email, password: password, rememberSession: rememberSession)
+            session.storeCredentials(email: email, rememberSession: rememberSession)
             let profile = try await useCases.loadProfile.execute()
             await applyAuthenticatedState(profile: profile)
         } catch let err {
