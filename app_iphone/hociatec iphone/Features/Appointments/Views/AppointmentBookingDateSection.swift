@@ -4,27 +4,43 @@ struct AppointmentBookingProgressSection: View {
     let step: AppointmentBookingViewModel.Step
 
     var body: some View {
-        Section {
-            HStack(spacing: 10) {
-                bookingStepPill(number: 1, title: "Prestation", isActive: step == .prestation, isCompleted: step.rawValue > 1)
-                bookingStepPill(number: 2, title: "Jour", isActive: step == .day, isCompleted: step.rawValue > 2)
-                bookingStepPill(number: 3, title: "Créneau", isActive: step == .slot, isCompleted: false)
+        Section("Réservation en 3 étapes") {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Choisissez d'abord la prestation, puis un jour disponible, puis l'horaire qui vous convient.")
+                    .foregroundStyle(.secondary)
+
+                Text(currentStepTitle)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.primary)
+
+                Text(currentStepDescription)
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.secondary)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, 4)
         }
     }
 
-    private func bookingStepPill(number: Int, title: String, isActive: Bool, isCompleted: Bool) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(isCompleted ? "✓" : "\(number)")
-                .font(.caption.weight(.bold))
-                .foregroundStyle(isActive || isCompleted ? .white : .primary)
-                .frame(width: 28, height: 28)
-                .background(Circle().fill(isActive ? Color.blue : (isCompleted ? Color.green : Color.gray.opacity(0.2))))
-            Text(title)
-                .font(.caption.weight(.semibold))
+    private var currentStepTitle: String {
+        switch step {
+        case .prestation:
+            return "Étape 1/3"
+        case .day:
+            return "Étape 2/3"
+        case .slot:
+            return "Étape 3/3"
         }
-        .padding(.vertical, 4)
+    }
+
+    private var currentStepDescription: String {
+        switch step {
+        case .prestation:
+            return "Choix de la prestation."
+        case .day:
+            return "Choix du jour de rendez-vous."
+        case .slot:
+            return "Choix du créneau horaire."
+        }
     }
 }
 

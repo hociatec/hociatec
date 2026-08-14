@@ -36,10 +36,13 @@ struct ClientDashboardView: View {
             await viewModel.load(force: true)
         }
         .refreshable { await viewModel.load(force: true) }
-        .confirmationDialog("Êtes-vous sûr de vouloir supprimer votre compte ?", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
+        .alert("Supprimer mon compte ?", isPresented: $showDeleteConfirmation) {
+            Button("Annuler", role: .cancel) {}
             Button("Supprimer mon compte", role: .destructive) {
                 Task { await account.deleteAccount() }
             }
+        } message: {
+            Text("Cette action est irréversible.")
         }
     }
 }

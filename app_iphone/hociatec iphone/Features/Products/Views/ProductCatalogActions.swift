@@ -3,6 +3,7 @@ import SwiftUI
 struct ProductCatalogActions: View {
     let product: Product
     let cart: CartViewModel
+    let addToCart: () -> Void
     @Environment(\.openURL) private var openURL
 
     var body: some View {
@@ -10,9 +11,7 @@ struct ProductCatalogActions: View {
             ProductAddToCartButton(
                 isLoading: cart.isLoading,
                 isDisabled: false
-            ) {
-                Task { await cart.add(product: product) }
-            }
+            ) { addToCart() }
 
             HStack(spacing: 12) {
                 Button {
