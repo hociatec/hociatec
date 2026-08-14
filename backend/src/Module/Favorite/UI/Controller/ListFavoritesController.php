@@ -6,7 +6,7 @@ namespace App\Module\Favorite\UI\Controller;
 
 use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Module\Favorite\Application\Workflow\FavoriteService;
-use App\Module\Favorite\Domain\Entity\Favorite;
+use App\Module\Favorite\UI\FavoriteViewFactory;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
@@ -22,7 +22,7 @@ class ListFavoritesController extends AbstractController
 {
     public function __construct(
         private readonly FavoriteService $favorites,
-        private readonly CatalogFormatter $catalogFormatter,
+        private readonly FavoriteViewFactory $views,
     ) {
     }
 
@@ -30,17 +30,15 @@ class ListFavoritesController extends AbstractController
     {
         $request ??= new Request();
         $pagination = RequestQueryMapper::pagination($request, 10, 50);
+        $category = RequestQueryMapper::choice($request, 'category', \App\Module\Favorite\Domain\Entity\Favorite::categories());
         /** @var User $user */
         $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
 
-        $items = array_map(
-            fn (Favorite $favorite) => [
-                'addedAt' => $favorite->getCreatedAt()->format(DATE_ATOM),
-                'product' => $this->catalogFormatter->formatProduct($favorite->getProduct()),
-            ],
-            $this->favorites->listForUser($user, $pagination->perPage, $pagination->offset()),
-        );
+        $items = array_values(array_filter(array_map(
+            $this->views->favorite(...),
+            $this->favorites->listForUser($user, $category, $pagination->perPage, $pagination->offset()),
+        )));
 
-        return ApiResponse::paginated($items, $pagination->metadata($this->favorites->countForUser($user)));
+        return ApiResponse::paginated($items, $pagination->metadata($this->favorites->countForUser($user, $category)));
     }
 }

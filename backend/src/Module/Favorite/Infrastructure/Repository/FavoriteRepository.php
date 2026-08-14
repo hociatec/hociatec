@@ -23,23 +23,37 @@ class FavoriteRepository extends ServiceEntityRepository implements FavoriteRepo
 
     public function findOneByUserAndProduct(User $user, Product $product): ?Favorite
     {
+        return $this->findOneByUserAndTarget($user, Favorite::CATEGORY_PRODUCT, $product->getId() ?? 0);
+    }
+
+    public function findOneByUserAndTarget(User $user, string $category, int $targetId): ?Favorite
+    {
         return $this->createQueryBuilder('f')
             ->andWhere('f.user = :user')
-            ->andWhere('f.product = :product')
+            ->andWhere('f.category = :category')
+            ->andWhere('f.targetId = :targetId')
             ->setParameter('user', $user)
-            ->setParameter('product', $product)
+            ->setParameter('category', Favorite::normalizeCategory($category))
+            ->setParameter('targetId', max(1, $targetId))
             ->getQuery()
             ->getOneOrNullResult();
     }
 
     public function existsForUserAndProduct(User $user, Product $product): bool
     {
+        return $this->existsForUserAndTarget($user, Favorite::CATEGORY_PRODUCT, $product->getId() ?? 0);
+    }
+
+    public function existsForUserAndTarget(User $user, string $category, int $targetId): bool
+    {
         return (bool) $this->createQueryBuilder('f')
             ->select('1')
             ->andWhere('f.user = :user')
-            ->andWhere('f.product = :product')
+            ->andWhere('f.category = :category')
+            ->andWhere('f.targetId = :targetId')
             ->setParameter('user', $user)
-            ->setParameter('product', $product)
+            ->setParameter('category', Favorite::normalizeCategory($category))
+            ->setParameter('targetId', max(1, $targetId))
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
@@ -48,28 +62,37 @@ class FavoriteRepository extends ServiceEntityRepository implements FavoriteRepo
     /**
      * @return list<Favorite>
      */
-    public function findFavoritesForUser(User $user, int $limit = 20, int $offset = 0): array
+    public function findFavoritesForUser(User $user, ?string $category = null, int $limit = 20, int $offset = 0): array
     {
-        return $this->createQueryBuilder('f')
-            ->addSelect('p', 'c')
-            ->join('f.product', 'p')
-            ->join('p.category', 'c')
+        $qb = $this->createQueryBuilder('f')
             ->andWhere('f.user = :user')
             ->setParameter('user', $user)
             ->orderBy('f.createdAt', 'DESC')
             ->setFirstResult(max(0, $offset))
-            ->setMaxResults(max(1, min(100, $limit)))
-            ->getQuery()
-            ->getResult();
+            ->setMaxResults(max(1, min(100, $limit)));
+
+        if (null !== $category) {
+            $qb
+                ->andWhere('f.category = :category')
+                ->setParameter('category', Favorite::normalizeCategory($category));
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
-    public function countFavoritesForUser(User $user): int
+    public function countFavoritesForUser(User $user, ?string $category = null): int
     {
-        return (int) $this->createQueryBuilder('f')
+        $qb = $this->createQueryBuilder('f')
             ->select('COUNT(f.id)')
             ->andWhere('f.user = :user')
-            ->setParameter('user', $user)
-            ->getQuery()
-            ->getSingleScalarResult();
+            ->setParameter('user', $user);
+
+        if (null !== $category) {
+            $qb
+                ->andWhere('f.category = :category')
+                ->setParameter('category', Favorite::normalizeCategory($category));
+        }
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
     }
 }

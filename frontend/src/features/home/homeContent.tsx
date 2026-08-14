@@ -3,6 +3,7 @@ import { ArrowRight } from 'lucide-react';
 
 import { formatEuroCents, formatOptionalFrenchDate } from '@/shared/lib/formatters';
 import { resolvePublicAssetUrl } from '@/shared/lib/publicAssetUrl';
+import { FavoriteToggleButton } from '@/features/favorites/publicApi';
 import type { NewsArticleDto } from '@/features/news/publicApi';
 import { formatServiceBillingMode } from '@/features/quotes/publicApi';
 import { resolveServiceIllustration } from '@/features/quotes/publicApi';
@@ -59,11 +60,14 @@ export const HomeNewsCard = ({ article }: { article: NewsArticleDto }) => (
       </time>
       {article.category ? <span>{article.category}</span> : null}
     </div>
-    <h3>
-      <Link to={`/actualites/${article.slug}`} prefetch="intent">
-        {article.title}
-      </Link>
-    </h3>
+    <div className="flex items-start justify-between gap-3">
+      <h3>
+        <Link to={`/actualites/${article.slug}`} prefetch="intent">
+          {article.title}
+        </Link>
+      </h3>
+      <FavoriteToggleButton category="news" targetId={article.id} />
+    </div>
     <p>{article.excerpt}</p>
     <Link
       to={`/actualites/${article.slug}`}
@@ -104,11 +108,14 @@ export const HomeFeaturedServiceCard = ({ service }: { service: QuoteServiceDto 
         )}
       </div>
       <div className="home-service-card__body">
-        <h3 className="home-service-card__title">
-          <Link to={`/services/${service.id}`} prefetch="intent">
-            {service.title}
-          </Link>
-        </h3>
+        <div className="flex items-start justify-between gap-3">
+          <h3 className="home-service-card__title">
+            <Link to={`/services/${service.id}`} prefetch="intent">
+              {service.title}
+            </Link>
+          </h3>
+          <FavoriteToggleButton category="service" targetId={service.id} />
+        </div>
         <p className="home-service-card__description">{getFirstSentence(service.description)}</p>
         <div className="home-service-card__facts" aria-label={`Informations clés pour ${service.title}`}>
           <p className="home-service-card__fact">

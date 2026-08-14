@@ -19,9 +19,10 @@ protocol ProductServing: AssetServing {
 }
 
 protocol FavoritesServing {
-    func listFavorites() async throws -> [FavoriteEntry]
-    func addFavorite(productId: Int) async throws -> AddFavoriteResponse
-    func removeFavorite(productId: Int) async throws -> Bool
+    func listFavorites(category: FavoriteCategory?) async throws -> [FavoriteEntry]
+    func addFavorite(category: FavoriteCategory, targetId: Int) async throws -> AddFavoriteResponse
+    func removeFavorite(category: FavoriteCategory, targetId: Int) async throws -> Bool
+    func favoriteStatus(category: FavoriteCategory, targetId: Int) async throws -> FavoriteStatusResponse
 }
 
 protocol OrderServing {

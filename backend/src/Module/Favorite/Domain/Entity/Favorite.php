@@ -10,9 +10,13 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'user_favorites')]
-#[ORM\UniqueConstraint(name: 'UNIQ_5EDCA47EA76ED3954584665A', columns: ['user_id', 'product_id'])]
 class Favorite
 {
+    public const CATEGORY_PRODUCT = 'product';
+    public const CATEGORY_SERVICE = 'service';
+    public const CATEGORY_NEWS = 'news';
+    public const CATEGORY_PODCAST = 'podcast';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -22,18 +26,49 @@ class Favorite
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private User $user;
 
-    #[ORM\ManyToOne(targetEntity: Product::class)]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
-    private Product $product;
+    #[ORM\Column(length: 32)]
+    private string $category;
+
+    #[ORM\Column]
+    private int $targetId;
 
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
-    public function __construct(User $user, Product $product)
+    private ?Product $legacyProduct = null;
+
+    public function __construct(User $user, string|Product $category, ?int $targetId = null)
     {
         $this->user = $user;
-        $this->product = $product;
+        if ($category instanceof Product) {
+            $this->legacyProduct = $category;
+            $this->category = self::CATEGORY_PRODUCT;
+            $this->targetId = max(0, $category->getId() ?? 0);
+        } else {
+            $this->category = self::normalizeCategory($category);
+            $this->targetId = max(1, $targetId ?? 0);
+        }
         $this->createdAt = new \DateTimeImmutable();
+    }
+
+    /** @return list<string> */
+    public static function categories(): array
+    {
+        return [
+            self::CATEGORY_PRODUCT,
+            self::CATEGORY_SERVICE,
+            self::CATEGORY_NEWS,
+            self::CATEGORY_PODCAST,
+        ];
+    }
+
+    public static function normalizeCategory(string $category): string
+    {
+        $normalized = trim(mb_strtolower($category));
+
+        return in_array($normalized, self::categories(), true)
+            ? $normalized
+            : self::CATEGORY_PRODUCT;
     }
 
     public function getId(): ?int
@@ -46,9 +81,19 @@ class Favorite
         return $this->user;
     }
 
-    public function getProduct(): Product
+    public function getCategory(): string
     {
-        return $this->product;
+        return $this->category;
+    }
+
+    public function getTargetId(): int
+    {
+        return $this->targetId;
+    }
+
+    public function getProduct(): ?Product
+    {
+        return $this->legacyProduct;
     }
 
     public function getCreatedAt(): \DateTimeImmutable

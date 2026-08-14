@@ -3,9 +3,10 @@ import Combine
 
 @MainActor
 final class FavoritesViewModel: ObservableObject {
-    @Published var items: [Product] = []
+    @Published var items: [FavoriteEntry] = []
     @Published var isLoading = false
     @Published var error: String?
+    @Published var selectedCategory: FavoriteCategory?
 
     private let service: FavoritesServing
     private var loadRequestID = 0
@@ -21,9 +22,9 @@ final class FavoritesViewModel: ObservableObject {
         isLoading = true
         error = nil
         do {
-            let favs = try await service.listFavorites()
+            let favs = try await service.listFavorites(category: selectedCategory)
             guard requestID == loadRequestID else { return }
-            items = favs.map { $0.product }
+            items = favs
         } catch {
             guard requestID == loadRequestID else { return }
             self.error = error.localizedDescription
@@ -33,18 +34,23 @@ final class FavoritesViewModel: ObservableObject {
         }
     }
 
-    func add(product: Product) async {
+    func setCategory(_ category: FavoriteCategory?) async {
+        selectedCategory = category
+        await load(force: true)
+    }
+
+    func add(category: FavoriteCategory, targetId: Int) async {
         do {
-            _ = try await service.addFavorite(productId: product.id)
+            _ = try await service.addFavorite(category: category, targetId: targetId)
             await load(force: true)
         } catch {
             self.error = error.localizedDescription
         }
     }
 
-    func remove(product: Product) async {
+    func remove(category: FavoriteCategory, targetId: Int) async {
         do {
-            _ = try await service.removeFavorite(productId: product.id)
+            _ = try await service.removeFavorite(category: category, targetId: targetId)
             await load(force: true)
         } catch {
             self.error = error.localizedDescription

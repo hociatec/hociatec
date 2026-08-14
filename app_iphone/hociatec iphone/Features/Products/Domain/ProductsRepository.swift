@@ -12,7 +12,7 @@ protocol ProductsRepository {
     func fetchCategories() async throws -> [CategorySummary]
     func fetchProduct(slug: String) async throws -> Product
     func fetchReviews(slug: String, page: Int, perPage: Int) async throws -> ReviewListData
-    func fetchFavorites() async throws -> [FavoriteEntry]
+    func fetchFavoriteStatus(productId: Int) async throws -> Bool
     func addFavorite(productId: Int) async throws
     func removeFavorite(productId: Int) async throws
 }

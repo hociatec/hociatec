@@ -36,15 +36,15 @@ struct ProductsRepositoryLive: ProductsRepository {
         try await productsService.productReviews(slug: slug, page: page, perPage: perPage)
     }
 
-    func fetchFavorites() async throws -> [FavoriteEntry] {
-        try await favoritesService.listFavorites()
+    func fetchFavoriteStatus(productId: Int) async throws -> Bool {
+        try await favoritesService.favoriteStatus(category: .product, targetId: productId).isFavorite
     }
 
     func addFavorite(productId: Int) async throws {
-        _ = try await favoritesService.addFavorite(productId: productId)
+        _ = try await favoritesService.addFavorite(category: .product, targetId: productId)
     }
 
     func removeFavorite(productId: Int) async throws {
-        _ = try await favoritesService.removeFavorite(productId: productId)
+        _ = try await favoritesService.removeFavorite(category: .product, targetId: productId)
     }
 }

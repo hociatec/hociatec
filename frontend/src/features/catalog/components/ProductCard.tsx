@@ -5,6 +5,7 @@ import { Link } from 'react-router';
 import { Image as ImageIcon } from 'lucide-react';
 
 import { formatEuroCents } from '@/shared/lib/formatters';
+import { FavoriteToggleButton } from '@/features/favorites/publicApi';
 import type { CatalogProduct } from '../api';
 import { getCatalogProductDisplayName } from '../utils/productDisplay';
 import { resolveDisplayPriceCents } from '../utils/productPageDisplay';
@@ -59,6 +60,7 @@ export const ProductCard = ({ product, actionSlot }: ProductCardProps) => {
               {productDisplayName}
             </Link>
           </h3>
+          <FavoriteToggleButton category="product" targetId={product.id} />
         </header>
         <div className="catalog-product-card__facts" aria-label={`Informations clés pour ${productDisplayName}`}>
           <p className="catalog-product-card__fact">

@@ -30,17 +30,21 @@ struct HomeNewsSection: View {
                         }
                         .accessibilityHidden(true)
 
-                        NavigationLink {
-                            NewsDetailView(api: container.services.news, slug: article.slug)
-                        } label: {
-                            Text(article.title)
-                                .fontWeight(.semibold)
-                                .multilineTextAlignment(.leading)
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                        HStack(alignment: .top, spacing: 12) {
+                            NavigationLink {
+                                NewsDetailView(api: container.services.news, slug: article.slug)
+                            } label: {
+                                Text(article.title)
+                                    .fontWeight(.semibold)
+                                    .multilineTextAlignment(.leading)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityAddTraits(.isHeader)
+                            .accessibilityHint("Ouvrir l’actualité")
+
+                            FavoriteToggleButton(category: .news, targetId: article.id)
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityAddTraits(.isHeader)
-                        .accessibilityHint("Ouvrir l’actualité")
 
                         Text(article.excerpt)
                             .lineLimit(3)

@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace App\Module\Favorite\UI\Controller;
 
 use App\Module\Catalog\Application\Port\ProductRepositoryPort;
-use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Module\Favorite\Application\Workflow\FavoriteService;
+use App\Module\Favorite\Domain\Entity\Favorite;
+use App\Module\Favorite\UI\FavoriteViewFactory;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,7 +23,7 @@ class AddFavoriteController extends AbstractController
     public function __construct(
         private readonly ProductRepositoryPort $products,
         private readonly FavoriteService $favorites,
-        private readonly CatalogFormatter $catalogFormatter,
+        private readonly FavoriteViewFactory $views,
     ) {
     }
 
@@ -37,13 +38,10 @@ class AddFavoriteController extends AbstractController
         /** @var User $user */
         $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
 
-        ['favorite' => $favorite, 'created' => $created] = $this->favorites->addProduct($user, $product);
+        ['favorite' => $favorite, 'created' => $created] = $this->favorites->add($user, Favorite::CATEGORY_PRODUCT, $productId);
 
         $payload = [
-            'favorite' => [
-                'product' => $this->catalogFormatter->formatProduct($favorite->getProduct()),
-                'addedAt' => $favorite->getCreatedAt()->format(DATE_ATOM),
-            ],
+            'favorite' => $this->views->favorite($favorite),
             'alreadyFavorite' => false === $created,
         ];
 

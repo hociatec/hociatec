@@ -15,16 +15,20 @@ struct HomeServicesSection: View {
             } else {
                 ForEach(home.services.prefix(6)) { service in
                     VStack(alignment: .leading, spacing: 6) {
-                        NavigationLink {
-                            ServiceDetailView(api: container.services.serviceCatalog, serviceID: service.id)
-                        } label: {
-                            Text(service.title)
-                                .fontWeight(.semibold)
-                                .multilineTextAlignment(.leading)
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                        HStack(alignment: .top, spacing: 12) {
+                            NavigationLink {
+                                ServiceDetailView(api: container.services.serviceCatalog, serviceID: service.id)
+                            } label: {
+                                Text(service.title)
+                                    .fontWeight(.semibold)
+                                    .multilineTextAlignment(.leading)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityAddTraits(.isHeader)
+
+                            FavoriteToggleButton(category: .service, targetId: service.id)
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityAddTraits(.isHeader)
 
                         if let description = service.description, !description.isEmpty {
                             Text(description)

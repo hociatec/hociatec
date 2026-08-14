@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Module\Favorite\UI\Controller;
 
-use App\Module\Catalog\Application\Port\ProductRepositoryPort;
 use App\Module\Favorite\Application\Workflow\FavoriteService;
 use App\Module\Favorite\Domain\Entity\Favorite;
 use App\Module\User\Domain\Entity\User;
@@ -14,26 +13,24 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/api/favorites/{productId}', name: 'api_favorites_remove', methods: ['DELETE'])]
+#[Route('/api/favorites/{category}/{targetId}/status', name: 'api_favorites_status', methods: ['GET'])]
 #[IsGranted('ROLE_USER')]
-class RemoveFavoriteController extends AbstractController
+final class FavoriteStatusController extends AbstractController
 {
     public function __construct(
-        private readonly ProductRepositoryPort $products,
         private readonly FavoriteService $favorites,
     ) {
     }
 
-    public function __invoke(int $productId): JsonResponse
+    public function __invoke(string $category, int $targetId): JsonResponse
     {
         /** @var User $user */
         $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
-        $product = $this->products->find($productId);
 
-        if (null !== $product) {
-            $this->favorites->remove($user, Favorite::CATEGORY_PRODUCT, $productId);
-        }
-
-        return ApiResponse::successItem('removed', true);
+        return ApiResponse::success([
+            'category' => Favorite::normalizeCategory($category),
+            'targetId' => $targetId,
+            'isFavorite' => $this->favorites->isFavorite($user, $category, $targetId),
+        ]);
     }
 }

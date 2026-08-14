@@ -66,8 +66,7 @@ struct LoadProductFavoriteStatusUseCase {
     let repository: ProductsRepository
 
     func execute(productId: Int) async throws -> Bool {
-        let favorites = try await repository.fetchFavorites()
-        return favorites.contains { $0.product.id == productId }
+        try await repository.fetchFavoriteStatus(productId: productId)
     }
 }
 
