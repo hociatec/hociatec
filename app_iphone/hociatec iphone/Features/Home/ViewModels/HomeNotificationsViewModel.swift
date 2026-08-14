@@ -12,6 +12,7 @@ final class HomeNotificationsViewModel: ObservableObject {
     @Published var loadError: String?
 
     private let workspaceService: WorkspaceServing
+    private var hasLoadedOnce = false
 
     init(workspaceService: WorkspaceServing) {
         self.workspaceService = workspaceService
@@ -22,11 +23,12 @@ final class HomeNotificationsViewModel: ObservableObject {
             unreadCount = 0
             isLoading = false
             isOpen = false
+            hasLoadedOnce = false
             loadError = nil
             return
         }
 
-        if isLoading && !force {
+        if (isLoading || hasLoadedOnce) && !force {
             return
         }
 
@@ -43,6 +45,7 @@ final class HomeNotificationsViewModel: ObservableObject {
             self.notifications = notifications
             self.dismissedKeys = Set(readState.dismissedKeys)
             self.seenKeys = Set(readState.seenKeys)
+            hasLoadedOnce = true
             recalculateUnreadCount()
         } catch {
             loadError = "Impossible de charger les notifications pour le moment."
@@ -64,7 +67,7 @@ final class HomeNotificationsViewModel: ObservableObject {
         guard open != isOpen else { return }
 
         if open {
-            await loadIfNeeded(isLoggedIn: isLoggedIn, force: true)
+            await loadIfNeeded(isLoggedIn: isLoggedIn)
             isOpen = true
             await markVisibleNotificationsAsSeen()
             return

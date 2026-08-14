@@ -29,9 +29,7 @@ struct HomeNotificationsShortcutSection: View {
                             .padding(.top, 8)
                     } label: {
                         Label(
-                            viewModel.isLoading
-                                ? "Notifications (...)"
-                                : "Notifications (\(viewModel.unreadCount))",
+                            "Notifications (\(viewModel.unreadCount))",
                             systemImage: "bell.badge"
                         )
                         .fontWeight(.semibold)
@@ -56,10 +54,7 @@ struct HomeNotificationsShortcutSection: View {
 
     @ViewBuilder
     private var notificationsContent: some View {
-        if viewModel.isLoading && viewModel.visibleNotifications.isEmpty {
-            ProgressView("Chargement...")
-                .frame(maxWidth: .infinity, alignment: .center)
-        } else if let loadError = viewModel.loadError, viewModel.visibleNotifications.isEmpty {
+        if let loadError = viewModel.loadError, viewModel.visibleNotifications.isEmpty {
             Text(loadError)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
