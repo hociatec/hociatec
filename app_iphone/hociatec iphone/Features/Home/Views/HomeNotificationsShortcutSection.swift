@@ -52,10 +52,20 @@ struct HomeNotificationsShortcutSection: View {
         if viewModel.isLoading && viewModel.visibleNotifications.isEmpty {
             ProgressView("Chargement...")
                 .frame(maxWidth: .infinity, alignment: .center)
+        } else if let loadError = viewModel.loadError, viewModel.visibleNotifications.isEmpty {
+            Text(loadError)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
         } else if viewModel.visibleNotifications.isEmpty {
             Text("Aucune notification prioritaire.")
                 .foregroundStyle(.secondary)
         } else {
+            if let loadError = viewModel.loadError {
+                Text(loadError)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
             if viewModel.visibleNotifications.count > 1 {
                 Button("Tout supprimer", role: .destructive) {
                     Task { await viewModel.dismissAll() }

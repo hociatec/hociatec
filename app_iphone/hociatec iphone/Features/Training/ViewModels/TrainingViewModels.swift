@@ -14,6 +14,8 @@ final class TrainingsCatalogViewModel: ObservableObject {
     @Published var error: String?
 
     private let service: TrainingServing
+    private var categoriesRequestID = 0
+    private var loadRequestID = 0
 
     init(service: TrainingServing) {
         self.service = service
@@ -29,9 +31,14 @@ final class TrainingsCatalogViewModel: ObservableObject {
 
     func loadCategoriesIfNeeded() async {
         guard categories.isEmpty else { return }
+        categoriesRequestID += 1
+        let requestID = categoriesRequestID
         do {
-            categories = try await service.trainingCategories().filter(\.isActive)
+            let loadedCategories = try await service.trainingCategories().filter(\.isActive)
+            guard requestID == categoriesRequestID else { return }
+            categories = loadedCategories
         } catch {
+            guard requestID == categoriesRequestID else { return }
             if self.error == nil {
                 self.error = error.localizedDescription
             }
@@ -40,16 +47,23 @@ final class TrainingsCatalogViewModel: ObservableObject {
 
     func load() async {
         guard !isLoading else { return }
+        loadRequestID += 1
+        let requestID = loadRequestID
         isLoading = true
         error = nil
-        defer { isLoading = false }
 
         do {
             let data = try await service.trainings(page: page, perPage: 8, query: appliedSearch.isEmpty ? nil : appliedSearch, category: selectedCategorySlug.isEmpty ? nil : selectedCategorySlug)
+            guard requestID == loadRequestID else { return }
             trainings = data.items
             totalPages = max(1, data.meta.totalPages)
         } catch {
+            guard requestID == loadRequestID else { return }
             self.error = error.localizedDescription
+        }
+
+        if requestID == loadRequestID {
+            isLoading = false
         }
     }
 }
@@ -65,6 +79,7 @@ final class TrainingDetailViewModel: ObservableObject {
 
     private let service: TrainingServing
     private let slug: String
+    private var loadRequestID = 0
 
     init(service: TrainingServing, slug: String) {
         self.service = service
@@ -73,17 +88,24 @@ final class TrainingDetailViewModel: ObservableObject {
 
     func load() async {
         guard !isLoading else { return }
+        loadRequestID += 1
+        let requestID = loadRequestID
         isLoading = true
         error = nil
         statusMessage = nil
-        defer { isLoading = false }
 
         do {
             let data = try await service.training(slug: slug)
+            guard requestID == loadRequestID else { return }
             training = data.training
             sessions = data.sessions
         } catch {
+            guard requestID == loadRequestID else { return }
             self.error = error.localizedDescription
+        }
+
+        if requestID == loadRequestID {
+            isLoading = false
         }
     }
 

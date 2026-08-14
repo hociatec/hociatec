@@ -9,6 +9,7 @@ final class HomeNotificationsViewModel: ObservableObject {
     @Published var notifications: [AccountNotificationItem] = []
     @Published var seenKeys: Set<String> = []
     @Published var dismissedKeys: Set<String> = []
+    @Published var loadError: String?
 
     private let workspaceService: WorkspaceServing
 
@@ -20,6 +21,7 @@ final class HomeNotificationsViewModel: ObservableObject {
         guard isLoggedIn else {
             unreadCount = 0
             isLoading = false
+            loadError = nil
             return
         }
 
@@ -28,6 +30,7 @@ final class HomeNotificationsViewModel: ObservableObject {
         }
 
         isLoading = true
+        loadError = nil
         defer { isLoading = false }
 
         do {
@@ -41,7 +44,7 @@ final class HomeNotificationsViewModel: ObservableObject {
             self.seenKeys = Set(readState.seenKeys)
             recalculateUnreadCount()
         } catch {
-            unreadCount = 0
+            loadError = "Impossible de charger les notifications pour le moment."
         }
     }
 
@@ -88,6 +91,7 @@ final class HomeNotificationsViewModel: ObservableObject {
             dismissedKeys = previousDismissed
             seenKeys = previousSeen
             recalculateUnreadCount()
+            loadError = "Impossible de supprimer les notifications pour le moment."
         }
     }
 
@@ -108,6 +112,7 @@ final class HomeNotificationsViewModel: ObservableObject {
             dismissedKeys = previousDismissed
             seenKeys = previousSeen
             recalculateUnreadCount()
+            loadError = "Impossible de mettre à jour cette notification pour le moment."
         }
     }
 
