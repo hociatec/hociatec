@@ -49,14 +49,18 @@ jobs:
       - name: Resolve test simulator
         id: simulator
         run: |
-          SIMULATOR_UDID="$(xcrun simctl list devices available | awk -F '[()]' '
-            /iPhone 16 Pro/ { print $2; exit }
-            /iPhone 16/ { print $2; exit }
-            /iPhone 15 Pro/ { print $2; exit }
-            /iPhone 15/ { print $2; exit }
-            /iPhone/ && fallback == "" { fallback = $2 }
-            END { if (fallback != "") { print fallback } }
-          ')"
+          SIMULATOR_UDID=""
+
+          for DEVICE_NAME in "iPhone 16 Pro" "iPhone 16" "iPhone 15 Pro" "iPhone 15"; do
+            SIMULATOR_UDID="$(xcrun simctl list devices available | sed -nE "s/.*${DEVICE_NAME}.*\\(([A-F0-9-]+)\\).*/\\1/p" | head -n 1)"
+            if [ -n "${SIMULATOR_UDID}" ]; then
+              break
+            fi
+          done
+
+          if [ -z "${SIMULATOR_UDID}" ]; then
+            SIMULATOR_UDID="$(xcrun simctl list devices available | sed -nE 's/.*iPhone.*\(([A-F0-9-]+)\).*/\1/p' | head -n 1)"
+          fi
 
           if [ -z "${SIMULATOR_UDID}" ]; then
             echo "Impossible de trouver un simulateur iPhone disponible sur le runner." >&2

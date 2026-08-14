@@ -11,6 +11,7 @@ final class OrdersViewModel: ObservableObject {
     private let service: OrderServing
     private var loadRequestID = 0
     private var detailRequestID = 0
+    private var cancelRequestID = 0
 
     init(service: OrderServing) {
         self.service = service
@@ -26,7 +27,7 @@ final class OrdersViewModel: ObservableObject {
         do {
             let loadedOrders = try await service.myOrders()
             guard requestID == loadRequestID else { return }
-            orders = loadedOrders
+            applyOrders(loadedOrders)
         } catch let err {
             guard requestID == loadRequestID else { return }
             self.error = err.localizedDescription
@@ -39,17 +40,20 @@ final class OrdersViewModel: ObservableObject {
 
     func cancel(order: OrderSummary) async -> OrderSummary? {
         guard order.status == "pending" else { return nil }
+        cancelRequestID += 1
+        let requestID = cancelRequestID
         cancellingOrderID = order.id
-        defer { cancellingOrderID = nil }
 
         do {
             let updated = try await service.cancelOrder(id: order.id)
-            if let index = orders.firstIndex(where: { $0.id == updated.id }) {
-                orders[index] = updated
-            }
+            guard requestID == cancelRequestID else { return nil }
+            applyOrderUpdate(updated)
+            cancellingOrderID = nil
             return updated
         } catch let err {
+            guard requestID == cancelRequestID else { return nil }
             self.error = err.localizedDescription
+            cancellingOrderID = nil
             return nil
         }
     }
@@ -60,14 +64,22 @@ final class OrdersViewModel: ObservableObject {
         do {
             let detail = try await service.order(id: id)
             guard requestID == detailRequestID else { return nil }
-            if let idx = orders.firstIndex(where: { $0.id == detail.id }) {
-                orders[idx] = detail
-            }
+            applyOrderUpdate(detail)
             return detail
         } catch let err {
             guard requestID == detailRequestID else { return nil }
             self.error = err.localizedDescription
             return nil
+        }
+    }
+
+    private func applyOrders(_ loadedOrders: [OrderSummary]) {
+        orders = loadedOrders
+    }
+
+    private func applyOrderUpdate(_ updated: OrderSummary) {
+        if let index = orders.firstIndex(where: { $0.id == updated.id }) {
+            orders[index] = updated
         }
     }
 }

@@ -11,6 +11,7 @@ final class OrderDetailViewModel: ObservableObject {
     private let service: OrderServing
     private let orderId: Int
     private var loadRequestID = 0
+    private var cancelRequestID = 0
 
     init(service: OrderServing, orderId: Int) {
         self.service = service
@@ -27,7 +28,7 @@ final class OrderDetailViewModel: ObservableObject {
         do {
             let loadedOrder = try await service.order(id: orderId)
             guard requestID == loadRequestID else { return }
-            order = loadedOrder
+            apply(order: loadedOrder)
         } catch {
             guard requestID == loadRequestID else { return }
             self.error = error.localizedDescription
@@ -42,22 +43,32 @@ final class OrderDetailViewModel: ObservableObject {
     func cancel() async {
         guard let order else { return }
 
+        cancelRequestID += 1
+        let requestID = cancelRequestID
         isLoading = true
         error = nil
         statusMessage = nil
-        defer { isLoading = false }
 
         do {
-            self.order = try await service.cancelOrder(id: order.id)
+            let updatedOrder = try await service.cancelOrder(id: order.id)
+            guard requestID == cancelRequestID else { return }
+            apply(order: updatedOrder)
             statusMessage = "Commande annulée."
+            isLoading = false
 #if canImport(UIKit)
             UINotificationFeedbackGenerator().notificationOccurred(.success)
 #endif
         } catch {
+            guard requestID == cancelRequestID else { return }
             self.error = error.localizedDescription
+            isLoading = false
 #if canImport(UIKit)
             UINotificationFeedbackGenerator().notificationOccurred(.error)
 #endif
         }
+    }
+
+    private func apply(order: OrderSummary) {
+        self.order = order
     }
 }

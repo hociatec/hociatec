@@ -17,7 +17,6 @@ final class AccountViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var error: String?
     @Published var statusMessage: String?
-    @Published var globalDialog: FeedbackDialogState?
     @Published var profile: UserProfile?
 
     @Published var firstName: String = ""
@@ -35,14 +34,16 @@ final class AccountViewModel: ObservableObject {
 
     let useCases: AccountUseCases
     let session: SessionStore
+    let feedbackCenter: AppFeedbackCenter
     var cancellables = Set<AnyCancellable>()
     var profileRequestID = 0
     var addressesRequestID = 0
     var addressMutationRequestID = 0
 
-    init(useCases: AccountUseCases, session: SessionStore) {
+    init(useCases: AccountUseCases, session: SessionStore, feedbackCenter: AppFeedbackCenter) {
         self.useCases = useCases
         self.session = session
+        self.feedbackCenter = feedbackCenter
         self.isLoggedIn = session.jwtToken != nil
         self.rememberSession = session.rememberSession
         self.profile = session.profile
@@ -63,5 +64,15 @@ final class AccountViewModel: ObservableObject {
             self.addresses = []
         }
         bindSession()
+    }
+
+    var canAttemptSessionRecovery: Bool {
+        isLoggedIn || rememberSession || session.profile != nil
+    }
+
+    func loadAuthenticatedProfile(requestID: Int) async throws {
+        let profile = try await useCases.loadProfile.execute()
+        guard requestID == profileRequestID else { return }
+        await applyAuthenticatedState(profile: profile, requestID: requestID)
     }
 }

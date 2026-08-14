@@ -10,6 +10,8 @@ final class MyAppointmentsViewModel: ObservableObject {
     @Published var successMessage: String? = nil
 
     private let service: AppointmentServing
+    private var loadRequestID = 0
+    private var mutationRequestID = 0
 
     init(service: AppointmentServing) {
         self.service = service
@@ -17,37 +19,51 @@ final class MyAppointmentsViewModel: ObservableObject {
 
     func load(force: Bool = false) async {
         if isLoading && !force { return }
+        loadRequestID += 1
+        let requestID = loadRequestID
         isLoading = true
         error = nil
 
         do {
             let list = try await service.myAppointments()
-            upcoming = list.upcoming
-            past = list.past
+            guard requestID == loadRequestID else { return }
+            apply(list: list)
         } catch let err {
+            guard requestID == loadRequestID else { return }
             self.error = err.localizedDescription
         }
 
-        isLoading = false
+        if requestID == loadRequestID {
+            isLoading = false
+        }
     }
 
     func cancel(appointmentID: Int) async -> Bool {
         guard !isLoading else { return false }
+        mutationRequestID += 1
+        let requestID = mutationRequestID
         isLoading = true
         error = nil
         successMessage = nil
-        defer { isLoading = false }
         do {
             try await service.cancelAppointment(id: appointmentID)
             let list = try await service.myAppointments()
-            upcoming = list.upcoming
-            past = list.past
+            guard requestID == mutationRequestID else { return false }
+            apply(list: list)
             successMessage = "Rendez-vous annulé."
+            isLoading = false
             return true
         } catch {
+            guard requestID == mutationRequestID else { return false }
             self.error = error.localizedDescription
+            isLoading = false
             return false
         }
+    }
+
+    private func apply(list: AppointmentListData) {
+        upcoming = list.upcoming
+        past = list.past
     }
 
     var upcomingFiltered: [AppointmentSummary] {

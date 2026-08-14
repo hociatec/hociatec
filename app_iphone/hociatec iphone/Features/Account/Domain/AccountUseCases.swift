@@ -4,6 +4,7 @@ struct AccountUseCases {
     let login: LoginUseCase
     let logout: LogoutUseCase
     let loadProfile: LoadAccountProfileUseCase
+    let restoreProfile: RestoreAccountProfileUseCase
     let updateProfile: UpdateAccountProfileUseCase
     let deleteAccount: DeleteAccountUseCase
     let register: RegisterAccountUseCase

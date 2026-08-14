@@ -49,7 +49,7 @@ extension AccountViewModel {
         profile = nil
         error = nil
         statusMessage = nil
-        globalDialog = nil
+        feedbackCenter.clear()
         password = ""
         firstName = ""
         lastName = ""

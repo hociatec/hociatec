@@ -15,6 +15,10 @@ struct AccountRepositoryLive: AccountRepository {
         try await service.profile()
     }
 
+    func restoreProfileIfPossible() async throws -> UserProfile? {
+        try await service.restoreAuthenticatedProfileIfPossible()
+    }
+
     func updateProfile(
         firstName: String,
         lastName: String,

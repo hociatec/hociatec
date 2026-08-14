@@ -4,6 +4,7 @@ protocol AccountRepository {
     func login(email: String, password: String) async throws
     func logout() async
     func fetchProfile() async throws -> UserProfile
+    func restoreProfileIfPossible() async throws -> UserProfile?
     func updateProfile(
         firstName: String,
         lastName: String,

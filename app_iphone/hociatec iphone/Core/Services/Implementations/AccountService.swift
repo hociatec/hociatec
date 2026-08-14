@@ -4,6 +4,7 @@ struct AccountService: AccountServing {
     let api: APIClient
 
     func profile() async throws -> UserProfile { try await api.profile() }
+    func restoreAuthenticatedProfileIfPossible() async throws -> UserProfile? { try await api.restoreAuthenticatedProfileIfPossible() }
     func login(email: String, password: String) async throws -> String { try await api.login(email: email, password: password) }
     func logout() async { await api.logout() }
 

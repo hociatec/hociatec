@@ -6,6 +6,7 @@ import Foundation
 final class AppContainer: ObservableObject {
     let objectWillChange = ObservableObjectPublisher()
     let session: SessionStore
+    let feedbackCenter: AppFeedbackCenter
     let services: AppServices
     let cart: CartViewModel
     let account: AccountViewModel
@@ -16,6 +17,8 @@ final class AppContainer: ObservableObject {
     init() {
         let session = SessionStore()
         self.session = session
+        let feedbackCenter = AppFeedbackCenter()
+        self.feedbackCenter = feedbackCenter
         let apiClient = APIClient(sessionStore: session)
         let services = AppServices(apiClient: apiClient)
         self.services = services
@@ -25,6 +28,7 @@ final class AppContainer: ObservableObject {
             login: LoginUseCase(repository: accountRepository),
             logout: LogoutUseCase(repository: accountRepository),
             loadProfile: LoadAccountProfileUseCase(repository: accountRepository),
+            restoreProfile: RestoreAccountProfileUseCase(repository: accountRepository),
             updateProfile: UpdateAccountProfileUseCase(repository: accountRepository),
             deleteAccount: DeleteAccountUseCase(repository: accountRepository),
             register: RegisterAccountUseCase(repository: accountRepository),
@@ -65,9 +69,13 @@ final class AppContainer: ObservableObject {
         )
         self.quotesUseCases = quotesUseCases
 
-        let cartVM = CartViewModel(service: services.cart)
+        let cartVM = CartViewModel(service: services.cart, feedbackCenter: feedbackCenter)
         self.cart = cartVM
-        self.account = AccountViewModel(useCases: accountUseCases, session: session)
+        self.account = AccountViewModel(
+            useCases: accountUseCases,
+            session: session,
+            feedbackCenter: feedbackCenter
+        )
     }
 
     func makeProductsViewModel(initialSellingType: SellingType? = nil) -> ProductsViewModel {

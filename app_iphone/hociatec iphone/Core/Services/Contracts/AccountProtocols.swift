@@ -2,6 +2,7 @@ import Foundation
 
 protocol AccountServing {
     func profile() async throws -> UserProfile
+    func restoreAuthenticatedProfileIfPossible() async throws -> UserProfile?
     func login(email: String, password: String) async throws -> String
     func logout() async
     func updateProfile(

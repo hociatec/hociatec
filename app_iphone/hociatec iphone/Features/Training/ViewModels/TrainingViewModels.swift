@@ -36,7 +36,7 @@ final class TrainingsCatalogViewModel: ObservableObject {
         do {
             let loadedCategories = try await service.trainingCategories().filter(\.isActive)
             guard requestID == categoriesRequestID else { return }
-            categories = loadedCategories
+            apply(categories: loadedCategories)
         } catch {
             guard requestID == categoriesRequestID else { return }
             if self.error == nil {
@@ -58,8 +58,7 @@ final class TrainingsCatalogViewModel: ObservableObject {
         do {
             let data = try await service.trainings(page: requestedPage, perPage: 8, query: requestedSearch, category: requestedCategory)
             guard requestID == loadRequestID else { return }
-            trainings = data.items
-            totalPages = max(1, data.meta.totalPages)
+            apply(data: data)
         } catch {
             guard requestID == loadRequestID else { return }
             self.error = error.localizedDescription
@@ -68,6 +67,15 @@ final class TrainingsCatalogViewModel: ObservableObject {
         if requestID == loadRequestID {
             isLoading = false
         }
+    }
+
+    private func apply(categories loadedCategories: [TrainingCategory]) {
+        categories = loadedCategories
+    }
+
+    private func apply(data: TrainingListData) {
+        trainings = data.items
+        totalPages = max(1, data.meta.totalPages)
     }
 }
 
@@ -83,6 +91,7 @@ final class TrainingDetailViewModel: ObservableObject {
     private let service: TrainingServing
     private let slug: String
     private var loadRequestID = 0
+    private var enrollmentRequestID = 0
 
     init(service: TrainingServing, slug: String) {
         self.service = service
@@ -100,8 +109,7 @@ final class TrainingDetailViewModel: ObservableObject {
         do {
             let data = try await service.training(slug: slug)
             guard requestID == loadRequestID else { return }
-            training = data.training
-            sessions = data.sessions
+            apply(data: data)
         } catch {
             guard requestID == loadRequestID else { return }
             self.error = error.localizedDescription
@@ -115,20 +123,30 @@ final class TrainingDetailViewModel: ObservableObject {
     func enroll(sessionId: Int, startsAt: Date) async -> TrainingEnrollmentCheckoutResult? {
         guard submittingSessionId == nil else { return nil }
 
+        enrollmentRequestID += 1
+        let requestID = enrollmentRequestID
         submittingSessionId = sessionId
         error = nil
         statusMessage = nil
-        defer { submittingSessionId = nil }
 
         do {
             let result = try await service.enroll(sessionId: sessionId, startsAt: startsAt)
+            guard requestID == enrollmentRequestID else { return nil }
             statusMessage = result.checkoutURL == nil
                 ? "Votre inscription a bien été enregistrée."
                 : "Poursuivez votre inscription pour finaliser le paiement."
+            submittingSessionId = nil
             return result
         } catch {
+            guard requestID == enrollmentRequestID else { return nil }
             self.error = error.localizedDescription
+            submittingSessionId = nil
             return nil
         }
+    }
+
+    private func apply(data: TrainingDetailData) {
+        training = data.training
+        sessions = data.sessions
     }
 }

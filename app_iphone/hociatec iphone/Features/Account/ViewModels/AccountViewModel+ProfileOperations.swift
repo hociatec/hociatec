@@ -2,8 +2,31 @@ import Foundation
 
 extension AccountViewModel {
     func loadProfileIfPossible() async {
-        guard isLoggedIn else { return }
-        await loadProfile()
+        guard canAttemptSessionRecovery else { return }
+
+        profileRequestID += 1
+        let requestID = profileRequestID
+        isLoading = true
+        error = nil
+
+        do {
+            guard let profile = try await useCases.restoreProfile.execute() else {
+                guard requestID == profileRequestID else { return }
+                applyLoggedOutState()
+                isLoading = false
+                return
+            }
+            guard requestID == profileRequestID else { return }
+            await applyAuthenticatedState(profile: profile, requestID: requestID)
+        } catch let err {
+            guard requestID == profileRequestID else { return }
+            if shouldIgnore(error: err) { return }
+            self.error = err.localizedDescription
+        }
+
+        if requestID == profileRequestID {
+            isLoading = false
+        }
     }
 
     func loadProfile() async {
@@ -12,14 +35,12 @@ extension AccountViewModel {
         isLoading = true
         error = nil
         do {
-            let profile = try await useCases.loadProfile.execute()
-            guard requestID == profileRequestID else { return }
-            await applyAuthenticatedState(profile: profile, requestID: requestID)
+            try await loadAuthenticatedProfile(requestID: requestID)
         } catch let err {
             guard requestID == profileRequestID else { return }
             if shouldIgnore(error: err) { return }
             self.error = err.localizedDescription
-            self.globalDialog = .error(err.localizedDescription)
+            feedbackCenter.presentError(err.localizedDescription)
         }
         if requestID == profileRequestID {
             isLoading = false
@@ -47,12 +68,12 @@ extension AccountViewModel {
             apply(profile: updated)
             session.profile = updated
             session.loginEmail = updated.email
-            globalDialog = .success("Profil mis à jour.")
+            feedbackCenter.presentSuccess("Profil mis à jour.")
         } catch let err {
             guard requestID == profileRequestID else { return }
             if shouldIgnore(error: err) { return }
             self.error = err.localizedDescription
-            self.globalDialog = .error(err.localizedDescription)
+            feedbackCenter.presentError(err.localizedDescription)
         }
         if requestID == profileRequestID {
             isLoading = false
@@ -65,14 +86,12 @@ extension AccountViewModel {
         isLoading = true
         error = nil
         do {
-            let profile = try await useCases.loadProfile.execute()
-            guard requestID == profileRequestID else { return }
-            await applyAuthenticatedState(profile: profile, requestID: requestID)
+            try await loadAuthenticatedProfile(requestID: requestID)
         } catch let err {
             guard requestID == profileRequestID else { return }
             if shouldIgnore(error: err) { return }
             self.error = err.localizedDescription
-            self.globalDialog = .error(err.localizedDescription)
+            feedbackCenter.presentError(err.localizedDescription)
         }
         if requestID == profileRequestID {
             isLoading = false
@@ -92,7 +111,7 @@ extension AccountViewModel {
             guard requestID == profileRequestID else { return }
             if shouldIgnore(error: err) { return }
             self.error = err.localizedDescription
-            self.globalDialog = .error(err.localizedDescription)
+            feedbackCenter.presentError(err.localizedDescription)
         }
         if requestID == profileRequestID {
             isLoading = false

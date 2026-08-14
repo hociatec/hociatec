@@ -68,17 +68,22 @@ final class SessionStore: ObservableObject {
         jwtToken = nil
         csrfToken = nil
         profile = nil
-        pendingCheckoutSessionId = nil
-        checkoutCallback = nil
+        resetCheckoutState()
         clearAuthCookies()
     }
     
     func storeCredentials(email: String, rememberSession: Bool) {
         loginEmail = email
         self.rememberSession = rememberSession
+        resetCheckoutState()
         if !rememberSession {
             clearPersistedAuthState()
         }
+    }
+
+    func resetCheckoutState() {
+        pendingCheckoutSessionId = nil
+        checkoutCallback = nil
     }
 
     func handleIncomingURL(_ url: URL) {

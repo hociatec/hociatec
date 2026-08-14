@@ -10,6 +10,10 @@ struct CartScreen: View {
     @State private var screenState = CartScreenState()
     @State private var completedOrder: OrderSummary?
 
+    private var checkoutFlow: CartCheckoutFlow {
+        CartCheckoutFlow(orderService: container.services.orders)
+    }
+
     var body: some View {
         List {
             if let cartData = cart.cart {
@@ -72,7 +76,6 @@ struct CartScreen: View {
                 await cart.refresh()
             }
         }
-        .onChangeCompat(cart.statusMessage) { _ in }
         .onChangeCompat(container.session.checkoutCallback) { _ in
             Task { await handleCheckoutCallback() }
         }
@@ -121,51 +124,8 @@ struct CartScreen: View {
         screenState.isCheckingCheckoutStatus = true
         cart.error = nil
         defer { screenState.isCheckingCheckoutStatus = false }
-
-        for attempt in 1...20 {
-            do {
-                let status = try await container.services.orders.checkoutSessionStatus(stripeSessionId: sessionId)
-
-                if status.status == "paid" {
-                    let order: OrderSummary?
-                    if let existingOrder = status.order {
-                        order = existingOrder
-                    } else if let orderId = status.orderId {
-                        order = try await container.services.orders.order(id: orderId)
-                    } else {
-                        order = nil
-                    }
-
-                    if let order {
-                        await cart.refresh()
-                        resetCheckoutFlow()
-                        completedOrder = order
-                        return
-                    }
-                }
-
-                if status.status == "failed" || status.status == "expired" {
-                    resetCheckoutFlow()
-                    presentCheckoutDialog(
-                        title: status.status == "expired" ? "Paiement expiré" : "Paiement échoué",
-                        message: status.status == "expired"
-                            ? "Le paiement a expiré. Vous pouvez relancer la validation depuis le panier."
-                            : "Le paiement a échoué. Vérifiez votre moyen de paiement puis réessayez."
-                    )
-                    return
-                }
-            } catch {
-                if attempt >= 20 {
-                    presentCheckoutDialog(
-                        title: "Paiement en attente",
-                        message: "Le paiement n'est pas encore finalisé. Revenez dans quelques secondes ou relancez la validation si vous avez interrompu le paiement."
-                    )
-                    return
-                }
-            }
-
-            try? await Task.sleep(nanoseconds: 2_000_000_000)
-        }
+        let resolution = await checkoutFlow.waitForCompletion(sessionId: sessionId)
+        await handleCheckoutResolution(resolution)
     }
 
     private func resolvePendingCheckoutAfterAppReturn() async {
@@ -179,24 +139,13 @@ struct CartScreen: View {
         defer { screenState.isCheckingCheckoutStatus = false }
 
         do {
-            let status = try await container.services.orders.checkoutSessionStatus(stripeSessionId: sessionId)
-
-            if status.status == "paid" {
-                let order: OrderSummary?
-                if let existingOrder = status.order {
-                    order = existingOrder
-                } else if let orderId = status.orderId {
-                    order = try await container.services.orders.order(id: orderId)
-                } else {
-                    order = nil
-                }
-
-                if let order {
-                    await cart.refresh()
-                    resetCheckoutFlow()
-                    completedOrder = order
-                    return
-                }
+            let resolution = try await checkoutFlow.resolve(sessionId: sessionId)
+            switch resolution {
+            case .completed, .failed, .pending:
+                await handleCheckoutResolution(resolution)
+                return
+            case .unresolved:
+                break
             }
 
             await cancelPendingCheckout(
@@ -284,15 +233,26 @@ struct CartScreen: View {
     }
 
     private func cancelPendingCheckout(sessionId: String?, message: String) async {
-        if let sessionId {
-            _ = try? await container.services.orders.cancelCheckoutSession(stripeSessionId: sessionId)
-        }
-
+        await checkoutFlow.cancelPendingCheckout(sessionId: sessionId)
         resetCheckoutFlow()
         await cart.refresh()
         presentCheckoutDialog(
             title: "Paiement annulé",
             message: message
         )
+    }
+
+    private func handleCheckoutResolution(_ resolution: CartCheckoutFlow.Resolution) async {
+        switch resolution {
+        case .completed(let order):
+            await cart.refresh()
+            resetCheckoutFlow()
+            completedOrder = order
+        case .failed(let title, let message), .pending(let title, let message):
+            resetCheckoutFlow()
+            presentCheckoutDialog(title: title, message: message)
+        case .unresolved:
+            break
+        }
     }
 }

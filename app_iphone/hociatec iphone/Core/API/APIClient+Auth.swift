@@ -26,6 +26,16 @@ extension APIClient {
         return authenticatedSessionMarker
     }
 
+    func restoreAuthenticatedProfileIfPossible() async throws -> UserProfile? {
+        do {
+            return try await profile()
+        } catch let APIError.httpStatus(statusCode, _) where statusCode == 401 {
+            return nil
+        } catch {
+            throw error
+        }
+    }
+
     func profile() async throws -> UserProfile {
         let authSession: AuthSessionData = try await request(
             path: "api/auth/me",
@@ -35,6 +45,7 @@ extension APIClient {
             sessionStore.clearSession()
             throw APIError.httpStatus(401, "Session expirée. Veuillez vous reconnecter.")
         }
+        sessionStore.jwtToken = authenticatedSessionMarker
         sessionStore.profile = profile
         return profile
     }

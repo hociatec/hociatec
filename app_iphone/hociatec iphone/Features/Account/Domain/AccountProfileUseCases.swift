@@ -8,6 +8,14 @@ struct LoadAccountProfileUseCase {
     }
 }
 
+struct RestoreAccountProfileUseCase {
+    let repository: AccountRepository
+
+    func execute() async throws -> UserProfile? {
+        try await repository.restoreProfileIfPossible()
+    }
+}
+
 struct UpdateAccountProfileUseCase {
     let repository: AccountRepository
 
