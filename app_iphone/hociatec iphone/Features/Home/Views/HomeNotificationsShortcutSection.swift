@@ -4,6 +4,7 @@ struct HomeNotificationsShortcutSection: View {
     @EnvironmentObject private var container: AppContainer
     @EnvironmentObject private var account: AccountViewModel
     @StateObject private var viewModel: HomeNotificationsViewModel
+    @State private var isExpanded = false
 
     init(workspaceService: WorkspaceServing) {
         _viewModel = StateObject(wrappedValue: HomeNotificationsViewModel(workspaceService: workspaceService))
@@ -13,80 +14,83 @@ struct HomeNotificationsShortcutSection: View {
         Group {
             if account.isLoggedIn {
                 Section {
-                    Button {
-                        Task {
-                            await viewModel.toggleOpen(isLoggedIn: account.isLoggedIn)
-                        }
+                    DisclosureGroup(
+                        isExpanded: Binding(
+                            get: { isExpanded },
+                            set: { newValue in
+                                isExpanded = newValue
+                                Task {
+                                    await viewModel.setOpen(newValue, isLoggedIn: account.isLoggedIn)
+                                }
+                            }
+                        )
+                    ) {
+                        notificationsContent
+                            .padding(.top, 8)
                     } label: {
-                        HStack {
-                            Label(
-                                viewModel.isLoading
-                                    ? "Notifications (...)"
-                                    : "Notifications (\(viewModel.unreadCount))",
-                                systemImage: "bell.badge"
-                            )
-                            .fontWeight(.semibold)
-
-                            Spacer()
-
-                            Image(systemName: viewModel.isOpen ? "chevron.up" : "chevron.down")
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    .accessibilityHint("Ouvre ou ferme la liste des notifications.")
-                }
-
-                if viewModel.isOpen {
-                    Section {
-                        if viewModel.isLoading && viewModel.visibleNotifications.isEmpty {
-                            ProgressView("Chargement...")
-                                .frame(maxWidth: .infinity, alignment: .center)
-                        } else if viewModel.visibleNotifications.isEmpty {
-                            Text("Aucune notification prioritaire.")
-                                .foregroundStyle(.secondary)
-                        } else {
-                            if viewModel.visibleNotifications.count > 1 {
-                                Button("Tout supprimer", role: .destructive) {
-                                    Task { await viewModel.dismissAll() }
-                                }
-                            }
-
-                            ForEach(viewModel.visibleNotifications) { notification in
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Text(notification.label)
-                                        .font(.headline)
-                                        .foregroundStyle(viewModel.isUnread(notification) ? .primary : .secondary)
-
-                                    Text(notification.message)
-                                        .font(.subheadline)
-                                        .foregroundStyle(.secondary)
-
-                                    HStack {
-                                        NavigationLink {
-                                            destination(for: notification)
-                                        } label: {
-                                            Text(notificationLinkLabel(for: notification))
-                                                .fontWeight(.semibold)
-                                        }
-
-                                        Spacer()
-
-                                        Button("Supprimer", role: .destructive) {
-                                            Task { await viewModel.dismiss(notification) }
-                                        }
-                                    }
-                                    .font(.footnote)
-                                }
-                                .padding(.vertical, 4)
-                                .accessibilityElement(children: .contain)
-                            }
-                        }
+                        Label(
+                            viewModel.isLoading
+                                ? "Notifications (...)"
+                                : "Notifications (\(viewModel.unreadCount))",
+                            systemImage: "bell.badge"
+                        )
+                        .fontWeight(.semibold)
                     }
                 }
             }
         }
         .task(id: account.isLoggedIn) {
             await viewModel.loadIfNeeded(isLoggedIn: account.isLoggedIn)
+        }
+        .onChangeCompat(viewModel.isOpen) { newValue in
+            isExpanded = newValue
+        }
+    }
+
+    @ViewBuilder
+    private var notificationsContent: some View {
+        if viewModel.isLoading && viewModel.visibleNotifications.isEmpty {
+            ProgressView("Chargement...")
+                .frame(maxWidth: .infinity, alignment: .center)
+        } else if viewModel.visibleNotifications.isEmpty {
+            Text("Aucune notification prioritaire.")
+                .foregroundStyle(.secondary)
+        } else {
+            if viewModel.visibleNotifications.count > 1 {
+                Button("Tout supprimer", role: .destructive) {
+                    Task { await viewModel.dismissAll() }
+                }
+            }
+
+            ForEach(viewModel.visibleNotifications) { notification in
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(notification.label)
+                        .font(.headline)
+                        .foregroundStyle(viewModel.isUnread(notification) ? .primary : .secondary)
+
+                    Text(notification.message)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+
+                    HStack {
+                        NavigationLink {
+                            destination(for: notification)
+                        } label: {
+                            Text(notificationLinkLabel(for: notification))
+                                .fontWeight(.semibold)
+                        }
+
+                        Spacer()
+
+                        Button("Supprimer", role: .destructive) {
+                            Task { await viewModel.dismiss(notification) }
+                        }
+                    }
+                    .font(.footnote)
+                }
+                .padding(.vertical, 4)
+                .accessibilityElement(children: .contain)
+            }
         }
     }
 

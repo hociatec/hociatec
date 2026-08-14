@@ -56,6 +56,19 @@ final class HomeNotificationsViewModel: ObservableObject {
         isOpen = false
     }
 
+    func setOpen(_ open: Bool, isLoggedIn: Bool) async {
+        guard open != isOpen else { return }
+
+        if open {
+            await loadIfNeeded(isLoggedIn: isLoggedIn, force: true)
+            isOpen = true
+            await markVisibleNotificationsAsSeen()
+            return
+        }
+
+        isOpen = false
+    }
+
     func dismissAll() async {
         let keys = visibleNotifications.map(\.key)
         guard !keys.isEmpty else { return }

@@ -17,8 +17,8 @@ struct HomeScreen: View {
     var body: some View {
         List {
             HomeIntroSection()
-            HomeNotificationsShortcutSection(workspaceService: workspaceService)
             HomeSearchSection()
+            HomeNotificationsShortcutSection(workspaceService: workspaceService)
             HomeServicesSection(home: home)
             HomeFeaturedProductsSection(home: home)
             HomeNewsSection(home: home)
