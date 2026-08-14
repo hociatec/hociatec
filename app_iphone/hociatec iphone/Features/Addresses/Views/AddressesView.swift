@@ -8,7 +8,6 @@ struct AddressesView: View {
         List {
             AddressesListSection(account: account)
             AddressCreateSection(account: account, draft: $draft)
-            AddressesErrorSection(error: account.error)
         }
         .navigationTitle("Adresses")
     }

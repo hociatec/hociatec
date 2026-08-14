@@ -6,10 +6,6 @@ struct MyQuotesContent: View {
 
     var body: some View {
         Group {
-            if let error = viewModel.error, !error.isEmpty {
-                Section { Text(error).foregroundStyle(.red) }
-            }
-
             if viewModel.quotes.isEmpty {
                 Section {
                     Text(viewModel.isLoading ? "Chargement..." : "Aucun devis disponible.")

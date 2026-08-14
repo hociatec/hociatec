@@ -13,11 +13,6 @@ struct CartScreen: View {
     var body: some View {
         List {
             if let cartData = cart.cart {
-                CartErrorSection(error: cart.error)
-                CartStatusSection(
-                    message: cart.statusMessage,
-                    isLoading: false
-                )
                 CartItemsSection(
                     cartData: cartData,
                     isLoading: cart.isLoading,

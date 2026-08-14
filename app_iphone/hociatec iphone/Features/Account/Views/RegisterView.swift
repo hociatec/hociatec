@@ -12,6 +12,8 @@ struct RegisterView: View {
     @State private var phoneNumber = ""
     @State private var gender = "autre"
     @State private var errorMessage: String?
+    @State private var successMessage: String?
+    @State private var shouldDismissAfterSuccess = false
     @Environment(\.dismiss) private var dismiss
     
     let genders = ["homme", "femme", "autre"]
@@ -40,16 +42,10 @@ struct RegisterView: View {
                 SecureField("Confirmer mot de passe", text: $confirmPassword)
             }
             
-            if let errorMessage = errorMessage {
-                Section {
-                    Text(errorMessage)
-                        .foregroundColor(.red)
-                }
-            }
-            
             Section {
                 Button("Créer mon compte") {
                     errorMessage = nil
+                    successMessage = nil
                     guard password == confirmPassword else {
                         errorMessage = "Les mots de passe ne correspondent pas."
                         return
@@ -66,14 +62,23 @@ struct RegisterView: View {
                             gender: gender
                         )
                         if success {
-                            dismiss()
+                            shouldDismissAfterSuccess = true
+                            successMessage = account.statusMessage ?? "Compte créé."
+                            account.statusMessage = nil
                         } else {
                             errorMessage = account.error
+                            account.error = nil
                         }
                     }
                 }
             }
         }
         .navigationTitle("Inscription")
+        .feedbackDialog(error: $errorMessage, success: $successMessage) {
+            if shouldDismissAfterSuccess {
+                shouldDismissAfterSuccess = false
+                dismiss()
+            }
+        }
     }
 }

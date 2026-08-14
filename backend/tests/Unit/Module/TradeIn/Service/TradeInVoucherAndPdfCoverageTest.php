@@ -253,7 +253,7 @@ SH);
                 return 0;
             }
 
-            public function existsForKey(string $key): bool
+            public function existsForUserAndKey(User $user, string $key): bool
             {
                 return false;
             }

@@ -3,13 +3,12 @@ import SwiftUI
 struct BetaProfileEditorView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var viewModel: BetaProgramViewModel
+    @State private var localError: String?
+    @State private var localSuccess: String?
+    @State private var shouldDismissAfterSuccess = false
 
     var body: some View {
         Form {
-            if let error = viewModel.error, !error.isEmpty {
-                Section { Text(error).foregroundStyle(.red) }
-            }
-
             Section {
                 TextEditor(text: $viewModel.motivation)
                     .frame(minHeight: 140)
@@ -34,9 +33,16 @@ struct BetaProfileEditorView: View {
             Section {
                 Button("Enregistrer mon profil bêta") {
                     Task {
+                        localError = nil
+                        localSuccess = nil
                         let success = await viewModel.saveProfile()
                         if success {
-                            dismiss()
+                            shouldDismissAfterSuccess = true
+                            localSuccess = viewModel.statusMessage ?? "Profil bêta enregistré."
+                            viewModel.statusMessage = nil
+                        } else if let message = viewModel.error, !message.isEmpty {
+                            localError = message
+                            viewModel.error = nil
                         }
                     }
                 }
@@ -45,5 +51,11 @@ struct BetaProfileEditorView: View {
         }
         .navigationTitle("Profil bêta")
         .task { await viewModel.loadChoicesIfNeeded() }
+        .feedbackDialog(error: $localError, success: $localSuccess) {
+            if shouldDismissAfterSuccess {
+                shouldDismissAfterSuccess = false
+                dismiss()
+            }
+        }
     }
 }

@@ -30,10 +30,6 @@ struct ProductReviewsView: View {
                 ProductMyReviewSection(review: myReview)
             }
 
-            if let error = viewModel.error {
-                Section { Text(error).foregroundStyle(.red) }
-            }
-
             if viewModel.isLoading && viewModel.reviews.isEmpty {
                 Section { ProgressView("Chargement des avis…") }
             } else if viewModel.reviews.isEmpty && viewModel.error == nil {
@@ -63,6 +59,7 @@ struct ProductReviewsView: View {
         }
         .refreshable { await viewModel.load(productService: productService, orderService: orderService, page: 1, replace: true, isLoggedIn: container.account.isLoggedIn) }
         .accessibilityLabel("Avis sur \(productName)")
+        .feedbackDialog(error: $viewModel.error)
     }
 
     private var canLoadMore: Bool {

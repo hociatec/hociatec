@@ -27,12 +27,6 @@ struct ClientDashboardLoyaltySection: View {
                 Task { await viewModel.convertLoyalty() }
             }
             .disabled(!viewModel.canConvert)
-
-            if let message = viewModel.conversionMessage, !message.isEmpty {
-                Text(message)
-                    .font(.footnote)
-                    .foregroundStyle(.green)
-            }
         }
     }
 }

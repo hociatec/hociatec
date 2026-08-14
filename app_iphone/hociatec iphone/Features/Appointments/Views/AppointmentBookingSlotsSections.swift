@@ -14,9 +14,6 @@ struct AppointmentBookingSlotsSection: View {
         Section {
             if isLoading && slots.isEmpty {
                 ProgressView("Recherche des créneaux...")
-            } else if let error, !error.isEmpty {
-                Text(error)
-                    .foregroundStyle(.red)
             } else if slots.isEmpty {
                 Text("Aucun créneau disponible pour le jour sélectionné.")
                     .foregroundStyle(.secondary)

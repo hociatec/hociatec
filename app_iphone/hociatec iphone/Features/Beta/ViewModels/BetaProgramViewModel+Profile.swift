@@ -4,12 +4,14 @@ extension BetaProgramViewModel {
     func saveProfile() async -> Bool {
         isSubmittingProfile = true
         error = nil
+        statusMessage = nil
         defer { isSubmittingProfile = false }
 
         do {
             let saved = try await service.updateMyBetaProfile(payload: profilePayload)
             profile = saved
             syncProfileFields(with: saved)
+            statusMessage = "Profil bêta enregistré."
             return true
         } catch {
             self.error = error.localizedDescription
@@ -19,10 +21,12 @@ extension BetaProgramViewModel {
 
     func deleteProfile() async {
         error = nil
+        statusMessage = nil
         do {
             try await service.deleteMyBetaProfile()
             profile = nil
             syncProfileFields(with: nil)
+            statusMessage = "Profil bêta supprimé."
         } catch {
             self.error = error.localizedDescription
         }

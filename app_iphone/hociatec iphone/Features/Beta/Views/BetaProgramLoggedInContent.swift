@@ -5,7 +5,6 @@ struct BetaProgramLoggedInContent: View {
 
     var body: some View {
         Group {
-            BetaProgramStatusSection(error: viewModel.error)
             BetaProgramIntroSection()
             BetaProgramProfileSection(viewModel: viewModel)
             BetaProgramCampaignsSection(viewModel: viewModel)

@@ -61,7 +61,7 @@ final class VoucherNotificationEmailServiceTest extends TestCase
 
         $service->sendCustomerVoucher($user, $voucher);
 
-        self::assertTrue($this->notificationRepository($this->entityManager())->existsForKey('voucher:55:customer_offer'));
+        self::assertTrue($this->notificationRepository($this->entityManager())->existsForUserAndKey($user, 'voucher:55:customer_offer'));
         self::assertSame(1, $this->notificationRepository($this->entityManager())->countForUser($user));
     }
 
@@ -98,7 +98,7 @@ final class VoucherNotificationEmailServiceTest extends TestCase
 
         $service->sendCustomerVoucher($user, $voucher);
 
-        self::assertTrue($this->notificationRepository($this->entityManager())->existsForKey('voucher:55:customer_offer'));
+        self::assertTrue($this->notificationRepository($this->entityManager())->existsForUserAndKey($user, 'voucher:55:customer_offer'));
     }
 
     public function testSendCustomerVoucherUsesCustomTemplateAndEscapesInjectedHtmlValues(): void
@@ -140,7 +140,7 @@ final class VoucherNotificationEmailServiceTest extends TestCase
 
         $service->sendCustomerVoucher($user, $voucher);
 
-        self::assertTrue($this->notificationRepository($this->entityManager())->existsForKey('voucher:55:customer_offer'));
+        self::assertTrue($this->notificationRepository($this->entityManager())->existsForUserAndKey($user, 'voucher:55:customer_offer'));
         self::assertSame(1, $this->notificationRepository($this->entityManager())->countForUser($user));
     }
 
@@ -267,7 +267,7 @@ final class VoucherNotificationEmailServiceTest extends TestCase
 
         $service->sendCustomerVoucher($user, $voucher);
 
-        self::assertTrue($this->notificationRepository($this->entityManager())->existsForKey('voucher:55:customer_offer'));
+        self::assertTrue($this->notificationRepository($this->entityManager())->existsForUserAndKey($user, 'voucher:55:customer_offer'));
     }
 
     public function testSendCustomerVoucherRejectsVoucherWhenUserIdConstraintDoesNotMatch(): void

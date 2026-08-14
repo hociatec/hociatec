@@ -16,8 +16,6 @@ struct ServiceDetailView: View {
         List {
             if viewModel.isLoading && viewModel.service == nil {
                 ServiceDetailLoadingSection()
-            } else if let error = viewModel.error {
-                ServiceDetailErrorSection(error: error)
             } else if let service = viewModel.service {
                 ServiceDetailHeroSectionView(
                     service: service,
@@ -30,5 +28,6 @@ struct ServiceDetailView: View {
         .navigationTitle(viewModel.service?.title ?? "Service")
         .navigationBarTitleDisplayMode(.inline)
         .task { await viewModel.load() }
+        .feedbackDialog(error: $viewModel.error)
     }
 }

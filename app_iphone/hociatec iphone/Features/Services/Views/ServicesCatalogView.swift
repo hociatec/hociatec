@@ -30,6 +30,7 @@ struct ServicesCatalogView: View {
         }
         .navigationTitle("Services")
         .task { await viewModel.load() }
+        .feedbackDialog(error: $viewModel.error)
     }
 
     private func performSearch() {

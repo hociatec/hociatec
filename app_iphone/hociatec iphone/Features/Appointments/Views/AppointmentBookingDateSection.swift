@@ -61,11 +61,6 @@ struct AppointmentBookingCalendarSection: View {
     var body: some View {
         Section {
             VStack(alignment: .leading, spacing: 16) {
-                if let error, !error.isEmpty {
-                    Text(error)
-                        .foregroundStyle(.red)
-                }
-
                 calendarToolbar
 
                 Text(AppointmentBookingPresentation.monthTitle(for: visibleMonth).capitalized)

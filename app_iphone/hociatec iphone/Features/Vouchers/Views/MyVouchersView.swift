@@ -9,10 +9,6 @@ struct MyVouchersView: View {
 
     var body: some View {
         List {
-            if let error = viewModel.error, !error.isEmpty {
-                Section { Text(error).foregroundStyle(.red) }
-            }
-
             Section("Bons actifs") {
                 let active = viewModel.items.filter { !$0.isExpired }
                 if viewModel.isLoading && viewModel.items.isEmpty {
@@ -42,6 +38,7 @@ struct MyVouchersView: View {
         .navigationTitle("Mes bons de réduction")
         .task { await viewModel.load() }
         .refreshable { await viewModel.load(force: true) }
+        .feedbackDialog(error: $viewModel.error)
     }
 }
 

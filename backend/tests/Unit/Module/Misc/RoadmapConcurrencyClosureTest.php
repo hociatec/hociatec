@@ -563,11 +563,11 @@ final class FileAppointmentRepository implements AppointmentRepositoryPort
         return 0;
     }
 
-    public function findBetween(\DateTimeImmutable $start, \DateTimeImmutable $end): array
+    public function findBetween(\DateTimeImmutable $start, \DateTimeImmutable $end, ?Appointment $ignoredAppointment = null): array
     {
         return array_values(array_filter(
             $this->load(),
-            static fn (Appointment $appointment): bool => $appointment->overlaps($start, $end),
+            static fn (Appointment $appointment): bool => $appointment !== $ignoredAppointment && $appointment->overlaps($start, $end),
         ));
     }
 

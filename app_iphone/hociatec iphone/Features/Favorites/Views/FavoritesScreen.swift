@@ -11,10 +11,6 @@ struct FavoritesScreen: View {
 
     var body: some View {
         List {
-            if let error = viewModel.error {
-                Section { Text(error).foregroundStyle(.red) }
-            }
-
             if viewModel.isLoading && viewModel.items.isEmpty {
                 Section { ProgressView("Chargement...") }
             } else if viewModel.items.isEmpty {
@@ -37,5 +33,6 @@ struct FavoritesScreen: View {
         .navigationTitle("Mes favoris")
         .task { await viewModel.load() }
         .refreshable { await viewModel.load() }
+        .feedbackDialog(error: $viewModel.error)
     }
 }

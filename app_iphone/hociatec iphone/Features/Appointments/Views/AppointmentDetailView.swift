@@ -13,7 +13,6 @@ struct AppointmentDetailScreen: View {
 
     var body: some View {
         Form {
-            AppointmentErrorSection(error: viewModel.error)
             AppointmentDetailsSection(appointment: appointment)
             AppointmentCancelSection(
                 canCancel: appointment.canCancel,
@@ -81,7 +80,6 @@ struct AppointmentConfirmationView: View {
                 prestation: selectedPrestation,
                 slot: slot
             )
-            AppointmentBookingMessageSection(message: viewModel.bookingMessage)
             AppointmentLoginNoticeSection(isLoggedIn: account.isLoggedIn)
             AppointmentConfirmActionSection(
                 isLoggedIn: account.isLoggedIn,

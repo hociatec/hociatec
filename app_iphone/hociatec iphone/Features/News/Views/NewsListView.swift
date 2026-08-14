@@ -40,6 +40,7 @@ struct NewsListView: View {
         }
         .navigationTitle("Actualités")
         .task { await viewModel.load() }
+        .feedbackDialog(error: $viewModel.error)
     }
 
     private func performSearch() {

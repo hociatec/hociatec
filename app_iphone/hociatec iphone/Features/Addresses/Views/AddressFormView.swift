@@ -19,6 +19,8 @@ struct AddressFormView: View {
     @State private var isDefault: Bool
     @State private var isSaving = false
     @State private var showDeleteAlert = false
+    @State private var feedbackDialog: FeedbackDialogState?
+    @State private var shouldDismissAfterFeedback = false
 
     init(address: UserAddress? = nil) {
         self.existing = address
@@ -50,7 +52,6 @@ struct AddressFormView: View {
                 isLocating: locationLookup.isLoading,
                 onUseCurrentLocation: fillFromCurrentLocation
             )
-            AddressFormErrorSection(error: locationLookup.error ?? account.error)
             if existing?.id != nil {
                 AddressFormDeleteSection {
                     showDeleteAlert = true
@@ -76,11 +77,20 @@ struct AddressFormView: View {
         } message: {
             Text("Cette action est irréversible.")
         }
+        .feedbackDialog($feedbackDialog) {
+            if shouldDismissAfterFeedback {
+                shouldDismissAfterFeedback = false
+                dismiss()
+            }
+        }
     }
 
     private func save() {
         Task {
             isSaving = true
+            feedbackDialog = nil
+            locationLookup.error = nil
+            account.error = nil
             if let existing {
                 var updated = existing
                 updated.type = type
@@ -110,7 +120,10 @@ struct AddressFormView: View {
             }
             isSaving = false
             if account.error == nil {
-                dismiss()
+                shouldDismissAfterFeedback = true
+                feedbackDialog = .success(existing == nil ? "Adresse enregistrée." : "Adresse mise à jour.")
+            } else if let message = account.error, !message.isEmpty {
+                feedbackDialog = .error(message)
             }
         }
     }
@@ -119,15 +132,21 @@ struct AddressFormView: View {
         guard let id = existing?.id else { return }
         Task {
             isSaving = true
+            feedbackDialog = nil
+            account.error = nil
             await account.deleteAddress(id: id)
             isSaving = false
             if account.error == nil {
-                dismiss()
+                shouldDismissAfterFeedback = true
+                feedbackDialog = .success("Adresse supprimée.")
+            } else if let message = account.error, !message.isEmpty {
+                feedbackDialog = .error(message)
             }
         }
     }
 
     private func fillFromCurrentLocation() {
+        locationLookup.error = nil
         locationLookup.fillFromCurrentLocation { resolved in
             address = resolved.address
             postalCode = resolved.postalCode

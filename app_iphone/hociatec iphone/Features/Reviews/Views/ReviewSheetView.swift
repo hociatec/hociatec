@@ -9,14 +9,11 @@ struct ReviewSheetView: View {
     @EnvironmentObject private var container: AppContainer
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = ReviewSheetViewModel()
+    @State private var shouldDismissAfterSuccess = false
 
     var body: some View {
         NavigationStack {
             Form {
-                if let successMessage = viewModel.successMessage {
-                    Section { Label(successMessage, systemImage: "checkmark.seal.fill").foregroundStyle(.green) }
-                }
-                if let error = viewModel.error { Section { Text(error).foregroundStyle(.red) } }
                 Section("Note") {
                     Picker("Note", selection: $viewModel.score) { ForEach(1...5, id: \.self) { v in Text(String(v)).tag(v) } }
                     .pickerStyle(.segmented)
@@ -34,6 +31,12 @@ struct ReviewSheetView: View {
             }
             .navigationTitle("Donner votre avis")
             .navigationBarTitleDisplayMode(.inline)
+            .feedbackDialog(error: $viewModel.error, success: $viewModel.successMessage) {
+                if shouldDismissAfterSuccess {
+                    shouldDismissAfterSuccess = false
+                    dismiss()
+                }
+            }
         }
     }
 
@@ -44,9 +47,8 @@ struct ReviewSheetView: View {
             let review = try await viewModel.submit(service: container.services.orders, orderId: orderId, orderItemId: orderItemId)
             onSubmitted(review)
             let generator = UINotificationFeedbackGenerator(); generator.notificationOccurred(.success)
+            shouldDismissAfterSuccess = true
             viewModel.successMessage = "Votre avis a bien été envoyé."
-            try? await Task.sleep(nanoseconds: 1_000_000_000)
-            dismiss()
         } catch { viewModel.error = error.localizedDescription }
     }
 }

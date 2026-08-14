@@ -8,8 +8,6 @@ struct NewsListResultsSection: View {
         Section {
             if viewModel.isLoading && viewModel.articles.isEmpty {
                 ProgressView("Chargement des actualités...")
-            } else if let error = viewModel.error {
-                Text(error).foregroundStyle(.red)
             } else if viewModel.articles.isEmpty {
                 Text(
                     viewModel.appliedSearch.isEmpty

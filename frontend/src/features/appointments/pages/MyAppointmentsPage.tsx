@@ -1,17 +1,19 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { PublicPageSection, PublicPageShell } from '@/shared/components/layout/PublicPageShell';
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
 import type { AppointmentItem } from '../types/appointments';
 import { useMyAppointments } from '../hooks/useMyAppointments';
 import { useConfirm } from '@/shared/components/ui/confirm';
+import { useToast } from '@/shared/components/ui/toast';
 import { FeedbackMessage, StableContent } from '@/shared/components/ui/page-state';
 import { formatEuroCents, parseApiDate } from '@/shared/lib/formatters';
 import { clampAtLeast, clampWithin } from '@/shared/lib/number';
 
 const PAST_APPOINTMENTS_PER_PAGE = 5;
 const APPOINTMENT_TIME_ZONE = 'Europe/Paris';
+type AppointmentLocationState = { appointmentFlashMessage?: string };
 
 const formatAppointmentDate = (value: string) => {
   const date = parseApiDate(value);
@@ -57,9 +59,28 @@ export const MyAppointmentsPage = () => {
   useDocumentTitle('Mes rendez-vous');
 
   const navigate = useNavigate();
+  const location = useLocation();
+  const toast = useToast();
+  const flashedLocationKeys = useRef(new Set<string>());
   const [pastPage, setPastPage] = useState(1);
   const { loading, error, upcoming, past, cancellingId, cancel } = useMyAppointments();
   const confirm = useConfirm();
+
+  useEffect(() => {
+    const state = location.state as AppointmentLocationState | null;
+    const message = state?.appointmentFlashMessage;
+    if (!message) {
+      return;
+    }
+
+    const flashKey = `${location.key}:${message}`;
+    if (flashedLocationKeys.current.has(flashKey)) {
+      return;
+    }
+
+    flashedLocationKeys.current.add(flashKey);
+    toast.show(message, { variant: 'success' });
+  }, [location.key, location.state, toast]);
 
   const handleCancel = async (id: number) => {
     const confirmed = await confirm({

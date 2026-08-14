@@ -76,10 +76,6 @@ struct GlobalSearchStatusSections: View {
 
     var body: some View {
         Group {
-            if let error = viewModel.error, !error.isEmpty {
-                Section { Text(error).foregroundStyle(.red) }
-            }
-
             if !viewModel.query.isEmpty {
                 Section {
                     Text("\(viewModel.totalResults) résultat\(viewModel.totalResults > 1 ? "s" : "") pour \"\(viewModel.query)\"")

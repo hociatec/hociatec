@@ -16,11 +16,6 @@ struct TrainingSessionsSection: View {
 
     var body: some View {
         Section("Sessions disponibles") {
-            if let message = viewModel.statusMessage, !message.isEmpty {
-                Text(message)
-                    .foregroundStyle(.secondary)
-            }
-
             if viewModel.sessions.isEmpty {
                 Text("Aucune session planifiée pour le moment.")
                     .foregroundStyle(.secondary)

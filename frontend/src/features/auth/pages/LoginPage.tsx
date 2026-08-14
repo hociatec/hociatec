@@ -25,6 +25,8 @@ import './LoginPage.css';
 interface LocationState {
   registered?: boolean;
   registrationMessage?: string;
+  sessionCheckFailed?: boolean;
+  sessionCheckMessage?: string;
   redirectTo?: string;
   from?: {
     pathname?: string;
@@ -137,6 +139,16 @@ export const LoginPage = () => {
         logger.warn('Unable to display registration notice toast.', { error });
       }
     }
+
+    if (state?.sessionCheckFailed) {
+      const message = state.sessionCheckMessage ?? 'Votre session doit être vérifiée à nouveau avant de continuer.';
+      setNotice(message);
+      try {
+        toast.show(message, { variant: 'info' });
+      } catch (error) {
+        logger.warn('Unable to display session verification notice toast.', { error });
+      }
+    }
   }, [location.state, toast]);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -183,7 +195,6 @@ export const LoginPage = () => {
       );
       navigate(redirectTo, { replace: true, state: redirectState });
     } catch (loginError) {
-      setIsSubmitting(false);
       logger.warn('Login failed.', { error: loginError });
 
       if (isAxiosError(loginError) && loginError.response?.data?.message) {
@@ -214,6 +225,8 @@ export const LoginPage = () => {
           logger.warn('Unable to display login error toast.', { error });
         }
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 

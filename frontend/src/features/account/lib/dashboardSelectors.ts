@@ -2,12 +2,23 @@ import type { DashboardAction, DashboardData } from '@/features/account/types/da
 import { formatOptionalFrenchDateTime } from '@/shared/lib/formatters';
 import { getDefaultConvertPoints, parseAndNormalizeLoyaltyPoints } from '@/shared/lib/loyalty';
 
+const isCancelledStatus = (status?: string | null) => {
+  const normalized = status?.trim().toLowerCase() ?? '';
+  return normalized.includes('cancel') || normalized.includes('annul');
+};
+
 export const selectQuoteToAnswer = (data: DashboardData) =>
   data.quotes.find(
     (quote) => (quote.statusCode ?? quote.status) === 'sent' && !quote.convertedOrder,
   ) ?? null;
 
-export const selectNextAppointment = (data: DashboardData) => data.appointments[0] ?? null;
+export const selectNextAppointment = (data: DashboardData, loadedAtMs: number) =>
+  data.appointments
+    .filter((appointment) => {
+      const status = appointment.statusCode ?? appointment.status;
+      return !isCancelledStatus(status) && new Date(appointment.startAt).getTime() >= loadedAtMs;
+    })
+    .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())[0] ?? null;
 
 export const selectNextTraining = (data: DashboardData, loadedAtMs: number) =>
   data.trainings
@@ -26,7 +37,7 @@ export const selectDashboardActions = (
 ): DashboardAction[] => {
   const actions: DashboardAction[] = [];
   const firstReview = data.pendingReviews[0];
-  const nextAppointment = selectNextAppointment(data);
+  const nextAppointment = selectNextAppointment(data, loadedAtMs);
   const quoteToAnswer = selectQuoteToAnswer(data);
   const nextTraining = selectNextTraining(data, loadedAtMs);
 

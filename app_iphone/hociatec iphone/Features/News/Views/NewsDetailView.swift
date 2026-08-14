@@ -12,8 +12,6 @@ struct NewsDetailView: View {
         List {
             if viewModel.isLoading && viewModel.article == nil {
                 NewsDetailLoadingSection()
-            } else if let error = viewModel.error {
-                NewsDetailErrorSection(error: error)
             } else if let article = viewModel.article {
                 NewsDetailHeroSection(article: article)
                 NewsDetailContentSection(content: article.content)
@@ -26,5 +24,14 @@ struct NewsDetailView: View {
             await viewModel.loadArticle()
             await viewModel.loadComments()
         }
+        .feedbackDialog(
+            error: Binding(
+                get: { viewModel.error ?? viewModel.commentsError },
+                set: { _ in
+                    viewModel.error = nil
+                    viewModel.commentsError = nil
+                }
+            )
+        )
     }
 }

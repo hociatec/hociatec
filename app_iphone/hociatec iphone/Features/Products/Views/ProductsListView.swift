@@ -29,12 +29,6 @@ struct ProductsListView: View {
 
     var body: some View {
         List {
-            if let error = viewModel.error {
-                Section {
-                    Text(error).foregroundStyle(.red)
-                }
-            }
-
             ProductsListToolbarSection(
                 viewModel: viewModel,
                 summaryText: summaryText,
@@ -110,5 +104,6 @@ struct ProductsListView: View {
                 }
             }
         }
+        .feedbackDialog(error: $viewModel.error)
     }
 }

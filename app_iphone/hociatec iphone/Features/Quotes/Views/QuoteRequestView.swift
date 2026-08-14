@@ -13,7 +13,6 @@ struct QuoteRequestView: View {
 
     var body: some View {
         Form {
-            QuoteRequestFeedbackSection(error: viewModel.error, success: viewModel.successMessage)
             QuoteRequestIdentitySection(viewModel: viewModel)
             QuoteRequestItemsSection(
                 viewModel: viewModel,
@@ -41,6 +40,7 @@ struct QuoteRequestView: View {
         .sheet(isPresented: $showingAddLineSheet) {
             QuoteAddLineSheet(viewModel: viewModel)
         }
+        .feedbackDialog(error: $viewModel.error, success: $viewModel.successMessage)
     }
 
     private var canSubmit: Bool {

@@ -11,10 +11,6 @@ struct ClientDashboardScreenContent: View {
             ClientDashboardHeroSection(firstName: account.profile?.firstName)
             ClientDashboardTopActionsSection()
             ClientDashboardDangerZoneSection(showDeleteConfirmation: $showDeleteConfirmation)
-            ClientDashboardStatusSections(
-                error: viewModel.error,
-                partialError: viewModel.partialError
-            )
             ClientDashboardActionsSection(
                 isLoading: viewModel.isLoading,
                 actions: viewModel.actions

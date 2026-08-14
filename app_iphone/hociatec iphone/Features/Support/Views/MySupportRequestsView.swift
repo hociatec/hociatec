@@ -11,14 +11,6 @@ struct MySupportRequestsView: View {
 
     var body: some View {
         List {
-            if let error = viewModel.error, !error.isEmpty {
-                Section { Text(error).foregroundStyle(.red) }
-            }
-
-            if let successMessage = viewModel.successMessage, !successMessage.isEmpty {
-                Section { Text(successMessage).foregroundStyle(.green) }
-            }
-
             Section {
                 Button {
                     showCreateSheet = true
@@ -58,5 +50,6 @@ struct MySupportRequestsView: View {
                 )
             }
         }
+        .feedbackDialog(error: $viewModel.error, success: $viewModel.successMessage)
     }
 }

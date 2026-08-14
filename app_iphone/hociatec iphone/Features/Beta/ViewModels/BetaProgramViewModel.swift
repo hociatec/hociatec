@@ -5,6 +5,7 @@ import Combine
 final class BetaProgramViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var error: String?
+    @Published var statusMessage: String?
     @Published var profile: BetaProfile?
     @Published var choices: [String: [BetaChoice]] = [:]
     @Published var campaigns: [BetaCampaign] = []

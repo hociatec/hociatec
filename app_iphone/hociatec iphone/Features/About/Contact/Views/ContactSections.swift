@@ -63,24 +63,3 @@ struct ContactSubmitSection: View {
         }
     }
 }
-
-struct ContactFeedbackSection: View {
-    let success: String?
-    let error: String?
-
-    var body: some View {
-        if let success {
-            Section {
-                Text(success)
-                    .foregroundColor(.green)
-            }
-        }
-
-        if let error {
-            Section {
-                Text(error)
-                    .foregroundColor(.red)
-            }
-        }
-    }
-}

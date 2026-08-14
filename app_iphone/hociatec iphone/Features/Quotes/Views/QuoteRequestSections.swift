@@ -1,26 +1,5 @@
 import SwiftUI
 
-struct QuoteRequestFeedbackSection: View {
-    let error: String?
-    let success: String?
-
-    var body: some View {
-        if let error, !error.isEmpty {
-            Section {
-                Text(error)
-                    .foregroundStyle(.red)
-            }
-        }
-
-        if let success, !success.isEmpty {
-            Section {
-                Label(success, systemImage: "checkmark.seal.fill")
-                    .foregroundStyle(.green)
-            }
-        }
-    }
-}
-
 struct QuoteRequestIdentitySection: View {
     @ObservedObject var viewModel: QuoteViewModel
 

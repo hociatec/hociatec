@@ -1,17 +1,11 @@
 import SwiftUI
 
-private struct RootMessageDialog: Identifiable {
-    let id = UUID()
-    let title: String
-    let message: String
-}
-
 struct ContentView: View {
     @EnvironmentObject private var container: AppContainer
     @EnvironmentObject private var cart: CartViewModel
     @EnvironmentObject private var navigation: AppNavigationState
     @State private var productFiltersBadge: Int? = nil
-    @State private var dialog: RootMessageDialog?
+    @State private var dialog: FeedbackDialogState?
 
     var body: some View {
         RootTabContainer(
@@ -27,13 +21,7 @@ struct ContentView: View {
                 sheetDestination(for: route)
             }
         }
-        .alert(item: $dialog) { dialog in
-            Alert(
-                title: Text(dialog.title),
-                message: Text(dialog.message),
-                dismissButton: .default(Text("OK"))
-            )
-        }
+        .feedbackDialog($dialog)
         .onChangeCompat(container.cart.statusMessage) { newValue in
             showDialog(newValue, isError: false)
         }
@@ -56,10 +44,7 @@ struct ContentView: View {
 
     private func showDialog(_ newValue: String?, isError: Bool) {
         guard let msg = newValue, !msg.isEmpty else { return }
-        dialog = RootMessageDialog(
-            title: isError ? "Erreur" : "Information",
-            message: msg
-        )
+        dialog = isError ? .error(msg, title: "Échec") : .success(msg, title: "Succès")
     }
 
     @ViewBuilder

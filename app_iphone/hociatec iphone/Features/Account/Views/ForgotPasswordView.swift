@@ -24,20 +24,6 @@ struct ForgotPasswordView: View {
                     .autocorrectionDisabled()
             }
 
-            if let successMessage {
-                Section {
-                    Text(successMessage)
-                        .foregroundStyle(.green)
-                }
-            }
-
-            if let errorMessage {
-                Section {
-                    Text(errorMessage)
-                        .foregroundStyle(.red)
-                }
-            }
-
             Section {
                 Button {
                     Task { await submit() }
@@ -63,6 +49,7 @@ struct ForgotPasswordView: View {
             }
         }
         .navigationTitle("Mot de passe oublié")
+        .feedbackDialog(error: $errorMessage, success: $successMessage)
     }
 
     private func submit() async {

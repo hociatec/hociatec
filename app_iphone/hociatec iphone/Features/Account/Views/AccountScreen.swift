@@ -11,10 +11,6 @@ struct AccountScreen: View {
                     .id("account-logged-in-\(account.profile?.id ?? 0)")
             } else {
                 Form {
-                    if let error = account.error, !error.isEmpty {
-                        Section { Text(error).foregroundStyle(.red) }
-                    }
-
                     Section {
                         NavigationLink {
                             LoginView(account: account, authService: container.services.account)

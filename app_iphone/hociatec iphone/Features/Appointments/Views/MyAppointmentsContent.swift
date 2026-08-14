@@ -7,10 +7,6 @@ struct MyAppointmentsContent: View {
 
     var body: some View {
         Group {
-            if let error = viewModel.error {
-                Section { Text(error).foregroundStyle(.red) }
-            }
-
             Section {
                 Picker("Afficher", selection: $tab) {
                     ForEach(AppointmentTabFilter.allCases) { filter in

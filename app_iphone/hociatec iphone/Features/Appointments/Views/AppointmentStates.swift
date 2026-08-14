@@ -27,20 +27,3 @@ struct AppointmentEmptyState: View {
         .padding(.vertical, 12)
     }
 }
-
-struct AppointmentSuccessBanner: View {
-    let message: String
-
-    var body: some View {
-        Text(message)
-            .font(.subheadline)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(Color.green.opacity(0.9))
-            .foregroundStyle(.white)
-            .clipShape(Capsule())
-            .transition(.move(edge: .top).combined(with: .opacity))
-            .accessibilityLabel(message)
-            .accessibilityHidden(false)
-    }
-}

@@ -10,6 +10,7 @@ struct ResetPasswordView: View {
     @State private var isSubmitting = false
     @State private var successMessage: String?
     @State private var errorMessage: String?
+    @State private var shouldDismissAfterSuccess = false
 
     private let passwordRule = /^(?=.*[A-Z])(?=.*\d).{8,}$/
     private let allowsTokenEditing: Bool
@@ -32,8 +33,6 @@ struct ResetPasswordView: View {
                 confirmPassword: $confirmPassword,
                 allowsTokenEditing: allowsTokenEditing
             )
-            ResetPasswordSuccessSection(message: successMessage)
-            ResetPasswordErrorSection(message: errorMessage)
             ResetPasswordSubmitSection(
                 isSubmitting: isSubmitting,
                 isDisabled: isSubmitDisabled,
@@ -41,6 +40,12 @@ struct ResetPasswordView: View {
             )
         }
         .navigationTitle("Nouveau mot de passe")
+        .feedbackDialog(error: $errorMessage, success: $successMessage) {
+            if shouldDismissAfterSuccess {
+                shouldDismissAfterSuccess = false
+                dismiss()
+            }
+        }
     }
 
     private var isSubmitDisabled: Bool {
@@ -74,9 +79,8 @@ struct ResetPasswordView: View {
                 password: password,
                 confirmPassword: confirmPassword
             )
+            shouldDismissAfterSuccess = true
             successMessage = "Votre mot de passe a été réinitialisé."
-            try? await Task.sleep(nanoseconds: 1_000_000_000)
-            dismiss()
         } catch {
             errorMessage = error.localizedDescription
         }

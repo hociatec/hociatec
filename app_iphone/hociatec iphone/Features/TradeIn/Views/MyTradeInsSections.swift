@@ -1,26 +1,5 @@
 import SwiftUI
 
-struct TradeInFeedbackSection: View {
-    let error: String?
-    let message: String?
-
-    var body: some View {
-        if let error, !error.isEmpty {
-            Section {
-                Text(error)
-                    .foregroundStyle(.red)
-            }
-        }
-
-        if let message, !message.isEmpty {
-            Section {
-                Text(message)
-                    .foregroundStyle(.green)
-            }
-        }
-    }
-}
-
 struct TradeInListSection: View {
     @ObservedObject var viewModel: MyTradeInsViewModel
 

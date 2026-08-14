@@ -4,15 +4,11 @@ declare(strict_types=1);
 
 namespace App\Module\Order\Application\Workflow;
 
-use App\Module\Order\Application\Port\OrderCheckoutSessionRepositoryPort;
 use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\Order\Application\Projection\OrderFormatter;
-use App\Module\Order\Application\Handler\StripeCheckoutSessionExpirer;
 use App\Module\Order\Domain\Entity\Order;
-use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Module\Order\Domain\Security\OrderAccessPolicy;
 use App\Module\Rating\Application\Port\ProductRatingRepositoryPort;
-use App\Shared\Application\UnitOfWork;
 use App\Module\User\Domain\Entity\User;
 
 final readonly class CustomerOrderPortalService
@@ -23,10 +19,7 @@ final readonly class CustomerOrderPortalService
         private OrderAccessPolicy $accessPolicy,
         private OrderFormatter $formatter,
         private OrderWorkflowService $workflow,
-        private ?StripeCheckoutSessionSyncService $checkoutSync = null,
-        private ?StripeCheckoutSessionExpirer $checkoutExpirer = null,
-        private ?UnitOfWork $persistence = null,
-        private ?OrderCheckoutSessionRepositoryPort $checkoutSessions = null,
+        private ?CustomerCheckoutSessionPortalService $checkoutPortal = null,
     ) {
     }
 
@@ -81,47 +74,23 @@ final readonly class CustomerOrderPortalService
      */
     public function checkoutSessionStatusForUser(User $user, string $stripeSessionId): ?array
     {
-        $checkout = $this->checkoutSessionForUser($user, $stripeSessionId);
-        if (null === $checkout || !$this->accessPolicy->canViewCheckoutSession($user, $checkout)) {
-            return null;
+        if (!$this->checkoutPortal instanceof CustomerCheckoutSessionPortalService) {
+            throw new \LogicException('Checkout portal service is not configured.');
         }
 
-        if (OrderCheckoutSession::STATUS_OPEN === $checkout->getStatus()) {
-            $this->checkoutSync?->syncPayment($checkout);
-        }
-
-        $order = null !== $checkout->getOrderId() ? $this->orders->find($checkout->getOrderId()) : null;
-
-        return [
-            'status' => $checkout->getStatus(),
-            'checkoutSessionId' => $checkout->getStripeSessionId(),
-            'orderId' => $order?->getId(),
-            'order' => null !== $order ? $this->formatter->formatOrder($order) : null,
-        ];
+        return $this->checkoutPortal->statusForUser($user, $stripeSessionId);
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function cancelCheckoutSessionForUser(User $user, string $stripeSessionId): ?array
     {
-        $checkout = $this->checkoutSessionForUser($user, $stripeSessionId);
-        if (null === $checkout || !$this->accessPolicy->canViewCheckoutSession($user, $checkout)) {
-            return null;
+        if (!$this->checkoutPortal instanceof CustomerCheckoutSessionPortalService) {
+            throw new \LogicException('Checkout portal service is not configured.');
         }
 
-        if (OrderCheckoutSession::STATUS_OPEN === $checkout->getStatus()) {
-            $this->checkoutExpirer?->expire($checkout);
-            $checkout->markExpired('mobile_checkout_cancelled');
-            $this->persistence?->persist($checkout);
-            $this->persistence?->flush();
-        }
-
-        $order = null !== $checkout->getOrderId() ? $this->orders->find($checkout->getOrderId()) : null;
-
-        return [
-            'status' => $checkout->getStatus(),
-            'checkoutSessionId' => $checkout->getStripeSessionId(),
-            'orderId' => $order?->getId(),
-            'order' => null !== $order ? $this->formatter->formatOrder($order) : null,
-        ];
+        return $this->checkoutPortal->cancelForUser($user, $stripeSessionId);
     }
 
     /**
@@ -141,19 +110,5 @@ final readonly class CustomerOrderPortalService
         }
 
         return $this->ratings->findByOrderItemIds($orderItemIds);
-    }
-
-    private function checkoutSessionForUser(User $user, string $stripeSessionId): ?OrderCheckoutSession
-    {
-        if (!$this->checkoutSessions instanceof OrderCheckoutSessionRepositoryPort) {
-            throw new \LogicException('Checkout session repository is not configured.');
-        }
-
-        $checkout = $this->checkoutSessions->findOneByStripeSessionId($stripeSessionId);
-        if (null === $checkout || !$this->accessPolicy->canViewCheckoutSession($user, $checkout)) {
-            return null;
-        }
-
-        return $checkout;
     }
 }

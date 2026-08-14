@@ -10,20 +10,6 @@ struct RequestAuditView: View {
         Form {
             AuditRequestHeroSection()
 
-            if let error = viewModel.error, !error.isEmpty {
-                Section {
-                    Text(error)
-                        .foregroundStyle(.red)
-                }
-            }
-
-            if let successMessage = viewModel.successMessage, !successMessage.isEmpty {
-                Section {
-                    Text(successMessage)
-                        .foregroundStyle(.green)
-                }
-            }
-
             Section {
                 Picker("Type d'audit", selection: $selectedType) {
                     ForEach(auditTypes, id: \.value) { type in
@@ -55,6 +41,7 @@ struct RequestAuditView: View {
                 selectedType = firstType
             }
         }
+        .feedbackDialog(error: $viewModel.error, success: $viewModel.successMessage)
     }
 
     private var auditTypes: [AuditOption] {

@@ -12,16 +12,3 @@ struct AppointmentBookingGuestNoticeSection: View {
         }
     }
 }
-
-struct AppointmentBookingSuccessSection: View {
-    let successMessage: String?
-
-    var body: some View {
-        if let successMessage, !successMessage.isEmpty {
-            Section {
-                Label(successMessage, systemImage: "checkmark.seal.fill")
-                    .foregroundStyle(.green)
-            }
-        }
-    }
-}

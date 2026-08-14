@@ -51,5 +51,22 @@ struct ClientDashboardView: View {
         } message: {
             Text("Cette action est irréversible.")
         }
+        .feedbackDialog(
+            error: Binding(
+                get: {
+                    if let message = viewModel.error, !message.isEmpty {
+                        return message
+                    }
+                    return viewModel.partialError
+                        ? "Certaines données n’ont pas pu être chargées. Les accès restent disponibles."
+                        : nil
+                },
+                set: { _ in
+                    viewModel.error = nil
+                    viewModel.partialError = false
+                }
+            ),
+            success: $viewModel.conversionMessage
+        )
     }
 }

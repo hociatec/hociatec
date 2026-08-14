@@ -4,10 +4,7 @@ struct NewsCommentsListSection: View {
     @ObservedObject var viewModel: NewsDetailViewModel
 
     var body: some View {
-        if let commentsError = viewModel.commentsError {
-            Text(commentsError)
-                .foregroundStyle(.red)
-        } else if viewModel.isLoadingComments && viewModel.comments.isEmpty {
+        if viewModel.isLoadingComments && viewModel.comments.isEmpty {
             ProgressView("Chargement des commentaires...")
         } else if viewModel.comments.isEmpty {
             Text("Aucun commentaire pour le moment.")

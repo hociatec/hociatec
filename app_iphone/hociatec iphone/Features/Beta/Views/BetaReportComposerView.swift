@@ -3,6 +3,9 @@ import SwiftUI
 struct BetaReportComposerView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var viewModel: BetaProgramViewModel
+    @State private var localError: String?
+    @State private var localSuccess: String?
+    @State private var shouldDismissAfterSuccess = false
 
     var body: some View {
         Form {
@@ -28,9 +31,16 @@ struct BetaReportComposerView: View {
             Section {
                 Button("Envoyer le signalement") {
                     Task {
+                        localError = nil
+                        localSuccess = nil
                         let success = await viewModel.submitReport()
                         if success {
-                            dismiss()
+                            shouldDismissAfterSuccess = true
+                            localSuccess = viewModel.statusMessage ?? "Signalement bêta envoyé."
+                            viewModel.statusMessage = nil
+                        } else if let message = viewModel.error, !message.isEmpty {
+                            localError = message
+                            viewModel.error = nil
                         }
                     }
                 }
@@ -42,5 +52,11 @@ struct BetaReportComposerView: View {
             }
         }
         .navigationTitle("Signalement bêta")
+        .feedbackDialog(error: $localError, success: $localSuccess) {
+            if shouldDismissAfterSuccess {
+                shouldDismissAfterSuccess = false
+                dismiss()
+            }
+        }
     }
 }

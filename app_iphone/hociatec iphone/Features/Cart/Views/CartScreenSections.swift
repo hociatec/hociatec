@@ -1,39 +1,5 @@
 import SwiftUI
 
-struct CartErrorSection: View {
-    let error: String?
-
-    var body: some View {
-        if let error, !error.isEmpty {
-            Section {
-                Text(error)
-                    .foregroundStyle(.red)
-            }
-        }
-    }
-}
-
-struct CartStatusSection: View {
-    let message: String?
-    let isLoading: Bool
-
-    var body: some View {
-        if let message, !message.isEmpty {
-            Section {
-                HStack(alignment: .top, spacing: 10) {
-                    if isLoading {
-                        ProgressView()
-                            .padding(.top, 2)
-                    }
-
-                    Text(message)
-                        .foregroundStyle(.secondary)
-                }
-            }
-        }
-    }
-}
-
 struct CartItemsSection: View {
     let cartData: Cart
     let isLoading: Bool

@@ -7,12 +7,6 @@ struct LoginView: View {
 
     var body: some View {
         Form {
-            if let error = account.error, !error.isEmpty {
-                Section {
-                    Text(error).foregroundStyle(.red)
-                }
-            }
-
             Section {
                 TextField("Email", text: $account.email)
                     .textInputAutocapitalization(.never)

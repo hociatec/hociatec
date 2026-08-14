@@ -8,6 +8,7 @@ extension BetaProgramViewModel {
     func submitReport() async -> Bool {
         isSubmittingReport = true
         error = nil
+        statusMessage = nil
         defer { isSubmittingReport = false }
 
         do {
@@ -20,6 +21,7 @@ extension BetaProgramViewModel {
             reportSeverity = "normal"
             selectedCampaignID = ""
             reports = try await service.myBetaReports(page: 1, perPage: 20).items
+            statusMessage = "Signalement bêta envoyé."
             return true
         } catch {
             self.error = error.localizedDescription
@@ -32,8 +34,10 @@ extension BetaProgramViewModel {
         guard !trimmed.isEmpty else { return false }
 
         do {
+            statusMessage = nil
             _ = try await service.createBetaReportComment(id: reportId, content: trimmed)
             reportComments = try await service.betaReportComments(id: reportId, page: 1, perPage: 20).items
+            statusMessage = "Commentaire ajouté."
             return true
         } catch {
             self.error = error.localizedDescription

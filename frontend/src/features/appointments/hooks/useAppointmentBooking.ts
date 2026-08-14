@@ -7,6 +7,7 @@ import type { AvailabilitySlot, Prestation } from '../types/appointments';
 import { useAuth } from '@/features/auth/publicApi';
 import { useToast } from '@/shared/components/ui/toast';
 import { appointmentQueryKeys } from '@/features/appointments/queryKeys';
+import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 
 const ymd = (date: Date) => format(startOfDay(date), 'yyyy-MM-dd');
 
@@ -40,8 +41,19 @@ export const useAppointmentBooking = () => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<AvailabilitySlot | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<'recap' | 'success'>('recap');
+  const [modalMode, setModalMode] = useState<'recap' | 'submitting'>('recap');
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [rescheduleAppointmentId, setRescheduleAppointmentId] = useState<number | null>(null);
+  const resetFlow = () => {
+    setStep(1);
+    setSelectedPrestation(null);
+    setSelectedDate(null);
+    setSelectedSlot(null);
+    setSlots([]);
+    setRescheduleAppointmentId(null);
+    setModalMode('recap');
+    setSubmitError(null);
+  };
   const prestationsQuery = useQuery<Prestation[], Error>({
     queryKey: appointmentQueryKeys.prestations(),
     queryFn: fetchPrestations,
@@ -63,15 +75,35 @@ export const useAppointmentBooking = () => {
   const bookingMutation = useMutation({
     mutationFn: bookAppointment,
     onSuccess: () => {
-      setModalMode('success');
       void queryClient.invalidateQueries({ queryKey: appointmentQueryKeys.mine() });
+      setModalOpen(false);
+      resetFlow();
+      navigate('/appointments/me', {
+        replace: true,
+        state: { appointmentFlashMessage: 'Votre rendez-vous est confirmé.' },
+      });
+    },
+    onError: (error) => {
+      const message = getHttpErrorMessage(error, 'Impossible de confirmer le rendez-vous.');
+      setModalMode('recap');
+      setSubmitError(message);
     },
   });
   const rescheduleMutation = useMutation({
     mutationFn: rescheduleAppointment,
     onSuccess: () => {
-      setModalMode('success');
       void queryClient.invalidateQueries({ queryKey: appointmentQueryKeys.mine() });
+      setModalOpen(false);
+      resetFlow();
+      navigate('/appointments/me', {
+        replace: true,
+        state: { appointmentFlashMessage: 'Votre rendez-vous a bien été reporté.' },
+      });
+    },
+    onError: (error) => {
+      const message = getHttpErrorMessage(error, 'Impossible de reporter le rendez-vous.');
+      setModalMode('recap');
+      setSubmitError(message);
     },
   });
   const prestations = prestationsQuery.data ?? [];
@@ -124,6 +156,7 @@ export const useAppointmentBooking = () => {
   };
   const handleBooking = async () => {
     if (!selectedSlot || !selectedPrestation) return;
+    setSubmitError(null);
     if (status !== 'authenticated') {
       toast.show('Connectez-vous pour confirmer votre rendez-vous.', { variant: 'info' });
       navigate('/login', {
@@ -137,10 +170,12 @@ export const useAppointmentBooking = () => {
       return;
     }
     if (rescheduleAppointmentId !== null) {
+      setModalMode('submitting');
       rescheduleMutation.mutate({ id: rescheduleAppointmentId, startAt: selectedSlot.start });
       return;
     }
 
+    setModalMode('submitting');
     bookingMutation.mutate({ prestationId: selectedPrestation.id, startAt: selectedSlot.start });
   };
   useEffect(() => {
@@ -171,19 +206,11 @@ export const useAppointmentBooking = () => {
   }, [location.pathname, location.state, navigate, prestations]);
   useEffect(() => {
     if (selectedSlot && step === 3) {
+      setSubmitError(null);
       setModalMode('recap');
       setModalOpen(true);
     }
   }, [selectedSlot, step]);
-
-  const resetFlow = () => {
-    setStep(1);
-    setSelectedPrestation(null);
-    setSelectedDate(null);
-    setSelectedSlot(null);
-    setSlots([]);
-    setRescheduleAppointmentId(null);
-  };
 
   return {
     status,
@@ -204,6 +231,7 @@ export const useAppointmentBooking = () => {
     setModalOpen,
     modalMode,
     setModalMode,
+    submitError,
     slotsByDay,
     daySlots,
     setVisibleMonth: setMonth,

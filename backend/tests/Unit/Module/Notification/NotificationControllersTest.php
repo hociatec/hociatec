@@ -134,21 +134,6 @@ final class NotificationControllersTest extends TestCase
             {
             }
 
-            public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?object
-            {
-                return null;
-            }
-
-            public function findBy(array $criteria, ?array $orderBy = null, ?int $limit = null, ?int $offset = null): array
-            {
-                return [];
-            }
-
-            public function count(array $criteria): int
-            {
-                return 0;
-            }
-
             public function findRecentForUser(User $user, int $limit = 30, int $offset = 0): array
             {
                 return [new AccountNotificationEvent($this->user, 'event-1', 'Commande', 'Prête', 'https://example.test/outside', 'order')];
@@ -159,7 +144,7 @@ final class NotificationControllersTest extends TestCase
                 return 1;
             }
 
-            public function existsForKey(string $key): bool
+            public function existsForUserAndKey(User $user, string $key): bool
             {
                 return false;
             }

@@ -7,6 +7,7 @@ import UIKit
 struct TradeInRequestView: View {
     @StateObject private var viewModel: TradeInViewModel
     @State private var showingFileImporter = false
+    @State private var shouldDismissAfterSuccess = false
     @Environment(\.dismiss) private var dismiss
 
     init(service: TradeInServing, account: AccountViewModel) {
@@ -15,7 +16,6 @@ struct TradeInRequestView: View {
 
     var body: some View {
         Form {
-            TradeInStatusSection(error: viewModel.error, successMessage: viewModel.successMessage)
             TradeInProductSection(viewModel: viewModel)
             TradeInConditionSection(viewModel: viewModel)
             TradeInContactSection(viewModel: viewModel)
@@ -36,15 +36,21 @@ struct TradeInRequestView: View {
         ) { result in
             handleFileImport(result)
         }
+        .feedbackDialog(error: $viewModel.error, success: $viewModel.successMessage) {
+            if shouldDismissAfterSuccess {
+                shouldDismissAfterSuccess = false
+                dismiss()
+            }
+        }
     }
 
     private func submitTradeIn() async {
         let ok = await viewModel.submit()
         if ok {
+            shouldDismissAfterSuccess = true
 #if canImport(UIKit)
             UINotificationFeedbackGenerator().notificationOccurred(.success)
 #endif
-            dismiss()
         }
     }
 

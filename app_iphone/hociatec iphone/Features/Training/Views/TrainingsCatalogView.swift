@@ -27,5 +27,6 @@ struct TrainingsCatalogView: View {
             viewModel.page = 1
             Task { await viewModel.load() }
         }
+        .feedbackDialog(error: $viewModel.error)
     }
 }

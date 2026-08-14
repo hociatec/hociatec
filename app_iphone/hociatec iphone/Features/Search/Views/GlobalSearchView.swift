@@ -35,5 +35,6 @@ struct GlobalSearchView: View {
             guard !viewModel.query.isEmpty else { return }
             viewModel.applyCurrentSort()
         }
+        .feedbackDialog(error: $viewModel.error)
     }
 }

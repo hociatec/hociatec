@@ -10,9 +10,6 @@ struct HomeFeaturedProductsSection: View {
             if home.isLoading && home.featured.isEmpty {
                 ProgressView("Chargement...")
                     .frame(maxWidth: .infinity, alignment: .center)
-            } else if let error = home.error {
-                Text(error)
-                    .foregroundStyle(.red)
             } else if home.featured.isEmpty {
                 Text("Aucun produit disponible pour le moment.")
                     .foregroundStyle(.secondary)

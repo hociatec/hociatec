@@ -10,10 +10,7 @@ struct AppointmentBookingPrestationSection: View {
 
     var body: some View {
         Section {
-            if let error, !error.isEmpty {
-                Text(error)
-                    .foregroundStyle(.red)
-            } else if prestations.isEmpty && isLoading {
+            if prestations.isEmpty && isLoading {
                 ProgressView("Chargement des prestations...")
             } else if prestations.isEmpty {
                 Text("Aucune prestation disponible pour le moment.")

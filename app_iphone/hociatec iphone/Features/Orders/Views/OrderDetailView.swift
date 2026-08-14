@@ -11,10 +11,6 @@ struct OrderDetailView: View {
 
     var body: some View {
         Form {
-            if let error = viewModel.error {
-                OrderDetailErrorSection(error: error)
-            }
-
             if viewModel.isLoading {
                 OrderDetailLoadingSection()
             }
@@ -45,5 +41,6 @@ struct OrderDetailView: View {
         } message: {
             Text("Cette action est irréversible. La commande sera annulée si elle est encore en attente.")
         }
+        .feedbackDialog(error: $viewModel.error, success: $viewModel.statusMessage)
     }
 }

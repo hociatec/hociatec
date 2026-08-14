@@ -20,7 +20,6 @@ struct ContactView: View {
             ContactIdentitySection(viewModel: viewModel)
             ContactMessageSection(viewModel: viewModel)
             ContactSubmitSection(viewModel: viewModel)
-            ContactFeedbackSection(success: viewModel.success, error: viewModel.error)
         }
         .formStyle(.grouped)
         .navigationTitle("Contact")
@@ -30,5 +29,6 @@ struct ContactView: View {
             }
             viewModel.prefillSubject(initialSubject)
         }
+        .feedbackDialog(error: $viewModel.error, success: $viewModel.success)
     }
 }

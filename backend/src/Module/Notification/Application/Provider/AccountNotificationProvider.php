@@ -77,8 +77,8 @@ final readonly class AccountNotificationProvider
 
         foreach ($this->computedProviders as $provider) {
             foreach ($provider->provide($user, $now) as $notification) {
-                $key = is_string($notification['key'] ?? null) ? $notification['key'] : null;
-                if (null === $key || isset($seenKeys[$key])) {
+                $key = $notification['key'];
+                if (isset($seenKeys[$key])) {
                     continue;
                 }
 

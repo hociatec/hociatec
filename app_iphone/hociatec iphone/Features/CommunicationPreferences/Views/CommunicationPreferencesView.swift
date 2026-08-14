@@ -9,13 +9,6 @@ struct CommunicationPreferencesView: View {
 
     var body: some View {
         List {
-            if let error = viewModel.error, !error.isEmpty {
-                Section {
-                    Text(error)
-                        .foregroundStyle(.red)
-                }
-            }
-
             Section {
                 Text("Choisissez les moyens utilisés par Hociatec pour vos suivis importants.")
                     .font(.footnote)
@@ -63,16 +56,11 @@ struct CommunicationPreferencesView: View {
                     }
                 }
                 .disabled(viewModel.isLoading || viewModel.isSaving || viewModel.selectedPreferences.isEmpty)
-
-                if let message = viewModel.message, !message.isEmpty {
-                    Text(message)
-                        .font(.footnote)
-                        .foregroundStyle(.green)
-                }
             }
         }
         .navigationTitle("Préférences")
         .task { await viewModel.load() }
         .refreshable { await viewModel.load() }
+        .feedbackDialog(error: $viewModel.error, success: $viewModel.message)
     }
 }

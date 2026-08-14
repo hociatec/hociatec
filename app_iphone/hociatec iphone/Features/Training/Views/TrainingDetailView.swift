@@ -11,8 +11,6 @@ struct TrainingDetailView: View {
         List {
             if viewModel.isLoading && viewModel.training == nil {
                 TrainingDetailLoadingSection()
-            } else if let error = viewModel.error, viewModel.training == nil {
-                TrainingDetailErrorSection(error: error)
             } else if let training = viewModel.training {
                 TrainingDetailHeroSection(training: training)
                 TrainingRoadmapSection(training: training)
@@ -21,5 +19,6 @@ struct TrainingDetailView: View {
         }
         .navigationTitle(viewModel.training?.title ?? "Formation")
         .task { await viewModel.load() }
+        .feedbackDialog(error: $viewModel.error, success: $viewModel.statusMessage)
     }
 }

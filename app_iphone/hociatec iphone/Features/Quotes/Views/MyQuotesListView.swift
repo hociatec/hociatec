@@ -22,6 +22,7 @@ struct MyQuotesListView: View {
         }
         .task { await viewModel.load(force: true) }
         .refreshable { await viewModel.load(force: true) }
+        .feedbackDialog(error: $viewModel.error)
         .alert(
             "Supprimer ce devis ?",
             isPresented: Binding(

@@ -44,7 +44,7 @@ final class RescheduleAppointmentController extends AbstractController
 
         try {
             $startAt = new \DateTimeImmutable($input->startAt);
-        } catch (\Throwable) {
+        } catch (\DateMalformedStringException) {
             return ApiResponse::error('Date de report invalide.', Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 

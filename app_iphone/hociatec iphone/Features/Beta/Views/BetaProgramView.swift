@@ -27,5 +27,6 @@ struct BetaProgramView: View {
                 await viewModel.load(force: true)
             }
         }
+        .feedbackDialog(error: $viewModel.error, success: $viewModel.statusMessage)
     }
 }

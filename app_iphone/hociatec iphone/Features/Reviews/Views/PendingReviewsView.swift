@@ -10,9 +10,6 @@ struct PendingReviewsView: View {
 
     var body: some View {
         List {
-            if let error = viewModel.error {
-                Section { Text(error).foregroundColor(.red) }
-            }
             if viewModel.isLoading {
                 Section { HStack { Spacer(); ProgressView(); Spacer() } }
             }
@@ -47,6 +44,7 @@ struct PendingReviewsView: View {
             }
         }
         .task { await viewModel.load(service: container.services.orders) }
+        .feedbackDialog(error: $viewModel.error)
     }
 }
 

@@ -8,13 +8,6 @@ struct OrdersContentSections: View {
     let sortOption: OrderListSortOption
 
     var body: some View {
-        if let error = viewModel.error {
-            Section {
-                Text(error)
-                    .foregroundColor(.red)
-            }
-        }
-
         if hasNoResults {
             Section {
                 Text("Aucune commande disponible.")

@@ -95,7 +95,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     [queryClient, setStatusIfMounted, setUserIfMounted],
   );
 
-  const loadUser = useCallback(async () => {
+  const loadUser = useCallback(async (): Promise<AuthStatus> => {
     purgeLegacyAuthLocalStorage();
 
     try {
@@ -103,22 +103,24 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       const currentUser = await fetchCurrentUser();
       if (!currentUser) {
         clearLocalSessionState();
-        return;
+        return 'unauthenticated';
       }
 
       setUserIfMounted(currentUser);
       setStatusIfMounted('authenticated');
+      return 'authenticated';
     } catch (error) {
       if (
         axios.isAxiosError(error) &&
         (error.response?.status === 401 || error.response?.status === 403)
       ) {
         clearLocalSessionState();
-        return;
+        return 'unauthenticated';
       }
 
       logger.warn('Unable to fetch current user.', { error });
       setStatusIfMounted('unavailable');
+      return 'unavailable';
     }
   }, [clearLocalSessionState, setStatusIfMounted, setUserIfMounted]);
 
@@ -151,7 +153,10 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         const { rememberMe: _rememberMe = false, ...credentials } = payload;
         const response = await loginUser(credentials);
 
-        await loadUser();
+        const refreshedStatus = await loadUser();
+        if (refreshedStatus !== 'authenticated') {
+          throw new Error('Votre session n’a pas pu être confirmée. Veuillez réessayer.');
+        }
         skipLocalLoginEventsUntil.current = Date.now() + 1000;
         publishAuthSessionEvent('login');
 
@@ -205,7 +210,9 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       status,
       login,
       logout,
-      refresh: loadUser,
+      refresh: async () => {
+        await loadUser();
+      },
       updateProfile,
       deleteAccount,
     }),

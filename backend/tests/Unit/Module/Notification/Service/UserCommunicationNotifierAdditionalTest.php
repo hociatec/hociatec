@@ -46,7 +46,7 @@ final class UserCommunicationNotifierAdditionalTest extends TestCase
 
         $notifier->notifyInternal($user, 'key-1', 'Titre', 'Message', '/orders/1', 'order');
 
-        self::assertFalse($repository->existsForKey('key-1'));
+        self::assertFalse($repository->existsForUserAndKey($user, 'key-1'));
     }
 
     public function testNotifyInternalLogsFailureWhenPersistenceThrows(): void
@@ -114,7 +114,7 @@ final class UserCommunicationNotifierAdditionalTest extends TestCase
 
         $notifier->notifyInternal($user, 'key-duplicate', 'Titre', 'Message', '/orders/1', 'order');
 
-        self::assertTrue($repository->existsForKey('key-duplicate'));
+        self::assertTrue($repository->existsForUserAndKey($user, 'key-duplicate'));
         self::assertSame(1, $repository->countForUser($user));
     }
 

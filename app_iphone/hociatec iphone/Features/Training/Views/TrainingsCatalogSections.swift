@@ -30,9 +30,6 @@ struct TrainingsCatalogResultsSection: View {
         Section("Formations") {
             if viewModel.isLoading && viewModel.trainings.isEmpty {
                 ProgressView("Chargement des formations...")
-            } else if let error = viewModel.error {
-                Text(error)
-                    .foregroundStyle(.red)
             } else if viewModel.trainings.isEmpty {
                 Text("Aucune formation publiée pour le moment.")
                     .foregroundStyle(.secondary)

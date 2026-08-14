@@ -8,8 +8,6 @@ struct ServicesCatalogResultsSection: View {
         Section("Services") {
             if viewModel.isLoading && viewModel.services.isEmpty {
                 ProgressView("Chargement des services...")
-            } else if let error = viewModel.error {
-                Text(error).foregroundStyle(.red)
             } else if viewModel.services.isEmpty {
                 Text(
                     viewModel.appliedSearch.isEmpty

@@ -1,18 +1,5 @@
 import SwiftUI
 
-struct BetaProgramStatusSection: View {
-    let error: String?
-
-    var body: some View {
-        if let error, !error.isEmpty {
-            Section {
-                Text(error)
-                    .foregroundStyle(.red)
-            }
-        }
-    }
-}
-
 struct BetaProgramIntroSection: View {
     var body: some View {
         Section {

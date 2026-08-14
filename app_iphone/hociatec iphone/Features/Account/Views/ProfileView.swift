@@ -57,12 +57,6 @@ struct ProfileView: View {
                 }
                 .disabled(account.isLoading || account.firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || account.lastName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || account.email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
-            if let error = account.error, !error.isEmpty {
-                Section {
-                    Text(error)
-                        .foregroundColor(.red)
-                }
-            }
         }
         .onAppear {
             if let d = AccountViewModel.birthDateFormatter.date(from: account.birthDate) {

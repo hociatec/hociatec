@@ -35,5 +35,6 @@ struct OrdersView: View {
         .refreshable {
             await viewModel.load(force: true)
         }
+        .feedbackDialog(error: $viewModel.error)
     }
 }

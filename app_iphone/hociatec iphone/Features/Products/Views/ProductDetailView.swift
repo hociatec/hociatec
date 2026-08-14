@@ -73,6 +73,15 @@ struct ProductDetailView: View {
         }
         .productDetailAlerts(alertState: $alertState, dismiss: dismiss, selectedTab: $selectedTab)
         .productDetailFavoriteToolbar(viewModel: viewModel)
+        .feedbackDialog(
+            error: Binding(
+                get: { viewModel.detailError ?? viewModel.reviewsError },
+                set: { _ in
+                    viewModel.detailError = nil
+                    viewModel.reviewsError = nil
+                }
+            )
+        )
     }
 
     private var imageURL: URL? {

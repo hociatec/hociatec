@@ -9,9 +9,6 @@ struct HomeServicesSection: View {
             if home.isLoading && home.services.isEmpty {
                 ProgressView("Chargement...")
                     .frame(maxWidth: .infinity, alignment: .center)
-            } else if let error = home.error, home.services.isEmpty {
-                Text(error)
-                    .foregroundStyle(.red)
             } else if home.services.isEmpty {
                 Text("Aucun service mis en avant pour le moment.")
                     .foregroundStyle(.secondary)

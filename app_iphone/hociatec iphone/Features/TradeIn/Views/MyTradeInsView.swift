@@ -10,7 +10,6 @@ struct MyTradeInsView: View {
 
     var body: some View {
         List {
-            TradeInFeedbackSection(error: viewModel.error, message: viewModel.message)
             TradeInListSection(viewModel: viewModel)
         }
         .navigationTitle("Mes reprises")
@@ -19,6 +18,7 @@ struct MyTradeInsView: View {
         }
         .task { await viewModel.load() }
         .refreshable { await viewModel.load(force: true) }
+        .feedbackDialog(error: $viewModel.error, success: $viewModel.message)
     }
 }
 

@@ -8,10 +8,11 @@ import { BlockingModal } from '@/shared/components/ui/BlockingModal';
 
 type AppointmentBookingModalProps = {
   booking: boolean;
-  modalMode: 'recap' | 'success';
+  modalMode: 'recap' | 'submitting';
   selectedPrestation: Prestation | null;
   selectedSlot: AvailabilitySlot | null;
   isRescheduling?: boolean;
+  errorMessage?: string | null;
   onClose: () => void;
   onConfirm: () => void;
 };
@@ -22,26 +23,23 @@ export const AppointmentBookingModal = ({
   selectedPrestation,
   selectedSlot,
   isRescheduling = false,
+  errorMessage = null,
   onClose,
   onConfirm,
 }: AppointmentBookingModalProps) => {
   const titleId = useId();
   const descriptionId = useId();
-  const canDismiss = modalMode === 'recap' && !booking;
   const modalModeLabel =
     modalMode === 'recap'
       ? isRescheduling
-        ? 'Récapitulatif du report'
+        ? 'Confirmer le report du rendez-vous'
         : 'Récapitulatif du rendez-vous'
       : isRescheduling
-        ? 'Rendez-vous reporté'
-        : 'Rendez-vous confirmé';
-
-  const modalProps = canDismiss ? { onClose } : {};
+        ? 'Report du rendez-vous en cours'
+        : 'Confirmation du rendez-vous en cours';
 
   return (
     <BlockingModal
-      {...modalProps}
       labelledBy={titleId}
       describedBy={descriptionId}
       panelClassName="modal-container"
@@ -51,9 +49,19 @@ export const AppointmentBookingModal = ({
           <h2 id={titleId}>{modalModeLabel}</h2>
           <p id={descriptionId}>
             {isRescheduling
-              ? 'Confirmez le nouveau créneau avant d’envoyer le report.'
+              ? 'Vous allez remplacer votre créneau actuel par celui affiché ci-dessous. Vérifiez bien la nouvelle date et l’horaire avant de confirmer le report.'
               : 'Confirmez vos informations avant d’envoyer la réservation.'}
           </p>
+          {errorMessage ? (
+            <p
+              role="alert"
+              aria-live="assertive"
+              aria-atomic="true"
+              className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+            >
+              {errorMessage}
+            </p>
+          ) : null}
           <ul className="recap-list">
             <li>
               <strong>Prestation</strong>
@@ -82,27 +90,29 @@ export const AppointmentBookingModal = ({
 
           <div className="modal-actions">
             <button onClick={onClose} className="register-form__back">
-              Annuler
+              Retour
             </button>
             <button onClick={onConfirm} disabled={booking} className="register-form__submit">
-              {booking ? (isRescheduling ? 'Report...' : 'Réservation...') : 'Confirmer'}
+              {booking
+                ? isRescheduling
+                  ? 'Report en cours...'
+                  : 'Réservation en cours...'
+                : isRescheduling
+                  ? 'Confirmer le report'
+                  : 'Confirmer'}
             </button>
           </div>
         </>
-      ) : (
+      ) : modalMode === 'submitting' ? (
         <>
           <h2 id={titleId}>{modalModeLabel}</h2>
-          <p id={descriptionId}>
-            Votre rendez-vous pour <strong>{selectedPrestation?.name}</strong> est {isRescheduling ? 'reporté' : 'confirmé'} le{' '}
-            {selectedSlot &&
-              format(new Date(selectedSlot.start), "EEEE dd MMM yyyy 'à' HH:mm", { locale: fr })}
-            .
+          <p id={descriptionId} role="status" aria-live="assertive" aria-atomic="true">
+            {isRescheduling
+              ? 'Le report de votre rendez-vous est en cours. Veuillez patienter, cette fenêtre se mettra à jour automatiquement dès que le report sera confirmé.'
+              : 'La confirmation de votre rendez-vous est en cours. Veuillez patienter, cette fenêtre se mettra à jour automatiquement dès que la réservation sera enregistrée.'}
           </p>
-          <button onClick={onClose} className="register-form__submit">
-            Fermer
-          </button>
         </>
-      )}
+      ) : null}
     </BlockingModal>
   );
 };

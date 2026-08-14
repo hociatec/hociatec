@@ -43,6 +43,7 @@ export const AppointmentBookingPage = () => {
     modalOpen,
     setModalOpen,
     modalMode,
+    submitError,
     daySlots,
     handleBooking,
     goPrevMonth,
@@ -213,11 +214,10 @@ export const AppointmentBookingPage = () => {
               selectedPrestation={selectedPrestation}
               selectedSlot={selectedSlot}
               isRescheduling={isRescheduling}
+              errorMessage={submitError}
               onClose={() => {
                 setModalOpen(false);
-                if (modalMode === 'success') {
-                  resetFlow();
-                }
+                resetFlow();
               }}
               onConfirm={() => void handleBooking()}
             />

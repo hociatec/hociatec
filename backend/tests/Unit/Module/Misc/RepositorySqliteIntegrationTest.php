@@ -110,7 +110,11 @@ final class RepositorySqliteIntegrationTest extends RepositoryTestCase
 
         $notificationIndexes = array_change_key_case($schemaManager->listTableIndexes('account_notification_events'), \CASE_LOWER);
         self::assertArrayHasKey('idx_account_notification_user', $notificationIndexes);
-        self::assertArrayHasKey('uniq_account_notification_key', $notificationIndexes);
+        self::assertArrayHasKey('uniq_account_notification_user_key', $notificationIndexes);
+        self::assertSame(
+            ['user_id', 'notification_key'],
+            $notificationIndexes['uniq_account_notification_user_key']->getColumns(),
+        );
 
         $articleIndexes = array_change_key_case($schemaManager->listTableIndexes('news_articles'), \CASE_LOWER);
         self::assertArrayHasKey('idx_news_articles_published', $articleIndexes);

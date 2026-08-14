@@ -19,7 +19,6 @@ struct AppointmentBookingView: View {
             AppointmentBookingGuestNoticeSection(isLoggedIn: account.isLoggedIn)
             AppointmentBookingProgressSection(step: viewModel.step)
             stepContent
-            AppointmentBookingSuccessSection(successMessage: viewModel.successMessage)
         }
         .navigationTitle(viewModel.isRescheduling ? "Reporter" : "Rendez-vous")
         .task { await viewModel.initialize() }
@@ -28,6 +27,7 @@ struct AppointmentBookingView: View {
         }
         .environment(\.locale, Locale(identifier: "fr_FR"))
         .environment(\.calendar, Calendar(identifier: .gregorian))
+        .feedbackDialog(error: $viewModel.error, success: $viewModel.successMessage)
     }
 
     private var selectedPrestation: AppointmentPrestation? {

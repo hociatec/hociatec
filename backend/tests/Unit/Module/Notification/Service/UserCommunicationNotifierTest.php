@@ -69,7 +69,7 @@ final class UserCommunicationNotifierTest extends TestCase
         self::assertInstanceOf(UserCommunicationEmailMessage::class, $messages[0]);
         self::assertTrue($notifier->shouldSendEmail($user));
         self::assertTrue($notifier->shouldSendNewsEmail($user));
-        self::assertTrue($this->notificationRepository($entityManager)->existsForKey('key-1'));
+        self::assertTrue($this->notificationRepository($entityManager)->existsForUserAndKey($user, 'key-1'));
 
         $notifier->notify($user, 'key-1', 'Title', 'Body', '/orders/1', 'order');
         self::assertCount(1, $messages);
@@ -77,7 +77,7 @@ final class UserCommunicationNotifierTest extends TestCase
 
         $user->setCommunicationPreferences([CommunicationPreferences::EMAIL]);
         $notifier->notifyInternal($user, 'key-2', 'Title', 'Body', '/orders/2', 'order');
-        self::assertFalse($this->notificationRepository($entityManager)->existsForKey('key-2'));
+        self::assertFalse($this->notificationRepository($entityManager)->existsForUserAndKey($user, 'key-2'));
         self::assertFalse($notifier->shouldSendNewsEmail($user));
     }
 

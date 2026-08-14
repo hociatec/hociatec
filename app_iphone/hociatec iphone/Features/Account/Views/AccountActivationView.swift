@@ -5,8 +5,7 @@ struct AccountActivationView: View {
     let token: String
 
     @State private var isLoading = true
-    @State private var isSuccess = false
-    @State private var message = ""
+    @State private var dialog: FeedbackDialogState?
 
     var body: some View {
         List {
@@ -14,9 +13,6 @@ struct AccountActivationView: View {
                 if isLoading {
                     ProgressView("Vérification en cours...")
                         .frame(maxWidth: .infinity, alignment: .center)
-                } else {
-                    Text(message)
-                        .foregroundStyle(isSuccess ? .green : .red)
                 }
             }
         }
@@ -24,6 +20,7 @@ struct AccountActivationView: View {
         .task {
             await verify()
         }
+        .feedbackDialog($dialog)
     }
 
     private func verify() async {
@@ -31,11 +28,9 @@ struct AccountActivationView: View {
 
         do {
             try await service.verifyAccount(token: token)
-            isSuccess = true
-            message = "Votre compte a été activé avec succès."
+            dialog = .success("Votre compte a été activé avec succès.")
         } catch {
-            isSuccess = false
-            message = error.localizedDescription
+            dialog = .error(error.localizedDescription)
         }
 
         isLoading = false

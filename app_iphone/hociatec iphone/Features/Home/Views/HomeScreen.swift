@@ -28,5 +28,6 @@ struct HomeScreen: View {
         .refreshable {
             await home.load(force: true)
         }
+        .feedbackDialog(error: $home.error)
     }
 }

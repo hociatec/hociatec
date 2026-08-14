@@ -74,19 +74,6 @@ struct AppointmentConfirmationSummarySection: View {
     }
 }
 
-struct AppointmentBookingMessageSection: View {
-    let message: String?
-
-    var body: some View {
-        if let message, !message.isEmpty {
-            Section {
-                Label(message, systemImage: "checkmark.seal.fill")
-                    .foregroundStyle(.green)
-            }
-        }
-    }
-}
-
 struct AppointmentLoginNoticeSection: View {
     let isLoggedIn: Bool
 

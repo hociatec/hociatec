@@ -9,7 +9,6 @@ struct MyAuditsView: View {
 
     var body: some View {
         List {
-            AuditStatusSection(error: viewModel.error, successMessage: viewModel.successMessage)
             AuditListSection(viewModel: viewModel)
         }
         .navigationTitle("Mes audits")
@@ -18,27 +17,7 @@ struct MyAuditsView: View {
         }
         .task { await viewModel.load() }
         .refreshable { await viewModel.load(force: true) }
-    }
-}
-
-private struct AuditStatusSection: View {
-    let error: String?
-    let successMessage: String?
-
-    var body: some View {
-        if let error, !error.isEmpty {
-            Section {
-                Text(error)
-                    .foregroundStyle(.red)
-            }
-        }
-
-        if let successMessage, !successMessage.isEmpty {
-            Section {
-                Text(successMessage)
-                    .foregroundStyle(.green)
-            }
-        }
+        .feedbackDialog(error: $viewModel.error, success: $viewModel.successMessage)
     }
 }
 

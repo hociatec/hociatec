@@ -9,9 +9,6 @@ struct HomeNewsSection: View {
             if home.isLoading && home.news.isEmpty {
                 ProgressView("Chargement...")
                     .frame(maxWidth: .infinity, alignment: .center)
-            } else if let error = home.error, home.news.isEmpty {
-                Text(error)
-                    .foregroundStyle(.red)
             } else if home.news.isEmpty {
                 Text("Aucune actualité disponible pour le moment.")
                     .foregroundStyle(.secondary)
