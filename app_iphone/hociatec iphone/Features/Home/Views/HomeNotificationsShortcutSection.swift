@@ -10,8 +10,8 @@ struct HomeNotificationsShortcutSection: View {
     }
 
     var body: some View {
-        if account.isLoggedIn {
-            Group {
+        Group {
+            if account.isLoggedIn {
                 Section {
                     Button {
                         Task {
@@ -83,10 +83,10 @@ struct HomeNotificationsShortcutSection: View {
                         }
                     }
                 }
-                .task {
-                    await viewModel.loadIfNeeded(isLoggedIn: account.isLoggedIn)
-                }
             }
+        }
+        .task(id: account.isLoggedIn) {
+            await viewModel.loadIfNeeded(isLoggedIn: account.isLoggedIn)
         }
     }
 
