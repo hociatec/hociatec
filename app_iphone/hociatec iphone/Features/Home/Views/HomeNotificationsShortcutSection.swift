@@ -36,6 +36,7 @@ struct HomeNotificationsShortcutSection: View {
                         )
                         .fontWeight(.semibold)
                     }
+                    .accessibilityRemoveTraits(.isHeader)
                 }
             }
         }

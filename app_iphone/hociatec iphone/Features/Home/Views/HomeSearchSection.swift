@@ -11,6 +11,7 @@ struct HomeSearchSection: View {
                 Label("Recherche", systemImage: "magnifyingglass")
                     .fontWeight(.semibold)
             }
+            .accessibilityRemoveTraits(.isHeader)
         }
     }
 }
