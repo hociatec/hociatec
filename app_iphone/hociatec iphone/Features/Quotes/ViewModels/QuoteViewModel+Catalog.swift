@@ -23,12 +23,15 @@ extension QuoteViewModel {
     func searchProducts() async {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !query.isEmpty else {
+            productSearchRequestID += 1
             productResults = []
+            isSearching = false
             return
         }
         productSearchRequestID += 1
         let requestID = productSearchRequestID
         isSearching = true
+        error = nil
         do {
             let results = try await searchProductsUseCase.execute(query: query)
             guard requestID == productSearchRequestID else { return }

@@ -6,11 +6,15 @@ extension AccountViewModel {
             addresses = []
             return
         }
+        addressesRequestID += 1
+        let requestID = addressesRequestID
 
         do {
             let items = try await useCases.loadAddresses.execute()
+            guard requestID == addressesRequestID else { return }
             addresses = items
         } catch let err {
+            guard requestID == addressesRequestID else { return }
             if shouldIgnore(error: err) { return }
             if reportErrors {
                 error = err.localizedDescription
@@ -75,19 +79,23 @@ extension AccountViewModel {
         reportErrors: Bool,
         _ operation: () async throws -> Void
     ) async -> String? {
+        addressMutationRequestID += 1
+        let requestID = addressMutationRequestID
         isLoading = true
         error = nil
-        defer { isLoading = false }
 
         do {
             try await operation()
+            guard requestID == addressMutationRequestID else { return nil }
             await refreshProfile()
             return nil
         } catch let err {
+            guard requestID == addressMutationRequestID else { return nil }
             if shouldIgnore(error: err) { return nil }
             if reportErrors {
                 error = err.localizedDescription
             }
+            isLoading = false
             return err.localizedDescription
         }
     }

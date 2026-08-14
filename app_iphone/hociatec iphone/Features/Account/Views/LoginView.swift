@@ -47,6 +47,7 @@ struct LoginView: View {
             guard profileID != nil, account.isLoggedIn else { return }
             dismiss()
         }
+        .feedbackDialog(error: $account.error)
     }
 
     private var isSubmitDisabled: Bool {

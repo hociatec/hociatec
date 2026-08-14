@@ -1,14 +1,16 @@
 import Foundation
 
 extension TradeInViewModel {
-    func loadMetadata() async {
-        guard !isLoading else { return }
+    func loadMetadata(force: Bool = false) async {
+        if isLoading && !force { return }
+        metadataRequestID += 1
+        let requestID = metadataRequestID
         isLoading = true
         error = nil
-        defer { isLoading = false }
 
         do {
             let metadata = try await service.tradeInMetadata()
+            guard requestID == metadataRequestID else { return }
             categories = metadata.categories
             conditions = metadata.conditions
             if selectedCategory.isEmpty {
@@ -18,7 +20,11 @@ extension TradeInViewModel {
                 selectedCondition = metadata.conditions.first?.value ?? ""
             }
         } catch {
+            guard requestID == metadataRequestID else { return }
             self.error = error.localizedDescription
+        }
+        if requestID == metadataRequestID {
+            isLoading = false
         }
     }
 

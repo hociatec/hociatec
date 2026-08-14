@@ -35,7 +35,8 @@ extension AccountViewModel {
             .store(in: &cancellables)
     }
 
-    func applyAuthenticatedState(profile: UserProfile) async {
+    func applyAuthenticatedState(profile: UserProfile, requestID: Int? = nil) async {
+        if let requestID, requestID != profileRequestID { return }
         isLoggedIn = true
         error = nil
         apply(profile: profile)
@@ -48,6 +49,7 @@ extension AccountViewModel {
         profile = nil
         error = nil
         statusMessage = nil
+        globalDialog = nil
         password = ""
         firstName = ""
         lastName = ""

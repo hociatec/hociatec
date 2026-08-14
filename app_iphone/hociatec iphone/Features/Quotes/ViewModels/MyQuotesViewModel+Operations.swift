@@ -7,6 +7,7 @@ extension MyQuotesViewModel {
         let requestID = loadRequestID
         isLoading = true
         error = nil
+        successMessage = nil
         do {
             let loadedQuotes = try await loadMyQuotesUseCase.execute()
             guard requestID == loadRequestID else { return }
@@ -21,14 +22,23 @@ extension MyQuotesViewModel {
     }
 
     func delete(id: Int) async {
+        if isLoading { return }
+        deleteRequestID += 1
+        let requestID = deleteRequestID
         isLoading = true
         error = nil
+        successMessage = nil
         do {
             try await deleteQuoteUseCase.execute(id: id)
+            guard requestID == deleteRequestID else { return }
             quotes.removeAll { $0.id == id }
+            successMessage = "Devis supprimé."
         } catch let err {
+            guard requestID == deleteRequestID else { return }
             error = err.localizedDescription
         }
-        isLoading = false
+        if requestID == deleteRequestID {
+            isLoading = false
+        }
     }
 }

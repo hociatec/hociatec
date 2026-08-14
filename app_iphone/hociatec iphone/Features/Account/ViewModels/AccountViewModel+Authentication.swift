@@ -7,21 +7,25 @@ extension AccountViewModel {
             return
         }
 
+        profileRequestID += 1
+        let requestID = profileRequestID
         isLoading = true
         error = nil
-        defer {
-            isLoading = false
-            password = ""
-        }
 
         do {
             try await useCases.login.execute(email: email, password: password)
             session.storeCredentials(email: email, rememberSession: rememberSession)
             let profile = try await useCases.loadProfile.execute()
-            await applyAuthenticatedState(profile: profile)
+            guard requestID == profileRequestID else { return }
+            await applyAuthenticatedState(profile: profile, requestID: requestID)
         } catch let err {
+            guard requestID == profileRequestID else { return }
             if shouldIgnore(error: err) { return }
             self.error = err.localizedDescription
+        }
+        if requestID == profileRequestID {
+            isLoading = false
+            password = ""
         }
     }
 
@@ -35,6 +39,8 @@ extension AccountViewModel {
         phoneNumber: String,
         gender: String
     ) async -> Bool {
+        profileRequestID += 1
+        let requestID = profileRequestID
         isLoading = true
         error = nil
         statusMessage = nil
@@ -51,11 +57,13 @@ extension AccountViewModel {
                 phoneNumber: phoneNumber,
                 gender: normalizedGender(gender)
             )
+            guard requestID == profileRequestID else { return false }
             session.loginEmail = email
             statusMessage = "Compte créé. Vérifiez votre e-mail pour activer le compte avant de vous connecter."
             isLoading = false
             return true
         } catch let err {
+            guard requestID == profileRequestID else { return false }
             if shouldIgnore(error: err) {
                 isLoading = false
                 return false
@@ -67,6 +75,8 @@ extension AccountViewModel {
     }
 
     func logout() async {
+        profileRequestID += 1
+        addressesRequestID += 1
         await useCases.logout.execute()
         applyLoggedOutState()
     }

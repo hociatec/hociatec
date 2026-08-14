@@ -31,6 +31,7 @@ final class TradeInViewModel: ObservableObject {
 
     let service: TradeInServing
     let account: AccountViewModel
+    var metadataRequestID = 0
 
     init(service: TradeInServing, account: AccountViewModel) {
         self.service = service

@@ -38,12 +38,14 @@ final class MyQuotesViewModel: ObservableObject {
     @Published var quotes: [QuoteSummary] = []
     @Published var isLoading = false
     @Published var error: String?
+    @Published var successMessage: String?
     @Published var sharedFile: TemporarySharedFile?
     let loadMyQuotesUseCase: LoadMyQuotesUseCase
     let downloadQuotePdfUseCase: DownloadQuotePdfUseCase
     let deleteQuoteUseCase: DeleteQuoteUseCase
     var loadRequestID = 0
     var shareRequestID = 0
+    var deleteRequestID = 0
 
     init(useCases: QuotesUseCases) {
         self.loadMyQuotesUseCase = useCases.loadMyQuotes

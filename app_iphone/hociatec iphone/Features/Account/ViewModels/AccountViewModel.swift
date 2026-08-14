@@ -36,6 +36,9 @@ final class AccountViewModel: ObservableObject {
     let useCases: AccountUseCases
     let session: SessionStore
     var cancellables = Set<AnyCancellable>()
+    var profileRequestID = 0
+    var addressesRequestID = 0
+    var addressMutationRequestID = 0
 
     init(useCases: AccountUseCases, session: SessionStore) {
         self.useCases = useCases
