@@ -128,7 +128,6 @@ struct FavoritesScreen: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(title)
-        .accessibilityValue(isSelected ? "Sélectionnée" : "Non sélectionnée")
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }

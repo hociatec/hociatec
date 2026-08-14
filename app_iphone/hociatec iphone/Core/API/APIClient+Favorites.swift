@@ -7,7 +7,8 @@ extension APIClient {
 
     func listFavorites(category: FavoriteCategory? = nil) async throws -> [FavoriteEntry] {
         let data: FavoriteListData = try await request(
-            path: "api/favorites" + (category.map { "?category=\($0.rawValue)" } ?? ""),
+            path: "api/favorites",
+            query: category.map { [URLQueryItem(name: "category", value: $0.rawValue)] },
             authorized: true,
             attachCartToken: false
         )

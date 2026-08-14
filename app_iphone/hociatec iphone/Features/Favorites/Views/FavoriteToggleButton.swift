@@ -15,17 +15,43 @@ struct FavoriteToggleButton: View {
             Task { await toggle() }
         } label: {
             Image(systemName: isFavorite ? "heart.fill" : "heart")
-                .foregroundStyle(isFavorite ? .red : .secondary)
+                .font(.system(size: 16, weight: .semibold))
+                .frame(width: 44, height: 44)
+                .background(isFavorite ? Color.red.opacity(0.12) : Color(.secondarySystemBackground))
+                .foregroundStyle(buttonForegroundColor)
+                .clipShape(Circle())
+                .overlay(
+                    Circle()
+                        .stroke(isFavorite ? Color.red.opacity(0.35) : Color(.separator), lineWidth: 1)
+                )
+                .contentShape(Circle())
+                .opacity(account.isLoggedIn ? 1 : 0.45)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.borderless)
         .disabled(!account.isLoggedIn || isLoading)
         .accessibilityLabel(isFavorite ? "Retirer des favoris" : "Ajouter aux favoris")
-        .accessibilityValue(isFavorite ? "Sélectionné" : "Non sélectionné")
-        .accessibilityHint("Met à jour ce favori")
+        .accessibilityHint(account.isLoggedIn ? "Met à jour ce favori" : "Connectez-vous pour ajouter ce produit aux favoris")
+        .accessibilityValue(accessibilityValue)
         .accessibilityAddTraits(isFavorite ? .isSelected : [])
         .task(id: account.isLoggedIn) {
             await loadStatus()
         }
+    }
+
+    private var buttonForegroundColor: Color {
+        if isFavorite {
+            return .red
+        }
+
+        return account.isLoggedIn ? .primary : .secondary
+    }
+
+    private var accessibilityValue: String {
+        if !account.isLoggedIn {
+            return "Indisponible"
+        }
+
+        return isFavorite ? "Sélectionné" : ""
     }
 
     private func loadStatus() async {

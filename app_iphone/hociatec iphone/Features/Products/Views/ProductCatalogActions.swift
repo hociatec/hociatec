@@ -22,6 +22,7 @@ struct ProductCatalogActions: View {
                     Label("Partager par e-mail", systemImage: "envelope")
                         .font(.footnote)
                 }
+                .buttonStyle(.borderless)
 
                 Button {
                     openURL(facebookShareURL(for: product))
@@ -29,6 +30,7 @@ struct ProductCatalogActions: View {
                     Label("Partager sur Facebook", systemImage: "square.and.arrow.up")
                         .font(.footnote)
                 }
+                .buttonStyle(.borderless)
             }
             .foregroundStyle(.blue)
         }
