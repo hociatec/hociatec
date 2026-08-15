@@ -14,7 +14,7 @@ use App\Module\Catalog\Domain\Entity\LegacyProductAttribute;
 
 final readonly class ProductCatalogSearchProvider
 {
-    private const CACHE_SCHEMA_VERSION = 2;
+    private const CACHE_SCHEMA_VERSION = 3;
 
     public function __construct(
         private ProductQueryService $products,
@@ -50,14 +50,8 @@ final readonly class ProductCatalogSearchProvider
                 $catalogCriteria->attributeFilters,
             );
             $categoryAttributeDefinitions = $this->collectCategoryAttributeDefinitions($catalogCriteria->categorySlug);
-            $groupedItems = $this->models->aggregate($sortedProjectedProducts);
-            $total = count($groupedItems);
-            $variantTotal = array_reduce(
-                $groupedItems,
-                static fn (int $count, array $product): int => $count + max(1, (int) ($product['variantsCount'] ?? 1)),
-                0,
-            );
-            $items = array_slice($groupedItems, $criteria->offset(), $criteria->perPage);
+            $total = count($sortedProjectedProducts);
+            $items = array_slice($sortedProjectedProducts, $criteria->offset(), $criteria->perPage);
 
             return [
                 'items' => array_map(
@@ -68,11 +62,10 @@ final readonly class ProductCatalogSearchProvider
                     'page' => $criteria->page,
                     'perPage' => $criteria->perPage,
                     'total' => $total,
-                    'variantTotal' => $variantTotal,
                     'totalPages' => max(1, (int) ceil($total / $criteria->perPage)),
                 ],
                 'facets' => $this->formatFacets(
-                    $this->models->collectFacets(
+                    $this->models->collectRawFacets(
                         $projectedProducts,
                         $categoryAttributeDefinitions,
                         $catalogCriteria->categorySlug,

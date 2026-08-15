@@ -7,7 +7,7 @@ import { SITE_URL } from '@/shared/config/seoConfig';
 import { CatalogFilters } from '../components/CatalogFilters';
 import { CatalogProductResults } from '../components/CatalogProductResults';
 import { useCatalogSearch } from '../hooks/useCatalogSearch';
-import { formatGroupedCatalogResultsSummary } from '../lib/catalogSearch';
+import { formatCatalogResultsSummary } from '../lib/catalogSearch';
 import './CatalogPages.css';
 
 export interface SellingTypePageProps {
@@ -38,12 +38,7 @@ export const SellingTypePage = ({ sellingType, title }: SellingTypePageProps) =>
             <h1>{pageTitle}</h1>
             <div className="catalog-detail-metadata">
               <span>
-                {formatGroupedCatalogResultsSummary(
-                  catalog.meta.total,
-                  catalog.meta.variantTotal,
-                  catalog.query,
-                  'modèle',
-                )}
+                {formatCatalogResultsSummary(catalog.meta.total, catalog.query, 'produit')}
               </span>
             </div>
           </header>

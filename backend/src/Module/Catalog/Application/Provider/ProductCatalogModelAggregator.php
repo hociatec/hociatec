@@ -42,4 +42,14 @@ final class ProductCatalogModelAggregator
     {
         return $this->facets->collect($this->aggregate($products), $categoryAttributeDefinitions, $selectedCategorySlug);
     }
+
+    /**
+     * @param list<array<string, mixed>> $products
+     *
+     * @return array<string, mixed>
+     */
+    public function collectRawFacets(array $products, array $categoryAttributeDefinitions = [], ?string $selectedCategorySlug = null): array
+    {
+        return $this->facets->collect($products, $categoryAttributeDefinitions, $selectedCategorySlug);
+    }
 }

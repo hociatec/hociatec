@@ -7,7 +7,7 @@ import { Image as ImageIcon } from 'lucide-react';
 import { formatEuroCents } from '@/shared/lib/formatters';
 import { FavoriteToggleButton } from '@/features/favorites/publicApi';
 import type { CatalogProduct } from '../api';
-import { getCatalogProductDisplayName } from '../utils/productDisplay';
+import { getCatalogProductConfiguration, getCatalogProductDisplayName } from '../utils/productDisplay';
 import { resolveDisplayPriceCents } from '../utils/productPageDisplay';
 
 interface ProductCardProps {
@@ -19,6 +19,7 @@ export const ProductCard = ({ product, actionSlot }: ProductCardProps) => {
   const [imageFailed, setImageFailed] = useState(false);
   const productLink = `/catalogue/produits/${product.slug}?mode=${product.sellingType}`;
   const productDisplayName = getCatalogProductDisplayName(product);
+  const compactSpecs = getCatalogProductConfiguration(product);
   const sellingContext = `${product.category.name} (${product.sellingTypeLabel})`;
   const productPrice = resolveDisplayPriceCents(product);
 
@@ -58,6 +59,11 @@ export const ProductCard = ({ product, actionSlot }: ProductCardProps) => {
           <p className="catalog-product-card__fact">
             <span className="catalog-product-card__fact-label">Type:</span> {sellingContext}
           </p>
+          {compactSpecs && (
+            <p className="catalog-product-card__fact">
+              <span className="catalog-product-card__fact-label">Configuration:</span> {compactSpecs}
+            </p>
+          )}
         </div>
         {product.shortDescription && (
           <p className="catalog-product-card__excerpt">{product.shortDescription}</p>
