@@ -65,6 +65,10 @@ services:
         arguments:
             $locationResolver: '@App\Module\Auth\Infrastructure\Http\ChainAccessSessionLocationResolver'
 
+    App\Module\Auth\Infrastructure\Security\RejectRevokedSessionJwtListener:
+        tags:
+            - { name: kernel.event_listener, event: lexik_jwt_authentication.on_jwt_authenticated }
+
     App\Shared\Infrastructure\Http\AuthCookieResponseWriter:
         alias: App\Module\Auth\Infrastructure\Http\AuthCookieService
 

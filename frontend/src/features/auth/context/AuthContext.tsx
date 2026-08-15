@@ -151,7 +151,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
           return;
         }
 
-        if (event === 'logout' || event === 'account_deleted') {
+        if (event === 'logout' || event === 'account_deleted' || event === 'session_revoked') {
           clearLocalSessionState();
           return;
         }

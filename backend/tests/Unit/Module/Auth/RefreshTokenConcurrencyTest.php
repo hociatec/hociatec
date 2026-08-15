@@ -184,6 +184,20 @@ final class FileRefreshTokenRepository implements RefreshTokenRepositoryPort
         return null;
     }
 
+    public function findOneActiveBySelectorForUser(string $selector, User $user): ?RefreshToken
+    {
+        $token = $this->load()[$selector] ?? null;
+        if (!$token instanceof RefreshToken) {
+            return null;
+        }
+
+        if ($token->getUser()->getEmail() !== $user->getEmail() || $token->isRevoked() || $token->isExpired()) {
+            return null;
+        }
+
+        return $token;
+    }
+
     public function revokeAllForUser(User $user): void
     {
         $tokens = $this->load();

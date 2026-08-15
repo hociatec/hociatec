@@ -82,6 +82,21 @@ class RefreshTokenRepository extends ServiceEntityRepository implements RefreshT
             ->getOneOrNullResult();
     }
 
+    public function findOneActiveBySelectorForUser(string $selector, User $user): ?RefreshToken
+    {
+        return $this->createQueryBuilder('refreshToken')
+            ->andWhere('refreshToken.selector = :selector')
+            ->andWhere('refreshToken.user = :user')
+            ->andWhere('refreshToken.revokedAt IS NULL')
+            ->andWhere('refreshToken.expiresAt > :now')
+            ->setParameter('selector', $selector)
+            ->setParameter('user', $user)
+            ->setParameter('now', new \DateTimeImmutable())
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     public function revokeAllForUser(User $user): void
     {
         $tokens = $this->findBy(['user' => $user, 'revokedAt' => null]);

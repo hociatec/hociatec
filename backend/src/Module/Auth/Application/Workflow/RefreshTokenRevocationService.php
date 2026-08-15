@@ -43,6 +43,11 @@ final readonly class RefreshTokenRevocationService
         return $token;
     }
 
+    public function isSessionActiveForUser(User $user, string $selector): bool
+    {
+        return null !== $this->refreshTokenRepository->findOneActiveBySelectorForUser($selector, $user);
+    }
+
     public function revokeAllActive(): int
     {
         $count = $this->refreshTokenRepository->revokeAllActive();

@@ -1,5 +1,6 @@
 import type { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 
+import { publishAuthSessionEvent } from '../authSessionEvents';
 import { clearCsrfToken } from './csrf';
 import { getRequestPath } from './requestPaths';
 
@@ -20,6 +21,11 @@ export const createAuthSessionRefresher = (client: AxiosInstance) => {
       })
       .then(() => {
         clearCsrfToken();
+      })
+      .catch((error) => {
+        publishAuthSessionEvent('session_revoked');
+
+        throw error;
       })
       .finally(() => {
         authRefreshRequest = null;

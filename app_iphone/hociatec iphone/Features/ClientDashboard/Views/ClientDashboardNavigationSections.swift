@@ -48,6 +48,7 @@ struct ClientDashboardSettingsSection: View {
                 .init(title: "Profil", systemImage: "person.text.rectangle", destination: .profile),
                 .init(title: "Adresses", systemImage: "mappin.and.ellipse", destination: .addresses),
                 .init(title: "Préférences de communication", systemImage: "bell.badge", destination: .communicationPreferences),
+                .init(title: "Révoquer les accès", systemImage: "laptopcomputer.and.iphone", destination: .accessSessions),
             ]
         )
     }

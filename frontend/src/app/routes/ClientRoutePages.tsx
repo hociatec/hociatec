@@ -8,6 +8,10 @@ export const CommunicationPreferencesPage = lazyPage(
   () => import('@/features/profile/pages/CommunicationPreferencesPage'),
   'CommunicationPreferencesPage',
 );
+export const ProfileAccessSessionsPage = lazyPage(
+  () => import('@/features/profile/pages/ProfileAccessSessionsPage'),
+  'ProfileAccessSessionsPage',
+);
 export const ClientDashboardPage = lazyPage(
   () => import('@/features/account/pages/ClientDashboardPage'),
   'ClientDashboardPage',

@@ -8,7 +8,6 @@ use App\Module\Auth\Application\Workflow\RefreshTokenService;
 use App\Module\Auth\Infrastructure\Http\AuthCookieService;
 use App\Module\Auth\Infrastructure\Http\RefreshTokenRequestContextResolver;
 use App\Shared\Infrastructure\Http\ApiResponse;
-use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -18,7 +17,7 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationSuccessHandlerI
 class AuthenticationSuccessHandler implements AuthenticationSuccessHandlerInterface
 {
     public function __construct(
-        private readonly JWTTokenManagerInterface $jwtManager,
+        private readonly SessionBoundJwtManager $jwtManager,
         private readonly RefreshTokenService $refreshTokenService,
         private readonly AuthCookieService $authCookieService,
         private readonly RefreshTokenRequestContextResolver $refreshTokenContextResolver,
@@ -35,8 +34,12 @@ class AuthenticationSuccessHandler implements AuthenticationSuccessHandlerInterf
         $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
         $rememberSession = true === ($payload['rememberSession'] ?? false);
 
-        $jwt = $this->jwtManager->create($securityUser);
         $refreshToken = $this->refreshTokenService->issueForUser($user, $this->refreshTokenContextResolver->resolve($request));
+        $refreshTokenSelector = explode('.', $refreshToken['refreshToken'], 2)[0] ?? '';
+        if (!is_string($refreshTokenSelector) || '' === $refreshTokenSelector) {
+            throw new \LogicException('Issued refresh token must expose a selector.');
+        }
+        $jwt = $this->jwtManager->createForSession($user, $refreshTokenSelector);
 
         $response = ApiResponse::success([
             'authenticated' => true,

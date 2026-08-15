@@ -9,6 +9,7 @@ struct ClientDashboardAction: Identifiable {
         case orders
         case trainings
         case communicationPreferences
+        case accessSessions
         case addresses
         case profile
         case support

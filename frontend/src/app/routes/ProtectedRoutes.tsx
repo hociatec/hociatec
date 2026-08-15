@@ -19,6 +19,7 @@ import {
   MyVouchersPage,
   OrderDetailPage,
   ProfilePage,
+  ProfileAccessSessionsPage,
   RequestAuditPage,
 } from './ClientRoutePages';
 import { BetaDashboardPage } from './PublicRoutePages';
@@ -43,6 +44,7 @@ export const protectedRoutes: AppRouteDefinition[] = [
   { path: '/checkout/success', element: protectedElement(<CheckoutSuccessPage />) },
   { path: '/mon-espace', element: protectedElement(<ClientDashboardPage />) },
   { path: '/profile', element: protectedElement(<ProfilePage />) },
+  { path: '/profile/access-sessions', element: protectedElement(<ProfileAccessSessionsPage />) },
   { path: '/profile/communication-preferences', element: protectedElement(<CommunicationPreferencesPage />) },
   { path: '/favorites', element: protectedElement(<MyFavoritesPage />) },
   { path: '/reprises', element: protectedElement(<MyTradeInsPage />) },

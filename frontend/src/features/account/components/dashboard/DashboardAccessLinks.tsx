@@ -5,6 +5,7 @@ import {
   FlaskConical,
   GraduationCap,
   Heart,
+  LaptopMinimalCheck,
   MessageSquareText,
   MapPin,
   Package,
@@ -93,6 +94,10 @@ export const DashboardAccessLinks = () => {
           <Link to="/profile/communication-preferences">
             <MessageSquareText aria-hidden="true" />
             <span>Préférences de communication</span>
+          </Link>
+          <Link to="/profile/access-sessions">
+            <LaptopMinimalCheck aria-hidden="true" />
+            <span>Révoquer les accès</span>
           </Link>
           <Link to="/favorites">
             <Heart aria-hidden="true" />

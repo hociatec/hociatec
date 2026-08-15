@@ -1,7 +1,7 @@
 import { writeLocalStorage } from './http/storage';
 import { isRecord } from './contractValidation';
 
-export type AuthSessionEvent = 'login' | 'logout' | 'profile_updated' | 'account_deleted';
+export type AuthSessionEvent = 'login' | 'logout' | 'profile_updated' | 'account_deleted' | 'session_revoked';
 
 const CHANNEL_NAME = 'hociatec.auth.session';
 const STORAGE_KEY = 'hociatec.auth.session.event';
@@ -65,7 +65,11 @@ type AuthSessionEventPayload = {
 };
 
 const isAuthSessionEvent = (value: unknown): value is AuthSessionEvent =>
-  value === 'login' || value === 'logout' || value === 'profile_updated' || value === 'account_deleted';
+  value === 'login'
+  || value === 'logout'
+  || value === 'profile_updated'
+  || value === 'account_deleted'
+  || value === 'session_revoked';
 
 const isAuthSessionEventPayload = (value: unknown): value is AuthSessionEventPayload =>
   isRecord(value) && isAuthSessionEvent(value.event);

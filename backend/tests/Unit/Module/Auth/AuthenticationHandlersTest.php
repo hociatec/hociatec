@@ -8,6 +8,7 @@ use App\Module\Auth\Infrastructure\Http\AuthCookieService;
 use App\Module\Auth\Infrastructure\Http\RefreshTokenRequestContextResolver;
 use App\Module\Auth\Infrastructure\Security\AuthenticationFailureHandler;
 use App\Module\Auth\Infrastructure\Security\AuthenticationSuccessHandler;
+use App\Module\Auth\Infrastructure\Security\SessionBoundJwtManager;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,10 +26,16 @@ final class AuthenticationHandlersTest extends AuthIntegrationTestCase
         $em->flush();
 
         $jwt = $this->createMock(JWTTokenManagerInterface::class);
-        $jwt->method('create')->willReturn('jwt');
+        $jwt->expects(self::once())
+            ->method('createFromPayload')
+            ->with(
+                self::callback(static fn (object $securityUser): bool => $securityUser instanceof \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser && $securityUser->domainIdentity() === $user),
+                self::callback(static fn (array $payload): bool => is_string($payload[SessionBoundJwtManager::SESSION_SELECTOR_CLAIM] ?? null) && '' !== $payload[SessionBoundJwtManager::SESSION_SELECTOR_CLAIM]),
+            )
+            ->willReturn('jwt');
         $token = $this->createMock(TokenInterface::class);
         $token->method('getUser')->willReturn(new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($user));
-        $success = new AuthenticationSuccessHandler($jwt, $this->refreshService($em), new AuthCookieService('prod'), new RefreshTokenRequestContextResolver());
+        $success = new AuthenticationSuccessHandler(new SessionBoundJwtManager($jwt), $this->refreshService($em), new AuthCookieService('prod'), new RefreshTokenRequestContextResolver());
         self::assertSame(Response::HTTP_OK, $success->onAuthenticationSuccess(Request::create('/'), $token)->getStatusCode());
 
         $dispatcher = $this->createMock(EventDispatcherInterface::class);

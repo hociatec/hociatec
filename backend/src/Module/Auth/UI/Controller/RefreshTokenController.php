@@ -10,7 +10,6 @@ use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\AuthCookieResponseWriter;
 use App\Shared\Infrastructure\Http\CsrfExempt;
 use App\Shared\Infrastructure\Http\RateLimitKeyFactory;
-use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,7 +24,7 @@ class RefreshTokenController extends AbstractController
 {
     public function __construct(
         private readonly RefreshTokenService $refreshTokenService,
-        private readonly JWTTokenManagerInterface $jwtManager,
+        private readonly \App\Module\Auth\Infrastructure\Security\SessionBoundJwtManager $jwtManager,
         private readonly AuthCookieResponseWriter $authCookieService,
         private readonly RefreshTokenRequestContextResolver $refreshTokenContextResolver,
         private readonly RateLimitKeyFactory $rateLimitKeys,
@@ -53,16 +52,26 @@ class RefreshTokenController extends AbstractController
         }
 
         if ('' === $refreshToken) {
-            return ApiResponse::error('Refresh token manquant.', Response::HTTP_UNPROCESSABLE_ENTITY);
+            $response = ApiResponse::error('Refresh token manquant.', Response::HTTP_UNPROCESSABLE_ENTITY);
+            $this->authCookieService->clearAuthCookies($response, $request);
+
+            return $response;
         }
 
         $rotated = $this->refreshTokenService->rotate($refreshToken, $this->refreshTokenContextResolver->resolve($request));
         if (null === $rotated) {
-            return ApiResponse::error('Refresh token invalide ou expiré.', Response::HTTP_UNAUTHORIZED);
+            $response = ApiResponse::error('Refresh token invalide ou expiré.', Response::HTTP_UNAUTHORIZED);
+            $this->authCookieService->clearAuthCookies($response, $request);
+
+            return $response;
         }
         $rememberSession = 'persistent' === $request->cookies->get(AuthCookieResponseWriter::SESSION_PREFERENCE_COOKIE);
 
-        $jwt = $this->jwtManager->create(new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($rotated['user']));
+        $refreshTokenSelector = $this->refreshTokenSelector($rotated['refreshToken']);
+        if (null === $refreshTokenSelector) {
+            throw new \LogicException('Rotated refresh token must expose a selector.');
+        }
+        $jwt = $this->jwtManager->createForSession($rotated['user'], $refreshTokenSelector);
 
         $response = ApiResponse::success([
             'authenticated' => true,

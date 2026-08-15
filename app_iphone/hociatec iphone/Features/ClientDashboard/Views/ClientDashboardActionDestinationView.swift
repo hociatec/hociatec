@@ -23,6 +23,8 @@ struct ClientDashboardActionDestinationView: View {
             ClientTrainingsView(service: container.services.training)
         case .communicationPreferences:
             CommunicationPreferencesView(service: container.services.workspace)
+        case .accessSessions:
+            AccountAccessSessionsView(service: container.services.account)
         case .addresses:
             AddressesManagerView(account: account)
         case .profile:
