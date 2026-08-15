@@ -879,6 +879,12 @@ private actor MockProductsRepository: ProductsRepository {
         search: String?,
         categorySlug: String?,
         sellingType: SellingType?,
+        brand: String?,
+        attributeFilters: [String: String],
+        minPrice: Double?,
+        maxPrice: Double?,
+        inStock: Bool?,
+        sort: ProductSortOption?,
         page: Int,
         perPage: Int
     ) async throws -> ProductListData {
@@ -899,7 +905,17 @@ private actor MockProductsRepository: ProductsRepository {
         }
     }
 
-    func fetchProducts(search: String?, categorySlug: String?, sellingType: SellingType?) async throws -> [Product] {
+    func fetchProducts(
+        search: String?,
+        categorySlug: String?,
+        sellingType: SellingType?,
+        brand: String?,
+        attributeFilters: [String: String],
+        minPrice: Double?,
+        maxPrice: Double?,
+        inStock: Bool?,
+        sort: ProductSortOption?
+    ) async throws -> [Product] {
         []
     }
 
@@ -907,7 +923,7 @@ private actor MockProductsRepository: ProductsRepository {
         []
     }
 
-    func fetchProduct(slug: String) async throws -> Product {
+    func fetchProduct(slug: String, sellingType: SellingType?) async throws -> Product {
         throw SampleError(message: "Unused")
     }
 
@@ -1128,11 +1144,33 @@ private final class MockProductService: ProductServing {
     nonisolated func assetURL(for path: String?) -> URL? { nil }
     func featuredProducts() async throws -> [Product] { [] }
 
-    func productList(search: String?, categorySlug: String?, sellingType: SellingType?, page: Int?, perPage: Int?) async throws -> ProductListData {
+    func productList(
+        search: String?,
+        categorySlug: String?,
+        sellingType: SellingType?,
+        brand: String?,
+        attributeFilters: [String: String],
+        minPrice: Double?,
+        maxPrice: Double?,
+        inStock: Bool?,
+        sort: ProductSortOption?,
+        page: Int?,
+        perPage: Int?
+    ) async throws -> ProductListData {
         ProductListData(items: [], meta: PaginationMeta(page: page ?? 1, perPage: perPage ?? 12, total: 0, totalPages: 1))
     }
 
-    func products(search: String?, categorySlug: String?, sellingType: SellingType?) async throws -> [Product] { [] }
+    func products(
+        search: String?,
+        categorySlug: String?,
+        sellingType: SellingType?,
+        brand: String?,
+        attributeFilters: [String: String],
+        minPrice: Double?,
+        maxPrice: Double?,
+        inStock: Bool?,
+        sort: ProductSortOption?
+    ) async throws -> [Product] { [] }
     func categories() async throws -> [CategorySummary] { [] }
     func product(slug: String, sellingType: SellingType?) async throws -> Product { throw SampleError(message: "Unused") }
 
