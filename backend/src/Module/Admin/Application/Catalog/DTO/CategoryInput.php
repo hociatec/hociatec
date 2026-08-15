@@ -21,8 +21,7 @@ final readonly class CategoryInput
         public ?string $slug,
         public bool $isVisible = true,
         public array $attributeDefinitions = [],
-    )
-    {
+    ) {
     }
 
     /** @param array<string,mixed> $payload */
@@ -35,7 +34,7 @@ final readonly class CategoryInput
             is_string($payload['description'] ?? null) ? trim($payload['description']) : null,
             '' === $slug ? null : $slug,
             self::bool($payload['isVisible'] ?? true),
-            is_array($payload['attributeDefinitions'] ?? null) ? $payload['attributeDefinitions'] : [],
+            is_array($payload['attributeDefinitions'] ?? null) ? array_values($payload['attributeDefinitions']) : [],
         );
     }
 

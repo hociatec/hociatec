@@ -138,29 +138,6 @@ final class ProductCatalogAggregationVariants
      *
      * @return list<string>
      */
-    private function collectUniqueValues(array $variants, string $key): array
-    {
-        $values = [];
-
-        foreach ($variants as $variant) {
-            $value = trim((string) ($variant[$key] ?? ''));
-            if ('' === $value) {
-                continue;
-            }
-
-            $values[mb_strtolower($value)] = $value;
-        }
-
-        uasort($values, static fn (string $left, string $right): int => strcasecmp($left, $right));
-
-        return array_values($values);
-    }
-
-    /**
-     * @param list<array<string, mixed>> $variants
-     *
-     * @return list<string>
-     */
     private function collectUniqueAttributeValues(array $variants, string $attributeCode): array
     {
         $values = [];

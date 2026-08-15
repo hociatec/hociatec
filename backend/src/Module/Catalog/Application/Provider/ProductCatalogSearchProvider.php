@@ -136,8 +136,8 @@ final readonly class ProductCatalogSearchProvider
     }
 
     /**
-     * @param array<string, mixed>   $product
-     * @param array<string, string>  $attributeFilters
+     * @param array<string, mixed>  $product
+     * @param array<string, string> $attributeFilters
      */
     private function productMatchesAttributeFilters(array $product, array $attributeFilters): bool
     {
@@ -190,8 +190,8 @@ final readonly class ProductCatalogSearchProvider
     }
 
     /**
-     * @param list<array<string, mixed>> $products
-     * @param list<array<string, mixed>> $baseProducts
+     * @param list<array<string, mixed>>                                                               $products
+     * @param list<array<string, mixed>>                                                               $baseProducts
      * @param array<string, list<array{code:string,label:string,isRequired:bool,isGlobalFilter:bool}>> $categoryAttributeDefinitions
      *
      * @return array<string, mixed>

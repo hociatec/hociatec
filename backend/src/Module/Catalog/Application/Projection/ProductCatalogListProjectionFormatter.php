@@ -33,8 +33,8 @@ final class ProductCatalogListProjectionFormatter
         $priceCents = $support->resolvePriceCents($product, $sellingType);
         $discount = new ProductDiscount(
             (bool) $product['discountEnabled'],
-            null !== $product['discountType'] ? (string) $product['discountType'] : null,
-            null !== $product['discountValue'] ? (int) $product['discountValue'] : null,
+            is_string($product['discountType'] ?? null) ? $product['discountType'] : null,
+            is_int($product['discountValue'] ?? null) ? $product['discountValue'] : null,
             $product['discountStartsAt'] instanceof \DateTimeImmutable ? $product['discountStartsAt'] : null,
             $product['discountEndsAt'] instanceof \DateTimeImmutable ? $product['discountEndsAt'] : null,
         );
@@ -54,8 +54,8 @@ final class ProductCatalogListProjectionFormatter
             'availableForSale' => $availableForSale,
             'availableForRental' => $availableForRental,
             'availableModes' => $support->availableModes($product),
-            'salePriceCents' => isset($product['salePriceCents']) ? (null !== $product['salePriceCents'] ? (int) $product['salePriceCents'] : null) : null,
-            'rentalPriceCents' => isset($product['rentalPriceCents']) ? (null !== $product['rentalPriceCents'] ? (int) $product['rentalPriceCents'] : null) : null,
+            'salePriceCents' => array_key_exists('salePriceCents', $product) && is_int($product['salePriceCents']) ? $product['salePriceCents'] : null,
+            'rentalPriceCents' => array_key_exists('rentalPriceCents', $product) && is_int($product['rentalPriceCents']) ? $product['rentalPriceCents'] : null,
             'brand' => null !== $product['brand'] ? (string) $product['brand'] : null,
             'brandId' => null !== $product['brandId'] ? (int) $product['brandId'] : null,
             'variantGroup' => null !== $product['variantGroup'] ? (string) $product['variantGroup'] : null,

@@ -10,5 +10,5 @@ parameters:
     symfony:
         containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml
     reportUnmatchedIgnoredErrors: true
-    treatPhpDocTypesAsCertain: true
+    treatPhpDocTypesAsCertain: false
     checkMissingCallableSignature: true

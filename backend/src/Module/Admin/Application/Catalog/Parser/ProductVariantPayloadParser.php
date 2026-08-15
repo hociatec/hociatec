@@ -14,9 +14,7 @@ final class ProductVariantPayloadParser
     {
     }
 
-    /**
-     * @return list<array{attributes:list<array{code:string,label:string,value:string}>, stock: int, salePriceCents?: int|null, rentalPriceCents?: int|null}>
-     */
+    /** @return list<array<string, mixed>> */
     public function parse(mixed $value): array
     {
         if (!is_string($value) || '' === trim($value)) {
@@ -121,8 +119,8 @@ final class ProductVariantPayloadParser
         $legacy = [];
 
         foreach ($attributes as $attribute) {
-            $code = trim((string) ($attribute['code'] ?? ''));
-            $value = trim((string) ($attribute['value'] ?? ''));
+            $code = trim($attribute['code']);
+            $value = trim($attribute['value']);
 
             if ('' === $value) {
                 continue;

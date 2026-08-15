@@ -98,8 +98,7 @@ final readonly class ProductVariantBatchCreator
         ?int $defaultRentalPriceCents,
         bool $availableForSale,
         bool $availableForRental,
-    ): ?array
-    {
+    ): ?array {
         if (!is_array($definition)) {
             return null;
         }
@@ -112,7 +111,7 @@ final readonly class ProductVariantBatchCreator
             ? (int) $definition['rentalPriceCents']
             : $defaultRentalPriceCents;
         $attributes = isset($definition['attributes']) && is_array($definition['attributes'])
-            ? $this->normalizeAttributes($definition['attributes'])
+            ? $this->normalizeAttributes(array_values($definition['attributes']))
             : [];
 
         if ([] === $attributes) {
@@ -179,7 +178,7 @@ final readonly class ProductVariantBatchCreator
     }
 
     /**
-     * @param list<array<string, mixed>> $attributes
+     * @param array<array-key, array<string, mixed>> $attributes
      *
      * @return list<array{code:string,label:string,value:string}>
      */

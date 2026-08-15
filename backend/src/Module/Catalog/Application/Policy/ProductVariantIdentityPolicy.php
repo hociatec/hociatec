@@ -15,7 +15,8 @@ final readonly class ProductVariantIdentityPolicy
     }
 
     /**
-     * @param array<int, mixed> $variantDefinitions
+     * @param list<array{code:string,label:string,value:string}> $currentAttributes
+     * @param list<array<string, mixed>>                         $variantDefinitions
      */
     public function assertDefinitionsAreUnique(
         ?string $variantGroup,
@@ -76,7 +77,7 @@ final readonly class ProductVariantIdentityPolicy
         }
 
         $attributes = isset($variantDefinition['attributes']) && is_array($variantDefinition['attributes'])
-            ? $this->normalizeAttributes($variantDefinition['attributes'])
+            ? $this->normalizeAttributes(array_values($variantDefinition['attributes']))
             : [];
 
         if ([] === $attributes) {

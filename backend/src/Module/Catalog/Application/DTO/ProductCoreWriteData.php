@@ -56,8 +56,10 @@ final readonly class ProductCoreWriteData
          *   slug: ?string,
          *   description: string,
          *   shortDescription: ?string,
+         *   priceCents: ?int,
          *   salePriceCents: ?int,
          *   rentalPriceCents: ?int,
+         *   sellingType: ?string,
          *   availableForSale: bool,
          *   availableForRental: bool,
          *   stock: int,
@@ -101,10 +103,10 @@ final readonly class ProductCoreWriteData
         $this->priceCents = $legacyPriceCents;
         $this->sellingType = $sellingType;
         $this->salePriceCents = $hasExplicitSalePrice
-            ? (int) $data['salePriceCents']
+            ? (null !== $data['salePriceCents'] ? (int) $data['salePriceCents'] : null)
             : ('rental' === $sellingType ? null : $legacyPriceCents);
         $this->rentalPriceCents = $hasExplicitRentalPrice
-            ? (int) $data['rentalPriceCents']
+            ? (null !== $data['rentalPriceCents'] ? (int) $data['rentalPriceCents'] : null)
             : ('rental' === $sellingType ? $legacyPriceCents : null);
         $hasExplicitAvailability = is_array($payload)
             && (array_key_exists('availableForSale', $payload) || array_key_exists('availableForRental', $payload));

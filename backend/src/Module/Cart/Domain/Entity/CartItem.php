@@ -160,10 +160,6 @@ class CartItem
 
     public function setRentalMonths(?int $rentalMonths): self
     {
-        if (ProductSellingType::Sale === $this->sellingType && null !== $rentalMonths) {
-            throw new \InvalidArgumentException('La durée de location ne s’applique pas à un achat.');
-        }
-
         if (null === $rentalMonths) {
             $this->rentalMonths = -1;
             $this->rentalStartDate = null;
@@ -202,7 +198,7 @@ class CartItem
 
     public function setRentalStartDate(?\DateTimeImmutable $rentalStartDate): self
     {
-        if (ProductSellingType::Sale === $this->sellingType) {
+        if (ProductSellingType::Sale->value === $this->sellingType) {
             $this->rentalStartDate = null;
 
             return $this;

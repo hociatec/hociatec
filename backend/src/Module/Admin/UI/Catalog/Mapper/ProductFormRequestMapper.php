@@ -65,6 +65,7 @@ final class ProductFormRequestMapper
     private function map(Request $request, ?Product $product): ProductWriteData
     {
         try {
+            $sellingType = ProductFormValueNormalizer::optionalString($request->request->get('sellingType', $product?->getSellingType()));
             $legacyPriceCents = ProductFormValueNormalizer::optionalPriceToCents(
                 $request->request->get('price', null !== $product?->getSalePriceCents() ? $product->getSalePriceCents() / 100 : 0),
             );
@@ -76,7 +77,7 @@ final class ProductFormRequestMapper
                 $request->request->get('salePrice', $legacyPriceCents ?? (null !== $product?->getSalePriceCents() ? $product->getSalePriceCents() / 100 : 0)),
             );
             $rentalPriceCents = ProductFormValueNormalizer::optionalPriceToCents(
-                $request->request->get('rentalPrice', 'rental' === ($request->request->get('sellingType') ?? $product?->getSellingType()) ? $legacyPriceCents : (null !== $product?->getRentalPriceCents() ? $product->getRentalPriceCents() / 100 : null)),
+                $request->request->get('rentalPrice', 'rental' === $sellingType ? $legacyPriceCents : (null !== $product?->getRentalPriceCents() ? $product->getRentalPriceCents() / 100 : null)),
             );
             if (null !== $salePriceCents && $salePriceCents < 0) {
                 throw new ProductFormRequestException('Le prix de vente doit être positif.', Response::HTTP_UNPROCESSABLE_ENTITY);
@@ -114,7 +115,7 @@ final class ProductFormRequestMapper
                     'category' => $category,
                     'imageAlt' => ProductFormValueNormalizer::optionalString($request->request->get('imageAlt', $product?->getImageAlt())),
                     'priceCents' => $legacyPriceCents,
-                    'sellingType' => $request->request->get('sellingType', $product?->getSellingType()),
+                    'sellingType' => $sellingType,
                     'brand' => $brand,
                 ]),
                 gallery: new ProductGalleryWriteData(

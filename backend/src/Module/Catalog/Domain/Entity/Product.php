@@ -254,6 +254,7 @@ class Product
         throw new \LogicException('Le produit n\'est disponible dans aucun mode.');
     }
 
+    /** @return list<string> */
     public function getAvailableSellingTypes(): array
     {
         return array_values(array_filter([
@@ -338,6 +339,7 @@ class Product
         return $this->priceUnitLabelFor($this->resolveDisplaySellingType($preferred));
     }
 
+    /** @return array{sellingType:string,sellingTypeLabel:string,priceUnitLabel:?string,priceCents:int} */
     public function getSellingTypeContext(?string $preferred = null): array
     {
         $type = $this->resolveDisplaySellingType($preferred);
@@ -475,7 +477,7 @@ class Product
     }
 
     /**
-     * @param list<mixed> $configuration
+     * @param array<int|string, mixed> $configuration
      *
      * @return array{rentalPriceCents:?int,availableForSale:bool,availableForRental:bool,stock:int,category:?Category}
      */

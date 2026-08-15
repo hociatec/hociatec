@@ -114,7 +114,6 @@ class CategoryCatalogWorkflow
 
     private function persistCreatedCategory(Category $category): Category
     {
-
         try {
             $this->persistence->persist($category);
             $this->persistence->flush();
@@ -126,6 +125,9 @@ class CategoryCatalogWorkflow
         return $category;
     }
 
+    /**
+     * @param list<array{code?:mixed,label?:mixed,inputType?:mixed,helpText?:mixed,options?:mixed,isRequired?:mixed,isGlobalFilter?:mixed}> $attributeDefinitions
+     */
     public function update(
         Category $category,
         string $name,
@@ -228,7 +230,7 @@ class CategoryCatalogWorkflow
     }
 
     /**
-     * @param list<array{code?:mixed,label?:mixed,inputType?:mixed,helpText?:mixed,options?:mixed,isRequired?:mixed,isGlobalFilter?:mixed}> $definitions
+     * @param array<array-key, array{code?:mixed,label?:mixed,inputType?:mixed,helpText?:mixed,options?:mixed,isRequired?:mixed,isGlobalFilter?:mixed}> $definitions
      *
      * @return list<array{code:string,label:string,inputType:string,helpText:?string,options:list<string>,isRequired:bool,isGlobalFilter:bool}>
      */

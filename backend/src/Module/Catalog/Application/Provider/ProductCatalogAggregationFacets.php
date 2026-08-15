@@ -10,7 +10,8 @@ use App\Module\Catalog\Application\DTO\ProductCatalogPriceRange;
 final class ProductCatalogAggregationFacets
 {
     /**
-     * @param list<array<string, mixed>> $products
+     * @param list<array<string, mixed>>                                                               $products
+     * @param array<string, list<array{code:string,label:string,isRequired:bool,isGlobalFilter:bool}>> $categoryAttributeDefinitions
      *
      * @return array<string, mixed>
      */
@@ -79,44 +80,8 @@ final class ProductCatalogAggregationFacets
     }
 
     /**
-     * @param list<array<string, mixed>> $products
-     *
-     * @return list<ProductCatalogFacetItem>
-     */
-    private function countArrayFacet(array $products, string $arrayKey, string $fallbackKey): array
-    {
-        $counts = [];
-
-        foreach ($products as $product) {
-            $values = [];
-            $rawValues = $product[$arrayKey] ?? null;
-
-            if (is_array($rawValues)) {
-                foreach ($rawValues as $rawValue) {
-                    $value = trim((string) $rawValue);
-                    if ('' !== $value) {
-                        $values[mb_strtolower($value)] = $value;
-                    }
-                }
-            }
-
-            if ([] === $values) {
-                $fallbackValue = trim((string) ($product[$fallbackKey] ?? ''));
-                if ('' !== $fallbackValue) {
-                    $values[mb_strtolower($fallbackValue)] = $fallbackValue;
-                }
-            }
-
-            foreach ($values as $value) {
-                $this->incrementFacetCount($counts, $value);
-            }
-        }
-
-        return $this->sortFacetItems($counts);
-    }
-
-    /**
-     * @param list<array<string, mixed>> $products
+     * @param list<array<string, mixed>>                                  $products
+     * @param array<string, array{code:string,label:string,position:int}> $allowedAttributes
      *
      * @return list<array{code:string,label:string,values:list<array{value:string,count:int,extra:?string}>}>
      */
@@ -216,7 +181,7 @@ final class ProductCatalogAggregationFacets
             return [];
         }
 
-        if (null !== $selectedCategorySlug && isset($categoryAttributeDefinitions[$selectedCategorySlug])) {
+        if (isset($categoryAttributeDefinitions[$selectedCategorySlug])) {
             foreach ($categoryAttributeDefinitions[$selectedCategorySlug] as $definition) {
                 $code = trim((string) ($definition['code'] ?? ''));
                 $label = trim((string) ($definition['label'] ?? ''));

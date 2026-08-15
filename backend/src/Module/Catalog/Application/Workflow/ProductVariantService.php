@@ -19,7 +19,7 @@ final readonly class ProductVariantService
     }
 
     /**
-     * @param array<int, mixed> $variantDefinitions
+     * @param list<array<string, mixed>> $variantDefinitions
      */
     public function resolveVariantGroup(?string $variantGroup, string $name, array $variantDefinitions): string
     {
@@ -38,7 +38,7 @@ final readonly class ProductVariantService
     }
 
     /**
-     * @param array<int, mixed> $variantDefinitions
+     * @param list<array<string, mixed>>|null $variantDefinitions
      */
     public function assertDefinitionsAreUnique(
         ?string $variantGroup,
@@ -48,8 +48,9 @@ final readonly class ProductVariantService
         ?array $variantDefinitions = null,
     ): void {
         if (is_array($currentColorOrAttributes)) {
-            $currentAttributes = $currentColorOrAttributes;
-            $variantDefinitions = is_array($currentStorageCapacityOrDefinitions) ? $currentStorageCapacityOrDefinitions : ($variantDefinitions ?? []);
+            /** @var list<array{code:string,label:string,value:string}> $currentAttributes */
+            $currentAttributes = array_values($currentColorOrAttributes);
+            $variantDefinitions = is_array($currentStorageCapacityOrDefinitions) ? array_values($currentStorageCapacityOrDefinitions) : ($variantDefinitions ?? []);
         } else {
             $currentAttributes = [];
 

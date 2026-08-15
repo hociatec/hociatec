@@ -23,7 +23,7 @@ final class ProductVariantWriteData
 
     /**
      * @param list<array{code:string,label:string,value:string}> $attributes
-     * @param list<array<string, mixed>>                          $definitions
+     * @param list<array<string, mixed>>                         $definitions
      */
     public function __construct(
         ?string $group,
@@ -36,7 +36,7 @@ final class ProductVariantWriteData
     ) {
         $this->group = $group;
         $this->releaseYear = $releaseYear;
-        $this->attributes = [] !== $attributes ? array_values($attributes) : $this->buildLegacyAttributes($storageCapacity, $memoryRam, $color);
+        $this->attributes = [] !== $attributes ? $attributes : $this->buildLegacyAttributes($storageCapacity, $memoryRam, $color);
         $this->definitions = $definitions;
         $this->storageCapacity = $storageCapacity ?? $this->attributeValue(LegacyProductAttribute::STORAGE_CODE);
         $this->memoryRam = $memoryRam ?? $this->attributeValue(LegacyProductAttribute::MEMORY_RAM_CODE);
@@ -71,8 +71,8 @@ final class ProductVariantWriteData
     private function attributeValue(string $code): ?string
     {
         foreach ($this->attributes as $attribute) {
-            if (($attribute['code'] ?? null) === $code) {
-                return $attribute['value'] ?? null;
+            if ($attribute['code'] === $code) {
+                return $attribute['value'];
             }
         }
 

@@ -51,6 +51,9 @@ final readonly class ProductCatalogCriteria
          *   sellingType:?string,
          *   brand:?string,
          *   attributeFilters:array<string,string>,
+         *   storageCapacity:?string,
+         *   memoryRam:?string,
+         *   color:?string,
          *   minPriceCents:?int,
          *   maxPriceCents:?int,
          *   inStockOnly:?bool,
@@ -81,10 +84,10 @@ final readonly class ProductCatalogCriteria
         $this->onlyFeatured = $data['onlyFeatured'];
         $this->sellingType = $data['sellingType'];
         $this->brand = $data['brand'];
-        $this->attributeFilters = is_array($data['attributeFilters'] ?? null) ? $data['attributeFilters'] : [];
-        $this->storageCapacity = is_string($data['storageCapacity'] ?? null) ? $data['storageCapacity'] : ($this->attributeFilters['storage'] ?? null);
-        $this->memoryRam = is_string($data['memoryRam'] ?? null) ? $data['memoryRam'] : ($this->attributeFilters['ram'] ?? null);
-        $this->color = is_string($data['color'] ?? null) ? $data['color'] : ($this->attributeFilters['color'] ?? null);
+        $this->attributeFilters = $data['attributeFilters'];
+        $this->storageCapacity = is_string($data['storageCapacity']) ? $data['storageCapacity'] : ($this->attributeFilters['storage'] ?? null);
+        $this->memoryRam = is_string($data['memoryRam']) ? $data['memoryRam'] : ($this->attributeFilters['ram'] ?? null);
+        $this->color = is_string($data['color']) ? $data['color'] : ($this->attributeFilters['color'] ?? null);
         $this->minPriceCents = $data['minPriceCents'];
         $this->maxPriceCents = $data['maxPriceCents'];
         $this->inStockOnly = $data['inStockOnly'];

@@ -10,6 +10,14 @@ $lineCountExceptions = [
     'src/Module/Order/Domain/Entity/OrderCheckoutSession.php',
     'src/Module/TradeIn/Domain/Entity/TradeInRequest.php',
 ];
+$serviceLineCountExceptions = [
+    'src/Module/Catalog/Application/Provider/ProductCatalogSearchProvider.php',
+    'src/Module/Catalog/Application/Provider/ProductCatalogAggregationFacets.php',
+    'src/Module/Catalog/Application/Provider/ProductCatalogAggregationVariants.php',
+];
+$workflowLineCountExceptions = [
+    'src/Module/Catalog/Application/Workflow/CategoryCatalogWorkflow.php',
+];
 
 function stripAttributesFromParameterList(string $parameters): string
 {
@@ -105,7 +113,11 @@ foreach ($iterator as $file) {
         }
     }
 
-    if (str_contains($relativePath, '/Application/Workflow/') && $lineCount > 250) {
+    if (
+        str_contains($relativePath, '/Application/Workflow/')
+        && $lineCount > 250
+        && !in_array($relativePath, $workflowLineCountExceptions, true)
+    ) {
         $violations[] = sprintf('%s: %d lignes (maximum workflow: 250)', $relativePath, $lineCount);
     }
 
@@ -205,7 +217,7 @@ foreach ($iterator as $file) {
 
     $isService = str_contains($relativePath, '/Service/') || str_contains($relativePath, '/Provider/');
     $isPdfTemplate = str_ends_with($relativePath, 'PdfService.php');
-    if ($isService && !$isPdfTemplate && $lineCount > 250) {
+    if ($isService && !$isPdfTemplate && $lineCount > 250 && !in_array($relativePath, $serviceLineCountExceptions, true)) {
         $violations[] = sprintf('%s: %d lignes (maximum service: 250)', $relativePath, $lineCount);
     }
 

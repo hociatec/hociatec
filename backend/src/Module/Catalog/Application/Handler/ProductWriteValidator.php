@@ -54,7 +54,7 @@ final readonly class ProductWriteValidator
                 continue;
             }
 
-            $attributes = is_array($variantDefinition['attributes'] ?? null) ? $variantDefinition['attributes'] : [];
+            $attributes = is_array($variantDefinition['attributes'] ?? null) ? array_values($variantDefinition['attributes']) : [];
             $this->assertAttributesMatchDefinitions($attributes, $definitions);
         }
     }
@@ -102,7 +102,7 @@ final readonly class ProductWriteValidator
             $definition = $definitionMap[$code];
             $label = isset($definition['label']) && is_string($definition['label']) ? trim($definition['label']) : $code;
             $inputType = isset($definition['inputType']) && is_string($definition['inputType']) ? trim(mb_strtolower($definition['inputType'])) : 'text';
-            $options = is_array($definition['options'] ?? null) ? $definition['options'] : [];
+            $options = is_array($definition['options'] ?? null) ? array_values($definition['options']) : [];
 
             if ('' === $value) {
                 continue;

@@ -76,7 +76,7 @@ final readonly class ProductVariantCopyData
         $this->baseSku = (string) $data['baseSku'];
         $this->baseSlug = $data['baseSlug'];
         $this->variantGroup = (string) $data['variantGroup'];
-        $this->attributes = is_array($data['attributes']) ? array_values($data['attributes']) : [];
+        $this->attributes = $data['attributes'];
         $this->stock = (int) $data['stock'];
         $this->priceCents = null !== $data['priceCents'] ? (int) $data['priceCents'] : $this->template->getPriceCents();
         $this->availableForSale = $this->template->isAvailableForSale();

@@ -34,7 +34,8 @@ final class ProductCatalogModelAggregator
     }
 
     /**
-     * @param list<array<string, mixed>> $products
+     * @param list<array<string, mixed>>                                                               $products
+     * @param array<string, list<array{code:string,label:string,isRequired:bool,isGlobalFilter:bool}>> $categoryAttributeDefinitions
      *
      * @return array<string, mixed>
      */
@@ -44,7 +45,8 @@ final class ProductCatalogModelAggregator
     }
 
     /**
-     * @param list<array<string, mixed>> $products
+     * @param list<array<string, mixed>>                                                               $products
+     * @param array<string, list<array{code:string,label:string,isRequired:bool,isGlobalFilter:bool}>> $categoryAttributeDefinitions
      *
      * @return array<string, mixed>
      */
