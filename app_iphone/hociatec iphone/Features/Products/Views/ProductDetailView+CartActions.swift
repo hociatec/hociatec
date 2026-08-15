@@ -1,4 +1,3 @@
-import SwiftUI
 import UIKit
 
 extension ProductDetailView {
@@ -68,14 +67,7 @@ extension ProductDetailView {
                 return
             }
             feedbackDialog = .success(
-                "\(viewModel.product.name) a été ajouté au panier.",
-                primaryButton: .cancel("Continuer") {
-                    dismiss()
-                },
-                secondaryButton: .standard("Voir le panier") {
-                    selectedTab = 2
-                    dismiss()
-                }
+                "\(viewModel.product.name) a été ajouté au panier."
             )
         }
         UINotificationFeedbackGenerator().notificationOccurred(.success)
@@ -107,16 +99,7 @@ extension ProductDetailView {
         let successMessage = viewModel.product.sellingType == .rental
             ? "\(viewModel.product.name) a été ajouté au panier en location."
             : "\(viewModel.product.name) a été ajouté au panier."
-        feedbackDialog = .success(
-            successMessage,
-            primaryButton: .cancel("Continuer") {
-                dismiss()
-            },
-            secondaryButton: .standard("Voir le panier") {
-                selectedTab = 2
-                dismiss()
-            }
-        )
+        feedbackDialog = .success(successMessage)
         UINotificationFeedbackGenerator().notificationOccurred(.success)
     }
 }

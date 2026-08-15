@@ -3,7 +3,7 @@ import SwiftUI
 struct ClientDashboardView: View {
     @StateObject private var viewModel: ClientDashboardViewModel
     @EnvironmentObject private var account: AccountViewModel
-    @State private var showDeleteConfirmation = false
+    @State private var confirmationDialog: FeedbackDialogState?
 
     init(services: AppServices) {
         _viewModel = StateObject(
@@ -21,7 +21,23 @@ struct ClientDashboardView: View {
         List {
             ClientDashboardScreenContent(
                 viewModel: viewModel,
-                showDeleteConfirmation: $showDeleteConfirmation
+                showDeleteConfirmation: Binding(
+                    get: { confirmationDialog != nil },
+                    set: { newValue in
+                        if newValue {
+                            confirmationDialog = FeedbackDialogState(
+                                title: "Supprimer mon compte ?",
+                                message: "Cette action est irreversible.",
+                                primaryButton: .cancel("Annuler"),
+                                secondaryButton: .destructive("Supprimer mon compte") {
+                                    Task { await account.deleteAccount() }
+                                }
+                            )
+                        } else {
+                            confirmationDialog = nil
+                        }
+                    }
+                )
             )
         }
         .navigationTitle("Mon espace")
@@ -33,18 +49,11 @@ struct ClientDashboardView: View {
             viewModel.resetVisibleState()
             if !isLoggedIn {
                 viewModel.hasLoadedOnce = false
-                showDeleteConfirmation = false
+                confirmationDialog = nil
             }
         }
         .refreshable { await viewModel.load(force: true) }
-        .alert("Supprimer mon compte ?", isPresented: $showDeleteConfirmation) {
-            Button("Annuler", role: .cancel) {}
-            Button("Supprimer mon compte", role: .destructive) {
-                Task { await account.deleteAccount() }
-            }
-        } message: {
-            Text("Cette action est irréversible.")
-        }
+        .feedbackDialog($confirmationDialog)
         .feedbackDialog(
             error: Binding(
                 get: {

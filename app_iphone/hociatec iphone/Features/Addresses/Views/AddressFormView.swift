@@ -18,7 +18,6 @@ struct AddressFormView: View {
     @State private var companyVatNumber: String
     @State private var isDefault: Bool
     @State private var isSaving = false
-    @State private var showDeleteAlert = false
     @State private var feedbackDialog: FeedbackDialogState?
     @State private var shouldDismissAfterFeedback = false
 
@@ -54,7 +53,14 @@ struct AddressFormView: View {
             )
             if existing?.id != nil {
                 AddressFormDeleteSection {
-                    showDeleteAlert = true
+                    feedbackDialog = FeedbackDialogState(
+                        title: "Supprimer cette adresse ?",
+                        message: "Cette action est irreversible.",
+                        primaryButton: .cancel("Annuler"),
+                        secondaryButton: .destructive("Supprimer") {
+                            deleteAddress()
+                        }
+                    )
                 }
             }
         }
@@ -68,14 +74,6 @@ struct AddressFormView: View {
             .padding([.horizontal, .top])
             .padding(.bottom, 8)
             .background(.thinMaterial)
-        }
-        .alert("Supprimer cette adresse ?", isPresented: $showDeleteAlert) {
-            Button("Annuler", role: .cancel) {}
-            Button("Supprimer", role: .destructive) {
-                deleteAddress()
-            }
-        } message: {
-            Text("Cette action est irréversible.")
         }
         .feedbackDialog($feedbackDialog) {
             if shouldDismissAfterFeedback {

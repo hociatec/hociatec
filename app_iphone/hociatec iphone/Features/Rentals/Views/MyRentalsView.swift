@@ -30,9 +30,8 @@ struct MyRentalsView: View {
 
     var body: some View {
         List {
-            statsSection
             filterSection
-            rentalSection(title: "Mes locations", items: filteredRentals)
+            rentalSection(items: filteredRentals)
         }
         .navigationTitle("Mes locations")
         .task { await viewModel.load() }
@@ -85,16 +84,8 @@ struct MyRentalsView: View {
         .feedbackDialog(error: $viewModel.error, success: $viewModel.successMessage)
     }
 
-    private var statsSection: some View {
-        Section("Résumé") {
-            LabeledContent("À venir / en cours", value: "\(viewModel.upcoming.count)")
-            LabeledContent("Terminées", value: "\(viewModel.past.count)")
-            LabeledContent("Total", value: "\(viewModel.upcoming.count + viewModel.past.count)")
-        }
-    }
-
     private var filterSection: some View {
-        Section("Filtrer") {
+        Section {
             Picker("Afficher", selection: $activeFilter) {
                 ForEach(RentalFilter.allCases) { filter in
                     Text(filterLabel(for: filter)).tag(filter)
@@ -117,8 +108,8 @@ struct MyRentalsView: View {
     }
 
     @ViewBuilder
-    private func rentalSection(title: String, items: [RentalItem]) -> some View {
-        Section(title) {
+    private func rentalSection(items: [RentalItem]) -> some View {
+        Section {
             if items.isEmpty {
                 Text(emptyStateMessage)
                     .foregroundStyle(.secondary)
@@ -174,6 +165,10 @@ private struct RentalRow: View {
         rental.returnPlan.status == "completed"
     }
 
+    private var hasPendingRequest: Bool {
+        rental.request.status == "pending" || rental.request.status == "pending_payment"
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(rental.productName)
@@ -206,10 +201,10 @@ private struct RentalRow: View {
                 HStack {
                     Button(isSubmittingExtend ? "Préparation..." : "Prolonger", action: requestExtend)
                         .buttonStyle(.bordered)
-                        .disabled(isSubmittingExtend || isSubmittingEndEarly || isSubmittingReturn)
+                        .disabled(isSubmittingExtend || isSubmittingEndEarly || isSubmittingReturn || hasPendingRequest)
                     Button(isSubmittingEndEarly ? "Envoi..." : "Anticiper la fin", action: requestEndEarly)
                         .buttonStyle(.bordered)
-                        .disabled(isSubmittingExtend || isSubmittingEndEarly || isSubmittingReturn)
+                        .disabled(isSubmittingExtend || isSubmittingEndEarly || isSubmittingReturn || hasPendingRequest)
                 }
 
                 Button(isSubmittingReturn ? "Envoi..." : "Organiser la restitution", action: requestReturn)
@@ -237,6 +232,26 @@ private struct RentalRow: View {
 
         let modeLabel = rental.returnPlan.mode == "pickup_home" ? "Récupération à domicile" : "Dépôt en boutique"
         return "\(modeLabel) prévu le \(DatePresentation.formatAPIDay(rental.returnPlan.requestedDate))"
+    }
+}
+
+private struct RentalExtensionOption: Identifiable, Hashable {
+    let totalMonths: Int
+    let additionalMonths: Int
+    let endDate: Date
+
+    var id: Int { totalMonths }
+
+    var durationLabel: String {
+        "+\(additionalMonths) mois"
+    }
+
+    var totalLabel: String {
+        "\(totalMonths) mois au total"
+    }
+
+    var dateLabel: String {
+        DateFormatters.frDay.string(from: endDate)
     }
 }
 
@@ -268,7 +283,9 @@ private struct RentalRequestSheet: View {
     let onCancel: () -> Void
     let onSubmit: (String) -> Void
 
+    private let extensionOptions: [RentalExtensionOption]
     @State private var requestedEndDate: Date
+    @State private var selectedExtensionMonths: Int?
 
     init(
         rental: RentalItem,
@@ -283,7 +300,10 @@ private struct RentalRequestSheet: View {
         let fallback = DatePresentation.parseAPIDay(rental.endDate)
             ?? DatePresentation.parseAPIDay(rental.startDate)
             ?? Date()
-        _requestedEndDate = State(initialValue: fallback)
+        let generatedOptions = Self.buildExtensionOptions(for: rental)
+        self.extensionOptions = generatedOptions
+        _selectedExtensionMonths = State(initialValue: generatedOptions.first?.totalMonths)
+        _requestedEndDate = State(initialValue: generatedOptions.first?.endDate ?? fallback)
     }
 
     var body: some View {
@@ -294,19 +314,58 @@ private struct RentalRequestSheet: View {
                     LabeledContent("Période actuelle") {
                         Text("\(DatePresentation.formatAPIDay(rental.startDate)) - \(DatePresentation.formatAPIDay(rental.endDate))")
                     }
-                    LabeledContent("Nouvelle date", value: DateFormatters.frDay.string(from: requestedEndDate))
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(action == .extend ? "Nouvelle date de fin souhaitée" : "Date de fin anticipée souhaitée")
-                            .font(.headline)
-                        LocalizedDatePicker(
-                            date: $requestedEndDate,
-                            displayedComponents: [.date],
-                            minimumDate: minimumDate,
-                            style: .inline
-                        )
-                        .frame(maxWidth: .infinity, minHeight: 320)
+                    if action == .extend {
+                        if extensionOptions.isEmpty {
+                            Text("Impossible de calculer une échéance valide pour cette location.")
+                                .foregroundStyle(.secondary)
+                        } else {
+                            LabeledContent("Nouvelle échéance", value: DateFormatters.frDay.string(from: requestedEndDate))
+                            Text("Choisissez une échéance mensuelle valide. La prolongation sera ensuite envoyée au paiement.")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+
+                            ForEach(extensionOptions) { option in
+                                Button {
+                                    selectedExtensionMonths = option.totalMonths
+                                    requestedEndDate = option.endDate
+                                } label: {
+                                    HStack(alignment: .center, spacing: 12) {
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(option.durationLabel)
+                                                .font(.headline)
+                                            Text("Jusqu’au \(option.dateLabel)")
+                                                .font(.subheadline)
+                                                .foregroundStyle(.secondary)
+                                        }
+                                        Spacer()
+                                        Text(option.totalLabel)
+                                            .font(.footnote.weight(.semibold))
+                                            .foregroundStyle(.secondary)
+                                        Image(systemName: selectedExtensionMonths == option.totalMonths ? "largecircle.fill.circle" : "circle")
+                                            .foregroundStyle(selectedExtensionMonths == option.totalMonths ? .accent : .secondary)
+                                    }
+                                    .padding(.vertical, 6)
+                                    .contentShape(Rectangle())
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    } else {
+                        LabeledContent("Nouvelle date", value: DateFormatters.frDay.string(from: requestedEndDate))
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Date de fin anticipée souhaitée")
+                                .font(.headline)
+                            LocalizedDatePicker(
+                                date: $requestedEndDate,
+                                displayedComponents: [.date],
+                                minimumDate: minimumDate,
+                                style: .inline
+                            )
+                            .frame(maxWidth: .infinity, minHeight: 320)
+                        }
                     }
                 }
+                submitSection
             }
             .navigationTitle(action == .extend ? "Prolonger" : "Fin anticipée")
             .navigationBarTitleDisplayMode(.inline)
@@ -314,17 +373,49 @@ private struct RentalRequestSheet: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Annuler", action: onCancel)
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button(action == .extend ? "Payer" : "Envoyer") {
-                        onSubmit(DatePresentation.encodeAPIDay(requestedEndDate))
-                    }
-                }
             }
         }
     }
 
     private var minimumDate: Date {
         DatePresentation.parseAPIDay(rental.startDate) ?? Date()
+    }
+
+    @ViewBuilder
+    private var submitSection: some View {
+        Section {
+            ProductAddToCartButton(
+                isLoading: false,
+                isDisabled: action == .extend && extensionOptions.isEmpty,
+                label: action == .extend ? "Continuer vers le paiement" : "Envoyer la demande",
+                action: {
+                    onSubmit(DatePresentation.encodeAPIDay(requestedEndDate))
+                }
+            )
+        }
+    }
+
+    private static func buildExtensionOptions(for rental: RentalItem, limit: Int = 6) -> [RentalExtensionOption] {
+        guard let startDate = DatePresentation.parseAPIDay(rental.startDate) else {
+            return []
+        }
+
+        let currentMonths = max(1, rental.rentalMonths ?? 1)
+        let calendar = Calendar(identifier: .gregorian)
+
+        return (1...limit).compactMap { offset in
+            let totalMonths = currentMonths + offset
+            guard let monthAnchor = calendar.date(byAdding: .month, value: totalMonths, to: startDate),
+                  let endDate = calendar.date(byAdding: .day, value: -1, to: monthAnchor) else {
+                return nil
+            }
+
+            return RentalExtensionOption(
+                totalMonths: totalMonths,
+                additionalMonths: offset,
+                endDate: endDate
+            )
+        }
     }
 }
 
@@ -367,17 +458,22 @@ private struct RentalReturnSheet: View {
                     )
                     .frame(maxWidth: .infinity, minHeight: 320)
                 }
+                Section {
+                    ProductAddToCartButton(
+                        isLoading: false,
+                        isDisabled: false,
+                        label: "Planifier la restitution",
+                        action: {
+                            onSubmit(mode, DatePresentation.encodeAPIDay(requestedDate))
+                        }
+                    )
+                }
             }
             .navigationTitle("Restitution")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Annuler", action: onCancel)
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Planifier") {
-                        onSubmit(mode, DatePresentation.encodeAPIDay(requestedDate))
-                    }
                 }
             }
         }

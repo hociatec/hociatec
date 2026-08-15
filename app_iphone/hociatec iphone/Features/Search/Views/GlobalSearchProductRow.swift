@@ -52,6 +52,7 @@ struct GlobalSearchProductRow: View {
             RentalConfigurationSheet(
                 rentalMonths: $rentalMonths,
                 rentalStartDate: $rentalStartDate,
+                confirmLabel: "Ajouter la location",
                 onCancel: { showRentalSheet = false },
                 onConfirm: {
                     showRentalSheet = false
@@ -73,11 +74,7 @@ struct GlobalSearchProductRow: View {
         }
 
         feedbackDialog = .success(
-            "\(product.name) a été ajouté au panier.",
-            primaryButton: .cancel("Continuer"),
-            secondaryButton: .standard("Voir le panier") {
-                navigation.showTab(2)
-            }
+            "\(product.name) a été ajouté au panier."
         )
         UINotificationFeedbackGenerator().notificationOccurred(.success)
     }
@@ -97,11 +94,7 @@ struct GlobalSearchProductRow: View {
         }
 
         feedbackDialog = .success(
-            "\(product.name) a été ajouté au panier en location.",
-            primaryButton: .cancel("Continuer"),
-            secondaryButton: .standard("Voir le panier") {
-                navigation.showTab(2)
-            }
+            "\(product.name) a été ajouté au panier en location."
         )
         UINotificationFeedbackGenerator().notificationOccurred(.success)
     }

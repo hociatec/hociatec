@@ -8,14 +8,3 @@ struct ServiceDetailLoadingSection: View {
         }
     }
 }
-
-struct ServiceDetailErrorSection: View {
-    let error: String
-
-    var body: some View {
-        Section {
-            Text(error)
-                .foregroundStyle(.red)
-        }
-    }
-}

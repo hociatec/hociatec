@@ -98,16 +98,3 @@ private struct RootAccountTab: View {
         .tabItem { Label("Compte", systemImage: "person") }
     }
 }
-
-struct RootBannerOverlay: View {
-    let message: String?
-    let isError: Bool
-
-    var body: some View {
-        if let message {
-            BannerView(message: message, isError: isError)
-                .transition(.move(edge: .top).combined(with: .opacity))
-                .padding(.top, 8)
-        }
-    }
-}

@@ -5,7 +5,7 @@ struct ProfileView: View {
 
     var genders = ["homme", "femme", "autre"]
     @State private var birthDateDate: Date = Date()
-    @State private var showRevokeSessionsAlert = false
+    @State private var confirmationDialog: FeedbackDialogState?
 
     var body: some View {
         Form {
@@ -60,7 +60,14 @@ struct ProfileView: View {
             }
             Section("Sécurité") {
                 Button(role: .destructive) {
-                    showRevokeSessionsAlert = true
+                    confirmationDialog = FeedbackDialogState(
+                        title: "Revoquer tous les acces",
+                        message: "Toutes vos sessions en cours seront fermees sur le site web et sur iPhone.",
+                        primaryButton: .cancel("Annuler"),
+                        secondaryButton: .destructive("Confirmer") {
+                            Task { await account.revokeAllSessions() }
+                        }
+                    )
                 } label: {
                     if account.isRevokingAllSessions {
                         HStack {
@@ -83,14 +90,7 @@ struct ProfileView: View {
         .onChangeCompat(birthDateDate) { newVal in
             account.birthDate = AccountViewModel.birthDateFormatter.string(from: newVal)
         }
-        .alert("Révoquer tous les accès", isPresented: $showRevokeSessionsAlert) {
-            Button("Annuler", role: .cancel) {}
-            Button("Confirmer", role: .destructive) {
-                Task { await account.revokeAllSessions() }
-            }
-        } message: {
-            Text("Toutes vos sessions en cours seront fermées sur le site web et sur iPhone.")
-        }
+        .feedbackDialog($confirmationDialog)
         .navigationTitle("Profil")
     }
 }

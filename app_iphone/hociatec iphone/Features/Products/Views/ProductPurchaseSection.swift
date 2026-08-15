@@ -57,8 +57,10 @@ struct RentalConfigurationSummary: View {
 struct RentalConfigurationSheet: View {
     @Binding var rentalMonths: Int
     @Binding var rentalStartDate: Date
+    let confirmLabel: String
     let onCancel: () -> Void
     let onConfirm: () -> Void
+    @State private var confirmationDialog: FeedbackDialogState?
 
     private var endDateLabel: String {
         guard let monthAnchor = Calendar.current.date(byAdding: .month, value: max(1, rentalMonths), to: rentalStartDate),
@@ -88,6 +90,23 @@ struct RentalConfigurationSheet: View {
                     }
                     LabeledContent("Date de fin estimée", value: endDateLabel)
                 }
+                Section {
+                    ProductAddToCartButton(
+                        isLoading: false,
+                        isDisabled: false,
+                        label: confirmLabel,
+                        action: {
+                            confirmationDialog = FeedbackDialogState(
+                                title: "Ajouter cette location au panier ?",
+                                message: "Debut le \(DateFormatters.frDay.string(from: rentalStartDate)), pour \(rentalMonths) mois, jusqu'au \(endDateLabel).",
+                                primaryButton: .cancel("Annuler"),
+                                secondaryButton: .standard("Ajouter la location") {
+                                    onConfirm()
+                                }
+                            )
+                        }
+                    )
+                }
             }
             .navigationTitle("Configurer la location")
             .navigationBarTitleDisplayMode(.inline)
@@ -95,10 +114,8 @@ struct RentalConfigurationSheet: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Annuler", action: onCancel)
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Valider", action: onConfirm)
-                }
             }
+            .feedbackDialog($confirmationDialog)
         }
     }
 }
@@ -176,8 +193,8 @@ struct ProductPurchaseSection: View {
                 ProductAddToCartButton(
                     isLoading: isLoading,
                     isDisabled: isOutOfStock,
-                    label: addButtonLabel,
-                    action: addToCart
+                    label: showRentalSelector ? "Configurer la location" : addButtonLabel,
+                    action: showRentalSelector ? configureRental : addToCart
                 )
                 .padding(.top, 8)
             }

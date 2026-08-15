@@ -9,17 +9,6 @@ struct NewsDetailLoadingSection: View {
     }
 }
 
-struct NewsDetailErrorSection: View {
-    let error: String
-
-    var body: some View {
-        Section {
-            Text(error)
-                .foregroundStyle(.red)
-        }
-    }
-}
-
 struct NewsDetailHeroSection: View {
     let article: NewsArticle
 

@@ -11,6 +11,10 @@ struct FeedbackDialogButton {
     let role: FeedbackDialogButtonRole
     let action: (() -> Void)?
 
+    static func ok(_ action: (() -> Void)? = nil) -> FeedbackDialogButton {
+        FeedbackDialogButton(title: "OK", role: .cancel, action: action)
+    }
+
     static func cancel(_ title: String = "OK", action: (() -> Void)? = nil) -> FeedbackDialogButton {
         FeedbackDialogButton(title: title, role: .cancel, action: action)
     }
@@ -89,7 +93,7 @@ private struct FeedbackDialogModifier: ViewModifier {
                 Alert(
                     title: Text(dialog.title),
                     message: Text(dialog.message),
-                    dismissButton: alertButton(for: dialog.primaryButton ?? .cancel(), triggersDismiss: true)
+                    dismissButton: alertButton(for: dialog.primaryButton ?? .ok(), triggersDismiss: true)
                 )
             }
         }

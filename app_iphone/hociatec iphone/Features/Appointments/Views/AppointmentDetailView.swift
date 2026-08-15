@@ -8,7 +8,7 @@ struct AppointmentDetailScreen: View {
     @ObservedObject var viewModel: MyAppointmentsViewModel
     let service: AppointmentServing
     @State private var isCancelling = false
-    @State private var showCancelAlert = false
+    @State private var confirmationDialog: FeedbackDialogState?
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -18,7 +18,25 @@ struct AppointmentDetailScreen: View {
                 canCancel: appointment.canCancel,
                 isCancelling: isCancelling,
             ) {
-                showCancelAlert = true
+                confirmationDialog = FeedbackDialogState(
+                    title: "Annuler ce rendez-vous ?",
+                    message: "Cette action est irreversible. Le rendez-vous sera marque comme annule.",
+                    primaryButton: .cancel("Retour"),
+                    secondaryButton: .destructive("Confirmer l'annulation") {
+                        guard !isCancelling else { return }
+                        isCancelling = true
+                        Task {
+                            let success = await viewModel.cancel(appointmentID: appointment.id)
+#if canImport(UIKit)
+                            UINotificationFeedbackGenerator().notificationOccurred(success ? .success : .error)
+#endif
+                            isCancelling = false
+                            if success {
+                                dismiss()
+                            }
+                        }
+                    }
+                )
             }
             if appointment.canReschedule {
                 Section {
@@ -40,28 +58,7 @@ struct AppointmentDetailScreen: View {
         }
         .navigationTitle("Rendez-vous")
         .navigationBarTitleDisplayMode(.inline)
-        .alert("Annuler ce rendez-vous ?", isPresented: $showCancelAlert) {
-            Button("Retour", role: .cancel) {
-                showCancelAlert = false
-            }
-            Button("Confirmer l’annulation", role: .destructive) {
-                guard !isCancelling else { return }
-                isCancelling = true
-                showCancelAlert = false
-                Task {
-                    let success = await viewModel.cancel(appointmentID: appointment.id)
-#if canImport(UIKit)
-                    UINotificationFeedbackGenerator().notificationOccurred(success ? .success : .error)
-#endif
-                    isCancelling = false
-                    if success {
-                        dismiss()
-                    }
-                }
-            }
-        } message: {
-            Text("Cette action est irréversible. Le rendez-vous sera marqué comme annulé.")
-        }
+        .feedbackDialog($confirmationDialog)
     }
 }
 

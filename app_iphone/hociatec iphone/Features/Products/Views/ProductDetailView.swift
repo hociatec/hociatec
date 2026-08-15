@@ -88,8 +88,11 @@ struct ProductDetailView: View {
             RentalConfigurationSheet(
                 rentalMonths: $viewModel.rentalMonths,
                 rentalStartDate: $viewModel.rentalStartDate,
+                confirmLabel: "Ajouter la location",
                 onCancel: viewModel.closeRentalSheet,
-                onConfirm: viewModel.closeRentalSheet
+                onConfirm: {
+                    Task { await addCurrentProductToCart() }
+                }
             )
         }
         .feedbackDialog($feedbackDialog)

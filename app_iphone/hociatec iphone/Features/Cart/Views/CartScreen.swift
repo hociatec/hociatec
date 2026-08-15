@@ -222,7 +222,7 @@ struct CartScreen: View {
     }
 
     private func presentCheckoutDialog(title: String, message: String) {
-        screenState.checkoutDialog = CartCheckoutDialog(title: title, message: message)
+        screenState.checkoutDialog = .success(message, title: title)
     }
 
     private func resetCheckoutFlow() {

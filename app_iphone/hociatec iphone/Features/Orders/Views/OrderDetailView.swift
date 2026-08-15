@@ -3,7 +3,7 @@ import SwiftUI
 @MainActor
 struct OrderDetailView: View {
     @StateObject private var viewModel: OrderDetailViewModel
-    @State private var showCancelAlert = false
+    @State private var confirmationDialog: FeedbackDialogState?
 
     init(service: OrderServing, orderId: Int) {
         _viewModel = StateObject(wrappedValue: OrderDetailViewModel(service: service, orderId: orderId))
@@ -24,23 +24,23 @@ struct OrderDetailView: View {
                 if order.status.lowercased() == "pending" {
                     OrderDetailCancelSection(
                         isDisabled: viewModel.isLoading,
-                        onCancel: { showCancelAlert = true }
+                        onCancel: {
+                            confirmationDialog = FeedbackDialogState(
+                                title: "Annuler cette commande ?",
+                                message: "Cette action est irreversible. La commande sera annulee si elle est encore en attente.",
+                                primaryButton: .cancel("Retour"),
+                                secondaryButton: .destructive("Confirmer l'annulation") {
+                                    Task { await viewModel.cancel() }
+                                }
+                            )
+                        }
                     )
                 }
             }
         }
         .navigationTitle(viewModel.order?.number.isEmpty == false ? (viewModel.order?.number ?? "Commande") : "Commande")
         .task { await viewModel.load() }
-        .alert("Annuler cette commande ?", isPresented: $showCancelAlert) {
-            Button("Retour", role: .cancel) { showCancelAlert = false }
-            Button("Confirmer l’annulation", role: .destructive) {
-                Task {
-                    await viewModel.cancel()
-                }
-            }
-        } message: {
-            Text("Cette action est irréversible. La commande sera annulée si elle est encore en attente.")
-        }
+        .feedbackDialog($confirmationDialog)
         .feedbackDialog(error: $viewModel.error, success: $viewModel.statusMessage)
     }
 }

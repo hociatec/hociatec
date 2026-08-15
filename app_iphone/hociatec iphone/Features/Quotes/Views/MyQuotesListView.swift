@@ -4,6 +4,7 @@ import SwiftUI
 struct MyQuotesListView: View {
     @StateObject private var viewModel: MyQuotesViewModel
     @State private var quoteToDelete: QuoteSummary? = nil
+    @State private var confirmationDialog: FeedbackDialogState?
 
     init(viewModel: MyQuotesViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -32,29 +33,26 @@ struct MyQuotesListView: View {
             }
         }
         .feedbackDialog(error: $viewModel.error, success: $viewModel.successMessage)
-        .alert(
-            "Supprimer ce devis ?",
-            isPresented: Binding(
-                get: { quoteToDelete != nil },
-                set: { newValue in if !newValue { quoteToDelete = nil } }
-            )
-        ) {
-            Button("Annuler", role: .cancel) {
-                quoteToDelete = nil
+        .feedbackDialog($confirmationDialog)
+        .onChangeCompat(quoteToDelete?.id) { _ in
+            guard let q = quoteToDelete else {
+                confirmationDialog = nil
+                return
             }
-            Button("Supprimer le devis", role: .destructive) {
-                guard let q = quoteToDelete else { return }
-                Task {
-                    await viewModel.delete(id: q.id)
+            confirmationDialog = FeedbackDialogState(
+                title: "Supprimer ce devis ?",
+                message: "Etes-vous sur de vouloir supprimer le devis \(q.number ?? "#\(q.id)") ? Cette action est irreversible.",
+                primaryButton: .cancel("Annuler") {
                     quoteToDelete = nil
+                },
+                secondaryButton: .destructive("Supprimer le devis") {
+                    let id = q.id
+                    Task {
+                        await viewModel.delete(id: id)
+                        quoteToDelete = nil
+                    }
                 }
-            }
-        } message: {
-            if let q = quoteToDelete {
-                Text("Êtes-vous sûr de vouloir supprimer le devis \(q.number ?? "#\(q.id)") ? Cette action est irréversible.")
-            } else {
-                Text("Êtes-vous sûr de vouloir supprimer ce devis ? Cette action est irréversible.")
-            }
+            )
         }
     }
 }
