@@ -198,8 +198,7 @@ class OrderItemRepository extends ServiceEntityRepository implements OrderItemRe
             ->join('o.user', 'u')
             ->leftJoin('oi.product', 'p')
             ->andWhere('oi.sellingType = :sellingType')
-            ->setParameter('sellingType', 'rental')
-            ->setParameter('today', $today->setTime(0, 0, 0));
+            ->setParameter('sellingType', 'rental');
 
         if (null !== $search && '' !== trim($search)) {
             $normalizedSearch = '%'.mb_strtolower(trim($search)).'%';
@@ -210,14 +209,17 @@ class OrderItemRepository extends ServiceEntityRepository implements OrderItemRe
 
         switch ($timeline) {
             case 'upcoming':
+                $qb->setParameter('today', $today->setTime(0, 0, 0));
                 $qb->andWhere('oi.rentalStartDate IS NOT NULL AND oi.rentalStartDate > :today');
                 break;
             case 'active':
+                $qb->setParameter('today', $today->setTime(0, 0, 0));
                 $qb
                     ->andWhere('oi.rentalStartDate IS NOT NULL AND oi.rentalStartDate <= :today')
                     ->andWhere('oi.rentalEndDate IS NULL OR oi.rentalEndDate >= :today');
                 break;
             case 'past':
+                $qb->setParameter('today', $today->setTime(0, 0, 0));
                 $qb->andWhere('oi.rentalEndDate IS NOT NULL AND oi.rentalEndDate < :today');
                 break;
         }
