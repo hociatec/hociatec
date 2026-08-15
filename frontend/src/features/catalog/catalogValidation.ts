@@ -247,12 +247,14 @@ const parseAttributeFacet = (value: unknown): CatalogAttributeFacet => {
 
 export const parseCatalogSearchMeta = (value: unknown): CatalogSearchMeta => {
   const meta = requireRecord(value);
+  const variantTotal = optionalNumber(meta.variantTotal) ?? undefined;
 
   return {
     page: requireNumber(meta.page),
     perPage: requireNumber(meta.perPage),
     total: requireNumber(meta.total),
     totalPages: requireNumber(meta.totalPages),
+    ...(variantTotal === undefined ? {} : { variantTotal }),
   };
 };
 

@@ -52,6 +52,11 @@ final readonly class ProductCatalogSearchProvider
             $categoryAttributeDefinitions = $this->collectCategoryAttributeDefinitions($catalogCriteria->categorySlug);
             $groupedItems = $this->models->aggregate($sortedProjectedProducts);
             $total = count($groupedItems);
+            $variantTotal = array_reduce(
+                $groupedItems,
+                static fn (int $count, array $product): int => $count + max(1, (int) ($product['variantsCount'] ?? 1)),
+                0,
+            );
             $items = array_slice($groupedItems, $criteria->offset(), $criteria->perPage);
 
             return [
@@ -63,6 +68,7 @@ final readonly class ProductCatalogSearchProvider
                     'page' => $criteria->page,
                     'perPage' => $criteria->perPage,
                     'total' => $total,
+                    'variantTotal' => $variantTotal,
                     'totalPages' => max(1, (int) ceil($total / $criteria->perPage)),
                 ],
                 'facets' => $this->formatFacets(

@@ -135,6 +135,7 @@ export interface CatalogSearchMeta {
   page: number;
   perPage: number;
   total: number;
+  variantTotal?: number;
   totalPages: number;
 }
 

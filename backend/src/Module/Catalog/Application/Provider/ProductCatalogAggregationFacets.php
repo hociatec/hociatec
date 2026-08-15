@@ -17,11 +17,14 @@ final class ProductCatalogAggregationFacets
     public function collect(array $products, array $categoryAttributeDefinitions = [], ?string $selectedCategorySlug = null): array
     {
         $allowedAttributes = $this->resolveAllowedAttributeDefinitions($categoryAttributeDefinitions, $selectedCategorySlug);
+        $attributeFacets = null === $selectedCategorySlug
+            ? []
+            : $this->countAttributeFacets($products, $allowedAttributes);
 
         return [
             'brands' => $this->facetItemsToArrays($this->countScalarFacet($products, 'brand')),
             'categories' => $this->facetItemsToArrays($this->countCategoryFacet($products)),
-            'attributes' => $this->countAttributeFacets($products, $allowedAttributes),
+            'attributes' => $attributeFacets,
             'price' => $this->collectPriceBounds($products)->toArray(),
         ];
     }

@@ -34,6 +34,7 @@ export const emptyCatalogMeta: CatalogSearchMeta = {
   page: 1,
   perPage: CATALOG_PAGE_SIZE,
   total: 0,
+  variantTotal: 0,
   totalPages: 1,
 };
 
@@ -48,4 +49,25 @@ export const formatCatalogResultsSummary = (total: number, query: string, noun: 
   return query.trim()
     ? `${total} ${noun}${suffix} pour « ${query.trim()} »`
     : `${total} ${noun}${suffix} disponible${suffix}`;
+};
+
+export const formatGroupedCatalogResultsSummary = (
+  total: number,
+  variantTotal: number | undefined,
+  query: string,
+  noun: string,
+) => {
+  const normalizedVariantTotal = variantTotal ?? total;
+  const nounSuffix = total > 1 ? 's' : '';
+  const variantSuffix = normalizedVariantTotal > 1 ? 's' : '';
+
+  if (query.trim()) {
+    return normalizedVariantTotal > total
+      ? `${total} ${noun}${nounSuffix} • ${normalizedVariantTotal} produits pour « ${query.trim()} »`
+      : `${total} ${noun}${nounSuffix} pour « ${query.trim()} »`;
+  }
+
+  return normalizedVariantTotal > total
+    ? `${total} ${noun}${nounSuffix} • ${normalizedVariantTotal} produits disponible${variantSuffix}`
+    : `${total} ${noun}${nounSuffix} disponible${nounSuffix}`;
 };
