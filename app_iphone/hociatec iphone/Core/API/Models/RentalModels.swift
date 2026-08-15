@@ -41,8 +41,26 @@ struct RentalItem: Decodable, Identifiable {
     let timelineStatus: String
     let timelineStatusLabel: String
     let request: RentalRequestState
-    let extension: RentalExtensionState
+    let extensionState: RentalExtensionState
     let returnPlan: RentalReturnPlanState
+
+    private enum CodingKeys: String, CodingKey {
+        case orderItemId
+        case orderId
+        case orderNumber
+        case productName
+        case productSku
+        case quantity
+        case linePriceCents
+        case rentalMonths
+        case startDate
+        case endDate
+        case timelineStatus
+        case timelineStatusLabel
+        case request
+        case extensionState = "extension"
+        case returnPlan
+    }
 }
 
 struct MyRentalsResponse: Decodable {
