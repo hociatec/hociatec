@@ -4,6 +4,7 @@ struct ProductCatalogActions: View {
     let product: Product
     let cart: CartViewModel
     let addToCart: () -> Void
+    let configureRental: () -> Void
     var onFavoriteRemoved: (() -> Void)? = nil
     @Environment(\.openURL) private var openURL
 
@@ -11,8 +12,11 @@ struct ProductCatalogActions: View {
         VStack(alignment: .leading, spacing: 8) {
             ProductAddToCartButton(
                 isLoading: cart.isLoading,
-                isDisabled: false
-            ) { addToCart() }
+                isDisabled: false,
+                label: product.sellingType == .rental ? "Configurer la location" : "Ajouter au panier"
+            ) {
+                product.sellingType == .rental ? configureRental() : addToCart()
+            }
 
             HStack(spacing: 12) {
                 FavoriteToggleButton(

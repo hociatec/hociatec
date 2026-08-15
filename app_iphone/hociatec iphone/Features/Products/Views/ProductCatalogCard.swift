@@ -11,6 +11,7 @@ struct ProductCatalogCard: View {
 
     @EnvironmentObject private var container: AppContainer
     @State private var alertState = ProductDetailAlertState()
+    @State private var showDetail = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -45,8 +46,20 @@ struct ProductCatalogCard: View {
                 addToCart: {
                     Task { await addCurrentProductToCart() }
                 },
+                configureRental: {
+                    showDetail = true
+                },
                 onFavoriteRemoved: onFavoriteRemoved
             )
+        }
+        .navigationDestination(isPresented: $showDetail) {
+            ProductCatalogDetailDestination(
+                product: product,
+                imageURL: imageURL,
+                cart: cart,
+                selectedTab: $selectedTab
+            )
+            .environmentObject(container)
         }
         .padding(.vertical, 6)
         .alert("Ajout au panier", isPresented: $alertState.showAddAlert) {

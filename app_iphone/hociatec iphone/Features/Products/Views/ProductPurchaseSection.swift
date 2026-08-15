@@ -3,6 +3,7 @@ import SwiftUI
 struct ProductAddToCartButton: View {
     let isLoading: Bool
     let isDisabled: Bool
+    let label: String
     let action: () -> Void
 
     var body: some View {
@@ -12,7 +13,7 @@ struct ProductAddToCartButton: View {
                 if isLoading {
                     ProgressView()
                 } else {
-                    Text("Ajouter au panier")
+                    Text(label)
                         .fontWeight(.semibold)
                 }
                 Spacer()
@@ -23,7 +24,7 @@ struct ProductAddToCartButton: View {
             .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .disabled(isLoading || isDisabled)
-        .accessibilityLabel("Ajouter au panier")
+        .accessibilityLabel(label)
         .accessibilityAddTraits(.isButton)
     }
 }
@@ -88,15 +89,15 @@ struct RentalConfigurationSheet: View {
                     LabeledContent("Date de fin estimée", value: endDateLabel)
                 }
             }
-        }
-        .navigationTitle("Configurer la location")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Annuler", action: onCancel)
-            }
-            ToolbarItem(placement: .confirmationAction) {
-                Button("Valider", action: onConfirm)
+            .navigationTitle("Configurer la location")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Annuler", action: onCancel)
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Valider", action: onConfirm)
+                }
             }
         }
     }
@@ -140,6 +141,7 @@ struct ProductPurchaseSection: View {
     let stockLimit: Int
     let isLoading: Bool
     let isOutOfStock: Bool
+    let addButtonLabel: String
     let showRentalSelector: Bool
     let rentalMonths: Int
     let rentalStartDateLabel: String
@@ -174,6 +176,7 @@ struct ProductPurchaseSection: View {
                 ProductAddToCartButton(
                     isLoading: isLoading,
                     isDisabled: isOutOfStock,
+                    label: addButtonLabel,
                     action: addToCart
                 )
                 .padding(.top, 8)

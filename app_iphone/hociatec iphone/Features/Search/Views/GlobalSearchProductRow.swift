@@ -4,8 +4,10 @@ import UIKit
 struct GlobalSearchProductRow: View {
     let product: Product
     var showsTitle: Bool = true
+    @EnvironmentObject private var container: AppContainer
     @EnvironmentObject private var cart: CartViewModel
     @State private var alertState = ProductDetailAlertState()
+    @State private var showDetail = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -37,8 +39,20 @@ struct GlobalSearchProductRow: View {
                 cart: cart,
                 addToCart: {
                     Task { await addCurrentProductToCart() }
+                },
+                configureRental: {
+                    showDetail = true
                 }
             )
+        }
+        .navigationDestination(isPresented: $showDetail) {
+            ProductDetailView(
+                viewModel: container.makeProductDetailViewModel(product: product),
+                imageURL: container.services.assets.assetURL(for: product.imageUrl),
+                cart: cart,
+                selectedTab: .constant(0)
+            )
+            .environmentObject(container)
         }
         .accessibilityElement(children: .contain)
         .alert("Ajout au panier", isPresented: $alertState.showAddAlert) {

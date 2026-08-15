@@ -18,9 +18,9 @@ final readonly class SupportRequestService
 {
     public function __construct(
         private UnitOfWork $persistence,
-        private ?SupportCustomerMessengerPort $messenger = null,
-        private ?SupportTimelineEntryFactory $timelineEntries = null,
-        private ?SupportAttachmentNormalizer $attachments = null,
+        private SupportCustomerMessengerPort $messenger,
+        private SupportAttachmentNormalizer $attachments,
+        private SupportRequestTimelineRecorder $timeline,
     ) {
     }
 
@@ -39,32 +39,7 @@ final readonly class SupportRequestService
             : $support->setOrderId(null);
 
         $initialAttachments = $this->attachments()->normalize($support->getAttachments());
-        if (null !== $support->getMessage() && '' !== $support->getMessage()) {
-            $support->appendTimelineEntry($this->timelineEntries()->create(
-                'customer_message',
-                'customer',
-                'customer',
-                $customer->getFullName(),
-                $support->getSubject(),
-                $support->getMessage(),
-                null,
-                $support->getCreatedAt(),
-                $initialAttachments,
-            ));
-        }
-
-        if (null !== $support->getInternalNotes() && '' !== $support->getInternalNotes()) {
-            $support->appendTimelineEntry($this->timelineEntries()->create(
-                'internal_note',
-                'admin',
-                'internal',
-                'Équipe Hociatec',
-                'Note interne',
-                $support->getInternalNotes(),
-                null,
-                $support->getCreatedAt(),
-            ));
-        }
+        $this->timeline()->recordCreation($support, $customer, $initialAttachments);
 
         $this->persistence->persist($support);
         $this->persistence->flush();
@@ -91,45 +66,7 @@ final readonly class SupportRequestService
             $support->setSubject($data->subject);
         }
 
-        if (null !== $data->subject && $support->getSubject() !== $previousSubject) {
-            $support->appendTimelineEntry($this->timelineEntries()->create(
-                'subject_change',
-                'admin',
-                'customer',
-                'Équipe Hociatec',
-                'Sujet mis à jour',
-                sprintf(
-                    'Ancien sujet : %s'."\n".'Nouveau sujet : %s',
-                    $previousSubject,
-                    $support->getSubject(),
-                ),
-                null,
-            ));
-        }
-
-        if (null !== $data->internalNotes && $support->getInternalNotes() !== $previousInternalNotes) {
-            $support->appendTimelineEntry($this->timelineEntries()->create(
-                'internal_note',
-                'admin',
-                'internal',
-                'Équipe Hociatec',
-                'Note interne mise à jour',
-                $support->getInternalNotes(),
-                null,
-            ));
-        }
-
-        if (null !== $data->status && $data->status !== $previousStatus) {
-            $support->appendTimelineEntry($this->timelineEntries()->create(
-                'status_change',
-                'admin',
-                'customer',
-                'Équipe Hociatec',
-                'Statut mis à jour',
-                null,
-                $data->status,
-            ));
-        }
+        $this->timeline()->recordAdminUpdate($support, $data, $previousStatus, $previousInternalNotes, $previousSubject);
 
         $this->persistence->flush();
 
@@ -138,10 +75,6 @@ final readonly class SupportRequestService
 
     public function reply(SupportRequest $support, SupportReplyData $data): SupportRequest
     {
-        if (!$this->messenger instanceof SupportCustomerMessengerPort) {
-            throw new \LogicException('Support customer messenger is not configured.');
-        }
-
         $previousStatus = $support->getStatus();
         $subject = trim($data->subject ?? ('Réponse à votre demande SAV #'.$support->getId()));
         $message = trim($data->message);
@@ -158,32 +91,10 @@ final readonly class SupportRequestService
             $subject,
         ));
         $support
-            ->appendTimelineEntry($this->timelineEntries()->create(
-                'admin_reply',
-                'admin',
-                'customer',
-                'Équipe Hociatec',
-                $subject,
-                $message,
-                null,
-                $now,
-                [],
-            ))
             ->setInternalNotes($note)
             ->setStatus($data->status ?? SupportRequest::STATUS_WAITING_CUSTOMER);
 
-        if ($support->getStatus() !== $previousStatus) {
-            $support->appendTimelineEntry($this->timelineEntries()->create(
-                'status_change',
-                'admin',
-                'customer',
-                'Équipe Hociatec',
-                'Statut mis à jour',
-                null,
-                $support->getStatus(),
-                $now,
-            ));
-        }
+        $this->timeline()->recordAdminReply($support, $subject, $message, $previousStatus, $now);
         $this->persistence->flush();
 
         return $support;
@@ -206,44 +117,23 @@ final readonly class SupportRequestService
             $support->setAttachments(array_merge($support->getAttachments(), $normalizedAttachments));
         }
 
-        $support->appendTimelineEntry($this->timelineEntries()->create(
-            'customer_reply',
-            'customer',
-            'customer',
-            $customer->getFullName(),
-            $subject,
-            $message,
-            null,
-            $now,
-            $normalizedAttachments,
-        ));
-
         if (SupportRequest::STATUS_IN_PROGRESS !== $previousStatus) {
             $support->setStatus(SupportRequest::STATUS_IN_PROGRESS);
-            $support->appendTimelineEntry($this->timelineEntries()->create(
-                'status_change',
-                'customer',
-                'customer',
-                $customer->getFullName(),
-                'Statut mis à jour',
-                null,
-                SupportRequest::STATUS_IN_PROGRESS,
-                $now,
-            ));
         }
+        $this->timeline()->recordCustomerReply($support, $customer, $subject, $message, $previousStatus, $now, $normalizedAttachments);
 
         $this->persistence->flush();
 
         return $support;
     }
 
-    private function timelineEntries(): SupportTimelineEntryFactory
+    private function timeline(): SupportRequestTimelineRecorder
     {
-        return $this->timelineEntries ?? new SupportTimelineEntryFactory();
+        return $this->timeline;
     }
 
     private function attachments(): SupportAttachmentNormalizer
     {
-        return $this->attachments ?? new SupportAttachmentNormalizer();
+        return $this->attachments;
     }
 }

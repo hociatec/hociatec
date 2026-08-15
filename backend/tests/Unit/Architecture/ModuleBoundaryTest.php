@@ -550,9 +550,18 @@ final class ModuleBoundaryTest extends TestCase
         $documentation = file_get_contents($path);
         self::assertIsString($documentation);
 
-        foreach (['Matrice autorisée', 'Règles `User`', 'Module `Admin`', 'Revue des `OperationsService`', 'Revue des entités volumineuses'] as $section) {
+        foreach (['Matrice autorisée', 'Règles `User`', 'Module `Admin`', 'Revue des `OperationsService`', 'Revue des entités volumineuses', 'Baseline intermodule gelée'] as $section) {
             self::assertStringContainsString($section, $documentation);
         }
+    }
+
+    public function testCrossModuleDependenciesMatchDocumentedFrozenBaseline(): void
+    {
+        self::assertSame(
+            $this->documentedIntermodulePairs(),
+            $this->actualIntermodulePairs(),
+            'Toute nouvelle dépendance inter-module doit être documentée dans docs/architecture/intermodule-dependencies.md.',
+        );
     }
 
     public function testDoctrineDomainCompromiseIsDocumentedPrecisely(): void
@@ -1443,5 +1452,53 @@ final class ModuleBoundaryTest extends TestCase
         sort($paths);
 
         return $paths;
+    }
+
+    /** @return list<string> */
+    private function actualIntermodulePairs(): array
+    {
+        $pairs = [];
+
+        foreach ($this->phpFiles(__DIR__.'/../../../src/Module') as $path) {
+            if (!preg_match('#/src/Module/([^/]+)/#', $path, $matches)) {
+                continue;
+            }
+
+            $fromModule = $matches[1];
+            $source = file_get_contents($path);
+            self::assertIsString($source);
+
+            if (preg_match_all('/use App\\\\Module\\\\([A-Za-z0-9_]+)\\\\/', $source, $imports)) {
+                foreach ($imports[1] as $toModule) {
+                    if ($toModule === $fromModule) {
+                        continue;
+                    }
+
+                    $pairs[] = $fromModule.' -> '.$toModule;
+                }
+            }
+        }
+
+        $pairs = array_values(array_unique($pairs));
+        sort($pairs);
+
+        return $pairs;
+    }
+
+    /** @return list<string> */
+    private function documentedIntermodulePairs(): array
+    {
+        $documentation = file_get_contents(__DIR__.'/../../../../docs/architecture/intermodule-dependencies.md');
+        self::assertIsString($documentation);
+
+        if (!preg_match('/## Baseline intermodule gelée\s+(?<body>.*?)(?:\n## |\z)/s', $documentation, $matches)) {
+            self::fail('Section "Baseline intermodule gelée" introuvable.');
+        }
+
+        preg_match_all('/^- `([^`]+)`$/m', $matches['body'], $pairs);
+        $documented = array_values(array_unique($pairs[1]));
+        sort($documented);
+
+        return $documented;
     }
 }

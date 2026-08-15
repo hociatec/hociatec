@@ -157,12 +157,6 @@ export const ProductCartActions = ({ product, variant = 'card' }: ProductCartAct
               : `Dans le panier : ${currentQuantity}`}
           </span>
         )}
-        {isRentalProduct && normalizedRentalStartDate && computedRentalEndDate ? (
-          <span className="catalog-cart-quantity">
-            Location du {formatDateInputForDisplay(normalizedRentalStartDate)} au{' '}
-            {formatDateInputForDisplay(computedRentalEndDate)}
-          </span>
-        ) : null}
         <button type="button" className={buttonClassName} onClick={handleClick} disabled={isPending}>
           {isPending
             ? isInCart

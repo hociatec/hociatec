@@ -47,6 +47,7 @@ struct ProductDetailView: View {
                     stockLimit: stockLimit,
                     isLoading: cart.isLoading,
                     isOutOfStock: viewModel.product.stock == 0,
+                    addButtonLabel: viewModel.product.sellingType == .rental ? "Ajouter la location" : "Ajouter au panier",
                     showRentalSelector: viewModel.product.sellingType == .rental,
                     rentalMonths: viewModel.rentalMonths,
                     rentalStartDateLabel: DatePresentation.formatAPIDay(viewModel.currentRentalStartDateString()),
