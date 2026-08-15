@@ -18,8 +18,10 @@ final class Version20260715003000 extends AbstractMigration
     {
         $schemaManager = $this->connection->createSchemaManager();
         $tables = array_flip($schemaManager->listTableNames());
+        $templatesTableCreated = false;
 
         if (!isset($tables['marketing_email_templates'])) {
+            $templatesTableCreated = true;
             $this->addSql('CREATE TABLE marketing_email_templates (
                 id INT AUTO_INCREMENT NOT NULL,
                 name VARCHAR(120) NOT NULL,
@@ -58,7 +60,9 @@ final class Version20260715003000 extends AbstractMigration
             $this->addSql('ALTER TABLE marketing_email_campaigns ADD CONSTRAINT FK_MARKETING_EMAIL_CAMPAIGNS_TEMPLATE FOREIGN KEY (template_id) REFERENCES marketing_email_templates (id) ON DELETE SET NULL');
         }
 
-        $templatesCount = (int) $this->connection->fetchOne('SELECT COUNT(*) FROM marketing_email_templates');
+        $templatesCount = $templatesTableCreated
+            ? 0
+            : (int) $this->connection->fetchOne('SELECT COUNT(*) FROM marketing_email_templates');
         if (0 === $templatesCount) {
             $this->addSql(<<<'SQL'
 INSERT INTO marketing_email_templates
