@@ -6,9 +6,9 @@ namespace App\Module\Auth\UI\Controller;
 
 use App\Module\Auth\Application\Projection\RefreshTokenSessionFormatter;
 use App\Module\Auth\Application\Workflow\RefreshTokenRevocationService;
-use App\Module\Auth\Infrastructure\Http\RefreshTokenRequestContextResolver;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
+use App\Shared\Infrastructure\Http\RefreshTokenRequestContextResolver;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Rental\UI\Controller\Client;
 
-use App\Module\Rental\Application\DTO\UpdateRentalRequestInput;
+use App\Module\Rental\Application\DTO\PlanRentalReturnInput;
 use App\Module\Rental\Application\Workflow\CustomerRentalPortalService;
 use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
@@ -18,9 +18,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/api/rentals/{id}/request', name: 'api_rentals_request_change', methods: ['PATCH'])]
+#[Route('/api/rentals/{id}/return-plan', name: 'api_rentals_plan_return', methods: ['PUT'])]
 #[IsGranted('ROLE_USER')]
-final class RequestRentalChangeController extends AbstractController
+final class PlanRentalReturnController extends AbstractController
 {
     use AuthenticatedDomainUserTrait;
 
@@ -38,15 +38,15 @@ final class RequestRentalChangeController extends AbstractController
             return ApiResponse::error('Payload JSON invalide.', Response::HTTP_BAD_REQUEST);
         }
 
-        $input = UpdateRentalRequestInput::fromArray($payload);
+        $input = PlanRentalReturnInput::fromArray($payload);
         $this->validator->validate($input);
 
         try {
-            $result = $this->portal->requestChangeForUser($this->currentUser(), $id, $input->action, $input->requestedEndDate, $input->clientPlatform);
+            $result = $this->portal->scheduleReturnForUser($this->currentUser(), $id, $input->mode, $input->requestedDate);
         } catch (\DomainException $exception) {
-            return ApiProblemResponse::fromThrowable($exception, 'Modification de location impossible.', Response::HTTP_FORBIDDEN);
+            return ApiProblemResponse::fromThrowable($exception, 'Restitution impossible.', Response::HTTP_FORBIDDEN);
         } catch (\InvalidArgumentException $exception) {
-            return ApiProblemResponse::fromThrowable($exception, 'Demande de location invalide.', Response::HTTP_BAD_REQUEST);
+            return ApiProblemResponse::fromThrowable($exception, 'Planification de restitution invalide.', Response::HTTP_BAD_REQUEST);
         }
 
         if (null === $result) {

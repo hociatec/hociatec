@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Auth\Domain\Entity;
 
+use App\Module\Auth\Domain\ValueObject\RefreshTokenAccessContext;
 use App\Module\User\Domain\Entity\User;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -65,13 +66,7 @@ class RefreshToken
         string $selector,
         string $tokenHash,
         \DateTimeImmutable $expiresAt,
-        ?string $deviceIdentifier = null,
-        ?string $deviceLabel = null,
-        ?string $platformLabel = null,
-        ?string $clientLabel = null,
-        ?string $locationLabel = null,
-        ?string $userAgent = null,
-        ?string $ipAddress = null,
+        ?RefreshTokenAccessContext $accessContext = null,
         ?\DateTimeImmutable $createdAt = null,
         ?\DateTimeImmutable $lastUsedAt = null,
     ) {
@@ -79,13 +74,7 @@ class RefreshToken
         $this->selector = $selector;
         $this->tokenHash = $tokenHash;
         $this->expiresAt = $expiresAt;
-        $this->deviceIdentifier = self::normalizeOptionalText($deviceIdentifier);
-        $this->deviceLabel = self::normalizeOptionalText($deviceLabel);
-        $this->platformLabel = self::normalizeOptionalText($platformLabel);
-        $this->clientLabel = self::normalizeOptionalText($clientLabel);
-        $this->locationLabel = self::normalizeOptionalText($locationLabel);
-        $this->userAgent = self::normalizeOptionalText($userAgent);
-        $this->ipAddress = self::normalizeOptionalText($ipAddress);
+        $this->applyAccessContext($accessContext);
         $this->createdAt = $createdAt ?? new \DateTimeImmutable();
         $this->lastUsedAt = $lastUsedAt ?? $this->createdAt;
     }
@@ -166,21 +155,15 @@ class RefreshToken
     }
 
     public function updateAccessContext(
-        ?string $deviceIdentifier,
-        ?string $deviceLabel,
-        ?string $platformLabel,
-        ?string $clientLabel,
-        ?string $locationLabel,
-        ?string $userAgent,
-        ?string $ipAddress,
+        ?RefreshTokenAccessContext $accessContext,
     ): self {
-        $this->deviceIdentifier = self::normalizeOptionalText($deviceIdentifier) ?? $this->deviceIdentifier;
-        $this->deviceLabel = self::normalizeOptionalText($deviceLabel) ?? $this->deviceLabel;
-        $this->platformLabel = self::normalizeOptionalText($platformLabel) ?? $this->platformLabel;
-        $this->clientLabel = self::normalizeOptionalText($clientLabel) ?? $this->clientLabel;
-        $this->locationLabel = self::normalizeOptionalText($locationLabel) ?? $this->locationLabel;
-        $this->userAgent = self::normalizeOptionalText($userAgent) ?? $this->userAgent;
-        $this->ipAddress = self::normalizeOptionalText($ipAddress) ?? $this->ipAddress;
+        $this->deviceIdentifier = self::normalizeOptionalText($accessContext?->deviceIdentifier) ?? $this->deviceIdentifier;
+        $this->deviceLabel = self::normalizeOptionalText($accessContext?->deviceLabel) ?? $this->deviceLabel;
+        $this->platformLabel = self::normalizeOptionalText($accessContext?->platformLabel) ?? $this->platformLabel;
+        $this->clientLabel = self::normalizeOptionalText($accessContext?->clientLabel) ?? $this->clientLabel;
+        $this->locationLabel = self::normalizeOptionalText($accessContext?->locationLabel) ?? $this->locationLabel;
+        $this->userAgent = self::normalizeOptionalText($accessContext?->userAgent) ?? $this->userAgent;
+        $this->ipAddress = self::normalizeOptionalText($accessContext?->ipAddress) ?? $this->ipAddress;
         $this->lastUsedAt = new \DateTimeImmutable();
 
         return $this;
@@ -201,6 +184,17 @@ class RefreshToken
     public function isRevoked(): bool
     {
         return null !== $this->revokedAt;
+    }
+
+    private function applyAccessContext(?RefreshTokenAccessContext $accessContext): void
+    {
+        $this->deviceIdentifier = self::normalizeOptionalText($accessContext?->deviceIdentifier);
+        $this->deviceLabel = self::normalizeOptionalText($accessContext?->deviceLabel);
+        $this->platformLabel = self::normalizeOptionalText($accessContext?->platformLabel);
+        $this->clientLabel = self::normalizeOptionalText($accessContext?->clientLabel);
+        $this->locationLabel = self::normalizeOptionalText($accessContext?->locationLabel);
+        $this->userAgent = self::normalizeOptionalText($accessContext?->userAgent);
+        $this->ipAddress = self::normalizeOptionalText($accessContext?->ipAddress);
     }
 
     private static function normalizeOptionalText(?string $value): ?string

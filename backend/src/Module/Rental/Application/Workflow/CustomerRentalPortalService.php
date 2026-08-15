@@ -6,6 +6,7 @@ namespace App\Module\Rental\Application\Workflow;
 
 use App\Module\Order\Application\Port\OrderItemRepositoryPort;
 use App\Module\Order\Application\Support\RentalPeriodCalculator;
+use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderItem;
 use App\Module\Rental\Application\Projection\RentalFormatter;
 use App\Module\User\Domain\Entity\User;
@@ -17,6 +18,7 @@ final readonly class CustomerRentalPortalService
         private OrderItemRepositoryPort $orderItems,
         private RentalFormatter $formatter,
         private UnitOfWork $persistence,
+        private RentalExtensionCheckoutService $extensions,
     ) {
     }
 
@@ -43,14 +45,15 @@ final readonly class CustomerRentalPortalService
     }
 
     /**
-     * @return array<string,mixed>|null
+     * @return array{rental:array<string,mixed>,checkout?:array<string,mixed>}|null
      */
-    public function requestChangeForUser(User $user, int $orderItemId, string $action, ?string $requestedEndDate): ?array
+    public function requestChangeForUser(User $user, int $orderItemId, string $action, ?string $requestedEndDate, ?string $clientPlatform = null): ?array
     {
         $item = $this->findRentalForUser($user, $orderItemId);
         if (!$item instanceof OrderItem) {
             return null;
         }
+        $this->assertClientRentalMutable($item);
 
         $currentEndDate = $item->getRentalEndDate();
         $currentStartDate = $item->getRentalStartDate();
@@ -78,9 +81,7 @@ final readonly class CustomerRentalPortalService
                 throw new \InvalidArgumentException('Pour une prolongation automatique, choisissez une date correspondant à une échéance de location valide.');
             }
 
-            $this->applyAutomaticExtension($item, $alignedMonths, $requestedDate);
-
-            return $this->formatter->format($item, $today);
+            return $this->preparePaidExtension($user, $item, $alignedMonths, $requestedDate, $clientPlatform, $today);
         }
 
         if ('end_early' === $action) {
@@ -96,7 +97,76 @@ final readonly class CustomerRentalPortalService
         $this->persistence->persist($item);
         $this->persistence->flush();
 
-        return $this->formatter->format($item, $today);
+        return [
+            'rental' => $this->formatter->format($item, $today),
+        ];
+    }
+
+    /**
+     * @return array{rental:array<string,mixed>}|null
+     */
+    public function scheduleReturnForUser(User $user, int $orderItemId, string $mode, ?string $requestedDate): ?array
+    {
+        $item = $this->findRentalForUser($user, $orderItemId);
+        if (!$item instanceof OrderItem) {
+            return null;
+        }
+        $this->assertClientRentalMutable($item);
+
+        $date = RentalPeriodCalculator::parseDate($requestedDate);
+        if (null === $date) {
+            throw new \InvalidArgumentException('La date de restitution demandée est invalide.');
+        }
+
+        $today = new \DateTimeImmutable('today');
+        if ($date < $today) {
+            throw new \InvalidArgumentException('La date de restitution doit être aujourd\'hui ou dans le futur.');
+        }
+
+        $startDate = $item->getRentalStartDate();
+        $endDate = $item->getRentalEndDate();
+        if ((null !== $startDate && $date < $startDate) || (null !== $endDate && $date > $endDate)) {
+            throw new \InvalidArgumentException('Choisissez une date comprise dans la période de location.');
+        }
+
+        $item->scheduleRentalReturn($mode, $date);
+        $this->persistence->persist($item);
+        $this->persistence->flush();
+
+        return [
+            'rental' => $this->formatter->format($item, $today),
+        ];
+    }
+
+    public function applyPaidExtensionOrder(Order $order): void
+    {
+        foreach ($order->getItems() as $extensionLine) {
+            $sourceId = $extensionLine->getRentalOriginOrderItemId();
+            if (null === $sourceId) {
+                continue;
+            }
+
+            $rental = $this->orderItems->findById($sourceId);
+            if (!$rental instanceof OrderItem || 'pending_payment' !== $rental->getRentalRequestStatus()) {
+                continue;
+            }
+
+            $requestedEndDate = $rental->getRentalRequestedEndDate();
+            $startDate = $rental->getRentalStartDate();
+            if (null === $requestedEndDate || null === $startDate) {
+                continue;
+            }
+
+            $alignedMonths = RentalPeriodCalculator::findAlignedMonthsForEndDate($startDate, $requestedEndDate);
+            if (null === $alignedMonths) {
+                continue;
+            }
+
+            $rental->applyApprovedRentalExtension($requestedEndDate, $alignedMonths);
+            $this->persistence->persist($rental);
+        }
+
+        $this->persistence->flush();
     }
 
     private function findRentalForUser(User $user, int $orderItemId): ?OrderItem
@@ -117,44 +187,21 @@ final readonly class CustomerRentalPortalService
         return $item;
     }
 
-    private function applyAutomaticExtension(OrderItem $item, int $alignedMonths, \DateTimeImmutable $requestedDate): void
+    private function assertClientRentalMutable(OrderItem $item): void
     {
-        $order = $item->getOrder();
-        if (null === $order) {
-            throw new \LogicException('La commande associée à cette location est introuvable.');
+        if ('completed' === $item->getRentalReturnStatus()) {
+            throw new \DomainException('Cette location a déjà été restituée et ne peut plus être modifiée.');
         }
-
-        $item->applyApprovedRentalExtension($requestedDate, $alignedMonths);
-        $this->recalculateRentalLineTotals($item, $alignedMonths);
-        $this->recalculateOrderTotals($order);
-
-        $this->persistence->persist($item);
-        $this->persistence->persist($order);
-        $this->persistence->flush();
     }
 
-    private function recalculateRentalLineTotals(OrderItem $item, int $alignedMonths): void
+    /** @return array{rental:array<string,mixed>,checkout:array<string,mixed>} */
+    private function preparePaidExtension(User $user, OrderItem $item, int $alignedMonths, \DateTimeImmutable $requestedDate, ?string $clientPlatform, \DateTimeImmutable $today): array
     {
-        $quantity = max(1, $item->getQuantity());
-        $grossLineTotal = $item->getUnitPriceCents() * $quantity * max(1, $alignedMonths);
-        $vatRate = max(0, $item->getVatRateBps());
-        $lineSubtotalHt = 0 === $vatRate
-            ? $grossLineTotal
-            : (int) round($grossLineTotal / (1 + ($vatRate / 10000)));
-        $lineVat = max(0, $grossLineTotal - $lineSubtotalHt);
-
-        $item->replaceLineTotals($lineSubtotalHt, $lineVat, $grossLineTotal);
-    }
-
-    private function recalculateOrderTotals(\App\Module\Order\Domain\Entity\Order $order): void
-    {
-        $subtotal = 0;
-
-        foreach ($order->getItems() as $line) {
-            $subtotal += $line->getLinePriceCents();
+        $additionalMonths = $alignedMonths - max(1, (int) ($item->getRentalMonths() ?? 1));
+        if ($additionalMonths < 1) {
+            throw new \InvalidArgumentException('Cette prolongation ne crée aucun mois supplémentaire à facturer.');
         }
 
-        $discount = max(0, $order->getDiscountAmountCents());
-        $order->replacePaymentAmounts($subtotal, $discount, max(0, $subtotal - $discount));
+        return $this->extensions->prepare($user, $item, $additionalMonths, $requestedDate, $clientPlatform, $today);
     }
 }

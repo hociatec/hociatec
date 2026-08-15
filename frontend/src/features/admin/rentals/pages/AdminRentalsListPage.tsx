@@ -29,6 +29,10 @@ const customerLabel = (item: AdminRentalDto) => {
 };
 
 const requestLabel = (item: AdminRentalDto) => {
+  if (item.request.status === 'pending_payment') {
+    return `Paiement de prolongation en attente au ${formatDateInputForDisplay(item.request.requestedEndDate)}`;
+  }
+
   if (item.request.status !== 'pending') {
     return 'Aucune';
   }
@@ -42,6 +46,19 @@ const requestLabel = (item: AdminRentalDto) => {
   }
 
   return 'Demande en attente';
+};
+
+const returnLabel = (item: AdminRentalDto) => {
+  if (item.returnPlan.status === 'completed') {
+    return 'Matériel récupéré';
+  }
+
+  if (item.returnPlan.status !== 'scheduled') {
+    return 'Non planifiée';
+  }
+
+  const mode = item.returnPlan.mode === 'pickup_home' ? 'Domicile' : item.returnPlan.mode === 'dropoff_store' ? 'Boutique' : 'À définir';
+  return `${mode} · ${formatDateInputForDisplay(item.returnPlan.requestedDate)}`;
 };
 
 export const AdminRentalsListPage = () => {
@@ -86,7 +103,7 @@ export const AdminRentalsListPage = () => {
           {meta.totalPages > 1 ? `, page ${meta.page} sur ${meta.totalPages}` : ''}.
         </p>
         <p className="text-sm text-stone-500">
-          Suivez les locations à venir, en cours ou terminées, et traitez les demandes de prolongation ou de fin anticipée.
+          Suivez les locations, les demandes client et la récupération effective du matériel.
         </p>
       </div>
 
@@ -150,6 +167,7 @@ export const AdminRentalsListPage = () => {
                 <th scope="col">Montant</th>
                 <th scope="col">Statut</th>
                 <th scope="col">Demande</th>
+                <th scope="col">Restitution</th>
                 <th scope="col">Action</th>
               </tr>
             </thead>
@@ -170,6 +188,7 @@ export const AdminRentalsListPage = () => {
                   <td>{formatEuroCents(item.linePriceCents)}</td>
                   <td>{item.timelineStatusLabel}</td>
                   <td>{requestLabel(item)}</td>
+                  <td>{returnLabel(item)}</td>
                   <td>
                     <Link
                       className="inline-flex items-center rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-brand-600"

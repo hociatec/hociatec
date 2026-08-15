@@ -7,6 +7,7 @@ namespace App\Module\Auth\Application\Workflow;
 use App\Module\Auth\Application\DTO\RefreshTokenContext;
 use App\Module\Auth\Application\Port\RefreshTokenRepositoryPort;
 use App\Module\Auth\Domain\Entity\RefreshToken;
+use App\Module\Auth\Domain\ValueObject\RefreshTokenAccessContext;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\TransactionManager;
 use App\Shared\Application\UnitOfWork;
@@ -192,13 +193,15 @@ final class RefreshTokenService
                 $selector,
                 hash('sha256', $secret),
                 $expiresAt,
-                $deviceIdentifier,
-                $deviceLabel,
-                $platformLabel,
-                $clientLabel,
-                $locationLabel,
-                $userAgent,
-                $ipAddress,
+                new RefreshTokenAccessContext(
+                    $deviceIdentifier,
+                    $deviceLabel,
+                    $platformLabel,
+                    $clientLabel,
+                    $locationLabel,
+                    $userAgent,
+                    $ipAddress,
+                ),
                 $createdAt,
             ),
             $plainToken,

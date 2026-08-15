@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Module\Auth;
 
 use App\Module\Auth\Infrastructure\Security\RejectRevokedSessionJwtListener;
-use App\Module\Auth\Infrastructure\Security\SessionBoundJwtManager;
 use App\Module\Auth\Infrastructure\Security\SymfonySecurityUser;
+use App\Shared\Infrastructure\Http\SessionBoundJwtIssuer;
 use Lexik\Bundle\JWTAuthenticationBundle\Event\JWTAuthenticatedEvent;
 use Lexik\Bundle\JWTAuthenticationBundle\Exception\InvalidTokenException;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -32,7 +32,7 @@ final class RejectRevokedSessionJwtListenerTest extends AuthIntegrationTestCase
         $token->method('getUser')->willReturn(new SymfonySecurityUser($user));
 
         $listener(new JWTAuthenticatedEvent([
-            SessionBoundJwtManager::SESSION_SELECTOR_CLAIM => $selector,
+            SessionBoundJwtIssuer::SESSION_SELECTOR_CLAIM => $selector,
         ], $token));
 
         $this->refreshRepository($em)->findOneBySelector($selector)?->revoke();
@@ -40,7 +40,7 @@ final class RejectRevokedSessionJwtListenerTest extends AuthIntegrationTestCase
 
         $this->expectException(InvalidTokenException::class);
         $listener(new JWTAuthenticatedEvent([
-            SessionBoundJwtManager::SESSION_SELECTOR_CLAIM => $selector,
+            SessionBoundJwtIssuer::SESSION_SELECTOR_CLAIM => $selector,
         ], $token));
     }
 }

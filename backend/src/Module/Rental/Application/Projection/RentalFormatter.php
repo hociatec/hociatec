@@ -52,6 +52,17 @@ final class RentalFormatter
                 'requestedEndDate' => $item->getRentalRequestedEndDateString(),
                 'createdAt' => $item->getRentalRequestCreatedAt()?->format(DATE_ATOM),
             ],
+            'extension' => [
+                'orderId' => $item->getRentalExtensionOrderId(),
+                'sourceOrderItemId' => $item->getRentalOriginOrderItemId(),
+            ],
+            'returnPlan' => [
+                'status' => $item->getRentalReturnStatus(),
+                'mode' => $item->getRentalReturnMode(),
+                'requestedDate' => $item->getRentalReturnRequestedDateString(),
+                'requestedAt' => $item->getRentalReturnRequestedAt()?->format(DATE_ATOM),
+                'completedAt' => $item->getRentalReturnCompletedAt()?->format(DATE_ATOM),
+            ],
         ];
     }
 }

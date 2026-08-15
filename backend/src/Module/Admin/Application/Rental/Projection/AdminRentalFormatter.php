@@ -43,6 +43,10 @@ final readonly class AdminRentalFormatter
      */
     private function allowedAdminActions(OrderItem $item): array
     {
+        if ('scheduled' === $item->getRentalReturnStatus()) {
+            return ['mark_returned'];
+        }
+
         if ('pending' !== $item->getRentalRequestStatus()) {
             return [];
         }

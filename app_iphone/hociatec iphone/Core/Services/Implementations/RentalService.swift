@@ -7,11 +7,15 @@ struct RentalService: RentalServing {
         try await api.myRentals()
     }
 
-    func requestRentalChange(orderItemId: Int, action: RentalRequestAction, requestedEndDate: String) async throws -> RentalItem {
+    func requestRentalChange(orderItemId: Int, action: RentalRequestAction, requestedEndDate: String) async throws -> RentalChangeData {
         try await api.requestRentalChange(
             orderItemId: orderItemId,
             action: action,
             requestedEndDate: requestedEndDate
         )
+    }
+
+    func planRentalReturn(orderItemId: Int, mode: String, requestedDate: String) async throws -> RentalItem {
+        try await api.planRentalReturn(orderItemId: orderItemId, mode: mode, requestedDate: requestedDate)
     }
 }

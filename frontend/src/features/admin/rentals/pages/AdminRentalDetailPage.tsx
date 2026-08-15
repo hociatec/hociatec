@@ -15,6 +15,7 @@ const actionLabels: Record<AdminRentalAction, string> = {
   approve_extension: 'Approuver la prolongation',
   approve_end_early: 'Approuver la fin anticipée',
   reject_request: 'Rejeter la demande',
+  mark_returned: 'Marquer comme récupéré',
 };
 
 const requestTypeLabel = (value: string | null | undefined) => {
@@ -66,6 +67,16 @@ export const AdminRentalDetailPage = () => {
   const loadError = rentalQuery.error ? getHttpErrorMessage(rentalQuery.error, 'Impossible de charger la location.') : null;
   const actionError = actionMutation.isError && message ? message : null;
   const actionSuccess = actionMutation.isSuccess && message ? message : null;
+  const returnModeLabel = rental?.returnPlan.mode === 'pickup_home'
+    ? 'Récupération à domicile'
+    : rental?.returnPlan.mode === 'dropoff_store'
+      ? 'Dépôt en boutique'
+      : 'Non défini';
+  const returnStatusLabel = rental?.returnPlan.status === 'scheduled'
+    ? 'Planifiée'
+    : rental?.returnPlan.status === 'completed'
+      ? 'Récupérée'
+      : 'Aucune restitution planifiée';
 
   return (
     <PageContainer
@@ -127,16 +138,36 @@ export const AdminRentalDetailPage = () => {
             </div>
             <div className="space-y-2">
               <h2 className="text-lg font-semibold text-stone-900">Demande client</h2>
-              <div>État: {rental.request.status === 'pending' ? 'En attente' : 'Aucune demande en attente'}</div>
+              <div>
+                État: {rental.request.status === 'pending'
+                  ? 'En attente'
+                  : rental.request.status === 'pending_payment'
+                    ? 'Paiement de prolongation en attente'
+                    : 'Aucune demande en attente'}
+              </div>
               <div>Type: {requestTypeLabel(rental.request.type)}</div>
               <div>Date demandée: {formatDateInputForDisplay(rental.request.requestedEndDate)}</div>
+            </div>
+          </section>
+
+          <section className="grid gap-4 rounded-3xl border border-stone-200 bg-white p-6 md:grid-cols-2">
+            <div className="space-y-2">
+              <h2 className="text-lg font-semibold text-stone-900">Restitution du matériel</h2>
+              <div>État: {returnStatusLabel}</div>
+              <div>Mode: {returnModeLabel}</div>
+              <div>Date prévue: {formatDateInputForDisplay(rental.returnPlan.requestedDate)}</div>
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-lg font-semibold text-stone-900">Clôture</h2>
+              <div>Demandée le: {formatDateInputForDisplay(rental.returnPlan.requestedAt?.slice(0, 10) ?? null)}</div>
+              <div>Récupérée le: {formatDateInputForDisplay(rental.returnPlan.completedAt?.slice(0, 10) ?? null)}</div>
             </div>
           </section>
 
           <section className="space-y-3 rounded-3xl border border-stone-200 bg-white p-6">
             <h2 className="text-lg font-semibold text-stone-900">Actions de gestion</h2>
             {rental.allowedAdminActions.length === 0 ? (
-              <p className="text-sm text-stone-600">Aucune action en attente sur cette location.</p>
+              <p className="text-sm text-stone-600">Aucune action disponible sur cette location.</p>
             ) : (
               <div className="flex flex-wrap gap-3">
                 {rental.allowedAdminActions.map((action) => (

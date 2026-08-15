@@ -44,7 +44,7 @@ class AppointmentRepository extends ServiceEntityRepository implements Appointme
             ->setParameter('cancelledStatus', Appointment::STATUS_CANCELLED)
             ->orderBy('a.startAt', 'ASC');
 
-        if ($ignoredAppointment?->getId() !== null) {
+        if (null !== $ignoredAppointment?->getId()) {
             $qb
                 ->andWhere('a.id != :ignoredAppointmentId')
                 ->setParameter('ignoredAppointmentId', $ignoredAppointment->getId());

@@ -38,6 +38,7 @@ final class CartServiceTest extends TestCase
         $product = $this->persistProduct('Phone', 'PH-1', 10);
         $freshProduct = $this->persistProduct('Tablet', 'TB-1', 10);
         $rentalProduct = $this->persistProduct('MacBook', 'MB-1', 10, 'rental');
+        $rentalStartDate = new \DateTimeImmutable('today');
 
         $service = $this->service();
         $cart = $service->addProduct(null, $product, 2);
@@ -59,8 +60,8 @@ final class CartServiceTest extends TestCase
         $reloadedCart = $this->reloadCart($cart);
         self::assertNull($reloadedCart->getItemForProduct($freshProduct));
 
-        $service->addProduct($cart->getToken(), $rentalProduct, 1, 6);
-        $service->addProduct($cart->getToken(), $rentalProduct, 2, 12);
+        $service->addProduct($cart->getToken(), $rentalProduct, 1, 6, $rentalStartDate);
+        $service->addProduct($cart->getToken(), $rentalProduct, 2, 12, $rentalStartDate);
         $reloadedCart = $this->reloadCart($cart);
         self::assertCount(2, $reloadedCart->getItemsForProduct($rentalProduct));
 
@@ -76,10 +77,11 @@ final class CartServiceTest extends TestCase
     {
         $product = $this->persistProduct('MacBook', 'MB-1', 20, 'rental');
         $service = $this->service();
-        $cart = $service->addProduct(null, $product, 1, 6);
-        $service->addProduct($cart->getToken(), $product, 3, 12);
+        $rentalStartDate = new \DateTimeImmutable('today');
+        $cart = $service->addProduct(null, $product, 1, 6, $rentalStartDate);
+        $service->addProduct($cart->getToken(), $product, 3, 12, $rentalStartDate);
 
-        $service->updateProductQuantity($cart->getToken(), $product, 2, 12, 6);
+        $service->updateProductQuantity($cart->getToken(), $product, 2, 12, 6, $rentalStartDate, $rentalStartDate);
 
         $reloaded = $this->reloadCart($cart);
         $lines = $reloaded->getItemsForProduct($product);

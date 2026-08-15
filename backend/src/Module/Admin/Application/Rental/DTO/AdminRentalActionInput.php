@@ -9,7 +9,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 final readonly class AdminRentalActionInput
 {
     public function __construct(
-        #[Assert\Choice(choices: ['approve_extension', 'approve_end_early', 'reject_request'])]
+        #[Assert\Choice(choices: ['approve_extension', 'approve_end_early', 'reject_request', 'mark_returned'])]
         public string $action,
     ) {
     }

@@ -59,7 +59,7 @@ class AddFavoriteController extends AbstractController
         }
 
         $product = $favorite->getProduct();
-        if (null === $product || null === $this->catalogFormatter) {
+        if (null === $product) {
             return null;
         }
 

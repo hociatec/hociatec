@@ -6,7 +6,6 @@ namespace App\Module\Favorite\Domain\Entity;
 
 use App\Module\Catalog\Domain\Entity\Product;
 use App\Module\User\Domain\Entity\User;
-use Doctrine\ORM\Event\PrePersistEventArgs;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]

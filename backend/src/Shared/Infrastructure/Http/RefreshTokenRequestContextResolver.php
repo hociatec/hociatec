@@ -2,10 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Module\Auth\Infrastructure\Http;
+namespace App\Shared\Infrastructure\Http;
 
 use App\Module\Auth\Application\DTO\RefreshTokenContext;
-use App\Shared\Infrastructure\Http\AuthCookieResponseWriter;
+use App\Module\Auth\Infrastructure\Http\AccessSessionLocationResolver;
+use App\Module\Auth\Infrastructure\Http\ChainAccessSessionLocationResolver;
+use App\Module\Auth\Infrastructure\Http\GeoIpAccessSessionLocationResolver;
+use App\Module\Auth\Infrastructure\Http\HeaderAccessSessionLocationResolver;
 use Symfony\Component\HttpFoundation\Request;
 
 final readonly class RefreshTokenRequestContextResolver

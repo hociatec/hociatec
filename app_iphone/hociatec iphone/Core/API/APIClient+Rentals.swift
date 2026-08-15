@@ -13,13 +13,31 @@ extension APIClient {
         orderItemId: Int,
         action: RentalRequestAction,
         requestedEndDate: String
-    ) async throws -> RentalItem {
-        let data: RentalData = try await request(
+    ) async throws -> RentalChangeData {
+        try await request(
             path: "api/rentals/\(orderItemId)/request",
             method: "PATCH",
             body: [
                 "action": action.rawValue,
-                "requestedEndDate": requestedEndDate
+                "requestedEndDate": requestedEndDate,
+                "clientPlatform": "ios"
+            ],
+            authorized: true,
+            attachCartToken: false
+        )
+    }
+
+    func planRentalReturn(
+        orderItemId: Int,
+        mode: String,
+        requestedDate: String
+    ) async throws -> RentalItem {
+        let data: RentalData = try await request(
+            path: "api/rentals/\(orderItemId)/return-plan",
+            method: "PUT",
+            body: [
+                "mode": mode,
+                "requestedDate": requestedDate
             ],
             authorized: true,
             attachCartToken: false

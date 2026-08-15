@@ -5,17 +5,16 @@ declare(strict_types=1);
 namespace App\Module\Auth\UI\Controller;
 
 use App\Module\Auth\Application\Workflow\RefreshTokenService;
-use App\Module\Auth\Infrastructure\Http\RefreshTokenRequestContextResolver;
+use App\Module\Auth\UI\Http\RefreshTokenRequestRateLimiter;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\AuthCookieResponseWriter;
 use App\Shared\Infrastructure\Http\CsrfExempt;
-use App\Shared\Infrastructure\Http\RateLimitKeyFactory;
+use App\Shared\Infrastructure\Http\RefreshTokenRequestContextResolver;
+use App\Shared\Infrastructure\Http\SessionBoundJwtIssuer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api/auth/refresh', name: 'api_auth_refresh', methods: ['POST'])]
@@ -24,12 +23,10 @@ class RefreshTokenController extends AbstractController
 {
     public function __construct(
         private readonly RefreshTokenService $refreshTokenService,
-        private readonly \App\Module\Auth\Infrastructure\Security\SessionBoundJwtManager $jwtManager,
+        private readonly SessionBoundJwtIssuer $jwtManager,
         private readonly AuthCookieResponseWriter $authCookieService,
         private readonly RefreshTokenRequestContextResolver $refreshTokenContextResolver,
-        private readonly RateLimitKeyFactory $rateLimitKeys,
-        #[Autowire(service: 'limiter.auth_refresh')]
-        private readonly RateLimiterFactory $refreshLimiter,
+        private readonly RefreshTokenRequestRateLimiter $refreshRequestLimiter,
     ) {
     }
 
@@ -41,9 +38,7 @@ class RefreshTokenController extends AbstractController
             $refreshToken = (string) ($payload['refreshToken'] ?? '');
         }
 
-        $limit = $this->refreshLimiter
-            ->create($this->rateLimitKeys->forRequest($request, $this->refreshTokenSelector($refreshToken)))
-            ->consume(1);
+        $limit = $this->refreshRequestLimiter->consume($request, $refreshToken);
         if (!$limit->isAccepted()) {
             return ApiResponse::error(
                 'Trop de requêtes de renouvellement. Veuillez réessayer plus tard.',

@@ -2,7 +2,7 @@ import { httpClient } from '@/shared/lib/httpClient';
 import { unwrapApiData } from '@/shared/lib/responseHelpers';
 import { type ApiMutationResult, type ApiResponse, type PaginatedResult, type PaginationMeta } from '@/shared/types/api';
 
-export type AdminRentalAction = 'approve_extension' | 'approve_end_early' | 'reject_request';
+export type AdminRentalAction = 'approve_extension' | 'approve_end_early' | 'reject_request' | 'mark_returned';
 
 export type AdminRentalDto = {
   orderItemId: number;
@@ -22,10 +22,17 @@ export type AdminRentalDto = {
   timelineStatus: 'upcoming' | 'active' | 'past';
   timelineStatusLabel: string;
   request: {
-    status: 'none' | 'pending';
+    status: 'none' | 'pending' | 'pending_payment';
     type: 'extend' | 'end_early' | null;
     requestedEndDate: string | null;
     createdAt: string | null;
+  };
+  returnPlan: {
+    status: 'none' | 'scheduled' | 'completed';
+    mode: 'pickup_home' | 'dropoff_store' | null;
+    requestedDate: string | null;
+    requestedAt: string | null;
+    completedAt: string | null;
   };
   customer: {
     id: number | null;

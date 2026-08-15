@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Auth\Infrastructure\Security;
 
 use App\Module\Auth\Application\Workflow\RefreshTokenRevocationService;
+use App\Shared\Infrastructure\Http\SessionBoundJwtIssuer;
 use Lexik\Bundle\JWTAuthenticationBundle\Event\JWTAuthenticatedEvent;
 use Lexik\Bundle\JWTAuthenticationBundle\Exception\InvalidTokenException;
 
@@ -16,7 +17,7 @@ final readonly class RejectRevokedSessionJwtListener
 
     public function __invoke(JWTAuthenticatedEvent $event): void
     {
-        $selector = $event->getPayload()[SessionBoundJwtManager::SESSION_SELECTOR_CLAIM] ?? null;
+        $selector = $event->getPayload()[SessionBoundJwtIssuer::SESSION_SELECTOR_CLAIM] ?? null;
         if (!is_string($selector) || '' === $selector) {
             return;
         }

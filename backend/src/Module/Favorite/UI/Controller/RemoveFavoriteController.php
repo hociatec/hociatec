@@ -6,7 +6,6 @@ namespace App\Module\Favorite\UI\Controller;
 
 use App\Module\Catalog\Application\Port\ProductRepositoryPort;
 use App\Module\Favorite\Application\Workflow\FavoriteService;
-use App\Module\Favorite\Domain\Entity\Favorite;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

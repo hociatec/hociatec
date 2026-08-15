@@ -61,7 +61,7 @@ services:
                 - '@App\Module\Auth\Infrastructure\Http\HeaderAccessSessionLocationResolver'
                 - '@App\Module\Auth\Infrastructure\Http\GeoIpAccessSessionLocationResolver'
 
-    App\Module\Auth\Infrastructure\Http\RefreshTokenRequestContextResolver:
+    App\Shared\Infrastructure\Http\RefreshTokenRequestContextResolver:
         arguments:
             $locationResolver: '@App\Module\Auth\Infrastructure\Http\ChainAccessSessionLocationResolver'
 

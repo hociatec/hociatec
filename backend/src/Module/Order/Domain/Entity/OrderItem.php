@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Order\Domain\Entity;
 
 use App\Module\Catalog\Domain\Entity\Product;
-use App\Module\Order\Application\Support\RentalPeriodCalculator;
+use App\Module\Order\Domain\Support\RentalPeriodCalculator;
 use App\Shared\Domain\ValueObject\Money;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -76,6 +76,27 @@ class OrderItem
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $rentalRequestUpdatedAt = null;
+
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $rentalOriginOrderItemId = null;
+
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $rentalExtensionOrderId = null;
+
+    #[ORM\Column(length: 30, options: ['default' => 'none'])]
+    private string $rentalReturnStatus = 'none';
+
+    #[ORM\Column(length: 30, nullable: true)]
+    private ?string $rentalReturnMode = null;
+
+    #[ORM\Column(type: 'date_immutable', nullable: true)]
+    private ?\DateTimeImmutable $rentalReturnRequestedDate = null;
+
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $rentalReturnRequestedAt = null;
+
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $rentalReturnCompletedAt = null;
 
     public function __construct(string $productName, string $productSku, int $unitPriceCents, int $quantity)
     {
@@ -295,6 +316,55 @@ class OrderItem
         return $this->rentalRequestCreatedAt;
     }
 
+    public function getRentalOriginOrderItemId(): ?int
+    {
+        return $this->rentalOriginOrderItemId;
+    }
+
+    public function setRentalOriginOrderItemId(?int $rentalOriginOrderItemId): self
+    {
+        $this->rentalOriginOrderItemId = null !== $rentalOriginOrderItemId && $rentalOriginOrderItemId > 0
+            ? $rentalOriginOrderItemId
+            : null;
+
+        return $this;
+    }
+
+    public function getRentalExtensionOrderId(): ?int
+    {
+        return $this->rentalExtensionOrderId;
+    }
+
+    public function getRentalReturnStatus(): string
+    {
+        return $this->rentalReturnStatus;
+    }
+
+    public function getRentalReturnMode(): ?string
+    {
+        return $this->rentalReturnMode;
+    }
+
+    public function getRentalReturnRequestedDate(): ?\DateTimeImmutable
+    {
+        return $this->rentalReturnRequestedDate;
+    }
+
+    public function getRentalReturnRequestedDateString(): ?string
+    {
+        return RentalPeriodCalculator::formatDate($this->rentalReturnRequestedDate);
+    }
+
+    public function getRentalReturnRequestedAt(): ?\DateTimeImmutable
+    {
+        return $this->rentalReturnRequestedAt;
+    }
+
+    public function getRentalReturnCompletedAt(): ?\DateTimeImmutable
+    {
+        return $this->rentalReturnCompletedAt;
+    }
+
     public function requestRentalChange(string $type, \DateTimeImmutable $requestedEndDate): self
     {
         $normalizedType = strtolower(trim($type));
@@ -312,6 +382,23 @@ class OrderItem
         return $this;
     }
 
+    public function requestRentalExtensionPayment(\DateTimeImmutable $requestedEndDate, int $extensionOrderId): self
+    {
+        if ($extensionOrderId < 1) {
+            throw new \InvalidArgumentException('Commande de prolongation invalide.');
+        }
+
+        $this->rentalRequestType = 'extend';
+        $this->rentalRequestStatus = 'pending_payment';
+        $this->rentalRequestedEndDate = RentalPeriodCalculator::normalizeDate($requestedEndDate);
+        $this->rentalExtensionOrderId = $extensionOrderId;
+        $now = new \DateTimeImmutable();
+        $this->rentalRequestCreatedAt ??= $now;
+        $this->rentalRequestUpdatedAt = $now;
+
+        return $this;
+    }
+
     public function clearRentalRequest(): self
     {
         $this->rentalRequestStatus = 'none';
@@ -319,6 +406,7 @@ class OrderItem
         $this->rentalRequestedEndDate = null;
         $this->rentalRequestCreatedAt = null;
         $this->rentalRequestUpdatedAt = null;
+        $this->rentalExtensionOrderId = null;
 
         return $this;
     }
@@ -348,6 +436,30 @@ class OrderItem
 
         $this->rentalEndDate = RentalPeriodCalculator::normalizeDate($requestedEndDate);
         $this->clearRentalRequest();
+
+        return $this;
+    }
+
+    public function scheduleRentalReturn(string $mode, \DateTimeImmutable $requestedDate): self
+    {
+        $normalizedMode = strtolower(trim($mode));
+        if (!in_array($normalizedMode, ['pickup_home', 'dropoff_store'], true)) {
+            throw new \InvalidArgumentException('Mode de restitution invalide.');
+        }
+
+        $this->rentalReturnMode = $normalizedMode;
+        $this->rentalReturnStatus = 'scheduled';
+        $this->rentalReturnRequestedDate = RentalPeriodCalculator::normalizeDate($requestedDate);
+        $this->rentalReturnRequestedAt = new \DateTimeImmutable();
+        $this->rentalReturnCompletedAt = null;
+
+        return $this;
+    }
+
+    public function markRentalReturned(?\DateTimeImmutable $completedAt = null): self
+    {
+        $this->rentalReturnStatus = 'completed';
+        $this->rentalReturnCompletedAt = $completedAt ?? new \DateTimeImmutable();
 
         return $this;
     }

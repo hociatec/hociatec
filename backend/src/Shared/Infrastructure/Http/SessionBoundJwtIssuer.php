@@ -2,12 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Module\Auth\Infrastructure\Security;
+namespace App\Shared\Infrastructure\Http;
 
+use App\Module\Auth\Infrastructure\Security\SymfonySecurityUser;
 use App\Module\User\Domain\Entity\User;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 
-final readonly class SessionBoundJwtManager
+final readonly class SessionBoundJwtIssuer
 {
     public const SESSION_SELECTOR_CLAIM = 'sid';
 

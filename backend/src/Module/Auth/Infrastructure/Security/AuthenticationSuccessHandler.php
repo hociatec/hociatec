@@ -6,8 +6,9 @@ namespace App\Module\Auth\Infrastructure\Security;
 
 use App\Module\Auth\Application\Workflow\RefreshTokenService;
 use App\Module\Auth\Infrastructure\Http\AuthCookieService;
-use App\Module\Auth\Infrastructure\Http\RefreshTokenRequestContextResolver;
 use App\Shared\Infrastructure\Http\ApiResponse;
+use App\Shared\Infrastructure\Http\RefreshTokenRequestContextResolver;
+use App\Shared\Infrastructure\Http\SessionBoundJwtIssuer;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -17,7 +18,7 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationSuccessHandlerI
 class AuthenticationSuccessHandler implements AuthenticationSuccessHandlerInterface
 {
     public function __construct(
-        private readonly SessionBoundJwtManager $jwtManager,
+        private readonly SessionBoundJwtIssuer $jwtManager,
         private readonly RefreshTokenService $refreshTokenService,
         private readonly AuthCookieService $authCookieService,
         private readonly RefreshTokenRequestContextResolver $refreshTokenContextResolver,

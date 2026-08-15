@@ -32,7 +32,7 @@ class ListFavoritesController extends AbstractController
     {
         $request ??= new Request();
         $pagination = RequestQueryMapper::pagination($request, 10, 50);
-        $category = RequestQueryMapper::choice($request, 'category', \App\Module\Favorite\Domain\Entity\Favorite::categories());
+        $category = RequestQueryMapper::choice($request, 'category', Favorite::categories());
         /** @var User $user */
         $user = \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser::domainUser($this->getUser());
 
@@ -56,7 +56,7 @@ class ListFavoritesController extends AbstractController
         }
 
         $product = $favorite->getProduct();
-        if (null === $product || null === $this->catalogFormatter) {
+        if (null === $product) {
             return null;
         }
 

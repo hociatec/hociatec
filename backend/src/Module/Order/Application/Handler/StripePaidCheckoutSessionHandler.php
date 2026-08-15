@@ -8,6 +8,7 @@ use App\Module\Order\Application\Port\OrderRepositoryPort;
 use App\Module\Order\Application\Workflow\OrderService;
 use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderCheckoutSession;
+use App\Module\Rental\Application\Workflow\CustomerRentalPortalService;
 use App\Shared\Application\UnitOfWork;
 
 final readonly class StripePaidCheckoutSessionHandler
@@ -15,6 +16,7 @@ final readonly class StripePaidCheckoutSessionHandler
     public function __construct(
         private OrderRepositoryPort $orders,
         private OrderService $orderCreator,
+        private CustomerRentalPortalService $rentals,
         private UnitOfWork $persistence,
     ) {
     }
@@ -40,6 +42,7 @@ final readonly class StripePaidCheckoutSessionHandler
             if ($order instanceof Order && Order::STATUS_PENDING === $order->getStatus()) {
                 $order->setStatus(Order::STATUS_CONFIRMED);
                 $this->save($order);
+                $this->rentals->applyPaidExtensionOrder($order);
             }
 
             return ['type' => $type, 'sessionId' => $checkout->getStripeSessionId()];

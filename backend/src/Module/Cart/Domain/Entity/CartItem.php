@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Cart\Domain\Entity;
 
 use App\Module\Catalog\Domain\Entity\Product;
-use App\Module\Order\Application\Support\RentalPeriodCalculator;
+use App\Module\Order\Domain\Support\RentalPeriodCalculator;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
@@ -157,7 +157,9 @@ class CartItem
         }
 
         if (null === $rentalStartDate) {
-            throw new \InvalidArgumentException('La date de debut de location est requise.');
+            $this->rentalStartDate = null;
+
+            return $this;
         }
 
         $this->rentalStartDate = RentalPeriodCalculator::normalizeDate($rentalStartDate);

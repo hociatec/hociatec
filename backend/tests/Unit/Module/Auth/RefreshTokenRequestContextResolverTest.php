@@ -7,7 +7,7 @@ namespace App\Tests\Unit\Module\Auth;
 use App\Module\Auth\Infrastructure\Http\AccessSessionLocationResolver;
 use App\Module\Auth\Infrastructure\Http\GeoIpAccessSessionLocationResolver;
 use App\Module\Auth\Infrastructure\Http\HeaderAccessSessionLocationResolver;
-use App\Module\Auth\Infrastructure\Http\RefreshTokenRequestContextResolver;
+use App\Shared\Infrastructure\Http\RefreshTokenRequestContextResolver;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 

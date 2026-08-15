@@ -52,6 +52,17 @@ final readonly class OrderItemFormatter
                     'requestedEndDate' => $item->getRentalRequestedEndDateString(),
                     'createdAt' => $item->getRentalRequestCreatedAt()?->format(DATE_ATOM),
                 ],
+                'rentalExtension' => [
+                    'orderId' => $item->getRentalExtensionOrderId(),
+                    'sourceOrderItemId' => $item->getRentalOriginOrderItemId(),
+                ],
+                'rentalReturn' => [
+                    'status' => $item->getRentalReturnStatus(),
+                    'mode' => $item->getRentalReturnMode(),
+                    'requestedDate' => $item->getRentalReturnRequestedDateString(),
+                    'requestedAt' => $item->getRentalReturnRequestedAt()?->format(DATE_ATOM),
+                    'completedAt' => $item->getRentalReturnCompletedAt()?->format(DATE_ATOM),
+                ],
                 'vatRateBps' => $item->getVatRateBps(),
                 'lineSubtotalCents' => $item->getLineSubtotalCents(),
                 'lineVatCents' => $item->getLineVatCents(),

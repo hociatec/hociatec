@@ -44,7 +44,8 @@ protocol OrderServing {
 
 protocol RentalServing {
     func myRentals() async throws -> MyRentalsResponse
-    func requestRentalChange(orderItemId: Int, action: RentalRequestAction, requestedEndDate: String) async throws -> RentalItem
+    func requestRentalChange(orderItemId: Int, action: RentalRequestAction, requestedEndDate: String) async throws -> RentalChangeData
+    func planRentalReturn(orderItemId: Int, mode: String, requestedDate: String) async throws -> RentalItem
 }
 
 protocol VoucherServing {

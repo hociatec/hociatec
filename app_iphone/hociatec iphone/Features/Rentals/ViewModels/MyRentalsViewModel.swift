@@ -2,12 +2,18 @@ import Foundation
 
 @MainActor
 final class MyRentalsViewModel: ObservableObject {
+    enum ReturnMode: String {
+        case pickupHome = "pickup_home"
+        case dropoffStore = "dropoff_store"
+    }
+
     @Published var upcoming: [RentalItem] = []
     @Published var past: [RentalItem] = []
     @Published var isLoading = false
     @Published var error: String?
     @Published var successMessage: String?
     @Published var submittingActionKey: String?
+    @Published var checkoutURL: URL?
 
     private let service: RentalServing
     private var hasLoadedOnce = false
@@ -45,21 +51,51 @@ final class MyRentalsViewModel: ObservableObject {
         submittingActionKey = actionKey
         error = nil
         successMessage = nil
+        checkoutURL = nil
 
         do {
-            let updated = try await service.requestRentalChange(
+            let result = try await service.requestRentalChange(
                 orderItemId: rental.orderItemId,
                 action: action,
                 requestedEndDate: requestedEndDate
             )
+            let updated = result.rental
             apply(updated)
-            if action == .extend, updated.request.status != "pending" {
+            if let rawURL = result.checkout?.checkoutUrl, let url = URL(string: rawURL) {
+                checkoutURL = url
+                successMessage = "Redirection vers le paiement de la prolongation."
+            } else if action == .extend, updated.request.status != "pending" {
                 successMessage = "La location est prolongée jusqu’au \(DatePresentation.formatAPIDay(updated.endDate))."
             } else {
                 successMessage = action == .extend
                     ? "Votre demande de prolongation a bien été enregistrée."
                     : "Votre demande de fin anticipée a bien été enregistrée."
             }
+        } catch {
+            self.error = error.localizedDescription
+        }
+
+        if submittingActionKey == actionKey {
+            submittingActionKey = nil
+        }
+    }
+
+    func planReturn(for rental: RentalItem, mode: ReturnMode, requestedDate: String) async {
+        let actionKey = "return:\(rental.orderItemId)"
+        submittingActionKey = actionKey
+        error = nil
+        successMessage = nil
+
+        do {
+            let updated = try await service.planRentalReturn(
+                orderItemId: rental.orderItemId,
+                mode: mode.rawValue,
+                requestedDate: requestedDate
+            )
+            apply(updated)
+            let dateLabel = DatePresentation.formatAPIDay(updated.returnPlan.requestedDate)
+            let modeLabel = mode == .pickupHome ? "Récupération à domicile" : "Dépôt en boutique"
+            successMessage = "\(modeLabel) planifié pour le \(dateLabel)."
         } catch {
             self.error = error.localizedDescription
         }

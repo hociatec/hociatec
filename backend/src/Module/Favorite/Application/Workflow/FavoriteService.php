@@ -63,7 +63,7 @@ class FavoriteService
      */
     public function add(User $user, string $category, int $targetId): array
     {
-        $normalizedCategory = $this->normalizeCategory($category);
+        $normalizedCategory = Favorite::normalizeCategory($category);
         $existing = $this->favorites->findOneByUserAndTarget($user, $normalizedCategory, $targetId);
         if (null !== $existing) {
             return [
@@ -95,7 +95,7 @@ class FavoriteService
 
     public function delete(User $user, string $category, int $targetId): void
     {
-        $favorite = $this->favorites->findOneByUserAndTarget($user, $this->normalizeCategory($category), $targetId);
+        $favorite = $this->favorites->findOneByUserAndTarget($user, Favorite::normalizeCategory($category), $targetId);
         if (null === $favorite) {
             return;
         }
@@ -110,7 +110,11 @@ class FavoriteService
             return $this->favorites->existsForUserAndProduct($user, $category);
         }
 
-        return $this->favorites->existsForUserAndTarget($user, $this->normalizeCategory($category), $targetId);
+        if (null === $targetId) {
+            return false;
+        }
+
+        return $this->favorites->existsForUserAndTarget($user, Favorite::normalizeCategory($category), $targetId);
     }
 
     private function normalizeCategory(?string $category): ?string

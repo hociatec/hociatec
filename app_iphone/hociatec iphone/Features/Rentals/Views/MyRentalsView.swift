@@ -19,8 +19,9 @@ struct MyRentalsView: View {
 
     private let service: RentalServing
     @StateObject private var viewModel: MyRentalsViewModel
-    @State private var activeSheet: RentalRequestSheetState?
+    @State private var activeSheet: RentalActionSheetState?
     @State private var activeFilter: RentalFilter = .all
+    @Environment(\.openURL) private var openURL
 
     init(service: RentalServing) {
         self.service = service
@@ -37,21 +38,40 @@ struct MyRentalsView: View {
         .task { await viewModel.load() }
         .refreshable { await viewModel.load(force: true) }
         .sheet(item: $activeSheet) { sheet in
-            RentalRequestSheet(
-                rental: sheet.rental,
-                action: sheet.action,
-                onCancel: { activeSheet = nil },
-                onSubmit: { requestedEndDate in
-                    activeSheet = nil
-                    Task {
-                        await viewModel.requestChange(
-                            for: sheet.rental,
-                            action: sheet.action,
-                            requestedEndDate: requestedEndDate
-                        )
+            switch sheet.kind {
+            case .extend, .endEarly:
+                RentalRequestSheet(
+                    rental: sheet.rental,
+                    action: sheet.kind == .extend ? .extend : .endEarly,
+                    onCancel: { activeSheet = nil },
+                    onSubmit: { requestedEndDate in
+                        activeSheet = nil
+                        Task {
+                            await viewModel.requestChange(
+                                for: sheet.rental,
+                                action: sheet.kind == .extend ? .extend : .endEarly,
+                                requestedEndDate: requestedEndDate
+                            )
+                        }
                     }
-                }
-            )
+                )
+            case .returnPlan:
+                RentalReturnSheet(
+                    rental: sheet.rental,
+                    onCancel: { activeSheet = nil },
+                    onSubmit: { mode, requestedDate in
+                        activeSheet = nil
+                        Task {
+                            await viewModel.planReturn(for: sheet.rental, mode: mode, requestedDate: requestedDate)
+                        }
+                    }
+                )
+            }
+        }
+        .onChange(of: viewModel.checkoutURL) { _, newValue in
+            guard let newValue else { return }
+            openURL(newValue)
+            viewModel.checkoutURL = nil
         }
         .overlay(alignment: .bottom) {
             if viewModel.isLoading && !(viewModel.upcoming.isEmpty && viewModel.past.isEmpty) {
@@ -108,8 +128,10 @@ struct MyRentalsView: View {
                         rental: rental,
                         isSubmittingExtend: viewModel.submittingActionKey == "extend:\(rental.orderItemId)",
                         isSubmittingEndEarly: viewModel.submittingActionKey == "end_early:\(rental.orderItemId)",
-                        requestExtend: { activeSheet = RentalRequestSheetState(rental: rental, action: .extend) },
-                        requestEndEarly: { activeSheet = RentalRequestSheetState(rental: rental, action: .endEarly) }
+                        isSubmittingReturn: viewModel.submittingActionKey == "return:\(rental.orderItemId)",
+                        requestExtend: { activeSheet = RentalActionSheetState(rental: rental, kind: .extend) },
+                        requestEndEarly: { activeSheet = RentalActionSheetState(rental: rental, kind: .endEarly) },
+                        requestReturn: { activeSheet = RentalActionSheetState(rental: rental, kind: .returnPlan) }
                     )
                 }
             }
@@ -143,8 +165,14 @@ private struct RentalRow: View {
     let rental: RentalItem
     let isSubmittingExtend: Bool
     let isSubmittingEndEarly: Bool
+    let isSubmittingReturn: Bool
     let requestExtend: () -> Void
     let requestEndEarly: () -> Void
+    let requestReturn: () -> Void
+
+    private var isReturned: Bool {
+        rental.returnPlan.status == "completed"
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -162,37 +190,75 @@ private struct RentalRow: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
-            if rental.request.status == "pending" {
+            if (rental.request.status == "pending" || rental.request.status == "pending_payment") && !isReturned {
                 Text(pendingRequestLabel)
                     .font(.subheadline)
                     .foregroundStyle(.orange)
             }
 
-            HStack {
-                Button(isSubmittingExtend ? "Envoi..." : "Demander une prolongation", action: requestExtend)
+            if rental.returnPlan.status != "none" {
+                Text(returnLabel)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+
+            if !isReturned {
+                HStack {
+                    Button(isSubmittingExtend ? "Préparation..." : "Prolonger", action: requestExtend)
+                        .buttonStyle(.bordered)
+                        .disabled(isSubmittingExtend || isSubmittingEndEarly || isSubmittingReturn)
+                    Button(isSubmittingEndEarly ? "Envoi..." : "Anticiper la fin", action: requestEndEarly)
+                        .buttonStyle(.bordered)
+                        .disabled(isSubmittingExtend || isSubmittingEndEarly || isSubmittingReturn)
+                }
+
+                Button(isSubmittingReturn ? "Envoi..." : "Organiser la restitution", action: requestReturn)
                     .buttonStyle(.bordered)
-                    .disabled(isSubmittingExtend || isSubmittingEndEarly)
-                Button(isSubmittingEndEarly ? "Envoi..." : "Anticiper la fin", action: requestEndEarly)
-                    .buttonStyle(.bordered)
-                    .disabled(isSubmittingExtend || isSubmittingEndEarly)
+                    .disabled(isSubmittingExtend || isSubmittingEndEarly || isSubmittingReturn)
             }
         }
         .padding(.vertical, 4)
     }
 
     private var pendingRequestLabel: String {
+        if rental.request.status == "pending_payment" {
+            return "Paiement de prolongation en attente jusqu’au \(DatePresentation.formatAPIDay(rental.request.requestedEndDate))."
+        }
+
         let actionLabel = rental.request.type == RentalRequestAction.extend.rawValue ? "prolongation" : "fin anticipée"
         let dateLabel = DatePresentation.formatAPIDay(rental.request.requestedEndDate)
         return "Demande en attente: \(actionLabel) jusqu’au \(dateLabel)"
     }
+
+    private var returnLabel: String {
+        if rental.returnPlan.status == "completed" {
+            return "Matériel restitué. Cette location est clôturée."
+        }
+
+        let modeLabel = rental.returnPlan.mode == "pickup_home" ? "Récupération à domicile" : "Dépôt en boutique"
+        return "\(modeLabel) prévu le \(DatePresentation.formatAPIDay(rental.returnPlan.requestedDate))"
+    }
 }
 
-private struct RentalRequestSheetState: Identifiable {
+private struct RentalActionSheetState: Identifiable {
+    enum Kind {
+        case extend
+        case endEarly
+        case returnPlan
+    }
+
     let rental: RentalItem
-    let action: RentalRequestAction
+    let kind: Kind
 
     var id: String {
-        "\(action.rawValue)-\(rental.orderItemId)"
+        switch kind {
+        case .extend:
+            return "extend-\(rental.orderItemId)"
+        case .endEarly:
+            return "end-early-\(rental.orderItemId)"
+        case .returnPlan:
+            return "return-\(rental.orderItemId)"
+        }
     }
 }
 
@@ -230,7 +296,7 @@ private struct RentalRequestSheet: View {
                     }
                     LabeledContent("Nouvelle date", value: DateFormatters.frDay.string(from: requestedEndDate))
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(action == .extend ? "Nouvelle date de fin souhaitée (jj/mm/aaaa)" : "Date de fin anticipée souhaitée (jj/mm/aaaa)")
+                        Text(action == .extend ? "Nouvelle date de fin souhaitée" : "Date de fin anticipée souhaitée")
                             .font(.headline)
                         LocalizedDatePicker(
                             date: $requestedEndDate,
@@ -249,7 +315,7 @@ private struct RentalRequestSheet: View {
                     Button("Annuler", action: onCancel)
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Envoyer") {
+                    Button(action == .extend ? "Payer" : "Envoyer") {
                         onSubmit(DatePresentation.encodeAPIDay(requestedEndDate))
                     }
                 }
@@ -259,5 +325,61 @@ private struct RentalRequestSheet: View {
 
     private var minimumDate: Date {
         DatePresentation.parseAPIDay(rental.startDate) ?? Date()
+    }
+}
+
+private struct RentalReturnSheet: View {
+    let rental: RentalItem
+    let onCancel: () -> Void
+    let onSubmit: (MyRentalsViewModel.ReturnMode, String) -> Void
+
+    @State private var requestedDate: Date
+    @State private var mode: MyRentalsViewModel.ReturnMode = .pickupHome
+
+    init(
+        rental: RentalItem,
+        onCancel: @escaping () -> Void,
+        onSubmit: @escaping (MyRentalsViewModel.ReturnMode, String) -> Void
+    ) {
+        self.rental = rental
+        self.onCancel = onCancel
+        self.onSubmit = onSubmit
+        _requestedDate = State(initialValue: DatePresentation.parseAPIDay(rental.endDate) ?? Date())
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Restitution") {
+                    Text(rental.productName)
+                    Picker("Mode", selection: $mode) {
+                        Text("Récupération à domicile").tag(MyRentalsViewModel.ReturnMode.pickupHome)
+                        Text("Dépôt en boutique").tag(MyRentalsViewModel.ReturnMode.dropoffStore)
+                    }
+                    .pickerStyle(.inline)
+
+                    LabeledContent("Date souhaitée", value: DateFormatters.frDay.string(from: requestedDate))
+                    LocalizedDatePicker(
+                        date: $requestedDate,
+                        displayedComponents: [.date],
+                        minimumDate: DatePresentation.parseAPIDay(rental.startDate) ?? Date(),
+                        style: .inline
+                    )
+                    .frame(maxWidth: .infinity, minHeight: 320)
+                }
+            }
+            .navigationTitle("Restitution")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Annuler", action: onCancel)
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Planifier") {
+                        onSubmit(mode, DatePresentation.encodeAPIDay(requestedDate))
+                    }
+                }
+            }
+        }
     }
 }

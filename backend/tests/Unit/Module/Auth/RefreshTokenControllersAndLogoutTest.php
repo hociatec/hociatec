@@ -6,10 +6,11 @@ namespace App\Tests\Unit\Module\Auth;
 
 use App\Module\Auth\Domain\Entity\RefreshToken;
 use App\Module\Auth\Infrastructure\Http\AuthCookieService;
-use App\Module\Auth\Infrastructure\Http\RefreshTokenRequestContextResolver;
-use App\Module\Auth\Infrastructure\Security\SessionBoundJwtManager;
+use App\Module\Auth\UI\Http\RefreshTokenRequestRateLimiter;
 use App\Module\Auth\UI\Controller\LogoutController;
 use App\Module\Auth\UI\Controller\RefreshTokenController;
+use App\Shared\Infrastructure\Http\RefreshTokenRequestContextResolver;
+use App\Shared\Infrastructure\Http\SessionBoundJwtIssuer;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -56,10 +57,10 @@ final class RefreshTokenControllersAndLogoutTest extends AuthIntegrationTestCase
             ->method('createFromPayload')
             ->with(
                 self::callback(static fn (object $securityUser): bool => $securityUser instanceof \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser && $securityUser->domainIdentity() === $user),
-                self::callback(static fn (array $payload): bool => is_string($payload[SessionBoundJwtManager::SESSION_SELECTOR_CLAIM] ?? null) && '' !== $payload[SessionBoundJwtManager::SESSION_SELECTOR_CLAIM]),
+                self::callback(static fn (array $payload): bool => is_string($payload[SessionBoundJwtIssuer::SESSION_SELECTOR_CLAIM] ?? null) && '' !== $payload[SessionBoundJwtIssuer::SESSION_SELECTOR_CLAIM]),
             )
             ->willReturn('jwt-token');
-        $controller = new RefreshTokenController($service, new SessionBoundJwtManager($jwt), new AuthCookieService('test'), new RefreshTokenRequestContextResolver(), new \App\Shared\Infrastructure\Http\RateLimitKeyFactory(), $this->limiter(10));
+        $controller = new RefreshTokenController($service, new SessionBoundJwtIssuer($jwt), new AuthCookieService('test'), new RefreshTokenRequestContextResolver(), new RefreshTokenRequestRateLimiter(new \App\Shared\Infrastructure\Http\RateLimitKeyFactory(), $this->limiter(10)));
 
         self::assertSame(Response::HTTP_UNPROCESSABLE_ENTITY, $controller(Request::create('/', 'POST', [], [], [], [], '{"refreshToken":""}'))->getStatusCode());
         $refreshed = $controller(Request::create('/', 'POST', [], [], [], [], json_encode(['refreshToken' => $issued['refreshToken']], JSON_THROW_ON_ERROR)));
@@ -87,7 +88,7 @@ final class RefreshTokenControllersAndLogoutTest extends AuthIntegrationTestCase
         self::assertSame(Response::HTTP_OK, $logoutResponse->getStatusCode());
         $logout(Request::create('/', 'POST'));
 
-        $throttled = new RefreshTokenController($service, new SessionBoundJwtManager($jwt), new AuthCookieService('test'), new RefreshTokenRequestContextResolver(), new \App\Shared\Infrastructure\Http\RateLimitKeyFactory(), $this->limiter(0));
+        $throttled = new RefreshTokenController($service, new SessionBoundJwtIssuer($jwt), new AuthCookieService('test'), new RefreshTokenRequestContextResolver(), new RefreshTokenRequestRateLimiter(new \App\Shared\Infrastructure\Http\RateLimitKeyFactory(), $this->limiter(0)));
         self::assertSame(Response::HTTP_TOO_MANY_REQUESTS, $throttled(Request::create('/', 'POST', [], [], [], ['REMOTE_ADDR' => '127.0.0.1']))->getStatusCode());
 
         $expired = new RefreshToken($user, 'expired', hash('sha256', 'secret'), new \DateTimeImmutable('-1 hour'));

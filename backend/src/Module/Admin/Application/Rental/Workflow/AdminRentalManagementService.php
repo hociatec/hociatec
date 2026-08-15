@@ -80,6 +80,10 @@ final readonly class AdminRentalManagementService
                 'rental' => $this->formatter->format($this->rejectRequest($item), $today),
                 'message' => 'La demande a été rejetée.',
             ],
+            'mark_returned' => [
+                'rental' => $this->formatter->format($this->markReturned($item), $today),
+                'message' => 'Le matériel a été marqué comme récupéré.',
+            ],
             default => throw new \InvalidArgumentException('Action de gestion de location invalide.'),
         };
     }
@@ -128,6 +132,18 @@ final readonly class AdminRentalManagementService
         }
 
         $item->clearRentalRequest();
+        $this->flushItemAndOrder($item);
+
+        return $item;
+    }
+
+    private function markReturned(OrderItem $item): OrderItem
+    {
+        if ('scheduled' !== $item->getRentalReturnStatus()) {
+            throw new \InvalidArgumentException('Aucune restitution planifiée à clôturer sur cette location.');
+        }
+
+        $item->markRentalReturned();
         $this->flushItemAndOrder($item);
 
         return $item;

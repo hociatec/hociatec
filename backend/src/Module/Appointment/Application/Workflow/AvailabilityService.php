@@ -26,8 +26,7 @@ final class AvailabilityService
         \DateTimeImmutable $rangeEnd,
         Prestation $prestation,
         ?Appointment $ignoredAppointment = null,
-    ): array
-    {
+    ): array {
         $workingDays = $this->workingDayRepository->findAllOrdered();
         $workingDayByIndex = [];
 
@@ -61,8 +60,7 @@ final class AvailabilityService
         \DateTimeImmutable $startAt,
         Prestation $prestation,
         ?Appointment $ignoredAppointment = null,
-    ): bool
-    {
+    ): bool {
         $endAt = $startAt->add($prestation->getDurationInterval());
 
         $slots = $this->getAvailableSlots(
@@ -82,7 +80,7 @@ final class AvailabilityService
     }
 
     /**
-     * @param list<\App\Module\Appointment\Domain\Entity\Appointment> $existingAppointments
+     * @param list<Appointment> $existingAppointments
      *
      * @return list<array{start: string, end: string}>
      */
@@ -150,7 +148,7 @@ final class AvailabilityService
     }
 
     /**
-     * @param list<\App\Module\Appointment\Domain\Entity\Appointment> $appointments
+     * @param list<Appointment> $appointments
      */
     private function overlapsAppointments(\DateTimeImmutable $slotStart, \DateTimeImmutable $slotEnd, array $appointments): bool
     {

@@ -1,7 +1,7 @@
 import { httpClient } from '@/shared/lib/httpClient';
 import { unwrapApiData } from '@/shared/lib/responseHelpers';
 import type { ApiResponse } from '@/shared/types/api';
-import type { RentalItemDto, RentalListDto } from '../types/rentals';
+import type { RentalChangeResponseDto, RentalItemDto, RentalListDto } from '../types/rentals';
 import {
   requireArray,
   requireNumber,
@@ -35,6 +35,31 @@ const parseRental = (value: unknown): RentalItemDto => {
       requestedEndDate: optionalString(request.requestedEndDate) ?? null,
       createdAt: optionalString(request.createdAt) ?? null,
     },
+    extension: {
+      orderId: typeof item.extension === 'object' && item.extension && typeof (item.extension as Record<string, unknown>).orderId === 'number'
+        ? ((item.extension as Record<string, unknown>).orderId as number)
+        : null,
+      sourceOrderItemId: typeof item.extension === 'object' && item.extension && typeof (item.extension as Record<string, unknown>).sourceOrderItemId === 'number'
+        ? ((item.extension as Record<string, unknown>).sourceOrderItemId as number)
+        : null,
+    },
+    returnPlan: {
+      status: typeof item.returnPlan === 'object' && item.returnPlan
+        ? requireString((item.returnPlan as Record<string, unknown>).status)
+        : 'none',
+      mode: typeof item.returnPlan === 'object' && item.returnPlan
+        ? optionalString((item.returnPlan as Record<string, unknown>).mode) ?? null
+        : null,
+      requestedDate: typeof item.returnPlan === 'object' && item.returnPlan
+        ? optionalString((item.returnPlan as Record<string, unknown>).requestedDate) ?? null
+        : null,
+      requestedAt: typeof item.returnPlan === 'object' && item.returnPlan
+        ? optionalString((item.returnPlan as Record<string, unknown>).requestedAt) ?? null
+        : null,
+      completedAt: typeof item.returnPlan === 'object' && item.returnPlan
+        ? optionalString((item.returnPlan as Record<string, unknown>).completedAt) ?? null
+        : null,
+    },
   };
 };
 
@@ -58,11 +83,33 @@ export const fetchMyRentals = async (): Promise<RentalListDto> => {
 
 export const requestRentalChange = async (
   orderItemId: number,
-  payload: { action: 'extend' | 'end_early'; requestedEndDate: string },
+  payload: { action: 'extend' | 'end_early'; requestedEndDate: string; clientPlatform?: 'web' | 'ios' },
+): Promise<RentalChangeResponseDto> => {
+  const data = unwrapApiData(
+    (await httpClient.patch<ApiResponse<{ rental: unknown; checkout?: Record<string, unknown> | null }>>(`/api/rentals/${orderItemId}/request`, payload)).data,
+    'Impossible de mettre à jour la location.',
+  );
+
+  return {
+    rental: parseRental(data.rental),
+    checkout: data.checkout
+      ? {
+          mode: typeof data.checkout.mode === 'string' ? data.checkout.mode : 'redirect',
+          orderId: typeof data.checkout.orderId === 'number' ? data.checkout.orderId : null,
+          checkoutUrl: optionalString(data.checkout.checkoutUrl) ?? null,
+          checkoutSessionId: optionalString(data.checkout.checkoutSessionId) ?? null,
+        }
+      : null,
+  };
+};
+
+export const planRentalReturn = async (
+  orderItemId: number,
+  payload: { mode: 'pickup_home' | 'dropoff_store'; requestedDate: string },
 ): Promise<RentalItemDto> => {
   const data = unwrapApiData(
-    (await httpClient.patch<ApiResponse<{ rental: unknown }>>(`/api/rentals/${orderItemId}/request`, payload)).data,
-    'Impossible de mettre à jour la location.',
+    (await httpClient.put<ApiResponse<{ rental: unknown }>>(`/api/rentals/${orderItemId}/return-plan`, payload)).data,
+    'Impossible de planifier la restitution.',
   );
 
   return parseRental(data.rental);

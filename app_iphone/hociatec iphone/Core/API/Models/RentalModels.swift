@@ -12,6 +12,19 @@ struct RentalRequestState: Decodable {
     let createdAt: Date?
 }
 
+struct RentalExtensionState: Decodable {
+    let orderId: Int?
+    let sourceOrderItemId: Int?
+}
+
+struct RentalReturnPlanState: Decodable {
+    let status: String
+    let mode: String?
+    let requestedDate: String?
+    let requestedAt: Date?
+    let completedAt: Date?
+}
+
 struct RentalItem: Decodable, Identifiable {
     var id: Int { orderItemId }
 
@@ -28,6 +41,8 @@ struct RentalItem: Decodable, Identifiable {
     let timelineStatus: String
     let timelineStatusLabel: String
     let request: RentalRequestState
+    let extension: RentalExtensionState
+    let returnPlan: RentalReturnPlanState
 }
 
 struct MyRentalsResponse: Decodable {
@@ -37,4 +52,16 @@ struct MyRentalsResponse: Decodable {
 
 struct RentalData: Decodable {
     let rental: RentalItem
+}
+
+struct RentalCheckoutState: Decodable {
+    let mode: String
+    let orderId: Int?
+    let checkoutUrl: String?
+    let checkoutSessionId: String?
+}
+
+struct RentalChangeData: Decodable {
+    let rental: RentalItem
+    let checkout: RentalCheckoutState?
 }

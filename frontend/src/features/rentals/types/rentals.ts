@@ -1,8 +1,21 @@
 export interface RentalRequestDto {
-  status: 'none' | 'pending' | string;
+  status: 'none' | 'pending' | 'pending_payment' | string;
   type?: 'extend' | 'end_early' | string | null;
   requestedEndDate?: string | null;
   createdAt?: string | null;
+}
+
+export interface RentalExtensionDto {
+  orderId?: number | null;
+  sourceOrderItemId?: number | null;
+}
+
+export interface RentalReturnPlanDto {
+  status: 'none' | 'scheduled' | 'completed' | string;
+  mode?: 'pickup_home' | 'dropoff_store' | string | null;
+  requestedDate?: string | null;
+  requestedAt?: string | null;
+  completedAt?: string | null;
 }
 
 export interface RentalItemDto {
@@ -21,6 +34,8 @@ export interface RentalItemDto {
   timelineStatus: 'upcoming' | 'active' | 'past' | string;
   timelineStatusLabel: string;
   request: RentalRequestDto;
+  extension: RentalExtensionDto;
+  returnPlan: RentalReturnPlanDto;
 }
 
 export interface RentalListDto {
@@ -32,4 +47,16 @@ export interface RentalListDto {
     upcomingTotal: number;
     pastTotal: number;
   };
+}
+
+export interface RentalCheckoutDto {
+  mode: 'redirect' | string;
+  orderId?: number | null;
+  checkoutUrl?: string | null;
+  checkoutSessionId?: string | null;
+}
+
+export interface RentalChangeResponseDto {
+  rental: RentalItemDto;
+  checkout?: RentalCheckoutDto | null;
 }
