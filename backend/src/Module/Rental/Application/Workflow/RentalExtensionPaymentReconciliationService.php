@@ -170,7 +170,7 @@ final readonly class RentalExtensionPaymentReconciliationService
             && OrderCheckoutSession::STATUS_OPEN === $checkout->getStatus()
         ) {
             $this->checkoutExpirer->expire($checkout);
-            $checkout->markExpired('rental_extension_product_timeout');
+            $checkout->markExpired('checkout.session.expired');
             $this->persistence->persist($checkout);
         }
 

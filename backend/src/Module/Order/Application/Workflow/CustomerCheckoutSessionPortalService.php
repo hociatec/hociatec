@@ -58,7 +58,7 @@ final readonly class CustomerCheckoutSessionPortalService
 
         if (OrderCheckoutSession::STATUS_OPEN === $checkout->getStatus()) {
             $this->checkoutExpirer->expire($checkout);
-            $checkout->markExpired('mobile_checkout_cancelled');
+            $checkout->markExpired('checkout.session.expired');
             $this->persistence->persist($checkout);
             $this->persistence->flush();
         }
