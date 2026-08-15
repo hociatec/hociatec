@@ -1,13 +1,16 @@
 import Foundation
 
 extension AccountViewModel {
-    func loadAddresses(reportErrors: Bool = true) async {
+    func loadAddresses(force: Bool = false, reportErrors: Bool = true) async {
         guard isLoggedIn else {
             addresses = []
             return
         }
+        guard force || !isLoadingAddresses else { return }
+
         addressesRequestID += 1
         let requestID = addressesRequestID
+        isLoadingAddresses = true
 
         do {
             let items = try await useCases.loadAddresses.execute()
@@ -19,6 +22,10 @@ extension AccountViewModel {
             if reportErrors {
                 error = err.localizedDescription
             }
+        }
+
+        if requestID == addressesRequestID {
+            isLoadingAddresses = false
         }
     }
 

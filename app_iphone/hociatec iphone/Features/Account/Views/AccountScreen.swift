@@ -9,7 +9,6 @@ struct AccountScreen: View {
         Group {
             if account.isLoggedIn {
                 ClientDashboardView(services: container.services)
-                    .id("account-logged-in-\(account.profile?.id ?? 0)")
             } else {
                 Form {
                     Section {
@@ -48,7 +47,6 @@ struct AccountScreen: View {
                         }
                     }
                 }
-                .id("account-logged-out")
             }
         }
         .task {

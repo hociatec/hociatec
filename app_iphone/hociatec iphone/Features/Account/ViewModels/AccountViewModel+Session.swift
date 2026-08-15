@@ -41,7 +41,6 @@ extension AccountViewModel {
         error = nil
         apply(profile: profile)
         session.profile = profile
-        await loadAddresses(reportErrors: false)
     }
 
     func applyLoggedOutState() {
@@ -60,6 +59,7 @@ extension AccountViewModel {
         phoneNumber = ""
         roles = []
         addresses = []
+        isLoadingAddresses = false
         gender = "autre"
         email = session.loginEmail ?? email
     }

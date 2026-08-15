@@ -40,6 +40,7 @@ final class AccountViewModel: ObservableObject {
     var profileRequestID = 0
     var addressesRequestID = 0
     var addressMutationRequestID = 0
+    var isLoadingAddresses = false
 
     init(useCases: AccountUseCases, session: SessionStore, feedbackCenter: AppFeedbackCenter) {
         self.useCases = useCases
