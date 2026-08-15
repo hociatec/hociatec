@@ -2,7 +2,6 @@ import SwiftUI
 
 struct ProductCatalogActiveFiltersRow: View {
     let selectedCategory: CategorySummary?
-    let selectedSellingType: SellingType?
     let selectedBrand: String?
     let selectedAttributeFilters: [String: String]
     let minPrice: Double?
@@ -10,7 +9,6 @@ struct ProductCatalogActiveFiltersRow: View {
     let inStockOnly: Bool
     let availableAttributeFacets: [CatalogAttributeFacet]
     let onClearCategory: () -> Void
-    let onClearSellingType: () -> Void
     let onClearBrand: () -> Void
     let onClearAttributeFilter: (String) -> Void
     let onClearPriceRange: () -> Void
@@ -24,14 +22,6 @@ struct ProductCatalogActiveFiltersRow: View {
                         title: selectedCategory.name,
                         accessibilityLabel: "Retirer le filtre \(selectedCategory.name)",
                         onRemove: onClearCategory
-                    )
-                }
-
-                if let selectedSellingType {
-                    ProductFilterChip(
-                        title: ProductCatalogFilterPresentation.sellingTypeLabel(for: selectedSellingType),
-                        accessibilityLabel: "Retirer le filtre type",
-                        onRemove: onClearSellingType
                     )
                 }
 
@@ -101,7 +91,7 @@ struct ProductCatalogCategoryFilterSection: View {
     }
 
     var body: some View {
-        Section("Catégories") {
+        Section("Catégorie") {
             if categories.isEmpty {
                 Text("Chargement...")
                     .foregroundStyle(.secondary)
@@ -113,22 +103,8 @@ struct ProductCatalogCategoryFilterSection: View {
                     }
                 }
                 .pickerStyle(.inline)
+                .labelsHidden()
             }
-        }
-    }
-}
-
-struct ProductCatalogSellingTypeFilterSection: View {
-    @Binding var selectedSellingType: SellingType?
-
-    var body: some View {
-        Section("Type") {
-            Picker("Type", selection: $selectedSellingType) {
-                Text("Tout").tag(SellingType?.none)
-                Text("Vente").tag(Optional(SellingType.sale))
-                Text("Location").tag(Optional(SellingType.rental))
-            }
-            .pickerStyle(.segmented)
         }
     }
 }
@@ -200,7 +176,6 @@ struct ProductCatalogAttributeFilterSection: View {
 
 struct ProductCatalogResetFiltersButton: View {
     @Binding var selectedCategoryID: Int?
-    @Binding var selectedSellingType: SellingType?
     @Binding var selectedBrand: String?
     @Binding var selectedAttributeFilters: [String: String]
     @Binding var minPrice: String
@@ -210,7 +185,6 @@ struct ProductCatalogResetFiltersButton: View {
     var body: some View {
         Button("Réinitialiser") {
             selectedCategoryID = nil
-            selectedSellingType = nil
             selectedBrand = nil
             selectedAttributeFilters = [:]
             minPrice = ""

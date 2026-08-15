@@ -2,7 +2,6 @@ import SwiftUI
 
 struct ProductCatalogToolbar: View {
     let selectedCategory: CategorySummary?
-    let selectedSellingType: SellingType?
     let selectedBrand: String?
     let selectedAttributeFilters: [String: String]
     let minPrice: Double?
@@ -14,7 +13,6 @@ struct ProductCatalogToolbar: View {
     let onOpenFilters: () -> Void
     let onOpenSort: () -> Void
     let onClearCategory: () -> Void
-    let onClearSellingType: () -> Void
     let onClearBrand: () -> Void
     let onClearAttributeFilter: (String) -> Void
     let onClearPriceRange: () -> Void
@@ -22,7 +20,6 @@ struct ProductCatalogToolbar: View {
 
     private var filtersCount: Int {
         (selectedCategory == nil ? 0 : 1)
-            + (selectedSellingType == nil ? 0 : 1)
             + (selectedBrand == nil ? 0 : 1)
             + selectedAttributeFilters.count
             + ((minPrice == nil && maxPrice == nil) ? 0 : 1)
@@ -41,14 +38,13 @@ struct ProductCatalogToolbar: View {
                 }
             }
 
-            if selectedCategory != nil || selectedSellingType != nil || selectedBrand != nil || !selectedAttributeFilters.isEmpty || minPrice != nil || maxPrice != nil || inStockOnly {
+            if selectedCategory != nil || selectedBrand != nil || !selectedAttributeFilters.isEmpty || minPrice != nil || maxPrice != nil || inStockOnly {
                 Text(summaryText)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
 
                 ProductCatalogActiveFiltersRow(
                     selectedCategory: selectedCategory,
-                    selectedSellingType: selectedSellingType,
                     selectedBrand: selectedBrand,
                     selectedAttributeFilters: selectedAttributeFilters,
                     minPrice: minPrice,
@@ -56,7 +52,6 @@ struct ProductCatalogToolbar: View {
                     inStockOnly: inStockOnly,
                     availableAttributeFacets: availableAttributeFacets,
                     onClearCategory: onClearCategory,
-                    onClearSellingType: onClearSellingType,
                     onClearBrand: onClearBrand,
                     onClearAttributeFilter: onClearAttributeFilter,
                     onClearPriceRange: onClearPriceRange,

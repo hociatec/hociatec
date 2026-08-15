@@ -9,9 +9,6 @@ extension ProductsListView {
         if let category = viewModel.selectedCategory {
             parts.append("Catégorie: \(category.name)")
         }
-        if let type = viewModel.selectedSellingType {
-            parts.append("Type: " + (type == .rental ? "Location" : "Vente"))
-        }
         if let brand = viewModel.selectedBrand, !brand.isEmpty {
             parts.append("Marque: \(brand)")
         }
@@ -31,7 +28,6 @@ extension ProductsListView {
 
     func updateFiltersBadge() {
         let count = (viewModel.selectedCategory == nil ? 0 : 1)
-            + (viewModel.selectedSellingType == nil ? 0 : 1)
             + (viewModel.selectedBrand == nil ? 0 : 1)
             + viewModel.selectedAttributeFilters.count
             + ((viewModel.minPrice == nil && viewModel.maxPrice == nil) ? 0 : 1)

@@ -39,10 +39,6 @@ struct ProductsListView: View {
                     viewModel.selectedCategory = nil
                     Task { await viewModel.load(force: true) }
                 },
-                onClearSellingType: {
-                    viewModel.selectedSellingType = nil
-                    Task { await viewModel.load(force: true) }
-                },
                 onClearBrand: {
                     viewModel.clearBrandFilter()
                     Task { await viewModel.load(force: true) }
@@ -83,14 +79,12 @@ struct ProductsListView: View {
                 categories: viewModel.categories,
                 facets: viewModel.availableFacets,
                 selectedCategoryID: $filterDraft.selectedCategoryID,
-                selectedSellingType: $filterDraft.selectedSellingType,
                 selectedBrand: $filterDraft.selectedBrand,
                 selectedAttributeFilters: $filterDraft.selectedAttributeFilters,
                 minPrice: $filterDraft.minPrice,
                 maxPrice: $filterDraft.maxPrice,
                 inStockOnly: $filterDraft.inStockOnly,
                 currentCategoryID: viewModel.selectedCategory?.id,
-                currentSellingType: viewModel.selectedSellingType,
                 currentBrand: viewModel.selectedBrand,
                 currentAttributeFilters: viewModel.selectedAttributeFilters,
                 currentMinPrice: viewModel.minPrice,
@@ -100,7 +94,6 @@ struct ProductsListView: View {
                 onClose: { showFilterSheet = false },
                 onApply: {
                     viewModel.selectedCategory = viewModel.categories.first(where: { $0.id == filterDraft.selectedCategoryID })
-                    viewModel.selectedSellingType = filterDraft.selectedSellingType
                     viewModel.selectedBrand = filterDraft.selectedBrand
                     viewModel.selectedAttributeFilters = filterDraft.selectedAttributeFilters
                     viewModel.minPrice = parseCatalogPriceInput(filterDraft.minPrice)

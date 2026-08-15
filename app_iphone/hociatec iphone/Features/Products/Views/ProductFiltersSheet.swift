@@ -4,14 +4,12 @@ struct ProductFiltersSheet: View {
     let categories: [CategorySummary]
     let facets: ProductSearchFacets
     @Binding var selectedCategoryID: Int?
-    @Binding var selectedSellingType: SellingType?
     @Binding var selectedBrand: String?
     @Binding var selectedAttributeFilters: [String: String]
     @Binding var minPrice: String
     @Binding var maxPrice: String
     @Binding var inStockOnly: Bool
     let currentCategoryID: Int?
-    let currentSellingType: SellingType?
     let currentBrand: String?
     let currentAttributeFilters: [String: String]
     let currentMinPrice: Double?
@@ -23,7 +21,6 @@ struct ProductFiltersSheet: View {
 
     private var hasChanges: Bool {
         selectedCategoryID != currentCategoryID
-            || selectedSellingType != currentSellingType
             || selectedBrand != currentBrand
             || selectedAttributeFilters != currentAttributeFilters
             || minPrice != ProductCatalogFilterPresentation.priceFieldValue(currentMinPrice)
@@ -39,7 +36,6 @@ struct ProductFiltersSheet: View {
                     categoryFacets: facets.categories,
                     selectedCategoryID: $selectedCategoryID
                 )
-                ProductCatalogSellingTypeFilterSection(selectedSellingType: $selectedSellingType)
                 ProductCatalogBrandFilterSection(brands: facets.brands, selectedBrand: $selectedBrand)
                 ProductCatalogPriceFilterSection(
                     minPrice: $minPrice,
@@ -66,7 +62,6 @@ struct ProductFiltersSheet: View {
             .onAppear {
                 guard !didInitDraftFilters else { return }
                 selectedCategoryID = currentCategoryID
-                selectedSellingType = currentSellingType
                 selectedBrand = currentBrand
                 selectedAttributeFilters = currentAttributeFilters
                 minPrice = ProductCatalogFilterPresentation.priceFieldValue(currentMinPrice)
@@ -86,7 +81,6 @@ struct ProductFiltersSheet: View {
                 ToolbarItem(placement: .bottomBar) {
                     ProductCatalogResetFiltersButton(
                         selectedCategoryID: $selectedCategoryID,
-                        selectedSellingType: $selectedSellingType,
                         selectedBrand: $selectedBrand,
                         selectedAttributeFilters: $selectedAttributeFilters,
                         minPrice: $minPrice,
