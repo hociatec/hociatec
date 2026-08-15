@@ -482,6 +482,7 @@ struct hociatec_iphoneTests {
             restoreProfile: RestoreAccountProfileUseCase(repository: repository),
             updateProfile: UpdateAccountProfileUseCase(repository: repository),
             deleteAccount: DeleteAccountUseCase(repository: repository),
+            revokeAllSessions: RevokeAllSessionsUseCase(repository: repository),
             register: RegisterAccountUseCase(repository: repository),
             loadAddresses: LoadAccountAddressesUseCase(repository: repository),
             createAddress: CreateAccountAddressUseCase(repository: repository),
