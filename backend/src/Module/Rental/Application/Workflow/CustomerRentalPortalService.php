@@ -7,6 +7,7 @@ namespace App\Module\Rental\Application\Workflow;
 use App\Module\Order\Application\Port\OrderItemRepositoryPort;
 use App\Module\Order\Application\Support\RentalPeriodCalculator;
 use App\Module\Order\Domain\Entity\Order;
+use App\Module\Order\Domain\Entity\OrderCheckoutSession;
 use App\Module\Order\Domain\Entity\OrderItem;
 use App\Module\Rental\Application\Projection\RentalFormatter;
 use App\Module\User\Domain\Entity\User;
@@ -24,14 +25,7 @@ final readonly class CustomerRentalPortalService
     ) {
     }
 
-    /**
-     * @return array{
-     *   upcoming:list<array<string,mixed>>,
-     *   past:list<array<string,mixed>>,
-     *   upcomingTotal:int,
-     *   pastTotal:int
-     * }
-     */
+    /** @phpstan-return array{upcoming:list<array<string,mixed>>,past:list<array<string,mixed>>,upcomingTotal:int,pastTotal:int} */
     public function listForUser(User $user, int $limit, int $offset): array
     {
         $today = new \DateTimeImmutable('today');
@@ -47,9 +41,7 @@ final readonly class CustomerRentalPortalService
         ];
     }
 
-    /**
-     * @return array{rental:array<string,mixed>,checkout?:array<string,mixed>}|null
-     */
+    /** @phpstan-return array{rental:array<string,mixed>,checkout?:array<string,mixed>}|null */
     public function requestChangeForUser(User $user, int $orderItemId, string $action, ?string $requestedEndDate, ?string $clientPlatform = null): ?array
     {
         $item = $this->findRentalForUser($user, $orderItemId);
@@ -68,12 +60,10 @@ final readonly class CustomerRentalPortalService
         if (null === $requestedDate) {
             throw new \InvalidArgumentException('La nouvelle date de fin demandée est invalide.');
         }
-
         $today = new \DateTimeImmutable('today');
         if ($requestedDate < $today) {
             throw new \InvalidArgumentException('La date demandée doit être aujourd\'hui ou dans le futur.');
         }
-
         if ('extend' === $action) {
             return $this->prepareExtensionChange($user, $item, $currentEndDate, $currentStartDate, $requestedDate, $clientPlatform, $today);
         }
@@ -87,9 +77,7 @@ final readonly class CustomerRentalPortalService
         return ['rental' => $this->formatRental($item, $today)];
     }
 
-    /**
-     * @return array{rental:array<string,mixed>}|null
-     */
+    /** @phpstan-return array{rental:array<string,mixed>}|null */
     public function scheduleReturnForUser(User $user, int $orderItemId, string $mode, ?string $requestedDate): ?array
     {
         $item = $this->findRentalForUser($user, $orderItemId);
@@ -107,7 +95,6 @@ final readonly class CustomerRentalPortalService
         if ($date < $today) {
             throw new \InvalidArgumentException('La date de restitution doit être aujourd\'hui ou dans le futur.');
         }
-
         $startDate = $item->getRentalStartDate();
         $endDate = $item->getRentalEndDate();
         if ((null !== $startDate && $date < $startDate) || (null !== $endDate && $date > $endDate)) {
@@ -121,9 +108,7 @@ final readonly class CustomerRentalPortalService
         return ['rental' => $this->formatRental($item, $today)];
     }
 
-    /**
-     * @return array{rental:array<string,mixed>}|null
-     */
+    /** @phpstan-return array{rental:array<string,mixed>}|null */
     public function terminateForUser(
         User $user,
         int $orderItemId,
@@ -171,7 +156,7 @@ final readonly class CustomerRentalPortalService
         }
     }
 
-    /** @return array{rental:array<string,mixed>,checkout:array<string,mixed>} */
+    /** @phpstan-return array{rental:array<string,mixed>,checkout:array<string,mixed>} */
     private function prepareExtensionChange(
         User $user,
         OrderItem $item,
@@ -195,6 +180,29 @@ final readonly class CustomerRentalPortalService
             throw new \InvalidArgumentException('Cette prolongation ne crée aucun mois supplémentaire à facturer.');
         }
 
+        $existingCheckout = $this->extensionPayments->reconcilePendingExtension($item);
+        if ('pending_payment' === $item->getRentalRequestStatus()) {
+            $existingRequestedEndDate = $item->getRentalRequestedEndDate();
+            if (
+                $existingCheckout instanceof OrderCheckoutSession
+                && $existingRequestedEndDate instanceof \DateTimeImmutable
+                && $existingRequestedEndDate->format('Y-m-d') === $requestedDate->format('Y-m-d')
+            ) {
+                return [
+                    'rental' => $this->formatRental($this->extensionPayments->reload($item), $today),
+                    'checkout' => [
+                        'mode' => 'redirect',
+                        'orderId' => $item->getRentalExtensionOrderId(),
+                        'checkoutUrl' => $existingCheckout->getCheckoutUrl(),
+                        'checkoutSessionId' => $existingCheckout->getStripeSessionId(),
+                    ],
+                ];
+            }
+
+            $this->extensionPayments->cancelPendingExtensionAttempt($item);
+            $item = $this->extensionPayments->reload($item);
+        }
+
         return $this->extensions->prepare($user, $item, $additionalMonths, $requestedDate, $clientPlatform, $today);
     }
 
@@ -215,19 +223,17 @@ final readonly class CustomerRentalPortalService
     /**
      * @param list<OrderItem> $items
      *
-     * @return list<array<string,mixed>>
+     * @phpstan-return list<array<string,mixed>>
      */
     private function formatRentals(array $items, \DateTimeImmutable $today): array
     {
-        return array_map(
+        return array_values(array_map(
             fn (OrderItem $item): array => $this->formatRental($this->extensionPayments->reload($item), $today),
             $items,
-        );
+        ));
     }
 
-    /**
-     * @return array<string,mixed>
-     */
+    /** @phpstan-return array<string,mixed> */
     private function formatRental(OrderItem $item, \DateTimeImmutable $today): array
     {
         $payload = $this->formatter->format($item, $today);

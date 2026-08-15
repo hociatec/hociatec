@@ -130,15 +130,8 @@ struct MyRentalsView: View {
                         rental: rental,
                         isSubmittingExtend: viewModel.submittingActionKey == "extend:\(rental.orderItemId)",
                         isSubmittingTerminate: viewModel.submittingActionKey == "terminate:\(rental.orderItemId)",
-                        isSubmittingCancelPayment: viewModel.submittingActionKey == "cancel-payment:\(rental.orderItemId)",
                         requestExtend: { activeSheet = RentalActionSheetState(rental: rental, kind: .extend) },
-                        requestTerminate: { activeSheet = RentalActionSheetState(rental: rental, kind: .terminate) },
-                        resumeExtensionPayment: { viewModel.resumePendingExtensionPayment(for: rental) },
-                        cancelExtensionPayment: {
-                            Task {
-                                await viewModel.cancelPendingExtensionPayment(for: rental)
-                            }
-                        }
+                        requestTerminate: { activeSheet = RentalActionSheetState(rental: rental, kind: .terminate) }
                     )
                 }
             }
@@ -172,30 +165,15 @@ private struct RentalRow: View {
     let rental: RentalItem
     let isSubmittingExtend: Bool
     let isSubmittingTerminate: Bool
-    let isSubmittingCancelPayment: Bool
     let requestExtend: () -> Void
     let requestTerminate: () -> Void
-    let resumeExtensionPayment: () -> Void
-    let cancelExtensionPayment: () -> Void
 
     private var isReturned: Bool {
         rental.returnPlan.status == "completed"
     }
 
     private var hasPendingRequest: Bool {
-        rental.request.status == "pending" || rental.request.status == "pending_payment"
-    }
-
-    private var canResumePendingExtension: Bool {
-        rental.request.status == "pending_payment"
-            && rental.extensionState.checkoutStatus == "open"
-            && rental.extensionState.checkoutUrl != nil
-    }
-
-    private var canCancelPendingExtension: Bool {
-        rental.request.status == "pending_payment"
-            && rental.extensionState.checkoutStatus == "open"
-            && rental.extensionState.checkoutSessionId != nil
+        rental.request.status == "pending" && rental.request.type != RentalRequestAction.extend.rawValue
     }
 
     var body: some View {
@@ -228,25 +206,13 @@ private struct RentalRow: View {
 
             if !isReturned {
                 HStack {
-                    if canResumePendingExtension {
-                        Button(isSubmittingExtend ? "Ouverture..." : "Reprendre le paiement", action: resumeExtensionPayment)
-                            .buttonStyle(.bordered)
-                            .disabled(isSubmittingExtend || isSubmittingTerminate || isSubmittingCancelPayment)
-                    }
-
-                    if canCancelPendingExtension {
-                        Button(isSubmittingCancelPayment ? "Annulation..." : "Annuler cette tentative", action: cancelExtensionPayment)
-                            .buttonStyle(.bordered)
-                            .disabled(isSubmittingExtend || isSubmittingTerminate || isSubmittingCancelPayment)
-                    }
-
                     Button(isSubmittingExtend ? "Preparation..." : "Prolonger", action: requestExtend)
                         .buttonStyle(.bordered)
-                        .disabled(isSubmittingExtend || isSubmittingTerminate || isSubmittingCancelPayment || hasPendingRequest)
+                        .disabled(isSubmittingExtend || isSubmittingTerminate || hasPendingRequest)
 
                     Button(isSubmittingTerminate ? "Envoi..." : "Terminer la location", action: requestTerminate)
                         .buttonStyle(.borderedProminent)
-                        .disabled(isSubmittingExtend || isSubmittingTerminate || isSubmittingCancelPayment)
+                        .disabled(isSubmittingExtend || isSubmittingTerminate)
                 }
             }
         }

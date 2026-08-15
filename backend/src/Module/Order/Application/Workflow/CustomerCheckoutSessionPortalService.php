@@ -57,11 +57,7 @@ final readonly class CustomerCheckoutSessionPortalService
         }
 
         if (OrderCheckoutSession::STATUS_OPEN === $checkout->getStatus()) {
-            try {
-                $this->checkoutExpirer->expire($checkout);
-            } catch (\Throwable) {
-                // A local cancellation must remain possible even if Stripe can no longer expire the session.
-            }
+            $this->checkoutExpirer->expire($checkout);
             $checkout->markExpired('mobile_checkout_cancelled');
             $this->persistence->persist($checkout);
             $this->persistence->flush();

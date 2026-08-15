@@ -10,7 +10,6 @@ import { useToast } from '@/shared/components/ui/toast';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { redirectToTrustedUrl } from '@/shared/lib/redirects';
 import { Dialog, DialogBackdrop, DialogDescription, DialogPanel, DialogTitle } from '@/shared/components/ui/dialog';
-import { cancelCheckoutSession } from '@/features/orders/publicApi';
 import type { RentalItemDto } from '../types/rentals';
 
 type RentalFilter = 'all' | 'upcoming' | 'past';
@@ -82,39 +81,17 @@ const clampApiDate = (value: string, minimum?: string, maximum?: string) => {
   return value;
 };
 
-const clearPendingExtensionState = (rental: RentalItemDto): RentalItemDto => ({
-  ...rental,
-  request: {
-    ...rental.request,
-    status: 'none',
-    type: null,
-    requestedEndDate: null,
-  },
-  extension: {
-    ...rental.extension,
-    checkoutSessionId: null,
-    checkoutUrl: null,
-    checkoutStatus: 'expired',
-  },
-});
-
 const RentalCard = ({
   rental,
   onOpenDialog,
-  onResumeExtensionPayment,
-  onCancelExtensionPayment,
   loadingAction,
 }: {
   rental: RentalItemDto;
   onOpenDialog: (state: RentalDialogState) => void;
-  onResumeExtensionPayment: (rental: RentalItemDto) => void;
-  onCancelExtensionPayment: (rental: RentalItemDto) => void;
   loadingAction?: string | null;
 }) => {
   const isReturned = rental.returnPlan.status === 'completed';
-  const hasPendingExtensionPayment = rental.request.status === 'pending_payment';
-  const canResumePendingExtension = hasPendingExtensionPayment && rental.extension.checkoutStatus === 'open' && Boolean(rental.extension.checkoutUrl);
-  const canCancelPendingExtension = hasPendingExtensionPayment && rental.extension.checkoutStatus === 'open' && Boolean(rental.extension.checkoutSessionId);
+  const hasBlockingPendingRequest = rental.request.status === 'pending' && rental.request.type !== 'extend';
 
   return (
     <article className="rounded-3xl border border-brand-100 bg-white p-5 shadow-sm">
@@ -148,31 +125,11 @@ const RentalCard = ({
         </div>
         {!isReturned ? (
           <div className="flex flex-wrap gap-2">
-            {canResumePendingExtension ? (
-              <button
-                type="button"
-                className="inline-flex rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-brand-900"
-                onClick={() => onResumeExtensionPayment(rental)}
-                disabled={loadingAction === `resume:${rental.orderItemId}`}
-              >
-                {loadingAction === `resume:${rental.orderItemId}` ? 'Ouverture...' : 'Reprendre le paiement'}
-              </button>
-            ) : null}
-            {canCancelPendingExtension ? (
-              <button
-                type="button"
-                className="inline-flex rounded-full border border-stone-200 px-4 py-2 text-sm font-semibold text-stone-700"
-                onClick={() => onCancelExtensionPayment(rental)}
-                disabled={loadingAction === `cancel-payment:${rental.orderItemId}`}
-              >
-                {loadingAction === `cancel-payment:${rental.orderItemId}` ? 'Annulation...' : 'Annuler cette tentative'}
-              </button>
-            ) : null}
             <button
               type="button"
               className="inline-flex rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-brand-900"
               onClick={() => onOpenDialog({ type: 'extend', rental })}
-              disabled={loadingAction === `extend:${rental.orderItemId}` || hasPendingExtensionPayment}
+              disabled={loadingAction === `extend:${rental.orderItemId}` || hasBlockingPendingRequest}
             >
               {loadingAction === `extend:${rental.orderItemId}` ? 'Préparation...' : 'Prolonger'}
             </button>
@@ -443,46 +400,6 @@ export const MyRentalsPage = () => {
     },
   });
 
-  const cancelExtensionPaymentMutation = useMutation({
-    mutationFn: (rental: RentalItemDto) => cancelCheckoutSession(rental.extension.checkoutSessionId ?? ''),
-    onMutate: async (rental) => {
-      await queryClient.cancelQueries({ queryKey: ['rentals', 'me'] });
-      const previous = queryClient.getQueryData<Awaited<ReturnType<typeof fetchMyRentals>>>(['rentals', 'me']);
-      if (previous) {
-        queryClient.setQueryData(['rentals', 'me'], {
-          ...previous,
-          upcoming: previous.upcoming.map((item) => item.orderItemId === rental.orderItemId ? clearPendingExtensionState(item) : item),
-          past: previous.past.map((item) => item.orderItemId === rental.orderItemId ? clearPendingExtensionState(item) : item),
-        });
-      }
-
-      return { previous };
-    },
-    onSuccess: async () => {
-      await queryClient.fetchQuery({ queryKey: ['rentals', 'me'], queryFn: fetchMyRentals });
-      toast.show('La tentative de paiement a été annulée. Vous pouvez relancer une prolongation.', { variant: 'success' });
-    },
-    onError: async (_reason, rental, context) => {
-      const refreshed = await queryClient.fetchQuery({ queryKey: ['rentals', 'me'], queryFn: fetchMyRentals }).catch(() => null);
-      const refreshedRental = refreshed
-        ? [...refreshed.upcoming, ...refreshed.past].find((item) => item.orderItemId === rental.orderItemId)
-        : null;
-
-      if (refreshedRental && refreshedRental.request.status !== 'pending_payment') {
-        toast.show('La tentative de paiement a été annulée. Vous pouvez relancer une prolongation.', { variant: 'success' });
-        return;
-      }
-
-      if (context?.previous) {
-        queryClient.setQueryData(['rentals', 'me'], context.previous);
-      }
-      toast.show("Impossible d'annuler ce paiement en attente.", { variant: 'error' });
-    },
-    onSettled: () => {
-      setLoadingAction(null);
-    },
-  });
-
   const terminationMutation = useMutation({
     mutationFn: ({
       orderItemId,
@@ -580,27 +497,6 @@ export const MyRentalsPage = () => {
     });
   };
 
-  const resumeExtensionPayment = (rental: RentalItemDto) => {
-    if (!rental.extension.checkoutUrl) {
-      toast.show("Impossible de retrouver le lien de paiement de cette prolongation.", { variant: 'error' });
-      return;
-    }
-
-    setLoadingAction(`resume:${rental.orderItemId}`);
-    redirectToTrustedUrl(rental.extension.checkoutUrl);
-    window.setTimeout(() => setLoadingAction((current) => current === `resume:${rental.orderItemId}` ? null : current), 250);
-  };
-
-  const cancelExtensionPayment = (rental: RentalItemDto) => {
-    if (!rental.extension.checkoutSessionId) {
-      toast.show("Impossible de retrouver la session de paiement à annuler.", { variant: 'error' });
-      return;
-    }
-
-    setLoadingAction(`cancel-payment:${rental.orderItemId}`);
-    cancelExtensionPaymentMutation.mutate(rental);
-  };
-
   return (
     <SiteLayout headerVariant="light">
       <PublicPageShell
@@ -675,8 +571,6 @@ export const MyRentalsPage = () => {
                       key={`${activeFilter}-${rental.orderItemId}`}
                       rental={rental}
                       onOpenDialog={setDialogState}
-                      onResumeExtensionPayment={resumeExtensionPayment}
-                      onCancelExtensionPayment={cancelExtensionPayment}
                       loadingAction={loadingAction}
                     />
                   ))
