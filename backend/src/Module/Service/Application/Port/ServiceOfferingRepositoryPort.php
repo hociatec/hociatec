@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Module\Quote\Application\Port;
+namespace App\Module\Service\Application\Port;
 
-use App\Module\Quote\Domain\Entity\ServiceOffering;
+use App\Module\Service\Domain\Entity\ServiceOffering;
 use App\Shared\Application\LockMode;
 
 interface ServiceOfferingRepositoryPort

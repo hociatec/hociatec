@@ -9,7 +9,7 @@ use App\Module\Admin\Application\Quote\DTO\QuoteServiceFormData;
 use App\Module\Admin\Application\Quote\Handler\CreateQuoteServiceHandler;
 use App\Module\Admin\Application\Quote\Handler\UpdateQuoteServiceHandler;
 use App\Module\Admin\UI\Quote\Mapper\QuoteServiceFormMapper;
-use App\Module\Quote\Domain\Entity\ServiceOffering;
+use App\Module\Service\Domain\Entity\ServiceOffering;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;

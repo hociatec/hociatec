@@ -4,16 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Module\Quote\Controller;
 
-use App\Module\Order\Application\Projection\OrderFormatter;
-use App\Module\Order\Application\Projection\OrderItemFormatter;
-use App\Module\Order\Application\Projection\OrderStatusLabelFormatter;
-use App\Module\Order\Domain\Workflow\OrderStatusWorkflow;
-use App\Module\Quote\Application\Calculator\QuoteCalculator;
-use App\Module\Quote\Application\Projection\QuoteFormatter;
-use App\Module\Quote\Domain\Entity\ServiceOffering;
-use App\Module\Quote\Infrastructure\Repository\ServiceOfferingRepository;
-use App\Module\Quote\UI\Controller\PublicApi\GetServiceController;
-use App\Module\Rating\Application\Projection\ProductReviewFormatter;
+use App\Module\Service\Application\Projection\ServiceFormatter;
+use App\Module\Service\Domain\Entity\ServiceOffering;
+use App\Module\Service\Infrastructure\Repository\ServiceOfferingRepository;
+use App\Module\Service\UI\Controller\PublicApi\GetServiceController;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -34,14 +28,7 @@ final class GetServiceControllerTest extends TestCase
 
         $controller = new GetServiceController(
             $repository,
-            new QuoteFormatter(
-                new QuoteCalculator(),
-                new OrderFormatter(
-                    new OrderStatusLabelFormatter(),
-                    new OrderItemFormatter(new ProductReviewFormatter()),
-                    new OrderStatusWorkflow(),
-                ),
-            ),
+            new ServiceFormatter(),
         );
 
         $missing = $controller(99);

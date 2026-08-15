@@ -21,10 +21,10 @@ use App\Module\Quote\Application\Workflow\QuoteEmailService;
 use App\Module\Quote\Application\Workflow\QuoteService;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Entity\QuoteItem;
-use App\Module\Quote\Domain\Entity\ServiceOffering;
+use App\Module\Service\Domain\Entity\ServiceOffering;
 use App\Module\Quote\Infrastructure\Pdf\QuotePdfService;
 use App\Module\Quote\Infrastructure\Repository\QuoteRepository;
-use App\Module\Quote\Infrastructure\Repository\ServiceOfferingRepository;
+use App\Module\Service\Infrastructure\Repository\ServiceOfferingRepository;
 use App\Module\User\Domain\Entity\User;
 use App\Module\User\Infrastructure\Repository\UserRepository;
 use App\Shared\Application\Mail\EmailSender;
@@ -227,5 +227,10 @@ abstract class AdminQuoteIntegrationTestCase extends TestCase
             new QuoteCalculator(),
             \App\Tests\Support\OrderFormatterFactory::create(),
         );
+    }
+
+    protected function serviceFormatter(): \App\Module\Service\Application\Projection\ServiceFormatter
+    {
+        return new \App\Module\Service\Application\Projection\ServiceFormatter();
     }
 }

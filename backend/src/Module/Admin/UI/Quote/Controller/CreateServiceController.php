@@ -6,8 +6,8 @@ namespace App\Module\Admin\UI\Quote\Controller;
 
 use App\Module\Admin\Application\Quote\Handler\CreateQuoteServiceHandler;
 use App\Module\Admin\UI\Quote\Mapper\QuoteServiceFormMapper;
-use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Quote\Domain\Exception\QuoteOperationException;
+use App\Module\Service\Application\Projection\ServiceFormatter;
 use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -23,7 +23,7 @@ final readonly class CreateServiceController
     public function __construct(
         private QuoteServiceFormMapper $forms,
         private CreateQuoteServiceHandler $createService,
-        private QuoteFormatter $formatter,
+        private ServiceFormatter $formatter,
     ) {
     }
 
@@ -37,6 +37,6 @@ final readonly class CreateServiceController
             return ApiResponse::internalError();
         }
 
-        return ApiResponse::created($this->formatter->formatService($service), 'Le service a bien été créé.');
+        return ApiResponse::created($this->formatter->format($service), 'Le service a bien été créé.');
     }
 }

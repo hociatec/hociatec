@@ -45,6 +45,11 @@ final class AccountSecurity
         return array_values(array_unique($roles));
     }
 
+    public function hasRole(string $role): bool
+    {
+        return \in_array($role, $this->roles(), true);
+    }
+
     /** @param list<string> $roles */
     public function changeRoles(array $roles): void
     {

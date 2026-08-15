@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Quote\Controller;
 
-use App\Module\Quote\Application\Port\ServiceOfferingRepositoryPort;
-use App\Module\Quote\Application\Projection\QuoteFormatter;
+use App\Module\Service\Application\Port\ServiceOfferingRepositoryPort;
+use App\Module\Service\Application\Projection\ServiceFormatter;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -20,7 +20,7 @@ class ListServicesController extends AbstractController
 {
     public function __construct(
         private readonly ServiceOfferingRepositoryPort $serviceRepository,
-        private readonly QuoteFormatter $formatter,
+        private readonly ServiceFormatter $formatter,
     ) {
     }
 
@@ -31,7 +31,7 @@ class ListServicesController extends AbstractController
         $items = $this->serviceRepository->findForAdmin($search, $pagination->perPage, $pagination->offset());
 
         return ApiResponse::paginated(
-            array_map(fn ($s) => $this->formatter->formatService($s), $items),
+            array_map(fn ($s) => $this->formatter->format($s), $items),
             $pagination->metadata($this->serviceRepository->countForAdmin($search)),
         );
     }

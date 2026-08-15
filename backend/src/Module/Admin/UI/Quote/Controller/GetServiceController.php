@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\UI\Quote\Controller;
 
-use App\Module\Quote\Application\Port\ServiceOfferingRepositoryPort;
-use App\Module\Quote\Application\Projection\QuoteFormatter;
+use App\Module\Service\Application\Port\ServiceOfferingRepositoryPort;
+use App\Module\Service\Application\Projection\ServiceFormatter;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -24,7 +24,7 @@ class GetServiceController extends AbstractController
 {
     public function __construct(
         private readonly ServiceOfferingRepositoryPort $serviceRepository,
-        private readonly QuoteFormatter $formatter,
+        private readonly ServiceFormatter $formatter,
     ) {
     }
 
@@ -35,6 +35,6 @@ class GetServiceController extends AbstractController
             return ApiResponse::error('Service introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        return ApiResponse::success($this->formatter->formatService($service));
+        return ApiResponse::success($this->formatter->format($service));
     }
 }

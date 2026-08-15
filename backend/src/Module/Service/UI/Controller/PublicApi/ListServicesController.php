@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Module\Quote\UI\Controller\PublicApi;
+namespace App\Module\Service\UI\Controller\PublicApi;
 
-use App\Module\Quote\Application\Port\ServiceOfferingRepositoryPort;
-use App\Module\Quote\Application\Projection\QuoteFormatter;
+use App\Module\Service\Application\Port\ServiceOfferingRepositoryPort;
+use App\Module\Service\Application\Projection\ServiceFormatter;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
 use App\Shared\Infrastructure\Http\RequestQueryMapper;
@@ -20,7 +20,7 @@ class ListServicesController extends AbstractController
 {
     public function __construct(
         private readonly ServiceOfferingRepositoryPort $serviceRepository,
-        private readonly QuoteFormatter $formatter,
+        private readonly ServiceFormatter $formatter,
     ) {
     }
 
@@ -31,7 +31,7 @@ class ListServicesController extends AbstractController
         $services = $this->serviceRepository->findPublic($search, $pagination->perPage, $pagination->offset());
 
         return ApiResponse::paginated(
-            array_map(fn ($s) => $this->formatter->formatService($s), $services),
+            array_map(fn ($service) => $this->formatter->format($service), $services),
             $pagination->metadata($this->serviceRepository->countPublic($search)),
         );
     }

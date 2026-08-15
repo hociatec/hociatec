@@ -6,7 +6,7 @@ namespace App\Tests\Unit\Module\Quote\Entity;
 
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Entity\QuoteItem;
-use App\Module\Quote\Domain\Entity\ServiceOffering;
+use App\Module\Service\Domain\Entity\ServiceOffering;
 use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 
@@ -113,7 +113,7 @@ final class QuoteEntitiesTest extends TestCase
         self::assertInstanceOf(\DateTimeImmutable::class, $service->getCreatedAt());
 
         usleep(1000);
-        $service->touch();
+        $service->setImageFile(new \stdClass());
         self::assertGreaterThanOrEqual($updatedAt, $service->getUpdatedAt());
     }
 }

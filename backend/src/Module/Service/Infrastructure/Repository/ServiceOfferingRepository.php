@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Module\Quote\Infrastructure\Repository;
+namespace App\Module\Service\Infrastructure\Repository;
 
-use App\Module\Quote\Application\Port\ServiceOfferingRepositoryPort;
-use App\Module\Quote\Domain\Entity\ServiceOffering;
+use App\Module\Service\Application\Port\ServiceOfferingRepositoryPort;
+use App\Module\Service\Domain\Entity\ServiceOffering;
 use App\Shared\Application\LockMode as ApplicationLockMode;
 use App\Shared\Infrastructure\Doctrine\DoctrineLockModeMapper;
 use App\Shared\Infrastructure\Persistence\LikeSearchHelper;

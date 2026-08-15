@@ -6,10 +6,10 @@ namespace App\Module\Admin\UI\Quote\Controller;
 
 use App\Module\Admin\Application\Quote\Handler\UpdateQuoteServiceHandler;
 use App\Module\Admin\UI\Quote\Mapper\QuoteServiceFormMapper;
-use App\Module\Quote\Application\Port\ServiceOfferingRepositoryPort;
-use App\Module\Quote\Application\Projection\QuoteFormatter;
-use App\Module\Quote\Domain\Entity\ServiceOffering;
 use App\Module\Quote\Domain\Exception\QuoteOperationException;
+use App\Module\Service\Application\Port\ServiceOfferingRepositoryPort;
+use App\Module\Service\Application\Projection\ServiceFormatter;
+use App\Module\Service\Domain\Entity\ServiceOffering;
 use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -26,7 +26,7 @@ final readonly class UpdateServiceController
         private ServiceOfferingRepositoryPort $repository,
         private QuoteServiceFormMapper $forms,
         private UpdateQuoteServiceHandler $updateService,
-        private QuoteFormatter $formatter,
+        private ServiceFormatter $formatter,
     ) {
     }
 
@@ -45,6 +45,6 @@ final readonly class UpdateServiceController
             return ApiResponse::internalError();
         }
 
-        return ApiResponse::success($this->formatter->formatService($service), JsonResponse::HTTP_OK, 'Le service a bien été mis à jour.');
+        return ApiResponse::success($this->formatter->format($service), JsonResponse::HTTP_OK, 'Le service a bien été mis à jour.');
     }
 }

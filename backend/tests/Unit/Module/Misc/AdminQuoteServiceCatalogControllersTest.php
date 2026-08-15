@@ -12,8 +12,8 @@ use App\Module\Admin\UI\Quote\Controller\GetServiceController;
 use App\Module\Admin\UI\Quote\Controller\ListServicesController;
 use App\Module\Admin\UI\Quote\Controller\UpdateServiceController;
 use App\Module\Admin\UI\Quote\Mapper\QuoteServiceFormMapper;
-use App\Module\Quote\Domain\Entity\ServiceOffering;
-use App\Module\Quote\Infrastructure\Repository\ServiceOfferingRepository;
+use App\Module\Service\Domain\Entity\ServiceOffering;
+use App\Module\Service\Infrastructure\Repository\ServiceOfferingRepository;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -44,11 +44,11 @@ final class AdminQuoteServiceCatalogControllersTest extends MiscSupportTestCase
             ->willReturn([$service]);
         $repository->expects(self::once())->method('countForAdmin')->with(null)->willReturn(21);
 
-        $get = new GetServiceController($repository, $this->quoteFormatter());
+        $get = new GetServiceController($repository, $this->serviceFormatter());
         self::assertSame(Response::HTTP_NOT_FOUND, $get(404)->getStatusCode());
         self::assertSame(Response::HTTP_OK, $get(12)->getStatusCode());
 
-        $list = new ListServicesController($repository, $this->quoteFormatter());
+        $list = new ListServicesController($repository, $this->serviceFormatter());
         $listPayload = json_decode((string) $list(new Request(['page' => '2']))->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame(2, $listPayload['data']['meta']['page']);
         self::assertSame('Audit', $listPayload['data']['items'][0]['title']);
@@ -62,7 +62,7 @@ final class AdminQuoteServiceCatalogControllersTest extends MiscSupportTestCase
         $create = new CreateServiceController(
             $forms,
             new CreateQuoteServiceHandler(new DoctrineUnitOfWork($entityManager), $formApplier),
-            $this->quoteFormatter(),
+            $this->serviceFormatter(),
         );
         self::assertSame(Response::HTTP_UNPROCESSABLE_ENTITY, $create(new Request([], ['title' => '', 'price' => '-5']))->getStatusCode());
         $createdPayload = json_decode((string) $create(new Request([], [
@@ -87,7 +87,7 @@ final class AdminQuoteServiceCatalogControllersTest extends MiscSupportTestCase
             $repository,
             $forms,
             new UpdateQuoteServiceHandler(new DoctrineUnitOfWork($entityManager), $formApplier),
-            $this->quoteFormatter(),
+            $this->serviceFormatter(),
         );
         self::assertSame(Response::HTTP_NOT_FOUND, $update(new Request([], ['title' => 'x']), 404)->getStatusCode());
         self::assertSame(Response::HTTP_UNPROCESSABLE_ENTITY, $update(new Request([], ['title' => 'Audit', 'unit' => 'oops']), 12)->getStatusCode());
@@ -110,7 +110,7 @@ final class AdminQuoteServiceCatalogControllersTest extends MiscSupportTestCase
         $failingCreate = new CreateServiceController(
             $forms,
             new CreateQuoteServiceHandler(new DoctrineUnitOfWork($failingEntityManager), $formApplier),
-            $this->quoteFormatter(),
+            $this->serviceFormatter(),
         );
         self::assertSame(Response::HTTP_INTERNAL_SERVER_ERROR, $failingCreate(new Request([], ['title' => 'Installation', 'price' => '250']))->getStatusCode());
 
@@ -120,7 +120,7 @@ final class AdminQuoteServiceCatalogControllersTest extends MiscSupportTestCase
             $repository,
             $forms,
             new UpdateQuoteServiceHandler(new DoctrineUnitOfWork($failingEntityManager2), $formApplier),
-            $this->quoteFormatter(),
+            $this->serviceFormatter(),
         );
         self::assertSame(Response::HTTP_INTERNAL_SERVER_ERROR, $failingUpdate(new Request([], ['title' => 'Audit premium', 'price' => '300']), 12)->getStatusCode());
     }

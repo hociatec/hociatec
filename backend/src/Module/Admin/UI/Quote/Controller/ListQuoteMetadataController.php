@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Quote\Controller;
 
 use App\Module\Quote\Application\Mapper\QuoteStatusTranslator;
-use App\Module\Quote\Domain\Enum\ServiceBillingMode;
+use App\Module\Service\Domain\Enum\ServiceBillingMode;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

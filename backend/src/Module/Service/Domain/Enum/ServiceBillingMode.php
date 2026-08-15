@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Module\Quote\Domain\Enum;
+namespace App\Module\Service\Domain\Enum;
 
 enum ServiceBillingMode: string
 {

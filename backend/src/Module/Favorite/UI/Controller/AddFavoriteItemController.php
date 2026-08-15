@@ -9,7 +9,7 @@ use App\Module\Favorite\Application\Workflow\FavoriteService;
 use App\Module\Favorite\Domain\Entity\Favorite;
 use App\Module\Favorite\UI\FavoriteViewFactory;
 use App\Module\News\Application\Port\NewsArticleRepositoryPort;
-use App\Module\Quote\Application\Port\ServiceOfferingRepositoryPort;
+use App\Module\Service\Application\Port\ServiceOfferingRepositoryPort;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

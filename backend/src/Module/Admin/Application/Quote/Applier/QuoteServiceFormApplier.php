@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\Application\Quote\Applier;
 
 use App\Module\Admin\Application\Quote\DTO\QuoteServiceFormData;
-use App\Module\Quote\Domain\Entity\ServiceOffering;
+use App\Module\Service\Domain\Entity\ServiceOffering;
 
 final readonly class QuoteServiceFormApplier
 {

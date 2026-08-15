@@ -16,9 +16,10 @@ use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Security\OrderAccessPolicy;
 use App\Module\Order\Infrastructure\Repository\OrderRepository;
 use App\Module\Order\UI\Controller\CancelMyOrderController;
-use App\Module\Quote\Domain\Entity\ServiceOffering;
-use App\Module\Quote\Infrastructure\Repository\ServiceOfferingRepository;
-use App\Module\Quote\UI\Controller\PublicApi\ListServicesController;
+use App\Module\Service\Domain\Entity\ServiceOffering;
+use App\Module\Service\Infrastructure\Repository\ServiceOfferingRepository;
+use App\Module\Service\Application\Projection\ServiceFormatter;
+use App\Module\Service\UI\Controller\PublicApi\ListServicesController;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Doctrine\DoctrineUnitOfWork;
 use Doctrine\ORM\EntityManagerInterface;
@@ -38,7 +39,7 @@ final class PublicAndClientControllerBatchTest extends TestCase
         $services->expects(self::once())->method('findPublic')->with(null, 20, 20)->willReturn([$service]);
         $services->expects(self::once())->method('countPublic')->with(null)->willReturn(21);
 
-        $publicServices = new ListServicesController($services, new \App\Module\Quote\Application\Projection\QuoteFormatter(new \App\Module\Quote\Application\Calculator\QuoteCalculator(), \App\Tests\Support\OrderFormatterFactory::create()));
+        $publicServices = new ListServicesController($services, new ServiceFormatter());
         $servicesPayload = json_decode((string) $publicServices(new Request(['page' => '2']))->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame(2, $servicesPayload['data']['meta']['page']);
         self::assertSame('2 jours', $servicesPayload['data']['items'][0]['durationLabel']);

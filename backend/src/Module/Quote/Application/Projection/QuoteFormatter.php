@@ -8,7 +8,8 @@ use App\Module\Quote\Application\Calculator\QuoteCalculator;
 use App\Module\Quote\Application\Mapper\QuoteStatusTranslator;
 use App\Module\Quote\Domain\Entity\Quote;
 use App\Module\Quote\Domain\Entity\QuoteItem;
-use App\Module\Quote\Domain\Entity\ServiceOffering;
+use App\Module\Service\Application\Projection\ServiceFormatter;
+use App\Module\Service\Domain\Entity\ServiceOffering;
 
 final class QuoteFormatter
 {
@@ -22,23 +23,7 @@ final class QuoteFormatter
      */
     public function formatService(ServiceOffering $service): array
     {
-        $durationValue = $service->getDurationValue();
-        $durationUnit = $service->getDurationUnit();
-
-        return [
-            'id' => $service->getId(),
-            'title' => $service->getTitle(),
-            'description' => $service->getDescription(),
-            'unit' => $service->getUnit(),
-            'isFeaturedHome' => $service->isFeaturedHome(),
-            'imageUrl' => $this->formatServiceImageUrl($service),
-            'imageAlt' => $service->getImageAlt(),
-            'durationValue' => $durationValue,
-            'durationUnit' => $durationUnit,
-            'durationLabel' => $this->formatServiceDurationLabel($durationValue, $durationUnit),
-            'priceCents' => $service->getPriceCents(),
-            'vatRate' => $service->getVatRateBps() / 100,
-        ];
+        return (new ServiceFormatter())->format($service);
     }
 
     /**
@@ -112,31 +97,5 @@ final class QuoteFormatter
                 'ttc' => $line['ttc'],
             ],
         ];
-    }
-
-    private function formatServiceImageUrl(ServiceOffering $service): ?string
-    {
-        if (null !== $service->getImageName() && '' !== trim($service->getImageName())) {
-            return sprintf('/uploads/services/%s', ltrim($service->getImageName(), '/'));
-        }
-
-        if (null !== $service->getImageExternalUrl() && '' !== trim($service->getImageExternalUrl())) {
-            return trim($service->getImageExternalUrl());
-        }
-
-        return null;
-    }
-
-    private function formatServiceDurationLabel(?int $durationValue, ?string $durationUnit): ?string
-    {
-        if (null === $durationValue || $durationValue <= 0 || null === $durationUnit || '' === $durationUnit) {
-            return null;
-        }
-
-        if ('day' === $durationUnit) {
-            return $durationValue.' '.($durationValue > 1 ? 'jours' : 'jour');
-        }
-
-        return $durationValue.' '.($durationValue > 1 ? 'heures' : 'heure');
     }
 }

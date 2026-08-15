@@ -11,6 +11,7 @@ use App\Module\Order\Domain\Workflow\OrderStatusWorkflow;
 use App\Module\Quote\Application\Calculator\QuoteCalculator;
 use App\Module\Quote\Application\Projection\QuoteFormatter;
 use App\Module\Rating\Application\Projection\ProductReviewFormatter;
+use App\Module\Service\Application\Projection\ServiceFormatter;
 use App\Module\User\Domain\Entity\User;
 use PHPUnit\Framework\TestCase;
 
@@ -49,5 +50,10 @@ abstract class MiscSupportTestCase extends TestCase
                 new OrderStatusWorkflow(),
             ),
         );
+    }
+
+    protected function serviceFormatter(): ServiceFormatter
+    {
+        return new ServiceFormatter();
     }
 }

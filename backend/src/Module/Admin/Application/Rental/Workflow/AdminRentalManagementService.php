@@ -7,16 +7,14 @@ namespace App\Module\Admin\Application\Rental\Workflow;
 use App\Module\Admin\Application\Rental\Projection\AdminRentalFormatter;
 use App\Module\Order\Application\Port\OrderItemRepositoryPort;
 use App\Module\Order\Application\Support\RentalPeriodCalculator;
-use App\Module\Order\Domain\Entity\Order;
 use App\Module\Order\Domain\Entity\OrderItem;
-use App\Shared\Application\UnitOfWork;
 
 final readonly class AdminRentalManagementService
 {
     public function __construct(
         private OrderItemRepositoryPort $orderItems,
         private AdminRentalFormatter $formatter,
-        private UnitOfWork $persistence,
+        private RentalOrderTotalsUpdater $totals,
     ) {
     }
 
@@ -103,9 +101,8 @@ final readonly class AdminRentalManagementService
         }
 
         $item->applyApprovedRentalExtension($requestedEndDate, $alignedMonths);
-        $this->recalculateRentalLineTotals($item, $alignedMonths);
-        $this->recalculateOrderTotals($item->getOrder());
-        $this->flushItemAndOrder($item);
+        $this->totals->recalculateExtensionLine($item, $alignedMonths);
+        $this->totals->flushItemAndOrder($item);
 
         return $item;
     }
@@ -120,7 +117,7 @@ final readonly class AdminRentalManagementService
 
         $alignedMonths = RentalPeriodCalculator::findAlignedMonthsForEndDate($item->getRentalStartDate(), $requestedEndDate);
         $item->applyApprovedRentalEarlyEnd($requestedEndDate, $alignedMonths);
-        $this->flushItemAndOrder($item);
+        $this->totals->flushItemAndOrder($item);
 
         return $item;
     }
@@ -132,7 +129,7 @@ final readonly class AdminRentalManagementService
         }
 
         $item->clearRentalRequest();
-        $this->flushItemAndOrder($item);
+        $this->totals->flushItemAndOrder($item);
 
         return $item;
     }
@@ -144,7 +141,7 @@ final readonly class AdminRentalManagementService
         }
 
         $item->markRentalReturned();
-        $this->flushItemAndOrder($item);
+        $this->totals->flushItemAndOrder($item);
 
         return $item;
     }
@@ -158,42 +155,5 @@ final readonly class AdminRentalManagementService
         if ($item->getRentalRequestType() !== $expectedType) {
             throw new \InvalidArgumentException('Le type de demande en attente ne correspond pas à l’action choisie.');
         }
-    }
-
-    private function recalculateRentalLineTotals(OrderItem $item, int $alignedMonths): void
-    {
-        $quantity = max(1, $item->getQuantity());
-        $grossLineTotal = $item->getUnitPriceCents() * $quantity * max(1, $alignedMonths);
-        $vatRate = max(0, $item->getVatRateBps());
-        $lineSubtotalHt = 0 === $vatRate
-            ? $grossLineTotal
-            : (int) round($grossLineTotal / (1 + ($vatRate / 10000)));
-        $lineVat = max(0, $grossLineTotal - $lineSubtotalHt);
-
-        $item->replaceLineTotals($lineSubtotalHt, $lineVat, $grossLineTotal);
-    }
-
-    private function recalculateOrderTotals(?Order $order): void
-    {
-        if (!$order instanceof Order) {
-            throw new \LogicException('La commande associée à cette location est introuvable.');
-        }
-
-        $subtotal = 0;
-        foreach ($order->getItems() as $line) {
-            $subtotal += $line->getLinePriceCents();
-        }
-
-        $discount = max(0, $order->getDiscountAmountCents());
-        $order->replacePaymentAmounts($subtotal, $discount, max(0, $subtotal - $discount));
-    }
-
-    private function flushItemAndOrder(OrderItem $item): void
-    {
-        $this->persistence->persist($item);
-        if ($item->getOrder() instanceof Order) {
-            $this->persistence->persist($item->getOrder());
-        }
-        $this->persistence->flush();
     }
 }

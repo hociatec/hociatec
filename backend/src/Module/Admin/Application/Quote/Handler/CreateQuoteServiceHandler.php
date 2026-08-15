@@ -6,8 +6,8 @@ namespace App\Module\Admin\Application\Quote\Handler;
 
 use App\Module\Admin\Application\Quote\Applier\QuoteServiceFormApplier;
 use App\Module\Admin\Application\Quote\DTO\QuoteServiceFormData;
-use App\Module\Quote\Domain\Entity\ServiceOffering;
 use App\Module\Quote\Domain\Exception\QuoteOperationException;
+use App\Module\Service\Domain\Entity\ServiceOffering;
 use App\Shared\Application\UnitOfWork;
 
 final readonly class CreateQuoteServiceHandler

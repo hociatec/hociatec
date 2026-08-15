@@ -9,8 +9,8 @@ use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Module\Favorite\Domain\Entity\Favorite;
 use App\Module\News\Application\Port\NewsArticleRepositoryPort;
 use App\Module\News\Application\Projection\NewsFormatter;
-use App\Module\Quote\Application\Port\ServiceOfferingRepositoryPort;
-use App\Module\Quote\Application\Projection\QuoteFormatter;
+use App\Module\Service\Application\Port\ServiceOfferingRepositoryPort;
+use App\Module\Service\Application\Projection\ServiceFormatter;
 
 final readonly class FavoriteViewFactory
 {
@@ -18,7 +18,7 @@ final readonly class FavoriteViewFactory
         private ProductRepositoryPort $products,
         private CatalogFormatter $catalogFormatter,
         private ServiceOfferingRepositoryPort $services,
-        private QuoteFormatter $quoteFormatter,
+        private ServiceFormatter $serviceFormatter,
         private NewsArticleRepositoryPort $articles,
         private NewsFormatter $newsFormatter,
     ) {
@@ -71,7 +71,7 @@ final readonly class FavoriteViewFactory
             return null;
         }
 
-        return ['service' => $this->quoteFormatter->formatService($service)];
+        return ['service' => $this->serviceFormatter->format($service)];
     }
 
     /** @return array{article: array<string, mixed>}|null */

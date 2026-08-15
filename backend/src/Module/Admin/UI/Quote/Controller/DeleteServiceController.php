@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Quote\Controller;
 
 use App\Module\Admin\Application\Quote\Handler\DeleteQuoteServiceHandler;
-use App\Module\Quote\Application\Port\ServiceOfferingRepositoryPort;
+use App\Module\Service\Application\Port\ServiceOfferingRepositoryPort;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

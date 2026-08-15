@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\Quote\Handler;
 
-use App\Module\Quote\Application\Port\ServiceOfferingRepositoryPort;
-use App\Module\Quote\Domain\Entity\ServiceOffering;
+use App\Module\Service\Application\Port\ServiceOfferingRepositoryPort;
+use App\Module\Service\Domain\Entity\ServiceOffering;
 use App\Shared\Application\UnitOfWork;
 
 final readonly class DeleteQuoteServiceHandler

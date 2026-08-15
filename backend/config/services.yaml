@@ -190,8 +190,8 @@ services:
     App\Module\Quote\Application\Port\QuoteRepositoryPort:
         alias: App\Module\Quote\Infrastructure\Repository\QuoteRepository
 
-    App\Module\Quote\Application\Port\ServiceOfferingRepositoryPort:
-        alias: App\Module\Quote\Infrastructure\Repository\ServiceOfferingRepository
+    App\Module\Service\Application\Port\ServiceOfferingRepositoryPort:
+        alias: App\Module\Service\Infrastructure\Repository\ServiceOfferingRepository
 
     App\Module\Voucher\Application\Port\VoucherRepositoryPort:
         alias: App\Module\Voucher\Infrastructure\Repository\VoucherRepository

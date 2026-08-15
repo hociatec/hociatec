@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Module\Admin\UI\Quote\Mapper;
 
 use App\Module\Admin\Application\Quote\DTO\QuoteServiceFormData;
-use App\Module\Quote\Domain\Entity\ServiceOffering;
-use App\Module\Quote\Domain\Enum\ServiceBillingMode;
+use App\Module\Service\Domain\Entity\ServiceOffering;
+use App\Module\Service\Domain\Enum\ServiceBillingMode;
 use App\Shared\Domain\ValueObject\DecimalNumber;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
