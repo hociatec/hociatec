@@ -44,4 +44,24 @@ extension APIClient {
         )
         return data.rental
     }
+
+    func terminateRental(
+        orderItemId: Int,
+        requestedEndDate: String,
+        returnMode: String,
+        returnRequestedDate: String
+    ) async throws -> RentalItem {
+        let data: RentalData = try await request(
+            path: "api/rentals/\(orderItemId)/terminate",
+            method: "PUT",
+            body: [
+                "requestedEndDate": requestedEndDate,
+                "returnMode": returnMode,
+                "returnRequestedDate": returnRequestedDate
+            ],
+            authorized: true,
+            attachCartToken: false
+        )
+        return data.rental
+    }
 }

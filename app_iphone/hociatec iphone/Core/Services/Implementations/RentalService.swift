@@ -18,4 +18,13 @@ struct RentalService: RentalServing {
     func planRentalReturn(orderItemId: Int, mode: String, requestedDate: String) async throws -> RentalItem {
         try await api.planRentalReturn(orderItemId: orderItemId, mode: mode, requestedDate: requestedDate)
     }
+
+    func terminateRental(orderItemId: Int, requestedEndDate: String, returnMode: String, returnRequestedDate: String) async throws -> RentalItem {
+        try await api.terminateRental(
+            orderItemId: orderItemId,
+            requestedEndDate: requestedEndDate,
+            returnMode: returnMode,
+            returnRequestedDate: returnRequestedDate
+        )
+    }
 }

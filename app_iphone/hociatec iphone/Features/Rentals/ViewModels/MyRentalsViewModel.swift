@@ -106,6 +106,37 @@ final class MyRentalsViewModel: ObservableObject {
         }
     }
 
+    func terminateRental(
+        for rental: RentalItem,
+        requestedEndDate: String,
+        returnMode: ReturnMode,
+        returnRequestedDate: String
+    ) async {
+        let actionKey = "terminate:\(rental.orderItemId)"
+        submittingActionKey = actionKey
+        error = nil
+        successMessage = nil
+
+        do {
+            let updated = try await service.terminateRental(
+                orderItemId: rental.orderItemId,
+                requestedEndDate: requestedEndDate,
+                returnMode: returnMode.rawValue,
+                returnRequestedDate: returnRequestedDate
+            )
+            apply(updated)
+            successMessage = updated.request.type == RentalRequestAction.endEarly.rawValue
+                ? "Votre fin de location et la restitution ont bien ete enregistrees."
+                : "\(returnMode == .pickupHome ? "Recuperation a domicile" : "Depot en boutique") planifie pour le \(DatePresentation.formatAPIDay(updated.returnPlan.requestedDate))."
+        } catch {
+            self.error = error.localizedDescription
+        }
+
+        if submittingActionKey == actionKey {
+            submittingActionKey = nil
+        }
+    }
+
     private func apply(_ updated: RentalItem) {
         if let index = upcoming.firstIndex(where: { $0.id == updated.id }) {
             upcoming[index] = updated

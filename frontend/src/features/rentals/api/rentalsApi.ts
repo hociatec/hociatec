@@ -114,3 +114,15 @@ export const planRentalReturn = async (
 
   return parseRental(data.rental);
 };
+
+export const terminateRental = async (
+  orderItemId: number,
+  payload: { requestedEndDate: string; returnMode: 'pickup_home' | 'dropoff_store'; returnRequestedDate: string },
+): Promise<RentalItemDto> => {
+  const data = unwrapApiData(
+    (await httpClient.put<ApiResponse<{ rental: unknown }>>(`/api/rentals/${orderItemId}/terminate`, payload)).data,
+    "Impossible d'enregistrer la fin de location.",
+  );
+
+  return parseRental(data.rental);
+};

@@ -19,6 +19,7 @@ final readonly class CustomerRentalPortalService
         private RentalFormatter $formatter,
         private UnitOfWork $persistence,
         private RentalExtensionCheckoutService $extensions,
+        private CustomerRentalTerminationService $termination,
     ) {
     }
 
@@ -130,6 +131,38 @@ final readonly class CustomerRentalPortalService
         }
 
         $item->scheduleRentalReturn($mode, $date);
+        $this->persistence->persist($item);
+        $this->persistence->flush();
+
+        return [
+            'rental' => $this->formatter->format($item, $today),
+        ];
+    }
+
+    /**
+     * @return array{rental:array<string,mixed>}|null
+     */
+    public function terminateForUser(
+        User $user,
+        int $orderItemId,
+        ?string $requestedEndDate,
+        string $returnMode,
+        ?string $returnRequestedDate,
+    ): ?array {
+        $item = $this->findRentalForUser($user, $orderItemId);
+        if (!$item instanceof OrderItem) {
+            return null;
+        }
+        $this->assertClientRentalMutable($item);
+
+        $today = new \DateTimeImmutable('today');
+        $this->termination->terminate(
+            $item,
+            $requestedEndDate,
+            $returnMode,
+            $returnRequestedDate,
+            $today,
+        );
         $this->persistence->persist($item);
         $this->persistence->flush();
 

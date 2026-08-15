@@ -3,9 +3,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { PublicPageShell, PublicPageSection } from '@/shared/components/layout/PublicPageShell';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { fetchMyRentals, planRentalReturn, requestRentalChange } from '@/features/rentals/api/rentalsApi';
+import { fetchMyRentals, requestRentalChange, terminateRental } from '@/features/rentals/api/rentalsApi';
 import { ErrorState, LoadingState } from '@/shared/components/ui/page-state';
-import { formatDateInputForDisplay, formatEuroCents } from '@/shared/lib/formatters';
+import { formatApiDateForDateInput, formatDateInputForDisplay, formatEuroCents } from '@/shared/lib/formatters';
 import { useToast } from '@/shared/components/ui/toast';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { redirectToTrustedUrl } from '@/shared/lib/redirects';
@@ -15,11 +15,54 @@ import type { RentalItemDto } from '../types/rentals';
 type RentalFilter = 'all' | 'upcoming' | 'past';
 
 type RentalDialogState =
-  | { type: 'extend' | 'end_early'; rental: RentalItemDto }
-  | { type: 'return'; rental: RentalItemDto };
+  | { type: 'extend'; rental: RentalItemDto }
+  | { type: 'terminate'; rental: RentalItemDto };
+
+type RentalExtensionOption = {
+  totalMonths: number;
+  additionalMonths: number;
+  endDate: string;
+};
 
 const formatReturnMode = (mode: string | null | undefined) =>
   mode === 'pickup_home' ? 'Récupération à domicile' : mode === 'dropoff_store' ? 'Dépôt en boutique' : 'Non défini';
+
+const parseApiDate = (value: string | null | undefined) => {
+  if (!value) return null;
+  const date = new Date(`${value}T00:00:00`);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const computeAlignedRentalEndDate = (startDate: string, totalMonths: number) => {
+  const start = parseApiDate(startDate);
+  if (!start) {
+    return startDate;
+  }
+
+  start.setMonth(start.getMonth() + Math.max(1, totalMonths));
+  start.setDate(start.getDate() - 1);
+
+  return formatApiDateForDateInput(start);
+};
+
+const buildExtensionOptions = (rental: RentalItemDto, limit = 6): RentalExtensionOption[] => {
+  if (!rental.startDate) {
+    return [];
+  }
+
+  const currentMonths = Math.max(1, rental.rentalMonths ?? 1);
+
+  return Array.from({ length: limit }, (_, index) => {
+    const additionalMonths = index + 1;
+    const totalMonths = currentMonths + additionalMonths;
+
+    return {
+      totalMonths,
+      additionalMonths,
+      endDate: computeAlignedRentalEndDate(rental.startDate ?? '', totalMonths),
+    };
+  });
+};
 
 const RentalCard = ({
   rental,
@@ -31,6 +74,7 @@ const RentalCard = ({
   loadingAction?: string | null;
 }) => {
   const isReturned = rental.returnPlan.status === 'completed';
+  const hasPendingExtensionPayment = rental.request.status === 'pending_payment';
 
   return (
     <article className="rounded-3xl border border-brand-100 bg-white p-5 shadow-sm">
@@ -51,7 +95,7 @@ const RentalCard = ({
             <p className="text-sm font-medium text-amber-700">
               {rental.request.status === 'pending_payment'
                 ? `Paiement de prolongation en attente jusqu’au ${formatDateInputForDisplay(rental.request.requestedEndDate)}`
-                : `Demande en attente: ${rental.request.type === 'extend' ? 'prolongation' : 'fin anticipée'}${rental.request.requestedEndDate ? ` jusqu’au ${formatDateInputForDisplay(rental.request.requestedEndDate)}` : ''}`}
+                : `Demande en attente: ${rental.request.type === 'extend' ? 'prolongation' : 'fin de location'}${rental.request.requestedEndDate ? ` jusqu’au ${formatDateInputForDisplay(rental.request.requestedEndDate)}` : ''}`}
             </p>
           ) : null}
           {rental.returnPlan.status !== 'none' ? (
@@ -68,25 +112,17 @@ const RentalCard = ({
               type="button"
               className="inline-flex rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-brand-900"
               onClick={() => onOpenDialog({ type: 'extend', rental })}
-              disabled={loadingAction === `extend:${rental.orderItemId}`}
+              disabled={loadingAction === `extend:${rental.orderItemId}` || hasPendingExtensionPayment}
             >
               {loadingAction === `extend:${rental.orderItemId}` ? 'Préparation...' : 'Prolonger'}
             </button>
             <button
               type="button"
-              className="inline-flex rounded-full border border-stone-200 px-4 py-2 text-sm font-semibold text-stone-700"
-              onClick={() => onOpenDialog({ type: 'end_early', rental })}
-              disabled={loadingAction === `end_early:${rental.orderItemId}`}
+              className="inline-flex rounded-full bg-brand-900 px-4 py-2 text-sm font-semibold text-white"
+              onClick={() => onOpenDialog({ type: 'terminate', rental })}
+              disabled={loadingAction === `terminate:${rental.orderItemId}`}
             >
-              {loadingAction === `end_early:${rental.orderItemId}` ? 'Envoi...' : 'Anticiper la fin'}
-            </button>
-            <button
-              type="button"
-              className="inline-flex rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-brand-900"
-              onClick={() => onOpenDialog({ type: 'return', rental })}
-              disabled={loadingAction === `return:${rental.orderItemId}`}
-            >
-              {loadingAction === `return:${rental.orderItemId}` ? 'Envoi...' : 'Organiser la restitution'}
+              {loadingAction === `terminate:${rental.orderItemId}` ? 'Envoi...' : 'Terminer la location'}
             </button>
           </div>
         ) : null}
@@ -99,17 +135,22 @@ const RentalActionDialog = ({
   state,
   submitting,
   onClose,
-  onConfirmChange,
-  onConfirmReturn,
+  onConfirmExtension,
+  onConfirmTermination,
 }: {
   state: RentalDialogState | null;
   submitting: boolean;
   onClose: () => void;
-  onConfirmChange: (action: 'extend' | 'end_early', rental: RentalItemDto, requestedEndDate: string) => void;
-  onConfirmReturn: (rental: RentalItemDto, mode: 'pickup_home' | 'dropoff_store', requestedDate: string) => void;
+  onConfirmExtension: (rental: RentalItemDto, requestedEndDate: string) => void;
+  onConfirmTermination: (
+    rental: RentalItemDto,
+    requestedEndDate: string,
+    returnMode: 'pickup_home' | 'dropoff_store',
+    returnRequestedDate: string,
+  ) => void;
 }) => {
-  const [requestedEndDate, setRequestedEndDate] = useState('');
-  const [requestedReturnDate, setRequestedReturnDate] = useState('');
+  const [requestedEndDate, setRequestedEndDate] = useState<string>('');
+  const [requestedReturnDate, setRequestedReturnDate] = useState<string>('');
   const [returnMode, setReturnMode] = useState<'pickup_home' | 'dropoff_store'>('pickup_home');
 
   if (!state) {
@@ -117,7 +158,13 @@ const RentalActionDialog = ({
   }
 
   const rental = state.rental;
-  const title = state.type === 'extend' ? 'Prolonger la location' : state.type === 'end_early' ? 'Demander une fin anticipée' : 'Organiser la restitution';
+  const extensionOptions = state.type === 'extend' ? buildExtensionOptions(rental) : [];
+  const title = state.type === 'extend' ? 'Prolonger la location' : 'Terminer la location';
+
+  const defaultTerminationDate = rental.endDate ?? '';
+  const normalizedTerminationDate = requestedEndDate || defaultTerminationDate;
+  const normalizedReturnDate = requestedReturnDate || normalizedTerminationDate;
+  const terminationMaxDate = normalizedTerminationDate || rental.endDate || undefined;
 
   return (
     <Dialog open onClose={submitting ? () => undefined : onClose} className="relative z-50">
@@ -137,8 +184,25 @@ const RentalActionDialog = ({
                 Période actuelle: {formatDateInputForDisplay(rental.startDate)} au {formatDateInputForDisplay(rental.endDate)}
               </p>
 
-              {state.type === 'return' ? (
+              {state.type === 'terminate' ? (
                 <>
+                  <label className="grid gap-2 text-sm font-medium text-brand-950">
+                    Date de fin souhaitée
+                    <input
+                      type="date"
+                      className="rounded-2xl border border-brand-200 px-4 py-3 text-sm"
+                      value={normalizedTerminationDate}
+                      min={rental.startDate ?? undefined}
+                      max={rental.endDate ?? undefined}
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        setRequestedEndDate(value);
+                        if (requestedReturnDate && requestedReturnDate > value) {
+                          setRequestedReturnDate(value);
+                        }
+                      }}
+                    />
+                  </label>
                   <label className="grid gap-2 text-sm font-medium text-brand-950">
                     Mode de restitution
                     <select
@@ -155,24 +219,40 @@ const RentalActionDialog = ({
                     <input
                       type="date"
                       className="rounded-2xl border border-brand-200 px-4 py-3 text-sm"
-                      value={requestedReturnDate}
+                      value={normalizedReturnDate}
                       min={rental.startDate ?? undefined}
-                      max={rental.endDate ?? undefined}
+                      max={terminationMaxDate}
                       onChange={(event) => setRequestedReturnDate(event.target.value)}
                     />
                   </label>
                 </>
               ) : (
-                <label className="grid gap-2 text-sm font-medium text-brand-950">
-                  Nouvelle date de fin
-                  <input
-                    type="date"
-                    className="rounded-2xl border border-brand-200 px-4 py-3 text-sm"
-                    value={requestedEndDate}
-                    min={rental.startDate ?? undefined}
-                    onChange={(event) => setRequestedEndDate(event.target.value)}
-                  />
-                </label>
+                <div className="grid gap-3">
+                  <p className="text-sm text-stone-600">
+                    Choisissez une échéance valide. La prolongation sera ensuite envoyée au paiement.
+                  </p>
+                  {extensionOptions.map((option) => {
+                    const isSelected = requestedEndDate === option.endDate || (!requestedEndDate && option === extensionOptions[0]);
+
+                    return (
+                      <button
+                        key={option.endDate}
+                        type="button"
+                        className={[
+                          'flex items-center justify-between rounded-2xl border px-4 py-3 text-left transition',
+                          isSelected ? 'border-brand-900 bg-brand-50' : 'border-brand-100 bg-white',
+                        ].join(' ')}
+                        onClick={() => setRequestedEndDate(option.endDate)}
+                      >
+                        <span>
+                          <span className="block text-sm font-semibold text-brand-950">+{option.additionalMonths} mois</span>
+                          <span className="block text-sm text-stone-600">Jusqu’au {formatDateInputForDisplay(option.endDate)}</span>
+                        </span>
+                        <span className="text-sm font-semibold text-brand-900">{option.totalMonths} mois au total</span>
+                      </button>
+                    );
+                  })}
+                </div>
               )}
             </div>
 
@@ -190,14 +270,14 @@ const RentalActionDialog = ({
                 className="rounded-full bg-brand-900 px-5 py-2 text-sm font-semibold text-white"
                 disabled={submitting}
                 onClick={() => {
-                  if (state.type === 'return') {
-                    onConfirmReturn(rental, returnMode, requestedReturnDate);
+                  if (state.type === 'terminate') {
+                    onConfirmTermination(rental, normalizedTerminationDate, returnMode, normalizedReturnDate);
                     return;
                   }
-                  onConfirmChange(state.type, rental, requestedEndDate);
+                  onConfirmExtension(rental, requestedEndDate || extensionOptions[0]?.endDate || '');
                 }}
               >
-                {submitting ? 'Envoi...' : state.type === 'extend' ? 'Payer la prolongation' : state.type === 'end_early' ? 'Envoyer la demande' : 'Planifier'}
+                {submitting ? 'Envoi...' : state.type === 'extend' ? 'Continuer vers le paiement' : 'Valider'}
               </button>
             </div>
           </DialogPanel>
@@ -223,29 +303,24 @@ export const MyRentalsPage = () => {
   const requestMutation = useMutation({
     mutationFn: ({
       orderItemId,
-      action,
       requestedEndDate,
     }: {
       orderItemId: number;
-      action: 'extend' | 'end_early';
       requestedEndDate: string;
-    }) => requestRentalChange(orderItemId, { action, requestedEndDate, clientPlatform: 'web' }),
-    onSuccess: async ({ rental, checkout }, variables) => {
+    }) => requestRentalChange(orderItemId, { action: 'extend', requestedEndDate, clientPlatform: 'web' }),
+    onSuccess: async ({ rental, checkout }) => {
       await queryClient.invalidateQueries({ queryKey: ['rentals', 'me'] });
       if (checkout?.checkoutUrl) {
         redirectToTrustedUrl(checkout.checkoutUrl);
         return;
       }
 
-      toast.show(
-        variables.action === 'extend'
-          ? `La location est prolongée jusqu’au ${formatDateInputForDisplay(rental.endDate)}.`
-          : 'Votre demande de fin anticipée a bien été enregistrée.',
-        { variant: 'success' },
-      );
+      toast.show(`La location est prolongée jusqu’au ${formatDateInputForDisplay(rental.endDate)}.`, {
+        variant: 'success',
+      });
     },
     onError: (reason) => {
-      toast.show(getHttpErrorMessage(reason, "La demande de location n'a pas pu être traitée."), { variant: 'error' });
+      toast.show(getHttpErrorMessage(reason, "La prolongation n'a pas pu être préparée."), { variant: 'error' });
     },
     onSettled: () => {
       setLoadingAction(null);
@@ -253,25 +328,29 @@ export const MyRentalsPage = () => {
     },
   });
 
-  const returnMutation = useMutation({
+  const terminationMutation = useMutation({
     mutationFn: ({
       orderItemId,
-      mode,
-      requestedDate,
+      requestedEndDate,
+      returnMode,
+      returnRequestedDate,
     }: {
       orderItemId: number;
-      mode: 'pickup_home' | 'dropoff_store';
-      requestedDate: string;
-    }) => planRentalReturn(orderItemId, { mode, requestedDate }),
+      requestedEndDate: string;
+      returnMode: 'pickup_home' | 'dropoff_store';
+      returnRequestedDate: string;
+    }) => terminateRental(orderItemId, { requestedEndDate, returnMode, returnRequestedDate }),
     onSuccess: async (rental) => {
       await queryClient.invalidateQueries({ queryKey: ['rentals', 'me'] });
       toast.show(
-        `${formatReturnMode(rental.returnPlan.mode)} planifié${rental.returnPlan.requestedDate ? ` pour le ${formatDateInputForDisplay(rental.returnPlan.requestedDate)}` : '.'}`,
+        rental.request.type === 'end_early'
+          ? 'Votre fin de location et la restitution ont bien été enregistrées.'
+          : `${formatReturnMode(rental.returnPlan.mode)} planifié${rental.returnPlan.requestedDate ? ` pour le ${formatDateInputForDisplay(rental.returnPlan.requestedDate)}` : '.'}`,
         { variant: 'success' },
       );
     },
     onError: (reason) => {
-      toast.show(getHttpErrorMessage(reason, "La restitution n'a pas pu être planifiée."), { variant: 'error' });
+      toast.show(getHttpErrorMessage(reason, "La fin de location n'a pas pu être enregistrée."), { variant: 'error' });
     },
     onSettled: () => {
       setLoadingAction(null);
@@ -293,31 +372,36 @@ export const MyRentalsPage = () => {
     }
   }, [activeFilter, past, upcoming]);
 
-  const submitChange = (action: 'extend' | 'end_early', rental: RentalItemDto, requestedEndDate: string) => {
+  const submitExtension = (rental: RentalItemDto, requestedEndDate: string) => {
     if (!requestedEndDate) {
-      toast.show('Choisissez une date valide.', { variant: 'error' });
+      toast.show('Choisissez une échéance valide.', { variant: 'error' });
       return;
     }
 
-    setLoadingAction(`${action}:${rental.orderItemId}`);
+    setLoadingAction(`extend:${rental.orderItemId}`);
     requestMutation.mutate({
       orderItemId: rental.orderItemId,
-      action,
       requestedEndDate,
     });
   };
 
-  const submitReturn = (rental: RentalItemDto, mode: 'pickup_home' | 'dropoff_store', requestedDate: string) => {
-    if (!requestedDate) {
-      toast.show('Choisissez une date valide.', { variant: 'error' });
+  const submitTermination = (
+    rental: RentalItemDto,
+    requestedEndDate: string,
+    returnMode: 'pickup_home' | 'dropoff_store',
+    returnRequestedDate: string,
+  ) => {
+    if (!requestedEndDate || !returnRequestedDate) {
+      toast.show('Choisissez des dates valides.', { variant: 'error' });
       return;
     }
 
-    setLoadingAction(`return:${rental.orderItemId}`);
-    returnMutation.mutate({
+    setLoadingAction(`terminate:${rental.orderItemId}`);
+    terminationMutation.mutate({
       orderItemId: rental.orderItemId,
-      mode,
-      requestedDate,
+      requestedEndDate,
+      returnMode,
+      returnRequestedDate,
     });
   };
 
@@ -326,7 +410,7 @@ export const MyRentalsPage = () => {
       <PublicPageShell
         size="medium"
         title="Mes locations"
-        description="Suivez vos locations, payez vos prolongations et organisez la restitution du matériel."
+        description="Suivez vos locations, payez vos prolongations et terminez une location en planifiant le retour du matériel."
       >
         {rentalsQuery.isLoading ? <LoadingState>Chargement des locations...</LoadingState> : null}
         {rentalsQuery.isError ? (
@@ -406,10 +490,10 @@ export const MyRentalsPage = () => {
       </PublicPageShell>
       <RentalActionDialog
         state={dialogState}
-        submitting={requestMutation.isPending || returnMutation.isPending}
+        submitting={requestMutation.isPending || terminationMutation.isPending}
         onClose={() => setDialogState(null)}
-        onConfirmChange={submitChange}
-        onConfirmReturn={submitReturn}
+        onConfirmExtension={submitExtension}
+        onConfirmTermination={submitTermination}
       />
     </SiteLayout>
   );
