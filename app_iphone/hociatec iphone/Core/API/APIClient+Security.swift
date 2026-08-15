@@ -67,6 +67,7 @@ extension APIClient {
             request.setValue(token, forHTTPHeaderField: "X-Cart-Token")
         }
 
+        request.setValue(sessionStore.deviceIdentifier, forHTTPHeaderField: "X-Hociatec-Device-Id")
         request.setValue("Application iPhone", forHTTPHeaderField: "X-Hociatec-Client-App")
         request.setValue("iOS \(UIDevice.current.systemVersion)", forHTTPHeaderField: "X-Hociatec-Client-Platform")
         request.setValue(UIDevice.current.name, forHTTPHeaderField: "X-Hociatec-Device-Name")

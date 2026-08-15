@@ -42,6 +42,9 @@ class RefreshToken
     #[ORM\Column(name: 'device_label', length: 180, nullable: true)]
     private ?string $deviceLabel = null;
 
+    #[ORM\Column(name: 'device_identifier', length: 128, nullable: true)]
+    private ?string $deviceIdentifier = null;
+
     #[ORM\Column(name: 'platform_label', length: 120, nullable: true)]
     private ?string $platformLabel = null;
 
@@ -62,6 +65,7 @@ class RefreshToken
         string $selector,
         string $tokenHash,
         \DateTimeImmutable $expiresAt,
+        ?string $deviceIdentifier = null,
         ?string $deviceLabel = null,
         ?string $platformLabel = null,
         ?string $clientLabel = null,
@@ -75,6 +79,7 @@ class RefreshToken
         $this->selector = $selector;
         $this->tokenHash = $tokenHash;
         $this->expiresAt = $expiresAt;
+        $this->deviceIdentifier = self::normalizeOptionalText($deviceIdentifier);
         $this->deviceLabel = self::normalizeOptionalText($deviceLabel);
         $this->platformLabel = self::normalizeOptionalText($platformLabel);
         $this->clientLabel = self::normalizeOptionalText($clientLabel);
@@ -130,6 +135,11 @@ class RefreshToken
         return $this->deviceLabel;
     }
 
+    public function getDeviceIdentifier(): ?string
+    {
+        return $this->deviceIdentifier;
+    }
+
     public function getPlatformLabel(): ?string
     {
         return $this->platformLabel;
@@ -156,6 +166,7 @@ class RefreshToken
     }
 
     public function updateAccessContext(
+        ?string $deviceIdentifier,
         ?string $deviceLabel,
         ?string $platformLabel,
         ?string $clientLabel,
@@ -163,6 +174,7 @@ class RefreshToken
         ?string $userAgent,
         ?string $ipAddress,
     ): self {
+        $this->deviceIdentifier = self::normalizeOptionalText($deviceIdentifier) ?? $this->deviceIdentifier;
         $this->deviceLabel = self::normalizeOptionalText($deviceLabel) ?? $this->deviceLabel;
         $this->platformLabel = self::normalizeOptionalText($platformLabel) ?? $this->platformLabel;
         $this->clientLabel = self::normalizeOptionalText($clientLabel) ?? $this->clientLabel;

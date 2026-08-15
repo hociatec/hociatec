@@ -130,10 +130,11 @@ final class FileRefreshTokenRepository implements RefreshTokenRepositoryPort
     public function findOneBySelectorForUpdate(string $selector): ?RefreshToken
     {
         if (!is_resource($this->lockHandle)) {
-            $this->lockHandle = fopen($this->lockPath, 'c+');
-            if (false === $this->lockHandle) {
+            $lockHandle = fopen($this->lockPath, 'c+');
+            if (false === $lockHandle) {
                 throw new \RuntimeException('Unable to open refresh token lock file.');
             }
+            $this->lockHandle = $lockHandle;
             flock($this->lockHandle, LOCK_EX);
             if (null !== $this->signalPath) {
                 file_put_contents($this->signalPath, 'locked', LOCK_EX);
@@ -165,7 +166,27 @@ final class FileRefreshTokenRepository implements RefreshTokenRepositoryPort
             return [$rightStamp, $right->getSelector()] <=> [$leftStamp, $left->getSelector()];
         });
 
-        return array_values($tokens);
+        return $tokens;
+    }
+
+    public function findActiveForUserAndDeviceIdentifier(User $user, string $deviceIdentifier): array
+    {
+        $tokens = array_filter(
+            $this->load(),
+            static fn (RefreshToken $token): bool => $token->getUser()->getEmail() === $user->getEmail()
+                && $token->getDeviceIdentifier() === $deviceIdentifier
+                && !$token->isRevoked()
+                && !$token->isExpired(),
+        );
+
+        usort($tokens, static function (RefreshToken $left, RefreshToken $right): int {
+            $leftStamp = ($left->getLastUsedAt() ?? $left->getCreatedAt())->getTimestamp();
+            $rightStamp = ($right->getLastUsedAt() ?? $right->getCreatedAt())->getTimestamp();
+
+            return [$rightStamp, $right->getSelector()] <=> [$leftStamp, $left->getSelector()];
+        });
+
+        return $tokens;
     }
 
     public function findOneActiveByIdForUser(int $id, User $user): ?RefreshToken

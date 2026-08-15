@@ -36,6 +36,8 @@ final class SessionStore: ObservableObject {
 
     @Published var checkoutCallback: CheckoutCallback?
 
+    let deviceIdentifier: String
+
     private enum Keys {
         static let jwt = "hociatec.jwt"
         static let cart = "hociatec.cartToken"
@@ -46,6 +48,7 @@ final class SessionStore: ObservableObject {
     }
 
     init() {
+        deviceIdentifier = DeviceIdentityStore.currentDeviceIdentifier()
         rememberSession = UserDefaults.standard.bool(forKey: Keys.rememberSession)
         cartToken = UserDefaults.standard.string(forKey: Keys.cart)
         loginEmail = UserDefaults.standard.string(forKey: Keys.loginEmail)

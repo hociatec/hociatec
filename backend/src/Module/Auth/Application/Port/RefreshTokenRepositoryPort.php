@@ -18,6 +18,11 @@ interface RefreshTokenRepositoryPort
      */
     public function findActiveForUser(User $user): array;
 
+    /**
+     * @return list<RefreshToken>
+     */
+    public function findActiveForUserAndDeviceIdentifier(User $user, string $deviceIdentifier): array;
+
     public function findOneActiveBySelectorForUser(string $selector, User $user): ?RefreshToken;
 
     public function findOneActiveByIdForUser(int $id, User $user): ?RefreshToken;

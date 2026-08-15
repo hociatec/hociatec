@@ -27,7 +27,21 @@ final readonly class RefreshTokenRevocationService
      */
     public function activeSessionsForUser(User $user): array
     {
-        return $this->refreshTokenRepository->findActiveForUser($user);
+        $tokens = $this->refreshTokenRepository->findActiveForUser($user);
+        $groupedTokens = [];
+        $ungroupedTokens = [];
+
+        foreach ($tokens as $token) {
+            $deviceIdentifier = $token->getDeviceIdentifier();
+            if (null === $deviceIdentifier) {
+                $ungroupedTokens[] = $token;
+                continue;
+            }
+
+            $groupedTokens[$deviceIdentifier] ??= $token;
+        }
+
+        return [...array_values($groupedTokens), ...$ungroupedTokens];
     }
 
     public function revokeOneForUser(User $user, int $sessionId): ?\App\Module\Auth\Domain\Entity\RefreshToken
@@ -37,7 +51,14 @@ final readonly class RefreshTokenRevocationService
             return null;
         }
 
-        $token->revoke();
+        $deviceIdentifier = $token->getDeviceIdentifier();
+        if (null !== $deviceIdentifier) {
+            foreach ($this->refreshTokenRepository->findActiveForUserAndDeviceIdentifier($user, $deviceIdentifier) as $deviceToken) {
+                $deviceToken->revoke();
+            }
+        } else {
+            $token->revoke();
+        }
         $this->unitOfWork?->flush();
 
         return $token;

@@ -41,7 +41,7 @@ final class RefreshTokenControllersAndLogoutTest extends AuthIntegrationTestCase
 
         self::assertNull($service->rotate('bad-token'));
         self::assertNull($service->rotate($selector.'.wrong'));
-        self::assertTrue((bool) $repository->findOneBySelector($selector)?->isRevoked());
+        self::assertTrue((bool) $repository->findOneBySelector($selector)->isRevoked());
         self::assertNull($service->rotate($selector.'.wrong'));
         $service->revokePlainToken('bad-token');
         $service->revokePlainToken($selector.'.wrong');
@@ -104,5 +104,29 @@ final class RefreshTokenControllersAndLogoutTest extends AuthIntegrationTestCase
         $repository->remove($manual);
         $em->flush();
         self::assertNull($repository->findOneBySelector('manual'));
+    }
+
+    public function testDeviceIdentifierReusesSingleActiveAccessPerDevice(): void
+    {
+        $em = $this->entityManager();
+        $user = $this->user('device@example.com');
+        $em->persist($user);
+        $em->flush();
+
+        $service = $this->refreshService($em);
+        $context = new \App\Module\Auth\Application\DTO\RefreshTokenContext(
+            'web.1234567890abcdef',
+            'MacBook',
+            'macOS',
+            'Safari',
+            'Paris, Ile-de-France, FR',
+            'Mozilla/5.0',
+            '1.1.1.1',
+        );
+
+        $first = $service->issueForUser($user, $context);
+        $second = $service->issueForUser($user, $context);
+        self::assertNotSame($first['refreshToken'], $second['refreshToken']);
+        self::assertCount(1, $this->refreshRepository($em)->findActiveForUser($user));
     }
 }

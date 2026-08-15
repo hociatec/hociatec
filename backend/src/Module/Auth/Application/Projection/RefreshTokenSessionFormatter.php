@@ -8,6 +8,19 @@ use App\Module\Auth\Domain\Entity\RefreshToken;
 
 final readonly class RefreshTokenSessionFormatter
 {
+    /**
+     * @return array{
+     *   id:int|null,
+     *   deviceLabel:string,
+     *   platformLabel:string,
+     *   clientLabel:string,
+     *   locationLabel:string,
+     *   createdAt:string,
+     *   lastUsedAt:string,
+     *   expiresAt:string,
+     *   current:bool
+     * }
+     */
     public function format(RefreshToken $token, ?string $currentSelector): array
     {
         return [

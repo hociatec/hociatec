@@ -67,6 +67,26 @@ class RefreshTokenRepository extends ServiceEntityRepository implements RefreshT
         return $tokens;
     }
 
+    public function findActiveForUserAndDeviceIdentifier(User $user, string $deviceIdentifier): array
+    {
+        /** @var list<RefreshToken> $tokens */
+        $tokens = $this->createQueryBuilder('refreshToken')
+            ->andWhere('refreshToken.user = :user')
+            ->andWhere('refreshToken.deviceIdentifier = :deviceIdentifier')
+            ->andWhere('refreshToken.revokedAt IS NULL')
+            ->andWhere('refreshToken.expiresAt > :now')
+            ->orderBy('refreshToken.lastUsedAt', 'DESC')
+            ->addOrderBy('refreshToken.createdAt', 'DESC')
+            ->addOrderBy('refreshToken.id', 'DESC')
+            ->setParameter('user', $user)
+            ->setParameter('deviceIdentifier', $deviceIdentifier)
+            ->setParameter('now', new \DateTimeImmutable())
+            ->getQuery()
+            ->getResult();
+
+        return $tokens;
+    }
+
     public function findOneActiveByIdForUser(int $id, User $user): ?RefreshToken
     {
         return $this->createQueryBuilder('refreshToken')

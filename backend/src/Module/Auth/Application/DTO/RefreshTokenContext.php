@@ -7,6 +7,7 @@ namespace App\Module\Auth\Application\DTO;
 final readonly class RefreshTokenContext
 {
     public function __construct(
+        public ?string $deviceIdentifier,
         public ?string $deviceLabel,
         public ?string $platformLabel,
         public ?string $clientLabel,

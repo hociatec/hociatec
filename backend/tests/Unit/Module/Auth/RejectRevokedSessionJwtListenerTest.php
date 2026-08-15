@@ -22,7 +22,6 @@ final class RejectRevokedSessionJwtListenerTest extends AuthIntegrationTestCase
 
         $issued = $this->refreshService($em)->issueForUser($user);
         $selector = explode('.', $issued['refreshToken'], 2)[0];
-        self::assertIsString($selector);
 
         $listener = new RejectRevokedSessionJwtListener(new \App\Module\Auth\Application\Workflow\RefreshTokenRevocationService(
             $this->refreshRepository($em),

@@ -12,6 +12,7 @@ import {
   shouldAttachCsrfToken,
 } from './http/csrf';
 import { FRONTEND_REQUEST_ID_HEADER_NAME, IDEMPOTENCY_HEADER_NAME } from './http/headers';
+import { getOrCreateDeviceId } from './http/deviceIdentity';
 import { getPersistedCartToken } from './http/tokens';
 import { reportError } from './observability';
 import { createRandomId } from './random';
@@ -78,6 +79,14 @@ httpClient.interceptors.request.use(async (config) => {
 
   if (!headers.has(FRONTEND_REQUEST_ID_HEADER_NAME)) {
     headers.set(FRONTEND_REQUEST_ID_HEADER_NAME, createRandomId('front_req'));
+  }
+
+  if (!headers.has('X-Hociatec-Device-Id')) {
+    headers.set('X-Hociatec-Device-Id', getOrCreateDeviceId());
+  }
+
+  if (!headers.has('X-Hociatec-Client-App')) {
+    headers.set('X-Hociatec-Client-App', 'Site web');
   }
 
   const cartToken = getPersistedCartToken();

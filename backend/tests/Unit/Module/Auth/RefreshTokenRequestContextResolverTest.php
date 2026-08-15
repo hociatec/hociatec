@@ -26,6 +26,7 @@ final class RefreshTokenRequestContextResolverTest extends TestCase
 
         $context = $resolver->resolve($request);
 
+        self::assertNull($context->deviceIdentifier);
         self::assertSame('Lyon, Auvergne-Rhone-Alpes, FR', $context->locationLabel);
         self::assertSame('Safari', $context->clientLabel);
         self::assertSame('macOS', $context->platformLabel);
@@ -45,12 +46,14 @@ final class RefreshTokenRequestContextResolverTest extends TestCase
         });
 
         $context = $resolver->resolve(Request::create('/', server: [
+            'HTTP_X_HOCIATEC_DEVICE_ID' => 'web.1234567890abcdef',
             'HTTP_X_HOCIATEC_CLIENT_APP' => 'Application iPhone',
             'HTTP_X_HOCIATEC_CLIENT_PLATFORM' => 'iOS 18.0',
             'HTTP_X_HOCIATEC_DEVICE_NAME' => 'iPhone de Test',
             'REMOTE_ADDR' => '1.1.1.1',
         ]));
 
+        self::assertSame('web.1234567890abcdef', $context->deviceIdentifier);
         self::assertSame('Paris, Ile-de-France, FR for 1.1.1.1', $context->locationLabel);
         self::assertSame('Application iPhone', $context->clientLabel);
         self::assertSame('iOS 18.0', $context->platformLabel);

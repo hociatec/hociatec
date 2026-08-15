@@ -24,12 +24,14 @@ final readonly class RefreshTokenRequestContextResolver
     {
         $userAgent = $this->trimOrNull($request->headers->get('User-Agent'));
         $clientIp = $this->trimOrNull($request->getClientIp());
+        $deviceIdentifier = $this->normalizeDeviceIdentifier($request->headers->get('X-Hociatec-Device-Id'));
 
         $platform = $this->trimOrNull($request->headers->get('X-Hociatec-Client-Platform')) ?? $this->detectPlatform($userAgent);
         $client = $this->trimOrNull($request->headers->get('X-Hociatec-Client-App')) ?? $this->detectClient($userAgent);
         $device = $this->trimOrNull($request->headers->get('X-Hociatec-Device-Name')) ?? $this->detectDevice($userAgent, $platform, $client);
 
         return new RefreshTokenContext(
+            $deviceIdentifier,
             $device,
             $platform,
             $client,
@@ -108,5 +110,19 @@ final readonly class RefreshTokenRequestContextResolver
         $normalized = trim($value);
 
         return '' === $normalized ? null : $normalized;
+    }
+
+    private function normalizeDeviceIdentifier(?string $value): ?string
+    {
+        $normalized = $this->trimOrNull($value);
+        if (null === $normalized) {
+            return null;
+        }
+
+        if (!preg_match('/^[A-Za-z0-9._:-]{16,128}$/', $normalized)) {
+            return null;
+        }
+
+        return $normalized;
     }
 }

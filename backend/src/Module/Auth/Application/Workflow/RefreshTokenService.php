@@ -30,7 +30,8 @@ final class RefreshTokenService
     public function issueForUser(User $user, ?RefreshTokenContext $context = null): array
     {
         return $this->transactions->transactional(function () use ($user, $context): array {
-            [$refreshToken, $plainToken, $expiresAt] = $this->createRefreshToken($user, $context);
+            $sourceToken = $this->revokeExistingDeviceSessions($user, $context);
+            [$refreshToken, $plainToken, $expiresAt] = $this->createRefreshToken($user, $context, $sourceToken);
 
             $this->unitOfWork->persist($refreshToken);
             $this->unitOfWork->flush();
@@ -67,7 +68,8 @@ final class RefreshTokenService
             }
 
             $storedToken->revoke();
-            [$refreshToken, $plainToken, $expiresAt] = $this->createRefreshToken($storedToken->getUser(), $context, $storedToken);
+            $sourceToken = $this->resolveRotationSourceToken($storedToken, $context);
+            [$refreshToken, $plainToken, $expiresAt] = $this->createRefreshToken($storedToken->getUser(), $context, $sourceToken);
             $this->unitOfWork->persist($refreshToken);
             $this->unitOfWork->flush();
             $this->revocations->revokeActiveTokensOverLimit($storedToken->getUser(), self::MAX_ACTIVE_SESSIONS_PER_USER);
@@ -115,6 +117,46 @@ final class RefreshTokenService
         return [$parts[0], $parts[1]];
     }
 
+    private function revokeExistingDeviceSessions(User $user, ?RefreshTokenContext $context): ?RefreshToken
+    {
+        $deviceIdentifier = $context?->deviceIdentifier;
+        if (null === $deviceIdentifier) {
+            return null;
+        }
+
+        $tokens = $this->refreshTokenRepository->findActiveForUserAndDeviceIdentifier($user, $deviceIdentifier);
+        if ([] === $tokens) {
+            return null;
+        }
+
+        $sourceToken = $tokens[0];
+        foreach ($tokens as $token) {
+            $token->revoke();
+        }
+
+        return $sourceToken;
+    }
+
+    private function resolveRotationSourceToken(RefreshToken $storedToken, ?RefreshTokenContext $context): RefreshToken
+    {
+        $deviceIdentifier = $context?->deviceIdentifier;
+        if (null === $deviceIdentifier || $deviceIdentifier === $storedToken->getDeviceIdentifier()) {
+            return $storedToken;
+        }
+
+        $tokens = $this->refreshTokenRepository->findActiveForUserAndDeviceIdentifier($storedToken->getUser(), $deviceIdentifier);
+        if ([] === $tokens) {
+            return $storedToken;
+        }
+
+        $sourceToken = $tokens[0];
+        foreach ($tokens as $token) {
+            $token->revoke();
+        }
+
+        return $sourceToken;
+    }
+
     /**
      * @return array{0: RefreshToken, 1: string, 2: \DateTimeImmutable}
      */
@@ -124,7 +166,25 @@ final class RefreshTokenService
         $secret = bin2hex(random_bytes(32));
         $plainToken = $selector.'.'.$secret;
         $expiresAt = (new \DateTimeImmutable())->add(new \DateInterval('P'.self::REFRESH_TOKEN_TTL_DAYS.'D'));
-        $createdAt = $sourceToken?->getCreatedAt();
+        $createdAt = null;
+        $deviceIdentifier = $context?->deviceIdentifier;
+        $deviceLabel = $context?->deviceLabel;
+        $platformLabel = $context?->platformLabel;
+        $clientLabel = $context?->clientLabel;
+        $locationLabel = $context?->locationLabel;
+        $userAgent = $context?->userAgent;
+        $ipAddress = $context?->ipAddress;
+
+        if (null !== $sourceToken) {
+            $createdAt = $sourceToken->getCreatedAt();
+            $deviceIdentifier ??= $sourceToken->getDeviceIdentifier();
+            $deviceLabel ??= $sourceToken->getDeviceLabel();
+            $platformLabel ??= $sourceToken->getPlatformLabel();
+            $clientLabel ??= $sourceToken->getClientLabel();
+            $locationLabel ??= $sourceToken->getLocationLabel();
+            $userAgent ??= $sourceToken->getUserAgent();
+            $ipAddress ??= $sourceToken->getIpAddress();
+        }
 
         return [
             new RefreshToken(
@@ -132,12 +192,13 @@ final class RefreshTokenService
                 $selector,
                 hash('sha256', $secret),
                 $expiresAt,
-                $context?->deviceLabel ?? $sourceToken?->getDeviceLabel(),
-                $context?->platformLabel ?? $sourceToken?->getPlatformLabel(),
-                $context?->clientLabel ?? $sourceToken?->getClientLabel(),
-                $context?->locationLabel ?? $sourceToken?->getLocationLabel(),
-                $context?->userAgent ?? $sourceToken?->getUserAgent(),
-                $context?->ipAddress ?? $sourceToken?->getIpAddress(),
+                $deviceIdentifier,
+                $deviceLabel,
+                $platformLabel,
+                $clientLabel,
+                $locationLabel,
+                $userAgent,
+                $ipAddress,
                 $createdAt,
             ),
             $plainToken,

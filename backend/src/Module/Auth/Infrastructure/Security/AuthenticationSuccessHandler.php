@@ -35,8 +35,9 @@ class AuthenticationSuccessHandler implements AuthenticationSuccessHandlerInterf
         $rememberSession = true === ($payload['rememberSession'] ?? false);
 
         $refreshToken = $this->refreshTokenService->issueForUser($user, $this->refreshTokenContextResolver->resolve($request));
-        $refreshTokenSelector = explode('.', $refreshToken['refreshToken'], 2)[0] ?? '';
-        if (!is_string($refreshTokenSelector) || '' === $refreshTokenSelector) {
+        $refreshTokenParts = explode('.', $refreshToken['refreshToken'], 2);
+        $refreshTokenSelector = $refreshTokenParts[0];
+        if ('' === $refreshTokenSelector) {
             throw new \LogicException('Issued refresh token must expose a selector.');
         }
         $jwt = $this->jwtManager->createForSession($user, $refreshTokenSelector);

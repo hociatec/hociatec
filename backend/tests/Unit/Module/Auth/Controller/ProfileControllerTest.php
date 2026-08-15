@@ -69,7 +69,7 @@ final class ProfileControllerTest extends TestCase
                 parent::__construct($profiles);
             }
 
-            protected function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface
+            protected function getUser(): \Symfony\Component\Security\Core\User\UserInterface
             {
                 return new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($this->user);
             }
