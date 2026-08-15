@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Module\Auth;
 
 use App\Module\Auth\Domain\Entity\RefreshToken;
 use App\Module\Auth\Infrastructure\Http\AuthCookieService;
+use App\Module\Auth\Infrastructure\Http\RefreshTokenRequestContextResolver;
 use App\Module\Auth\UI\Controller\LogoutController;
 use App\Module\Auth\UI\Controller\RefreshTokenController;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
@@ -54,7 +55,7 @@ final class RefreshTokenControllersAndLogoutTest extends AuthIntegrationTestCase
             ->method('create')
             ->with(self::callback(static fn (object $securityUser): bool => $securityUser instanceof \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser && $securityUser->domainIdentity() === $user))
             ->willReturn('jwt-token');
-        $controller = new RefreshTokenController($service, $jwt, new AuthCookieService('test'), new \App\Shared\Infrastructure\Http\RateLimitKeyFactory(), $this->limiter(10));
+        $controller = new RefreshTokenController($service, $jwt, new AuthCookieService('test'), new RefreshTokenRequestContextResolver(), new \App\Shared\Infrastructure\Http\RateLimitKeyFactory(), $this->limiter(10));
 
         self::assertSame(Response::HTTP_UNPROCESSABLE_ENTITY, $controller(Request::create('/', 'POST', [], [], [], [], '{"refreshToken":""}'))->getStatusCode());
         $refreshed = $controller(Request::create('/', 'POST', [], [], [], [], json_encode(['refreshToken' => $issued['refreshToken']], JSON_THROW_ON_ERROR)));
@@ -82,7 +83,7 @@ final class RefreshTokenControllersAndLogoutTest extends AuthIntegrationTestCase
         self::assertSame(Response::HTTP_OK, $logoutResponse->getStatusCode());
         $logout(Request::create('/', 'POST'));
 
-        $throttled = new RefreshTokenController($service, $jwt, new AuthCookieService('test'), new \App\Shared\Infrastructure\Http\RateLimitKeyFactory(), $this->limiter(0));
+        $throttled = new RefreshTokenController($service, $jwt, new AuthCookieService('test'), new RefreshTokenRequestContextResolver(), new \App\Shared\Infrastructure\Http\RateLimitKeyFactory(), $this->limiter(0));
         self::assertSame(Response::HTTP_TOO_MANY_REQUESTS, $throttled(Request::create('/', 'POST', [], [], [], ['REMOTE_ADDR' => '127.0.0.1']))->getStatusCode());
 
         $expired = new RefreshToken($user, 'expired', hash('sha256', 'secret'), new \DateTimeImmutable('-1 hour'));

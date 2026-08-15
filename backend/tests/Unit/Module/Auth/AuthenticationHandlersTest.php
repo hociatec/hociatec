@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Module\Auth;
 
 use App\Module\Auth\Infrastructure\Http\AuthCookieService;
+use App\Module\Auth\Infrastructure\Http\RefreshTokenRequestContextResolver;
 use App\Module\Auth\Infrastructure\Security\AuthenticationFailureHandler;
 use App\Module\Auth\Infrastructure\Security\AuthenticationSuccessHandler;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
@@ -27,7 +28,7 @@ final class AuthenticationHandlersTest extends AuthIntegrationTestCase
         $jwt->method('create')->willReturn('jwt');
         $token = $this->createMock(TokenInterface::class);
         $token->method('getUser')->willReturn(new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($user));
-        $success = new AuthenticationSuccessHandler($jwt, $this->refreshService($em), new AuthCookieService('prod'));
+        $success = new AuthenticationSuccessHandler($jwt, $this->refreshService($em), new AuthCookieService('prod'), new RefreshTokenRequestContextResolver());
         self::assertSame(Response::HTTP_OK, $success->onAuthenticationSuccess(Request::create('/'), $token)->getStatusCode());
 
         $dispatcher = $this->createMock(EventDispatcherInterface::class);

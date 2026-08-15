@@ -49,6 +49,39 @@ class RefreshTokenRepository extends ServiceEntityRepository implements RefreshT
             ->getOneOrNullResult();
     }
 
+    public function findActiveForUser(User $user): array
+    {
+        /** @var list<RefreshToken> $tokens */
+        $tokens = $this->createQueryBuilder('refreshToken')
+            ->andWhere('refreshToken.user = :user')
+            ->andWhere('refreshToken.revokedAt IS NULL')
+            ->andWhere('refreshToken.expiresAt > :now')
+            ->orderBy('refreshToken.lastUsedAt', 'DESC')
+            ->addOrderBy('refreshToken.createdAt', 'DESC')
+            ->addOrderBy('refreshToken.id', 'DESC')
+            ->setParameter('user', $user)
+            ->setParameter('now', new \DateTimeImmutable())
+            ->getQuery()
+            ->getResult();
+
+        return $tokens;
+    }
+
+    public function findOneActiveByIdForUser(int $id, User $user): ?RefreshToken
+    {
+        return $this->createQueryBuilder('refreshToken')
+            ->andWhere('refreshToken.id = :id')
+            ->andWhere('refreshToken.user = :user')
+            ->andWhere('refreshToken.revokedAt IS NULL')
+            ->andWhere('refreshToken.expiresAt > :now')
+            ->setParameter('id', $id)
+            ->setParameter('user', $user)
+            ->setParameter('now', new \DateTimeImmutable())
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     public function revokeAllForUser(User $user): void
     {
         $tokens = $this->findBy(['user' => $user, 'revokedAt' => null]);

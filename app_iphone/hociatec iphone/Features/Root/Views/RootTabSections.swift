@@ -88,10 +88,13 @@ private struct RootNewsTab: View {
 }
 
 private struct RootAccountTab: View {
+    @EnvironmentObject private var account: AccountViewModel
+
     var body: some View {
         NavigationStack {
             AccountScreen()
         }
+        .id("account-nav-\(account.isLoggedIn ? "logged-in" : "logged-out")")
         .tabItem { Label("Compte", systemImage: "person") }
     }
 }

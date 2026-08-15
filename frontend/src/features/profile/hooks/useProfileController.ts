@@ -6,6 +6,7 @@ import { formatOptionalFrenchDate } from '@/shared/lib/formatters';
 import { ApiResponseError, getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { omitUndefinedProperties } from '@/shared/lib/object';
 import { useAuth } from '../../auth/hooks/useAuth';
+import type { AccountAccessSession } from '../../auth/api/authApi';
 import {
   formatRole,
   normalizeEmail,
@@ -27,13 +28,17 @@ const emptyForm = {
 export type ProfileFormState = typeof emptyForm;
 
 export const useProfileController = () => {
-  const { user, updateProfile, deleteAccount, revokeAllSessions } = useAuth();
+  const { user, updateProfile, deleteAccount, revokeAllSessions, listAccessSessions, revokeAccessSession } = useAuth();
   const navigate = useNavigate();
   const [feedback, setFeedback] = useState<ProfileFeedback>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRevokingSessions, setIsRevokingSessions] = useState(false);
+  const [accessSessions, setAccessSessions] = useState<AccountAccessSession[]>([]);
+  const [isLoadingAccessSessions, setIsLoadingAccessSessions] = useState(false);
+  const [isAccessManagerOpen, setIsAccessManagerOpen] = useState(false);
+  const [revokingSessionId, setRevokingSessionId] = useState<number | null>(null);
   const [form, setForm] = useState(emptyForm);
 
   const buildForm = () =>
@@ -53,6 +58,47 @@ export const useProfileController = () => {
   useEffect(() => {
     if (user) setForm(buildForm());
   }, [user]);
+
+  useEffect(() => {
+    if (!user) {
+      setAccessSessions([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    const load = async () => {
+      setIsLoadingAccessSessions(true);
+      try {
+        const payload = await listAccessSessions();
+        if (!cancelled) {
+          setAccessSessions(payload.items);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          const details =
+            error instanceof ApiResponseError && Array.isArray(error.details)
+              ? error.details
+              : [];
+          setFeedback({
+            type: 'error',
+            message: getHttpErrorMessage(error, 'Impossible de charger vos accès actifs.'),
+            details,
+          });
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoadingAccessSessions(false);
+        }
+      }
+    };
+
+    void load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [listAccessSessions, user]);
 
   const initials = useMemo(
     () =>
@@ -178,6 +224,38 @@ export const useProfileController = () => {
     }
   };
 
+  const handleToggleAccessManager = () => {
+    setIsAccessManagerOpen((previous) => !previous);
+  };
+
+  const handleRevokeSession = async (sessionId: number) => {
+    setFeedback(null);
+    setRevokingSessionId(sessionId);
+
+    try {
+      const result = await revokeAccessSession(sessionId);
+      if (result.revokedCurrentSession) {
+        navigate('/', { replace: true });
+        return;
+      }
+
+      setAccessSessions((previous) => previous.filter((session) => session.id !== sessionId));
+      setFeedback({ type: 'success', message: 'Accès révoqué.' });
+    } catch (error) {
+      const details =
+        error instanceof ApiResponseError && Array.isArray(error.details)
+          ? error.details
+          : [];
+      setFeedback({
+        type: 'error',
+        message: getHttpErrorMessage(error, 'Impossible de révoquer cet accès pour le moment.'),
+        details,
+      });
+    } finally {
+      setRevokingSessionId(null);
+    }
+  };
+
   return {
     user,
     feedback,
@@ -185,6 +263,10 @@ export const useProfileController = () => {
     isSaving,
     isDeleting,
     isRevokingSessions,
+    accessSessions,
+    isLoadingAccessSessions,
+    isAccessManagerOpen,
+    revokingSessionId,
     form,
     initials,
     formattedRoles,
@@ -195,6 +277,8 @@ export const useProfileController = () => {
     handleSubmitProfile,
     handleConfirmDelete,
     handleConfirmRevokeAllSessions,
+    handleToggleAccessManager,
+    handleRevokeSession,
     hasCurrentPasswordRequirement: user
       ? normalizeEmail(form.email) !== normalizeEmail(user.email) || form.password.trim() !== ''
       : false,

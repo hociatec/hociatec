@@ -43,6 +43,18 @@ export interface AuthSession {
   refreshTokenExpiresAt?: string;
 }
 
+export interface AccountAccessSession {
+  id: number;
+  deviceLabel: string;
+  platformLabel: string;
+  clientLabel: string;
+  locationLabel: string;
+  createdAt: string;
+  lastUsedAt: string;
+  expiresAt: string;
+  current: boolean;
+}
+
 interface AuthMeAuthenticated extends AuthUser {
   authenticated: true;
 }
@@ -120,6 +132,24 @@ export const revokeAllSessions = async () => {
     return rethrowApiError(error);
   } finally {
     clearCsrfToken();
+  }
+};
+
+export const listAccessSessions = async (): Promise<{ items: AccountAccessSession[]; total: number }> => {
+  try {
+    const { data } = await httpClient.get<ApiResponse<{ items: AccountAccessSession[]; total: number }>>('/api/auth/sessions');
+    return unwrapResponse(data);
+  } catch (error) {
+    return rethrowApiError(error);
+  }
+};
+
+export const revokeAccessSession = async (id: number): Promise<{ message: string; revokedCurrentSession: boolean }> => {
+  try {
+    const { data } = await httpClient.delete<ApiResponse<{ message: string; revokedCurrentSession: boolean }>>(`/api/auth/sessions/${id}`);
+    return unwrapResponse(data);
+  } catch (error) {
+    return rethrowApiError(error);
   }
 };
 

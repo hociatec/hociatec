@@ -151,6 +151,39 @@ final class FileRefreshTokenRepository implements RefreshTokenRepositoryPort
         return $token;
     }
 
+    public function findActiveForUser(User $user): array
+    {
+        $tokens = array_filter(
+            $this->load(),
+            static fn (RefreshToken $token): bool => $token->getUser()->getEmail() === $user->getEmail() && !$token->isRevoked() && !$token->isExpired(),
+        );
+
+        usort($tokens, static function (RefreshToken $left, RefreshToken $right): int {
+            $leftStamp = ($left->getLastUsedAt() ?? $left->getCreatedAt())->getTimestamp();
+            $rightStamp = ($right->getLastUsedAt() ?? $right->getCreatedAt())->getTimestamp();
+
+            return [$rightStamp, $right->getSelector()] <=> [$leftStamp, $left->getSelector()];
+        });
+
+        return array_values($tokens);
+    }
+
+    public function findOneActiveByIdForUser(int $id, User $user): ?RefreshToken
+    {
+        foreach ($this->load() as $token) {
+            if ($token->getId() !== $id) {
+                continue;
+            }
+            if ($token->getUser()->getEmail() !== $user->getEmail() || $token->isRevoked() || $token->isExpired()) {
+                continue;
+            }
+
+            return $token;
+        }
+
+        return null;
+    }
+
     public function revokeAllForUser(User $user): void
     {
         $tokens = $this->load();

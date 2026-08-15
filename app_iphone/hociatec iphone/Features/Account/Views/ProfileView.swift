@@ -2,10 +2,12 @@ import SwiftUI
 
 struct ProfileView: View {
     @ObservedObject var account: AccountViewModel
+    @EnvironmentObject private var container: AppContainer
     
     var genders = ["homme", "femme", "autre"]
     @State private var birthDateDate: Date = Date()
     @State private var showRevokeSessionsAlert = false
+    @State private var accessSessionsCount = 0
     
     var body: some View {
         Form {
@@ -59,6 +61,19 @@ struct ProfileView: View {
                 .disabled(account.isLoading || account.firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || account.lastName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || account.email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
             Section("Sécurité") {
+                NavigationLink {
+                    AccountAccessSessionsView(service: container.services.account)
+                } label: {
+                    HStack {
+                        Text("Révoquer les accès (\(accessSessionsCount))")
+                        Spacer()
+                        if accessSessionsCount == 0 {
+                            Text("Aucun")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+
                 Button(role: .destructive) {
                     showRevokeSessionsAlert = true
                 } label: {
@@ -78,6 +93,19 @@ struct ProfileView: View {
         .onAppear {
             if let d = AccountViewModel.birthDateFormatter.date(from: account.birthDate) {
                 birthDateDate = d
+            }
+        }
+        .task {
+            guard account.isLoggedIn else {
+                accessSessionsCount = 0
+                return
+            }
+
+            do {
+                let sessions = try await container.services.account.listAccessSessions()
+                accessSessionsCount = sessions.count
+            } catch {
+                accessSessionsCount = 0
             }
         }
         .onChangeCompat(birthDateDate) { newVal in

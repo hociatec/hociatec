@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 extension APIClient {
     func captureCartToken(from response: HTTPURLResponse) {
@@ -65,5 +66,9 @@ extension APIClient {
         if attachCartToken, let token = sessionStore.cartToken {
             request.setValue(token, forHTTPHeaderField: "X-Cart-Token")
         }
+
+        request.setValue("Application iPhone", forHTTPHeaderField: "X-Hociatec-Client-App")
+        request.setValue("iOS \(UIDevice.current.systemVersion)", forHTTPHeaderField: "X-Hociatec-Client-Platform")
+        request.setValue(UIDevice.current.name, forHTTPHeaderField: "X-Hociatec-Device-Name")
     }
 }

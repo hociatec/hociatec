@@ -82,12 +82,14 @@ extension AccountViewModel {
     func revokeAllSessions() async {
         guard !isRevokingAllSessions else { return }
 
+        profileRequestID += 1
+        addressesRequestID += 1
         isRevokingAllSessions = true
         error = nil
 
         do {
             try await useCases.revokeAllSessions.execute()
-            applyLoggedOutState()
+            session.clearSession()
         } catch let err {
             if shouldIgnore(error: err) {
                 isRevokingAllSessions = false

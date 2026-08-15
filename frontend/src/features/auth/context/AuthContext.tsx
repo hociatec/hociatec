@@ -15,11 +15,14 @@ import type { AuthUser } from '../../../shared/types/auth';
 import {
   fetchCurrentUser,
   loginUser,
+  listAccessSessions as listAccessSessionsRequest,
   logoutUser,
+  revokeAccessSession as revokeAccessSessionRequest,
   type LoginFormPayload,
   updateProfile as updateProfileRequest,
   deleteAccount as deleteAccountRequest,
   revokeAllSessions as revokeAllSessionsRequest,
+  type AccountAccessSession,
   type UpdateProfilePayload,
 } from '../api/authApi';
 import { fetchCart } from '@/features/cart/publicApi';
@@ -37,6 +40,8 @@ interface AuthContextValue {
   updateProfile: (payload: UpdateProfilePayload) => Promise<AuthUser>;
   deleteAccount: () => Promise<void>;
   revokeAllSessions: () => Promise<void>;
+  listAccessSessions: () => Promise<{ items: AccountAccessSession[]; total: number }>;
+  revokeAccessSession: (id: number) => Promise<{ revokedCurrentSession: boolean }>;
 }
 
 const defaultValue: AuthContextValue = {
@@ -58,6 +63,12 @@ const defaultValue: AuthContextValue = {
     throw new Error('AuthProvider not mounted');
   },
   revokeAllSessions: async () => {
+    throw new Error('AuthProvider not mounted');
+  },
+  listAccessSessions: async () => {
+    throw new Error('AuthProvider not mounted');
+  },
+  revokeAccessSession: async () => {
     throw new Error('AuthProvider not mounted');
   },
 };
@@ -214,6 +225,18 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     publishAuthSessionEvent('logout');
   }, [clearLocalSessionState]);
 
+  const listAccessSessions = useCallback(async () => listAccessSessionsRequest(), []);
+
+  const revokeAccessSession = useCallback(async (id: number) => {
+    const result = await revokeAccessSessionRequest(id);
+    if (result.revokedCurrentSession) {
+      clearLocalSessionState();
+      publishAuthSessionEvent('logout');
+    }
+
+    return { revokedCurrentSession: result.revokedCurrentSession };
+  }, [clearLocalSessionState]);
+
   const value = useMemo(
     () => ({
       user,
@@ -226,8 +249,10 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       updateProfile,
       deleteAccount,
       revokeAllSessions,
+      listAccessSessions,
+      revokeAccessSession,
     }),
-    [deleteAccount, loadUser, login, logout, revokeAllSessions, status, updateProfile, user],
+    [deleteAccount, listAccessSessions, loadUser, login, logout, revokeAccessSession, revokeAllSessions, status, updateProfile, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

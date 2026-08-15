@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Auth\Application\Workflow;
 
+use App\Module\Auth\Application\DTO\RefreshTokenContext;
 use App\Module\Auth\Application\Port\RefreshTokenRepositoryPort;
 use App\Module\Auth\Domain\Entity\RefreshToken;
 use App\Module\User\Domain\Entity\User;
@@ -26,10 +27,10 @@ final class RefreshTokenService
     /**
      * @return array{refreshToken: string, expiresAt: string}
      */
-    public function issueForUser(User $user): array
+    public function issueForUser(User $user, ?RefreshTokenContext $context = null): array
     {
-        return $this->transactions->transactional(function () use ($user): array {
-            [$refreshToken, $plainToken, $expiresAt] = $this->createRefreshToken($user);
+        return $this->transactions->transactional(function () use ($user, $context): array {
+            [$refreshToken, $plainToken, $expiresAt] = $this->createRefreshToken($user, $context);
 
             $this->unitOfWork->persist($refreshToken);
             $this->unitOfWork->flush();
@@ -45,7 +46,7 @@ final class RefreshTokenService
     /**
      * @return array{user: User, refreshToken: string, expiresAt: string}|null
      */
-    public function rotate(string $plainToken): ?array
+    public function rotate(string $plainToken, ?RefreshTokenContext $context = null): ?array
     {
         $parts = $this->splitToken($plainToken);
         if (null === $parts) {
@@ -53,7 +54,7 @@ final class RefreshTokenService
         }
         [$selector, $secret] = $parts;
 
-        return $this->transactions->transactional(function () use ($selector, $secret): ?array {
+        return $this->transactions->transactional(function () use ($selector, $secret, $context): ?array {
             $storedToken = $this->refreshTokenRepository->findOneBySelectorForUpdate($selector);
             if (null === $storedToken || $storedToken->isRevoked() || $storedToken->isExpired()) {
                 return null;
@@ -66,7 +67,7 @@ final class RefreshTokenService
             }
 
             $storedToken->revoke();
-            [$refreshToken, $plainToken, $expiresAt] = $this->createRefreshToken($storedToken->getUser());
+            [$refreshToken, $plainToken, $expiresAt] = $this->createRefreshToken($storedToken->getUser(), $context, $storedToken);
             $this->unitOfWork->persist($refreshToken);
             $this->unitOfWork->flush();
             $this->revocations->revokeActiveTokensOverLimit($storedToken->getUser(), self::MAX_ACTIVE_SESSIONS_PER_USER);
@@ -117,12 +118,13 @@ final class RefreshTokenService
     /**
      * @return array{0: RefreshToken, 1: string, 2: \DateTimeImmutable}
      */
-    private function createRefreshToken(User $user): array
+    private function createRefreshToken(User $user, ?RefreshTokenContext $context = null, ?RefreshToken $sourceToken = null): array
     {
         $selector = bin2hex(random_bytes(16));
         $secret = bin2hex(random_bytes(32));
         $plainToken = $selector.'.'.$secret;
         $expiresAt = (new \DateTimeImmutable())->add(new \DateInterval('P'.self::REFRESH_TOKEN_TTL_DAYS.'D'));
+        $createdAt = $sourceToken?->getCreatedAt();
 
         return [
             new RefreshToken(
@@ -130,6 +132,13 @@ final class RefreshTokenService
                 $selector,
                 hash('sha256', $secret),
                 $expiresAt,
+                $context?->deviceLabel ?? $sourceToken?->getDeviceLabel(),
+                $context?->platformLabel ?? $sourceToken?->getPlatformLabel(),
+                $context?->clientLabel ?? $sourceToken?->getClientLabel(),
+                $context?->locationLabel ?? $sourceToken?->getLocationLabel(),
+                $context?->userAgent ?? $sourceToken?->getUserAgent(),
+                $context?->ipAddress ?? $sourceToken?->getIpAddress(),
+                $createdAt,
             ),
             $plainToken,
             $expiresAt,

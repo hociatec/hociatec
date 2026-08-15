@@ -6,6 +6,7 @@ namespace App\Module\Auth\Infrastructure\Security;
 
 use App\Module\Auth\Application\Workflow\RefreshTokenService;
 use App\Module\Auth\Infrastructure\Http\AuthCookieService;
+use App\Module\Auth\Infrastructure\Http\RefreshTokenRequestContextResolver;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,6 +21,7 @@ class AuthenticationSuccessHandler implements AuthenticationSuccessHandlerInterf
         private readonly JWTTokenManagerInterface $jwtManager,
         private readonly RefreshTokenService $refreshTokenService,
         private readonly AuthCookieService $authCookieService,
+        private readonly RefreshTokenRequestContextResolver $refreshTokenContextResolver,
     ) {
     }
 
@@ -34,7 +36,7 @@ class AuthenticationSuccessHandler implements AuthenticationSuccessHandlerInterf
         $rememberSession = true === ($payload['rememberSession'] ?? false);
 
         $jwt = $this->jwtManager->create($securityUser);
-        $refreshToken = $this->refreshTokenService->issueForUser($user);
+        $refreshToken = $this->refreshTokenService->issueForUser($user, $this->refreshTokenContextResolver->resolve($request));
 
         $response = ApiResponse::success([
             'authenticated' => true,

@@ -10,6 +10,8 @@ struct AccountService: AccountServing {
     }
     func logout() async { await api.logout() }
     func revokeAllSessions() async throws { try await api.revokeAllSessions() }
+    func listAccessSessions() async throws -> [AccountAccessSession] { try await api.listAccessSessions() }
+    func revokeAccessSession(id: Int) async throws -> RevokeAccessSessionResponse { try await api.revokeAccessSession(id: id) }
 
     func updateProfile(
         firstName: String,

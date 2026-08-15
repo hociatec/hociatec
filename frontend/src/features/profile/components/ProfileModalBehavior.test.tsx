@@ -45,6 +45,8 @@ const authValue = {
   updateProfile: async () => user,
   deleteAccount: async () => undefined,
   revokeAllSessions: async () => undefined,
+  listAccessSessions: async () => ({ items: [], total: 0 }),
+  revokeAccessSession: async () => ({ revokedCurrentSession: false }),
 };
 
 afterEach(() => {

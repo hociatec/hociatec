@@ -3,6 +3,7 @@ import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle';
 import { ProfileDangerZone } from '../components/ProfileDangerZone';
 import { ProfileEditDialog } from '../components/ProfileEditDialog';
 import { ProfileInformationCard } from '../components/ProfileInformationCard';
+import { ProfileAccessSessionsCard } from '../components/ProfileAccessSessionsCard';
 import { ProfileSummaryCard } from '../components/ProfileSummaryCard';
 import { useProfileController } from '../hooks/useProfileController';
 
@@ -18,6 +19,10 @@ export const ProfilePage = () => {
     isSaving,
     isDeleting,
     isRevokingSessions,
+    accessSessions,
+    isLoadingAccessSessions,
+    isAccessManagerOpen,
+    revokingSessionId,
     form,
     initials,
     formattedRoles,
@@ -29,6 +34,8 @@ export const ProfilePage = () => {
     handleSubmitProfile,
     handleConfirmDelete,
     handleConfirmRevokeAllSessions,
+    handleToggleAccessManager,
+    handleRevokeSession,
   } = useProfileController();
 
   if (!user) return null;
@@ -74,6 +81,15 @@ export const ProfilePage = () => {
           isRevokingSessions={isRevokingSessions}
           onConfirmDelete={handleConfirmDelete}
           onConfirmRevokeAllSessions={handleConfirmRevokeAllSessions}
+        />
+
+        <ProfileAccessSessionsCard
+          sessions={accessSessions}
+          isLoading={isLoadingAccessSessions}
+          isOpen={isAccessManagerOpen}
+          revokingSessionId={revokingSessionId}
+          onToggle={handleToggleAccessManager}
+          onRevoke={handleRevokeSession}
         />
         {isEditing ? (
           <ProfileEditDialog

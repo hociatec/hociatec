@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Auth\UI\Controller;
 
 use App\Module\Auth\Application\Workflow\RefreshTokenService;
+use App\Module\Auth\Infrastructure\Http\RefreshTokenRequestContextResolver;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\AuthCookieResponseWriter;
 use App\Shared\Infrastructure\Http\CsrfExempt;
@@ -26,6 +27,7 @@ class RefreshTokenController extends AbstractController
         private readonly RefreshTokenService $refreshTokenService,
         private readonly JWTTokenManagerInterface $jwtManager,
         private readonly AuthCookieResponseWriter $authCookieService,
+        private readonly RefreshTokenRequestContextResolver $refreshTokenContextResolver,
         private readonly RateLimitKeyFactory $rateLimitKeys,
         #[Autowire(service: 'limiter.auth_refresh')]
         private readonly RateLimiterFactory $refreshLimiter,
@@ -54,7 +56,7 @@ class RefreshTokenController extends AbstractController
             return ApiResponse::error('Refresh token manquant.', Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $rotated = $this->refreshTokenService->rotate($refreshToken);
+        $rotated = $this->refreshTokenService->rotate($refreshToken, $this->refreshTokenContextResolver->resolve($request));
         if (null === $rotated) {
             return ApiResponse::error('Refresh token invalide ou expiré.', Response::HTTP_UNAUTHORIZED);
         }

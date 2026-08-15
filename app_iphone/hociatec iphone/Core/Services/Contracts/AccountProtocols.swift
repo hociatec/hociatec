@@ -6,6 +6,8 @@ protocol AccountServing {
     func login(email: String, password: String, rememberSession: Bool) async throws -> String
     func logout() async
     func revokeAllSessions() async throws
+    func listAccessSessions() async throws -> [AccountAccessSession]
+    func revokeAccessSession(id: Int) async throws -> RevokeAccessSessionResponse
     func updateProfile(
         firstName: String,
         lastName: String,

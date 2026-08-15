@@ -77,6 +77,31 @@ extension APIClient {
         sessionStore.clearSession()
     }
 
+    func listAccessSessions() async throws -> [AccountAccessSession] {
+        let data: AccountAccessSessionListData = try await request(
+            path: "api/auth/sessions",
+            authorized: true,
+            attachCartToken: false
+        )
+
+        return data.items
+    }
+
+    func revokeAccessSession(id: Int) async throws -> RevokeAccessSessionResponse {
+        let response: RevokeAccessSessionResponse = try await request(
+            path: "api/auth/sessions/\(id)",
+            method: "DELETE",
+            authorized: true,
+            attachCartToken: false
+        )
+
+        if response.revokedCurrentSession {
+            sessionStore.clearSession()
+        }
+
+        return response
+    }
+
     func updateProfile(
         firstName: String,
         lastName: String,

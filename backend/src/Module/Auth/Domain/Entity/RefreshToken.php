@@ -33,16 +33,56 @@ class RefreshToken
     #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
+    #[ORM\Column(name: 'last_used_at', type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $lastUsedAt = null;
+
     #[ORM\Column(name: 'revoked_at', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $revokedAt = null;
 
-    public function __construct(User $user, string $selector, string $tokenHash, \DateTimeImmutable $expiresAt)
-    {
+    #[ORM\Column(name: 'device_label', length: 180, nullable: true)]
+    private ?string $deviceLabel = null;
+
+    #[ORM\Column(name: 'platform_label', length: 120, nullable: true)]
+    private ?string $platformLabel = null;
+
+    #[ORM\Column(name: 'client_label', length: 120, nullable: true)]
+    private ?string $clientLabel = null;
+
+    #[ORM\Column(name: 'location_label', length: 180, nullable: true)]
+    private ?string $locationLabel = null;
+
+    #[ORM\Column(name: 'user_agent', length: 512, nullable: true)]
+    private ?string $userAgent = null;
+
+    #[ORM\Column(name: 'ip_address', length: 64, nullable: true)]
+    private ?string $ipAddress = null;
+
+    public function __construct(
+        User $user,
+        string $selector,
+        string $tokenHash,
+        \DateTimeImmutable $expiresAt,
+        ?string $deviceLabel = null,
+        ?string $platformLabel = null,
+        ?string $clientLabel = null,
+        ?string $locationLabel = null,
+        ?string $userAgent = null,
+        ?string $ipAddress = null,
+        ?\DateTimeImmutable $createdAt = null,
+        ?\DateTimeImmutable $lastUsedAt = null,
+    ) {
         $this->user = $user;
         $this->selector = $selector;
         $this->tokenHash = $tokenHash;
         $this->expiresAt = $expiresAt;
-        $this->createdAt = new \DateTimeImmutable();
+        $this->deviceLabel = self::normalizeOptionalText($deviceLabel);
+        $this->platformLabel = self::normalizeOptionalText($platformLabel);
+        $this->clientLabel = self::normalizeOptionalText($clientLabel);
+        $this->locationLabel = self::normalizeOptionalText($locationLabel);
+        $this->userAgent = self::normalizeOptionalText($userAgent);
+        $this->ipAddress = self::normalizeOptionalText($ipAddress);
+        $this->createdAt = $createdAt ?? new \DateTimeImmutable();
+        $this->lastUsedAt = $lastUsedAt ?? $this->createdAt;
     }
 
     public function getId(): ?int
@@ -75,9 +115,63 @@ class RefreshToken
         return $this->createdAt;
     }
 
+    public function getLastUsedAt(): ?\DateTimeImmutable
+    {
+        return $this->lastUsedAt;
+    }
+
     public function getRevokedAt(): ?\DateTimeImmutable
     {
         return $this->revokedAt;
+    }
+
+    public function getDeviceLabel(): ?string
+    {
+        return $this->deviceLabel;
+    }
+
+    public function getPlatformLabel(): ?string
+    {
+        return $this->platformLabel;
+    }
+
+    public function getClientLabel(): ?string
+    {
+        return $this->clientLabel;
+    }
+
+    public function getLocationLabel(): ?string
+    {
+        return $this->locationLabel;
+    }
+
+    public function getUserAgent(): ?string
+    {
+        return $this->userAgent;
+    }
+
+    public function getIpAddress(): ?string
+    {
+        return $this->ipAddress;
+    }
+
+    public function updateAccessContext(
+        ?string $deviceLabel,
+        ?string $platformLabel,
+        ?string $clientLabel,
+        ?string $locationLabel,
+        ?string $userAgent,
+        ?string $ipAddress,
+    ): self {
+        $this->deviceLabel = self::normalizeOptionalText($deviceLabel) ?? $this->deviceLabel;
+        $this->platformLabel = self::normalizeOptionalText($platformLabel) ?? $this->platformLabel;
+        $this->clientLabel = self::normalizeOptionalText($clientLabel) ?? $this->clientLabel;
+        $this->locationLabel = self::normalizeOptionalText($locationLabel) ?? $this->locationLabel;
+        $this->userAgent = self::normalizeOptionalText($userAgent) ?? $this->userAgent;
+        $this->ipAddress = self::normalizeOptionalText($ipAddress) ?? $this->ipAddress;
+        $this->lastUsedAt = new \DateTimeImmutable();
+
+        return $this;
     }
 
     public function revoke(): self
@@ -95,5 +189,16 @@ class RefreshToken
     public function isRevoked(): bool
     {
         return null !== $this->revokedAt;
+    }
+
+    private static function normalizeOptionalText(?string $value): ?string
+    {
+        if (null === $value) {
+            return null;
+        }
+
+        $normalized = trim($value);
+
+        return '' === $normalized ? null : $normalized;
     }
 }

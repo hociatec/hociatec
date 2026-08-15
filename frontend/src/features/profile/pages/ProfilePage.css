@@ -83,6 +83,10 @@
   padding: 1.5rem;
 }
 
+.profile-card--sessions p {
+  margin: 0;
+}
+
 .profile-card--main {
   min-width: 0;
 }
@@ -167,6 +171,49 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
+}
+
+.profile-sessions__status {
+  color: var(--hocia-muted);
+}
+
+.profile-sessions__list {
+  display: grid;
+  gap: 0.9rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.profile-sessions__item {
+  align-items: center;
+  border: 1px solid var(--hocia-line);
+  border-radius: 8px;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 1rem;
+}
+
+.profile-sessions__meta {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.profile-sessions__topline {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.profile-sessions__badge {
+  background: #e0f2fe;
+  border-radius: 999px;
+  color: var(--hocia-blue-dark);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.22rem 0.6rem;
 }
 
 .profile-form__button--ghost {

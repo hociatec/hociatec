@@ -114,6 +114,28 @@ struct CsrfTokenData: Decodable {
     let token: String
 }
 
+struct AccountAccessSession: Decodable, Identifiable {
+    let id: Int
+    let deviceLabel: String
+    let platformLabel: String
+    let clientLabel: String
+    let locationLabel: String
+    let createdAt: Date
+    let lastUsedAt: Date
+    let expiresAt: Date
+    let current: Bool
+}
+
+struct AccountAccessSessionListData: Decodable {
+    let items: [AccountAccessSession]
+    let total: Int
+}
+
+struct RevokeAccessSessionResponse: Decodable {
+    let message: String
+    let revokedCurrentSession: Bool
+}
+
 struct UserProfile: Codable, Identifiable {
     let id: Int
     let email: String

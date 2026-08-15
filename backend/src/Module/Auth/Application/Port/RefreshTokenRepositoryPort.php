@@ -13,6 +13,13 @@ interface RefreshTokenRepositoryPort
 
     public function findOneBySelectorForUpdate(string $selector): ?RefreshToken;
 
+    /**
+     * @return list<RefreshToken>
+     */
+    public function findActiveForUser(User $user): array;
+
+    public function findOneActiveByIdForUser(int $id, User $user): ?RefreshToken;
+
     public function revokeAllForUser(User $user): void;
 
     public function revokeAllActive(): int;
