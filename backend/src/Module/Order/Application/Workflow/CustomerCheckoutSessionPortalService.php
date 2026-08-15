@@ -57,7 +57,11 @@ final readonly class CustomerCheckoutSessionPortalService
         }
 
         if (OrderCheckoutSession::STATUS_OPEN === $checkout->getStatus()) {
-            $this->checkoutExpirer->expire($checkout);
+            try {
+                $this->checkoutExpirer->expire($checkout);
+            } catch (\Throwable) {
+                // A local cancellation must remain possible even if Stripe can no longer expire the session.
+            }
             $checkout->markExpired('mobile_checkout_cancelled');
             $this->persistence->persist($checkout);
             $this->persistence->flush();
@@ -65,7 +69,7 @@ final readonly class CustomerCheckoutSessionPortalService
 
         $order = null !== $checkout->getOrderId() ? $this->orders->find($checkout->getOrderId()) : null;
 
-        return $this->payload($checkout, $order);
+        return $this->payload($checkout, $order, false);
     }
 
     private function checkoutSessionForUser(User $user, string $stripeSessionId): ?OrderCheckoutSession
@@ -81,13 +85,13 @@ final readonly class CustomerCheckoutSessionPortalService
     /**
      * @return array<string, mixed>
      */
-    private function payload(OrderCheckoutSession $checkout, ?Order $order): array
+    private function payload(OrderCheckoutSession $checkout, ?Order $order, bool $includeOrder = true): array
     {
         return [
             'status' => $checkout->getStatus(),
             'checkoutSessionId' => $checkout->getStripeSessionId(),
             'orderId' => $order?->getId(),
-            'order' => null !== $order ? $this->formatter->formatOrder($order) : null,
+            'order' => $includeOrder && null !== $order ? $this->formatter->formatOrder($order) : null,
         ];
     }
 }

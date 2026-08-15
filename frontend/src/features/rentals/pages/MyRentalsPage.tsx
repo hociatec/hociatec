@@ -82,6 +82,22 @@ const clampApiDate = (value: string, minimum?: string, maximum?: string) => {
   return value;
 };
 
+const clearPendingExtensionState = (rental: RentalItemDto): RentalItemDto => ({
+  ...rental,
+  request: {
+    ...rental.request,
+    status: 'none',
+    type: null,
+    requestedEndDate: null,
+  },
+  extension: {
+    ...rental.extension,
+    checkoutSessionId: null,
+    checkoutUrl: null,
+    checkoutStatus: 'expired',
+  },
+});
+
 const RentalCard = ({
   rental,
   onOpenDialog,
@@ -428,13 +444,39 @@ export const MyRentalsPage = () => {
   });
 
   const cancelExtensionPaymentMutation = useMutation({
-    mutationFn: (stripeSessionId: string) => cancelCheckoutSession(stripeSessionId),
+    mutationFn: (rental: RentalItemDto) => cancelCheckoutSession(rental.extension.checkoutSessionId ?? ''),
+    onMutate: async (rental) => {
+      await queryClient.cancelQueries({ queryKey: ['rentals', 'me'] });
+      const previous = queryClient.getQueryData<Awaited<ReturnType<typeof fetchMyRentals>>>(['rentals', 'me']);
+      if (previous) {
+        queryClient.setQueryData(['rentals', 'me'], {
+          ...previous,
+          upcoming: previous.upcoming.map((item) => item.orderItemId === rental.orderItemId ? clearPendingExtensionState(item) : item),
+          past: previous.past.map((item) => item.orderItemId === rental.orderItemId ? clearPendingExtensionState(item) : item),
+        });
+      }
+
+      return { previous };
+    },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['rentals', 'me'] });
+      await queryClient.fetchQuery({ queryKey: ['rentals', 'me'], queryFn: fetchMyRentals });
       toast.show('La tentative de paiement a été annulée. Vous pouvez relancer une prolongation.', { variant: 'success' });
     },
-    onError: (reason) => {
-      toast.show(getHttpErrorMessage(reason, "Impossible d'annuler ce paiement en attente."), { variant: 'error' });
+    onError: async (_reason, rental, context) => {
+      const refreshed = await queryClient.fetchQuery({ queryKey: ['rentals', 'me'], queryFn: fetchMyRentals }).catch(() => null);
+      const refreshedRental = refreshed
+        ? [...refreshed.upcoming, ...refreshed.past].find((item) => item.orderItemId === rental.orderItemId)
+        : null;
+
+      if (refreshedRental && refreshedRental.request.status !== 'pending_payment') {
+        toast.show('La tentative de paiement a été annulée. Vous pouvez relancer une prolongation.', { variant: 'success' });
+        return;
+      }
+
+      if (context?.previous) {
+        queryClient.setQueryData(['rentals', 'me'], context.previous);
+      }
+      toast.show("Impossible d'annuler ce paiement en attente.", { variant: 'error' });
     },
     onSettled: () => {
       setLoadingAction(null);
@@ -556,7 +598,7 @@ export const MyRentalsPage = () => {
     }
 
     setLoadingAction(`cancel-payment:${rental.orderItemId}`);
-    cancelExtensionPaymentMutation.mutate(rental.extension.checkoutSessionId);
+    cancelExtensionPaymentMutation.mutate(rental);
   };
 
   return (

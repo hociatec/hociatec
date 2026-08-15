@@ -156,13 +156,19 @@ final class MyRentalsViewModel: ObservableObject {
         submittingActionKey = actionKey
         error = nil
         successMessage = nil
+        apply(clearingPendingExtensionState(for: rental))
 
         do {
             _ = try await service.cancelPendingExtensionCheckout(stripeSessionId: stripeSessionId)
             await load(force: true)
             successMessage = "La tentative de paiement a ete annulee. Vous pouvez relancer une prolongation."
         } catch {
-            self.error = error.localizedDescription
+            await load(force: true)
+            if rentalState(for: rental.orderItemId)?.request.status != "pending_payment" {
+                successMessage = "La tentative de paiement a ete annulee. Vous pouvez relancer une prolongation."
+            } else {
+                self.error = error.localizedDescription
+            }
         }
 
         if submittingActionKey == actionKey {
@@ -178,5 +184,41 @@ final class MyRentalsViewModel: ObservableObject {
         if let index = past.firstIndex(where: { $0.id == updated.id }) {
             past[index] = updated
         }
+    }
+
+    private func rentalState(for orderItemId: Int) -> RentalItem? {
+        upcoming.first(where: { $0.orderItemId == orderItemId })
+            ?? past.first(where: { $0.orderItemId == orderItemId })
+    }
+
+    private func clearingPendingExtensionState(for rental: RentalItem) -> RentalItem {
+        RentalItem(
+            orderItemId: rental.orderItemId,
+            orderId: rental.orderId,
+            orderNumber: rental.orderNumber,
+            productName: rental.productName,
+            productSku: rental.productSku,
+            quantity: rental.quantity,
+            linePriceCents: rental.linePriceCents,
+            rentalMonths: rental.rentalMonths,
+            startDate: rental.startDate,
+            endDate: rental.endDate,
+            timelineStatus: rental.timelineStatus,
+            timelineStatusLabel: rental.timelineStatusLabel,
+            request: RentalRequestState(
+                status: "none",
+                type: nil,
+                requestedEndDate: nil,
+                createdAt: rental.request.createdAt
+            ),
+            extensionState: RentalExtensionState(
+                orderId: rental.extensionState.orderId,
+                sourceOrderItemId: rental.extensionState.sourceOrderItemId,
+                checkoutSessionId: nil,
+                checkoutUrl: nil,
+                checkoutStatus: "expired"
+            ),
+            returnPlan: rental.returnPlan
+        )
     }
 }
