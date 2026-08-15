@@ -14,6 +14,10 @@ final class ProductDetailViewModel: ObservableObject {
     @Published var isLoadingReviews = false
     @Published var reviewsError: String?
     @Published var isFavorite = false
+    @Published var favoriteFeedback: FeedbackDialogState?
+    var hasLoadedInitialDataOnce = false
+    var hasLoadedFavoriteOnce = false
+    var hasLoadedFirstReviewsPageOnce = false
 
     let loadDetailUseCase: LoadProductDetailUseCase
     let loadReviewsUseCase: LoadProductReviewsUseCase

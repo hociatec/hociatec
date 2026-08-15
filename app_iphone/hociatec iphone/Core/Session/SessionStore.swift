@@ -145,7 +145,7 @@ final class SessionStore: ObservableObject {
     private func clearAuthCookies() {
         let storage = HTTPCookieStorage.shared
         storage.cookies?
-            .filter { ["hociatec_access", "hociatec_refresh", "hociatec_csrf"].contains($0.name) }
+            .filter { ["hociatec_access", "hociatec_refresh", "hociatec_csrf", "hociatec_session_preference"].contains($0.name) }
             .forEach { storage.deleteCookie($0) }
     }
 

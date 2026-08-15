@@ -29,14 +29,15 @@ func productPriceLabel(_ product: Product) -> String {
 }
 
 func facebookShareURL(for product: Product) -> URL {
-    let target = "https://hociatec.fr/catalogue/produits/\(product.slug)"
+    let target = AppConfig.websiteURL(path: "/catalogue/produits/\(product.slug)").absoluteString
     let encodedTarget = target.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? target
     return URL(string: "https://www.facebook.com/sharer/sharer.php?u=\(encodedTarget)")!
 }
 
 func emailShareURL(for product: Product) -> URL {
     let subject = "Découvrir \(product.name)"
-    let body = "\(product.name)\n\(productPriceLabel(product))\nhttps://hociatec.fr/catalogue/produits/\(product.slug)"
+    let productURL = AppConfig.websiteURL(path: "/catalogue/produits/\(product.slug)").absoluteString
+    let body = "\(product.name)\n\(productPriceLabel(product))\n\(productURL)"
     let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? subject
     let encodedBody = body.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? body
     return URL(string: "mailto:?subject=\(encodedSubject)&body=\(encodedBody)")!

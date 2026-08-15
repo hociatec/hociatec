@@ -6,9 +6,11 @@ struct FavoriteToggleButton: View {
 
     let category: FavoriteCategory
     let targetId: Int
+    var onRemoved: (() -> Void)? = nil
 
     @State private var isFavorite = false
     @State private var isLoading = false
+    @State private var feedbackDialog: FeedbackDialogState?
 
     var body: some View {
         Button {
@@ -31,11 +33,11 @@ struct FavoriteToggleButton: View {
         .disabled(!account.isLoggedIn || isLoading)
         .accessibilityLabel(isFavorite ? "Retirer des favoris" : "Ajouter aux favoris")
         .accessibilityHint(account.isLoggedIn ? "Met à jour ce favori" : "Connectez-vous pour ajouter ce produit aux favoris")
-        .accessibilityValue(accessibilityValue)
         .accessibilityAddTraits(isFavorite ? .isSelected : [])
         .task(id: account.isLoggedIn) {
             await loadStatus()
         }
+        .feedbackDialog($feedbackDialog)
     }
 
     private var buttonForegroundColor: Color {
@@ -45,15 +47,6 @@ struct FavoriteToggleButton: View {
 
         return account.isLoggedIn ? .primary : .secondary
     }
-
-    private var accessibilityValue: String {
-        if !account.isLoggedIn {
-            return "Indisponible"
-        }
-
-        return isFavorite ? "Sélectionné" : ""
-    }
-
     private func loadStatus() async {
         guard account.isLoggedIn else {
             isFavorite = false
@@ -77,14 +70,15 @@ struct FavoriteToggleButton: View {
             if isFavorite {
                 _ = try await container.services.favorites.removeFavorite(category: category, targetId: targetId)
                 isFavorite = false
-                container.feedbackCenter.presentSuccess("Favori retiré.")
+                onRemoved?()
+                feedbackDialog = .success("Favori retiré.")
             } else {
                 _ = try await container.services.favorites.addFavorite(category: category, targetId: targetId)
                 isFavorite = true
-                container.feedbackCenter.presentSuccess("Favori ajouté.")
+                feedbackDialog = .success("Favori ajouté.")
             }
         } catch {
-            container.feedbackCenter.presentError("Impossible de mettre à jour ce favori. \(error.localizedDescription)")
+            feedbackDialog = .error("Impossible de mettre à jour ce favori. \(error.localizedDescription)")
         }
     }
 }

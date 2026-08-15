@@ -1,8 +1,12 @@
 import Foundation
 
 extension APIClient {
-    func login(email: String, password: String) async throws -> String {
-        let payload = ["email": email, "password": password]
+    func login(email: String, password: String, rememberSession: Bool) async throws -> String {
+        let payload: [String: Any] = [
+            "email": email,
+            "password": password,
+            "rememberSession": rememberSession
+        ]
         let (data, response) = try await rawRequest(
             path: "api/auth/login",
             method: "POST",
@@ -60,6 +64,16 @@ extension APIClient {
             )
         } catch {
         }
+        sessionStore.clearSession()
+    }
+
+    func revokeAllSessions() async throws {
+        let _: APIEnvelope<APIErrorPayload?> = try await request(
+            path: "api/auth/sessions/revoke-all",
+            method: "POST",
+            authorized: true,
+            attachCartToken: false
+        )
         sessionStore.clearSession()
     }
 

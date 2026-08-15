@@ -7,6 +7,7 @@ struct ProductCatalogCard: View {
     let cart: CartViewModel
     @Binding var selectedTab: Int
     let isCompact: Bool
+    var onFavoriteRemoved: (() -> Void)? = nil
 
     @EnvironmentObject private var container: AppContainer
     @State private var alertState = ProductDetailAlertState()
@@ -41,6 +42,7 @@ struct ProductCatalogCard: View {
             ProductCatalogActions(
                 product: product,
                 cart: cart,
+                onFavoriteRemoved: onFavoriteRemoved,
                 addToCart: {
                     Task { await addCurrentProductToCart() }
                 }

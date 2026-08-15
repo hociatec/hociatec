@@ -35,6 +35,7 @@ const authValue = (status: React.ContextType<typeof AuthContext>['status'], user
   refresh: async () => undefined,
   updateProfile: async () => baseUser,
   deleteAccount: async () => undefined,
+  revokeAllSessions: async () => undefined,
 });
 
 const adminTree = (

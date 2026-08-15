@@ -31,10 +31,11 @@ export interface RegisterPayload {
 export interface LoginPayload {
   email: string;
   password: string;
+  rememberSession?: boolean;
 }
 
 export interface LoginFormPayload extends LoginPayload {
-  rememberMe?: boolean;
+  rememberSession?: boolean;
 }
 
 export interface AuthSession {
@@ -103,6 +104,17 @@ export const loginUser = async (payload: LoginPayload): Promise<AuthOperationRes
 export const logoutUser = async () => {
   try {
     const { data } = await httpClient.post<ApiResponse<{ message: string }>>('/api/auth/logout');
+    return unwrapResponse(data);
+  } catch (error) {
+    return rethrowApiError(error);
+  } finally {
+    clearCsrfToken();
+  }
+};
+
+export const revokeAllSessions = async () => {
+  try {
+    const { data } = await httpClient.post<ApiResponse<{ message: string }>>('/api/auth/sessions/revoke-all');
     return unwrapResponse(data);
   } catch (error) {
     return rethrowApiError(error);

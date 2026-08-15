@@ -27,12 +27,13 @@ const emptyForm = {
 export type ProfileFormState = typeof emptyForm;
 
 export const useProfileController = () => {
-  const { user, updateProfile, deleteAccount } = useAuth();
+  const { user, updateProfile, deleteAccount, revokeAllSessions } = useAuth();
   const navigate = useNavigate();
   const [feedback, setFeedback] = useState<ProfileFeedback>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isRevokingSessions, setIsRevokingSessions] = useState(false);
   const [form, setForm] = useState(emptyForm);
 
   const buildForm = () =>
@@ -157,12 +158,33 @@ export const useProfileController = () => {
     }
   };
 
+  const handleConfirmRevokeAllSessions = async () => {
+    setFeedback(null);
+    setIsRevokingSessions(true);
+    try {
+      await revokeAllSessions();
+      navigate('/', { replace: true });
+    } catch (error) {
+      const details =
+        error instanceof ApiResponseError && Array.isArray(error.details)
+          ? error.details
+          : [];
+      setFeedback({
+        type: 'error',
+        message: getHttpErrorMessage(error, 'Impossible de révoquer vos accès actuellement.'),
+        details,
+      });
+      setIsRevokingSessions(false);
+    }
+  };
+
   return {
     user,
     feedback,
     isEditing,
     isSaving,
     isDeleting,
+    isRevokingSessions,
     form,
     initials,
     formattedRoles,
@@ -172,6 +194,7 @@ export const useProfileController = () => {
     handleCancelEditing,
     handleSubmitProfile,
     handleConfirmDelete,
+    handleConfirmRevokeAllSessions,
     hasCurrentPasswordRequirement: user
       ? normalizeEmail(form.email) !== normalizeEmail(user.email) || form.password.trim() !== ''
       : false,

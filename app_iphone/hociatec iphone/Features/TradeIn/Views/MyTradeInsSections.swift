@@ -14,6 +14,10 @@ struct TradeInListSection: View {
                 ForEach(viewModel.items) { item in
                     TradeInRow(item: item, viewModel: viewModel)
                 }
+
+                if viewModel.isLoading {
+                    InlineLoadingStatus(message: "Actualisation des reprises…")
+                }
             }
         }
     }

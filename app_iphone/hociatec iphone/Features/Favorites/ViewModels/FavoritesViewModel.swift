@@ -10,13 +10,14 @@ final class FavoritesViewModel: ObservableObject {
 
     private let service: FavoritesServing
     private var loadRequestID = 0
+    private var hasLoadedOnce = false
 
     init(service: FavoritesServing) {
         self.service = service
     }
 
     func load(force: Bool = false) async {
-        if isLoading && !force { return }
+        if (isLoading || hasLoadedOnce) && !force { return }
         loadRequestID += 1
         let requestID = loadRequestID
         isLoading = true
@@ -25,6 +26,7 @@ final class FavoritesViewModel: ObservableObject {
             let favs = try await service.listFavorites(category: selectedCategory)
             guard requestID == loadRequestID else { return }
             items = favs
+            hasLoadedOnce = true
         } catch {
             guard requestID == loadRequestID else { return }
             self.error = error.localizedDescription
@@ -55,5 +57,9 @@ final class FavoritesViewModel: ObservableObject {
         } catch {
             self.error = error.localizedDescription
         }
+    }
+
+    func removeLocally(category: FavoriteCategory, targetId: Int) {
+        items.removeAll { $0.category == category && $0.targetId == targetId }
     }
 }

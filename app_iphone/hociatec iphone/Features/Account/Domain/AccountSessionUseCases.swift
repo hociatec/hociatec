@@ -3,8 +3,8 @@ import Foundation
 struct LoginUseCase {
     let repository: AccountRepository
 
-    func execute(email: String, password: String) async throws {
-        try await repository.login(email: email, password: password)
+    func execute(email: String, password: String, rememberSession: Bool) async throws {
+        try await repository.login(email: email, password: password, rememberSession: rememberSession)
     }
 }
 
@@ -47,5 +47,13 @@ struct DeleteAccountUseCase {
 
     func execute() async throws {
         try await repository.deleteAccount()
+    }
+}
+
+struct RevokeAllSessionsUseCase {
+    let repository: AccountRepository
+
+    func execute() async throws {
+        try await repository.revokeAllSessions()
     }
 }

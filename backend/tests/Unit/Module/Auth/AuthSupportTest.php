@@ -53,10 +53,11 @@ final class AuthSupportTest extends TestCase
             'jwt-token',
             'refresh-token',
             '2026-08-10T09:00:00+00:00',
+            true,
         );
 
         $cookies = $response->headers->getCookies();
-        self::assertCount(2, $cookies);
+        self::assertCount(3, $cookies);
         self::assertSame(AuthCookieService::ACCESS_COOKIE, $cookies[0]->getName());
         self::assertSame('jwt-token', $cookies[0]->getValue());
         self::assertSame('/api', $cookies[0]->getPath());
@@ -67,16 +68,23 @@ final class AuthSupportTest extends TestCase
         self::assertSame('/api/auth', $cookies[1]->getPath());
         self::assertTrue($cookies[1]->isSecure());
         self::assertTrue($cookies[1]->isHttpOnly());
+        self::assertSame(AuthCookieService::SESSION_PREFERENCE_COOKIE, $cookies[2]->getName());
+        self::assertSame('persistent', $cookies[2]->getValue());
+        self::assertSame('/api/auth', $cookies[2]->getPath());
+        self::assertTrue($cookies[2]->isSecure());
+        self::assertTrue($cookies[2]->isHttpOnly());
 
         $clearResponse = new Response();
         $service->clearAuthCookies($clearResponse, $request);
         $clearedCookies = $clearResponse->headers->getCookies();
 
-        self::assertCount(2, $clearedCookies);
+        self::assertCount(3, $clearedCookies);
         self::assertSame(AuthCookieService::ACCESS_COOKIE, $clearedCookies[0]->getName());
         self::assertNull($clearedCookies[0]->getValue());
         self::assertSame(AuthCookieService::REFRESH_COOKIE, $clearedCookies[1]->getName());
         self::assertNull($clearedCookies[1]->getValue());
+        self::assertSame(AuthCookieService::SESSION_PREFERENCE_COOKIE, $clearedCookies[2]->getName());
+        self::assertNull($clearedCookies[2]->getValue());
     }
 
     public function testAuthCookieServiceUsesProdEnvironmentForSecureCookies(): void
@@ -91,6 +99,7 @@ final class AuthSupportTest extends TestCase
             'jwt-token',
             'refresh-token',
             '2026-08-10T09:00:00+00:00',
+            true,
         );
 
         foreach ($response->headers->getCookies() as $cookie) {

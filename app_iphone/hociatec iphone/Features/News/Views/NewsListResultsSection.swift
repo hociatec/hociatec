@@ -19,6 +19,10 @@ struct NewsListResultsSection: View {
                 ForEach(viewModel.articles) { article in
                     NewsListRow(service: service, article: article)
                 }
+
+                if viewModel.isLoading {
+                    InlineLoadingStatus(message: "Actualisation des actualités…")
+                }
             }
         }
     }

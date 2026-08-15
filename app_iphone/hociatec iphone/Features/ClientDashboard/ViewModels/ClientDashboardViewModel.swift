@@ -18,6 +18,7 @@ final class ClientDashboardViewModel: ObservableObject {
     let workspaceService: WorkspaceServing
     let actionBuilder = ClientDashboardActionBuilder()
     var loadRequestID = 0
+    var hasLoadedOnce = false
 
     init(
         quoteService: QuoteServing,
@@ -36,7 +37,6 @@ final class ClientDashboardViewModel: ObservableObject {
     func resetVisibleState() {
         error = nil
         partialError = false
-        actions = []
         conversionMessage = nil
     }
 }

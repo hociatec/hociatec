@@ -24,6 +24,10 @@ struct HomeFeaturedProductsSection: View {
                     )
                     .environmentObject(container)
                 }
+
+                if home.isLoading {
+                    InlineLoadingStatus(message: "Actualisation des produits…")
+                }
             }
         }
     }

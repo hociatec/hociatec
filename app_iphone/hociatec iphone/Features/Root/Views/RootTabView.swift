@@ -5,6 +5,7 @@ struct ContentView: View {
     @EnvironmentObject private var cart: CartViewModel
     @EnvironmentObject private var navigation: AppNavigationState
     @State private var productFiltersBadge: Int? = nil
+    @State private var didRefreshCartOnce = false
 
     var body: some View {
         RootTabContainer(
@@ -14,7 +15,11 @@ struct ContentView: View {
             selectedTab: $navigation.selectedTab,
             productFiltersBadge: $productFiltersBadge
         )
-        .task { await cart.refresh() }
+        .task {
+            guard !didRefreshCartOnce else { return }
+            didRefreshCartOnce = true
+            await cart.refresh()
+        }
         .sheet(item: $navigation.presentedSheet) { route in
             NavigationStack {
                 sheetDestination(for: route)

@@ -12,6 +12,7 @@ final class HomeViewModel: ObservableObject {
     private let productsService: ProductServing
     private let serviceCatalogService: ServiceCatalogServing
     private let newsService: NewsServing
+    private var hasLoadedOnce = false
 
     init(productsService: ProductServing, serviceCatalogService: ServiceCatalogServing, newsService: NewsServing) {
         self.productsService = productsService
@@ -20,7 +21,7 @@ final class HomeViewModel: ObservableObject {
     }
 
     func load(force: Bool = false) async {
-        if isLoading && !force { return }
+        if (isLoading || hasLoadedOnce) && !force { return }
         isLoading = true
         error = nil
 
@@ -32,6 +33,7 @@ final class HomeViewModel: ObservableObject {
             featured = try await featuredProducts
             services = selectFeaturedServices(from: try await availableServices.items)
             news = try await latestArticles
+            hasLoadedOnce = true
         } catch let err {
             self.error = err.localizedDescription
         }

@@ -82,6 +82,16 @@ struct ProductDetailView: View {
                 }
             )
         )
+        .feedbackDialog(
+            Binding(
+                get: { viewModel.favoriteFeedback },
+                set: { newValue in
+                    if newValue == nil {
+                        viewModel.favoriteFeedback = nil
+                    }
+                }
+            )
+        )
     }
 
     private var imageURL: URL? {

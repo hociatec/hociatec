@@ -12,12 +12,7 @@ import { useMetaTags } from '@/shared/hooks/useMetaTags';
 import { useToast } from '@/shared/components/ui/toast';
 import { LoginForm, type LoginFormState } from '@/features/auth/components/LoginForm';
 import { logger } from '@/shared/lib/logger';
-import {
-  readLocalStorage,
-  removeLocalStorage,
-  writeLocalStorage,
-  writeSessionStorage,
-} from '@/shared/lib/http/storage';
+import { writeSessionStorage } from '@/shared/lib/http/storage';
 import { isSafeInternalRedirectPath } from '@/shared/lib/redirects';
 
 import './LoginPage.css';
@@ -37,13 +32,6 @@ interface LocationState {
 }
 
 const DEFAULT_AUTHENTICATED_PATH = '/mon-espace';
-const REMEMBERED_EMAIL_KEY = 'hociatec.auth.remembered-email';
-const REMEMBERED_EMAIL_TTL_MS = 1000 * 60 * 60 * 24 * 30;
-
-interface RememberedEmailPayload {
-  email: string;
-  expiresAt: number;
-}
 
 const getAuthenticatedRedirect = (state: LocationState | null) => {
   if (isSafeInternalRedirectPath(state?.redirectTo)) {
@@ -57,38 +45,6 @@ const getAuthenticatedRedirect = (state: LocationState | null) => {
 
   return DEFAULT_AUTHENTICATED_PATH;
 };
-
-const readRememberedEmail = (): string | null => {
-  try {
-    const raw = readLocalStorage(REMEMBERED_EMAIL_KEY);
-    if (!raw) return null;
-
-    const payload = JSON.parse(raw) as Partial<RememberedEmailPayload>;
-    if (typeof payload.email !== 'string' || typeof payload.expiresAt !== 'number') {
-      removeLocalStorage(REMEMBERED_EMAIL_KEY);
-      return null;
-    }
-
-    if (payload.expiresAt <= Date.now()) {
-      removeLocalStorage(REMEMBERED_EMAIL_KEY);
-      return null;
-    }
-
-    return payload.email;
-  } catch (error) {
-    logger.warn('Unable to read remembered login email.', { error });
-    return null;
-  }
-};
-
-const writeRememberedEmail = (email: string) => {
-  writeLocalStorage(
-    REMEMBERED_EMAIL_KEY,
-    JSON.stringify({ email, expiresAt: Date.now() + REMEMBERED_EMAIL_TTL_MS }),
-  );
-};
-
-const clearRememberedEmail = () => removeLocalStorage(REMEMBERED_EMAIL_KEY);
 
 export const LoginPage = () => {
   useDocumentTitle('Connexion');
@@ -107,7 +63,7 @@ export const LoginPage = () => {
   const [form, setForm] = useState<LoginFormState>({
     email: '',
     password: '',
-    rememberMe: false,
+    rememberSession: false,
   });
   const [error, setError] = useState<string | null>(null);
   const [errorDetails, setErrorDetails] = useState<string[]>([]);
@@ -118,13 +74,6 @@ export const LoginPage = () => {
   const loginNoticeId = 'login-form-notice';
 
   const parsedErrorDetails = errorDetails;
-
-  useEffect(() => {
-    const rememberedEmail = readRememberedEmail();
-    if (rememberedEmail) {
-      setForm((prev) => ({ ...prev, email: rememberedEmail, rememberMe: true }));
-    }
-  }, []);
 
   useEffect(() => {
     const state = location.state as LocationState | null;
@@ -172,13 +121,11 @@ export const LoginPage = () => {
     setNotice(null);
 
     try {
-      if (form.rememberMe) {
-        writeRememberedEmail(form.email.trim());
-      } else {
-        clearRememberedEmail();
-      }
-
-      const loginMessage = await login(form);
+      const loginMessage = await login({
+        email: form.email.trim(),
+        password: form.password,
+        rememberSession: form.rememberSession,
+      });
       const state = location.state as LocationState | null;
       const redirectState = state?.redirectState;
       const redirectTo = getAuthenticatedRedirect(state);

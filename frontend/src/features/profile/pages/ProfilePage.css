@@ -152,6 +152,23 @@
   border-color: #fda4af;
 }
 
+.profile-action-button--warning {
+  background: #fff7ed;
+  border-color: #fed7aa;
+  color: #c2410c;
+}
+
+.profile-action-button--warning:hover {
+  background: #ffedd5;
+  border-color: #fdba74;
+}
+
+.profile-danger-zone__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
 .profile-form__button--ghost {
   background: #ffffff;
   border-color: var(--hocia-line);

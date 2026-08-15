@@ -5,6 +5,7 @@ struct ProfileView: View {
     
     var genders = ["homme", "femme", "autre"]
     @State private var birthDateDate: Date = Date()
+    @State private var showRevokeSessionsAlert = false
     
     var body: some View {
         Form {
@@ -57,6 +58,22 @@ struct ProfileView: View {
                 }
                 .disabled(account.isLoading || account.firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || account.lastName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || account.email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
+            Section("Sécurité") {
+                Button(role: .destructive) {
+                    showRevokeSessionsAlert = true
+                } label: {
+                    if account.isRevokingAllSessions {
+                        HStack {
+                            Text("Révocation en cours...")
+                            Spacer()
+                            ProgressView()
+                        }
+                    } else {
+                        Text("Révoquer tous les accès")
+                    }
+                }
+                .disabled(account.isLoading || account.isRevokingAllSessions)
+            }
         }
         .onAppear {
             if let d = AccountViewModel.birthDateFormatter.date(from: account.birthDate) {
@@ -65,6 +82,14 @@ struct ProfileView: View {
         }
         .onChangeCompat(birthDateDate) { newVal in
             account.birthDate = AccountViewModel.birthDateFormatter.string(from: newVal)
+        }
+        .alert("Révoquer tous les accès", isPresented: $showRevokeSessionsAlert) {
+            Button("Annuler", role: .cancel) {}
+            Button("Confirmer", role: .destructive) {
+                Task { await account.revokeAllSessions() }
+            }
+        } message: {
+            Text("Toutes vos sessions en cours seront fermées sur le site web et sur iPhone.")
         }
         .navigationTitle("Profil")
     }

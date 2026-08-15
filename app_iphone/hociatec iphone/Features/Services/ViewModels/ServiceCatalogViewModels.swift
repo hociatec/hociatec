@@ -10,6 +10,7 @@ final class ServiceDetailViewModel: ObservableObject {
     private let serviceCatalog: ServiceCatalogServing
     private let serviceID: Int
     private var loadRequestID = 0
+    private var hasLoadedOnce = false
 
     init(serviceCatalog: ServiceCatalogServing, serviceID: Int) {
         self.serviceCatalog = serviceCatalog
@@ -17,7 +18,7 @@ final class ServiceDetailViewModel: ObservableObject {
     }
 
     func load(force: Bool = false) async {
-        if isLoading && !force { return }
+        if (isLoading || hasLoadedOnce) && !force { return }
         loadRequestID += 1
         let requestID = loadRequestID
         isLoading = true
@@ -27,6 +28,7 @@ final class ServiceDetailViewModel: ObservableObject {
             let loadedService = try await serviceCatalog.publicService(id: serviceID)
             guard requestID == loadRequestID else { return }
             service = loadedService
+            hasLoadedOnce = true
         } catch {
             guard requestID == loadRequestID else { return }
             self.error = error.localizedDescription
@@ -50,6 +52,7 @@ final class ServicesCatalogViewModel: ObservableObject {
 
     private let serviceCatalog: ServiceCatalogServing
     private var loadRequestID = 0
+    private var hasLoadedOnce = false
 
     init(serviceCatalog: ServiceCatalogServing) {
         self.serviceCatalog = serviceCatalog
@@ -71,7 +74,7 @@ final class ServicesCatalogViewModel: ObservableObject {
     }
 
     func load(force: Bool = false) async {
-        if isLoading && !force { return }
+        if (isLoading || hasLoadedOnce) && !force { return }
         loadRequestID += 1
         let requestID = loadRequestID
         isLoading = true
@@ -84,6 +87,7 @@ final class ServicesCatalogViewModel: ObservableObject {
             guard requestID == loadRequestID else { return }
             services = data.items
             totalPages = max(1, data.meta?.totalPages ?? 1)
+            hasLoadedOnce = true
         } catch {
             guard requestID == loadRequestID else { return }
             self.error = error.localizedDescription

@@ -12,7 +12,7 @@ struct CGVLegalView: View {
                 ]),
                 LegalSection(title: "Identification du vendeur", paragraphs: [
                     "Hociatec est une SARL au capital de 1 000 €, immatriculée au RCS de Nanterre sous le numéro SIREN 934 814 559.",
-                    "Siège social : 2 allée Anatoli Vaisser, 92600 Asnières-sur-Seine, France. Contact commercial et service client : contact@hociatec.fr."
+                    "Siège social : \(AppConfig.companyPostalAddress). Contact commercial et service client : \(AppConfig.contactEmail)."
                 ]),
                 LegalSection(title: "Produits, services et prix", paragraphs: [
                     "Hociatec propose la vente et la location de matériel informatique, l'accompagnement technique, les audits, formations et prestations associées.",
@@ -24,7 +24,7 @@ struct CGVLegalView: View {
                 ]),
                 LegalSection(title: "Garanties, rétractation et litiges", paragraphs: [
                     "Le consommateur bénéficie, lorsque la loi le prévoit, d'un droit de rétractation de 14 jours hors exceptions légales, ainsi que des garanties légales applicables.",
-                    "En cas de question ou de litige, le client peut contacter Hociatec à l'adresse contact@hociatec.fr."
+                    "En cas de question ou de litige, le client peut contacter Hociatec à l'adresse \(AppConfig.contactEmail)."
                 ])
             ]
         )

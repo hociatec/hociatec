@@ -35,13 +35,14 @@ final class MyTradeInsViewModel: ObservableObject {
     private var loadRequestID = 0
     private var respondRequestID = 0
     private var shareRequestID = 0
+    private var hasLoadedOnce = false
 
     init(service: TradeInServing) {
         self.service = service
     }
 
     func load(force: Bool = false) async {
-        if isLoading && !force { return }
+        if (isLoading || hasLoadedOnce) && !force { return }
         loadRequestID += 1
         let requestID = loadRequestID
         isLoading = true
@@ -51,6 +52,7 @@ final class MyTradeInsViewModel: ObservableObject {
             let loadedItems = try await service.myTradeIns(page: 1, perPage: 20).items
             guard requestID == loadRequestID else { return }
             items = loadedItems
+            hasLoadedOnce = true
         } catch {
             guard requestID == loadRequestID else { return }
             self.error = error.localizedDescription

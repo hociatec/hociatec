@@ -20,8 +20,17 @@ struct MyQuotesListView: View {
         .sheet(item: $viewModel.sharedFile) { file in
             ActivityView(activityItems: [file.url])
         }
-        .task { await viewModel.load(force: true) }
+        .task { await viewModel.load() }
         .refreshable { await viewModel.load(force: true) }
+        .overlay(alignment: .bottom) {
+            if viewModel.isLoading && !viewModel.quotes.isEmpty {
+                InlineLoadingStatus(message: "Actualisation des devis…")
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 8)
+                    .background(.thinMaterial, in: Capsule())
+                    .padding(.bottom, 8)
+            }
+        }
         .feedbackDialog(error: $viewModel.error, success: $viewModel.successMessage)
         .alert(
             "Supprimer ce devis ?",

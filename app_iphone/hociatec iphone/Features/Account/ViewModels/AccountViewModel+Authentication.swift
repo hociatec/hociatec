@@ -13,7 +13,7 @@ extension AccountViewModel {
         error = nil
 
         do {
-            try await useCases.login.execute(email: email, password: password)
+            try await useCases.login.execute(email: email, password: password, rememberSession: rememberSession)
             session.storeCredentials(email: email, rememberSession: rememberSession)
             try await loadAuthenticatedProfile(requestID: requestID)
         } catch let err {
@@ -77,5 +77,26 @@ extension AccountViewModel {
         addressesRequestID += 1
         await useCases.logout.execute()
         applyLoggedOutState()
+    }
+
+    func revokeAllSessions() async {
+        guard !isRevokingAllSessions else { return }
+
+        isRevokingAllSessions = true
+        error = nil
+
+        do {
+            try await useCases.revokeAllSessions.execute()
+            applyLoggedOutState()
+        } catch let err {
+            if shouldIgnore(error: err) {
+                isRevokingAllSessions = false
+                return
+            }
+
+            self.error = err.localizedDescription
+        }
+
+        isRevokingAllSessions = false
     }
 }

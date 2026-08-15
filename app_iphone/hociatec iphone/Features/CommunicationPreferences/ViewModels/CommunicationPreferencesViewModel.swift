@@ -11,13 +11,14 @@ final class CommunicationPreferencesViewModel: ObservableObject {
     @Published var choices: [CommunicationPreferenceChoice] = []
 
     private let service: WorkspaceServing
+    private var hasLoadedOnce = false
 
     init(service: WorkspaceServing) {
         self.service = service
     }
 
-    func load() async {
-        guard !isLoading else { return }
+    func load(force: Bool = false) async {
+        guard !(isLoading || hasLoadedOnce) || force else { return }
         isLoading = true
         error = nil
         defer { isLoading = false }
@@ -26,6 +27,7 @@ final class CommunicationPreferencesViewModel: ObservableObject {
             let data = try await service.communicationPreferences()
             choices = data.choices
             selectedPreferences = Set(data.preferences)
+            hasLoadedOnce = true
         } catch {
             self.error = error.localizedDescription
         }

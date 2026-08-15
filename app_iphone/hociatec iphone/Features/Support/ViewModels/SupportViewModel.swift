@@ -15,13 +15,14 @@ final class SupportViewModel: ObservableObject {
     private var loadRequestID = 0
     private var detailRequestID = 0
     private var attachmentRequestID = 0
+    private var hasLoadedOnce = false
 
     init(service: SupportServing) {
         self.service = service
     }
 
     func load(force: Bool = false) async {
-        if isLoading && !force { return }
+        if (isLoading || hasLoadedOnce) && !force { return }
         loadRequestID += 1
         let requestID = loadRequestID
         isLoading = true
@@ -31,13 +32,13 @@ final class SupportViewModel: ObservableObject {
             let data = try await service.mySupportRequests(page: 1, perPage: 20)
             guard requestID == loadRequestID else { return }
             items = data.items
+            hasLoadedOnce = true
             if let selectedId = selectedItem?.id {
                 selectedItem = data.items.first(where: { $0.id == selectedId })
             }
         } catch {
             guard requestID == loadRequestID else { return }
             self.error = error.localizedDescription
-            items = []
         }
 
         if requestID == loadRequestID {

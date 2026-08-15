@@ -13,6 +13,7 @@ final class NewsListViewModel: ObservableObject {
 
     private let service: NewsServing
     private var loadRequestID = 0
+    private var hasLoadedOnce = false
 
     init(service: NewsServing) {
         self.service = service
@@ -27,7 +28,7 @@ final class NewsListViewModel: ObservableObject {
     func nextPage() { guard page < totalPages else { return }; page += 1 }
 
     func load(force: Bool = false) async {
-        if isLoading && !force { return }
+        if (isLoading || hasLoadedOnce) && !force { return }
         loadRequestID += 1
         let requestID = loadRequestID
         isLoading = true
@@ -40,6 +41,7 @@ final class NewsListViewModel: ObservableObject {
             guard requestID == loadRequestID else { return }
             articles = data.items
             totalPages = max(1, data.meta.totalPages)
+            hasLoadedOnce = true
         } catch {
             guard requestID == loadRequestID else { return }
             self.error = error.localizedDescription
@@ -68,6 +70,8 @@ final class NewsDetailViewModel: ObservableObject {
     private let slug: String
     private var articleRequestID = 0
     private var commentsRequestID = 0
+    private var hasLoadedArticleOnce = false
+    private var hasLoadedCommentsOnce = false
 
     init(service: NewsServing, slug: String) {
         self.service = service
@@ -78,7 +82,7 @@ final class NewsDetailViewModel: ObservableObject {
     func nextCommentsPage() { guard commentsPage < commentsTotalPages else { return }; commentsPage += 1 }
 
     func loadArticle(force: Bool = false) async {
-        if isLoading && !force { return }
+        if (isLoading || hasLoadedArticleOnce) && !force { return }
         articleRequestID += 1
         let requestID = articleRequestID
         isLoading = true
@@ -88,6 +92,7 @@ final class NewsDetailViewModel: ObservableObject {
             let loadedArticle = try await service.newsArticle(slug: slug)
             guard requestID == articleRequestID else { return }
             article = loadedArticle
+            hasLoadedArticleOnce = true
         } catch {
             guard requestID == articleRequestID else { return }
             self.error = error.localizedDescription
@@ -99,7 +104,7 @@ final class NewsDetailViewModel: ObservableObject {
     }
 
     func loadComments(force: Bool = false) async {
-        if isLoadingComments && !force { return }
+        if (isLoadingComments || hasLoadedCommentsOnce) && !force { return }
         commentsRequestID += 1
         let requestID = commentsRequestID
         isLoadingComments = true
@@ -111,6 +116,7 @@ final class NewsDetailViewModel: ObservableObject {
             guard requestID == commentsRequestID else { return }
             comments = data.items
             commentsTotalPages = max(1, data.meta.totalPages)
+            hasLoadedCommentsOnce = true
         } catch {
             guard requestID == commentsRequestID else { return }
             self.commentsError = error.localizedDescription
@@ -133,6 +139,7 @@ final class NewsDetailViewModel: ObservableObject {
             _ = try await service.createNewsComment(slug: slug, content: content)
             newComment = ""
             commentsPage = 1
+            hasLoadedCommentsOnce = false
             await loadComments(force: true)
         } catch {
             commentsError = error.localizedDescription

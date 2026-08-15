@@ -11,8 +11,16 @@ interface AuthCookieResponseWriter
 {
     public const ACCESS_COOKIE = 'hociatec_access';
     public const REFRESH_COOKIE = 'hociatec_refresh';
+    public const SESSION_PREFERENCE_COOKIE = 'hociatec_session_preference';
 
-    public function attachLoginCookies(Response $response, Request $request, string $jwt, string $refreshToken, string $refreshTokenExpiresAt): void;
+    public function attachLoginCookies(
+        Response $response,
+        Request $request,
+        string $jwt,
+        string $refreshToken,
+        string $refreshTokenExpiresAt,
+        bool $rememberSession,
+    ): void;
 
     public function clearAuthCookies(Response $response, Request $request): void;
 }

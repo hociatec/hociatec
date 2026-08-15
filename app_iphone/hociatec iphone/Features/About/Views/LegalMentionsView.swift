@@ -7,8 +7,8 @@ struct LegalMentionsView: View {
             updatedAt: "20 juillet 2026",
             sections: [
                 LegalSection(title: "Éditeur du site", paragraphs: [
-                    "Le site hociatec.fr est édité par Hociatec, société à responsabilité limitée au capital social de 1 000 €.",
-                    "Siège social : 2 allée Anatoli Vaisser, 92600 Asnières-sur-Seine, France. SIREN : 934 814 559. SIRET : 934 814 559 00019. TVA intracommunautaire : FR59 934 814 559. RCS : Nanterre. Code APE : 4791B."
+                    "Le site \(AppConfig.websiteHost) est édité par Hociatec, société à responsabilité limitée au capital social de 1 000 €.",
+                    "Siège social : \(AppConfig.companyPostalAddress). SIREN : 934 814 559. SIRET : 934 814 559 00019. TVA intracommunautaire : FR59 934 814 559. RCS : Nanterre. Code APE : 4791B."
                 ]),
                 LegalSection(title: "Activité et direction", paragraphs: [
                     "Hociatec exerce notamment dans la vente et la location de matériel informatique, la conception, le développement et la maintenance de solutions numériques, le conseil, l'assistance et les audits.",
@@ -24,7 +24,7 @@ struct LegalMentionsView: View {
                 ]),
                 LegalSection(title: "Responsabilité et contact", paragraphs: [
                     "Hociatec s'efforce de fournir des informations exactes et à jour, mais des erreurs ou indisponibilités temporaires peuvent survenir.",
-                    "Pour toute question relative au site ou pour signaler un contenu, vous pouvez écrire à contact@hociatec.fr."
+                    "Pour toute question relative au site ou pour signaler un contenu, vous pouvez écrire à \(AppConfig.contactEmail)."
                 ])
             ]
         )

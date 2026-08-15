@@ -12,13 +12,14 @@ final class OrdersViewModel: ObservableObject {
     private var loadRequestID = 0
     private var detailRequestID = 0
     private var cancelRequestID = 0
+    private var hasLoadedOnce = false
 
     init(service: OrderServing) {
         self.service = service
     }
 
     func load(force: Bool = false) async {
-        if isLoading && !force { return }
+        if (isLoading || hasLoadedOnce) && !force { return }
         loadRequestID += 1
         let requestID = loadRequestID
         isLoading = true
@@ -28,6 +29,7 @@ final class OrdersViewModel: ObservableObject {
             let loadedOrders = try await service.myOrders()
             guard requestID == loadRequestID else { return }
             applyOrders(loadedOrders)
+            hasLoadedOnce = true
         } catch let err {
             guard requestID == loadRequestID else { return }
             self.error = err.localizedDescription

@@ -2,11 +2,12 @@ import Foundation
 
 extension ClientDashboardViewModel {
     func load(force: Bool = false) async {
-        if isLoading && !force { return }
+        if (isLoading || hasLoadedOnce) && !force { return }
         loadRequestID += 1
         let requestID = loadRequestID
         isLoading = true
-        resetVisibleState()
+        error = nil
+        partialError = false
 
         async let quotesResult = capture { try await self.quoteService.myQuotes() }
         async let appointmentsResult = capture { try await self.appointmentService.myAppointments() }
@@ -53,6 +54,7 @@ extension ClientDashboardViewModel {
             pendingReviews: pendingReviews.value ?? [],
             trainings: trainings.value?.items ?? []
         )
+        hasLoadedOnce = successfulLoads > 0
 
         if requestID == loadRequestID {
             isLoading = false

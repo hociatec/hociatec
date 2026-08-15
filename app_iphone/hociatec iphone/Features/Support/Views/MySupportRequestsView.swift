@@ -33,6 +33,10 @@ struct MySupportRequestsView: View {
                             SupportRequestRow(item: item)
                         }
                     }
+
+                    if viewModel.isLoading {
+                        InlineLoadingStatus(message: "Actualisation des demandes SAV…")
+                    }
                 }
             }
         }

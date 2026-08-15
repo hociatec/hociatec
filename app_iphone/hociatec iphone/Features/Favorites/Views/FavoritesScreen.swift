@@ -41,6 +41,10 @@ struct FavoritesScreen: View {
                     ForEach(viewModel.items) { favorite in
                         favoriteRow(favorite)
                     }
+
+                    if viewModel.isLoading {
+                        InlineLoadingStatus(message: "Actualisation des favoris…")
+                    }
                 }
             }
         }
@@ -60,7 +64,10 @@ struct FavoritesScreen: View {
                     imageURL: container.services.assets.assetURL(for: product.imageUrl),
                     cart: container.cart,
                     selectedTab: .constant(0),
-                    isCompact: false
+                    isCompact: false,
+                    onFavoriteRemoved: {
+                        viewModel.removeLocally(category: .product, targetId: product.id)
+                    }
                 )
                 .environmentObject(container)
             }

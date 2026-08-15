@@ -5,11 +5,6 @@ struct ClientDashboardView: View {
     @EnvironmentObject private var account: AccountViewModel
     @State private var showDeleteConfirmation = false
 
-    private var loadKey: String? {
-        guard let profileID = account.profile?.id else { return nil }
-        return "\(profileID)"
-    }
-
     init(services: AppServices) {
         _viewModel = StateObject(
             wrappedValue: ClientDashboardViewModel(
@@ -29,16 +24,15 @@ struct ClientDashboardView: View {
                 showDeleteConfirmation: $showDeleteConfirmation
             )
         }
-        .id(loadKey ?? "guest-dashboard")
         .navigationTitle("Mon espace")
-        .task(id: loadKey) {
-            guard account.isLoggedIn, loadKey != nil else { return }
-            viewModel.resetVisibleState()
-            await viewModel.load(force: true)
+        .task(id: account.isLoggedIn) {
+            guard account.isLoggedIn else { return }
+            await viewModel.load()
         }
         .onChangeCompat(account.isLoggedIn) { isLoggedIn in
             viewModel.resetVisibleState()
             if !isLoggedIn {
+                viewModel.hasLoadedOnce = false
                 showDeleteConfirmation = false
             }
         }

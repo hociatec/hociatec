@@ -2,7 +2,7 @@ import Foundation
 
 extension TradeInViewModel {
     func loadMetadata(force: Bool = false) async {
-        if isLoading && !force { return }
+        if (isLoading || hasLoadedMetadataOnce) && !force { return }
         metadataRequestID += 1
         let requestID = metadataRequestID
         isLoading = true
@@ -13,6 +13,7 @@ extension TradeInViewModel {
             guard requestID == metadataRequestID else { return }
             categories = metadata.categories
             conditions = metadata.conditions
+            hasLoadedMetadataOnce = true
             if selectedCategory.isEmpty {
                 selectedCategory = metadata.categories.first?.value ?? ""
             }

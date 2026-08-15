@@ -78,7 +78,7 @@ export const MyFavoritesPage = () => {
                     key={option.value}
                     type="button"
                     aria-pressed={isSelected}
-                    aria-label={isSelected ? `${option.label}, catégorie sélectionnée` : option.label}
+                    aria-label={option.label}
                     onClick={() => {
                       setPage(1);
                       setCategory(option.value);

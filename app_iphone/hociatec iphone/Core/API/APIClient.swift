@@ -3,7 +3,7 @@ import Combine
 
 /// Client HTTP léger pour l’API hociatec.fr.
 final class APIClient: ObservableObject {
-    let baseURL = URL(string: "https://api.hociatec.fr")!
+    let baseURL = AppConfig.apiBaseURL
     let authenticatedSessionMarker = "__cookie_session__"
 
     let session: URLSession

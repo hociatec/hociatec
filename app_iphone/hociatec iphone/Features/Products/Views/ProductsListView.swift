@@ -12,6 +12,7 @@ struct ProductsListView: View {
     @State private var showSortSheet: Bool = false
     @State private var showFilterSheet: Bool = false
     @State private var filterDraft = ProductCatalogFilterDraft()
+    @State private var didLoadInitialContent = false
 
     init(
         viewModel: ProductsViewModel,
@@ -84,6 +85,8 @@ struct ProductsListView: View {
             Task { await viewModel.load(force: true) }
         }
         .task {
+            guard !didLoadInitialContent else { return }
+            didLoadInitialContent = true
             await viewModel.loadCategoriesIfNeeded()
             await viewModel.load()
             await cart.refresh()

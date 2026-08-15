@@ -46,6 +46,7 @@ final class MyQuotesViewModel: ObservableObject {
     var loadRequestID = 0
     var shareRequestID = 0
     var deleteRequestID = 0
+    var hasLoadedOnce = false
 
     init(useCases: QuotesUseCases) {
         self.loadMyQuotesUseCase = useCases.loadMyQuotes

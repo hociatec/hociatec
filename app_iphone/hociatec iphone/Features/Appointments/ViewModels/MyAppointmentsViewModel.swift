@@ -12,13 +12,14 @@ final class MyAppointmentsViewModel: ObservableObject {
     private let service: AppointmentServing
     private var loadRequestID = 0
     private var mutationRequestID = 0
+    private var hasLoadedOnce = false
 
     init(service: AppointmentServing) {
         self.service = service
     }
 
     func load(force: Bool = false) async {
-        if isLoading && !force { return }
+        if (isLoading || hasLoadedOnce) && !force { return }
         loadRequestID += 1
         let requestID = loadRequestID
         isLoading = true
@@ -28,6 +29,7 @@ final class MyAppointmentsViewModel: ObservableObject {
             let list = try await service.myAppointments()
             guard requestID == loadRequestID else { return }
             apply(list: list)
+            hasLoadedOnce = true
         } catch let err {
             guard requestID == loadRequestID else { return }
             self.error = err.localizedDescription

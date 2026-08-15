@@ -35,6 +35,15 @@ struct OrdersView: View {
         .refreshable {
             await viewModel.load(force: true)
         }
+        .overlay(alignment: .bottom) {
+            if viewModel.isLoading && !viewModel.orders.isEmpty {
+                InlineLoadingStatus(message: "Actualisation des commandes…")
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 8)
+                    .background(.thinMaterial, in: Capsule())
+                    .padding(.bottom, 8)
+            }
+        }
         .feedbackDialog(error: $viewModel.error)
     }
 }

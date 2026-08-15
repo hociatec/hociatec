@@ -31,6 +31,7 @@ final class AccountViewModel: ObservableObject {
     @Published var addresses: [UserAddress] = []
     @Published var isLoggedIn: Bool
     @Published var rememberSession: Bool
+    @Published var isRevokingAllSessions = false
 
     let useCases: AccountUseCases
     let session: SessionStore

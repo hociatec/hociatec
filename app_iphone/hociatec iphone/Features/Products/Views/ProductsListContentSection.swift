@@ -23,7 +23,7 @@ struct ProductsListContentSection: View {
                     HStack {
                         Button("Précédent") {
                             viewModel.previousPage()
-                            Task { await viewModel.load() }
+                            Task { await viewModel.load(force: true) }
                         }
                         .disabled(viewModel.page <= 1 || viewModel.isLoading)
 
@@ -37,7 +37,7 @@ struct ProductsListContentSection: View {
 
                         Button("Suivant") {
                             viewModel.nextPage()
-                            Task { await viewModel.load() }
+                            Task { await viewModel.load(force: true) }
                         }
                         .disabled(viewModel.page >= viewModel.totalPages || viewModel.isLoading)
                     }
@@ -75,6 +75,10 @@ struct ProductsListContentSection: View {
             ForEach(viewModel.products) { product in
                 productCard(product, isCompact: false)
             }
+        }
+
+        if viewModel.isLoading && !viewModel.products.isEmpty {
+            InlineLoadingStatus(message: "Actualisation des produits…")
         }
     }
 

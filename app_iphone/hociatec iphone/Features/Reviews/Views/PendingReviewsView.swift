@@ -38,7 +38,7 @@ struct PendingReviewsView: View {
         .sheet(isPresented: $showSheet) {
             if let sel = selected {
                 ReviewSheetView(orderId: sel.orderId, orderItemId: sel.orderItemId) { _ in
-                    Task { await viewModel.load(service: container.services.orders) }
+                    Task { await viewModel.load(service: container.services.orders, force: true) }
                 }
                 .environmentObject(container)
             }
@@ -53,16 +53,18 @@ private final class PendingReviewsViewModel: ObservableObject {
     @Published var items: [PendingReviewItem] = []
     @Published var isLoading = false
     @Published var error: String?
+    private var hasLoadedOnce = false
 
-    func load(service: OrderServing) async {
+    func load(service: OrderServing, force: Bool = false) async {
+        guard !(isLoading || hasLoadedOnce) || force else { return }
         isLoading = true
         error = nil
         defer { isLoading = false }
         do {
             items = try await service.pendingReviews()
+            hasLoadedOnce = true
         } catch {
             self.error = error.localizedDescription
-            items = []
         }
     }
 }

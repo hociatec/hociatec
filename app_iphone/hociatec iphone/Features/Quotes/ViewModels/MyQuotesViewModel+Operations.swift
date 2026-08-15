@@ -2,7 +2,7 @@ import Foundation
 
 extension MyQuotesViewModel {
     func load(force: Bool = false) async {
-        if isLoading && !force { return }
+        if (isLoading || hasLoadedOnce) && !force { return }
         loadRequestID += 1
         let requestID = loadRequestID
         isLoading = true
@@ -12,6 +12,7 @@ extension MyQuotesViewModel {
             let loadedQuotes = try await loadMyQuotesUseCase.execute()
             guard requestID == loadRequestID else { return }
             quotes = loadedQuotes
+            hasLoadedOnce = true
         } catch let err {
             guard requestID == loadRequestID else { return }
             error = err.localizedDescription

@@ -51,6 +51,10 @@ struct HomeServicesSection: View {
                     .padding(.vertical, 4)
                     .accessibilityElement(children: .contain)
                 }
+
+                if home.isLoading {
+                    InlineLoadingStatus(message: "Actualisation des services…")
+                }
             }
         }
     }

@@ -7,8 +7,8 @@ struct PrivacyLegalView: View {
             updatedAt: "26 juillet 2026",
             sections: [
                 LegalSection(title: "Responsable de traitement", paragraphs: [
-                    "Le responsable des traitements de données personnelles réalisés via hociatec.fr est Hociatec, SARL immatriculée au RCS de Nanterre sous le numéro SIREN 934 814 559.",
-                    "Siège social : 2 allée Anatoli Vaisser, 92600 Asnières-sur-Seine, France. Contact : contact@hociatec.fr."
+                    "Le responsable des traitements de données personnelles réalisés via \(AppConfig.websiteHost) est Hociatec, SARL immatriculée au RCS de Nanterre sous le numéro SIREN 934 814 559.",
+                    "Siège social : \(AppConfig.companyPostalAddress). Contact : \(AppConfig.contactEmail)."
                 ]),
                 LegalSection(title: "Données collectées", paragraphs: [
                     "Selon les fonctionnalités utilisées, Hociatec peut collecter des données d'identification, de contact, de compte, de commande, de devis, de paiement, de livraison, de rendez-vous, de support et des données techniques strictement nécessaires.",
@@ -24,7 +24,7 @@ struct PrivacyLegalView: View {
                 ]),
                 LegalSection(title: "Vos droits", paragraphs: [
                     "Les personnes concernées disposent notamment de droits d'accès, de rectification, d'effacement, d'opposition, de limitation, de portabilité lorsque applicable, et du droit de retirer leur consentement.",
-                    "Les demandes peuvent être adressées à contact@hociatec.fr. En cas de désaccord, une réclamation peut être adressée à la CNIL."
+                    "Les demandes peuvent être adressées à \(AppConfig.contactEmail). En cas de désaccord, une réclamation peut être adressée à la CNIL."
                 ])
             ]
         )

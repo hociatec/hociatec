@@ -19,6 +19,10 @@ struct ServicesCatalogResultsSection: View {
                 ForEach(viewModel.services) { service in
                     ServiceCatalogRow(serviceCatalog: serviceCatalog, service: service)
                 }
+
+                if viewModel.isLoading {
+                    InlineLoadingStatus(message: "Actualisation des services…")
+                }
             }
         }
     }

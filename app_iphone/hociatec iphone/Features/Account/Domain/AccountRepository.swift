@@ -1,8 +1,9 @@
 import Foundation
 
 protocol AccountRepository {
-    func login(email: String, password: String) async throws
+    func login(email: String, password: String, rememberSession: Bool) async throws
     func logout() async
+    func revokeAllSessions() async throws
     func fetchProfile() async throws -> UserProfile
     func restoreProfileIfPossible() async throws -> UserProfile?
     func updateProfile(

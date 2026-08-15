@@ -41,6 +41,10 @@ struct TrainingsCatalogResultsSection: View {
                         TrainingCatalogRow(training: training)
                     }
                 }
+
+                if viewModel.isLoading {
+                    InlineLoadingStatus(message: "Actualisation des formations…")
+                }
             }
         }
     }

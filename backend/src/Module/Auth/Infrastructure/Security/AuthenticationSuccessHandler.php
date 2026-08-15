@@ -30,6 +30,8 @@ class AuthenticationSuccessHandler implements AuthenticationSuccessHandlerInterf
         if (!$securityUser instanceof UserInterface || null === $user) {
             throw new \LogicException('Authenticated token does not contain a domain user.');
         }
+        $payload = \App\Shared\Infrastructure\Http\JsonRequestInput::payload($request);
+        $rememberSession = true === ($payload['rememberSession'] ?? false);
 
         $jwt = $this->jwtManager->create($securityUser);
         $refreshToken = $this->refreshTokenService->issueForUser($user);
@@ -44,6 +46,7 @@ class AuthenticationSuccessHandler implements AuthenticationSuccessHandlerInterf
             $jwt,
             $refreshToken['refreshToken'],
             $refreshToken['expiresAt'],
+            $rememberSession,
         );
 
         return $response;

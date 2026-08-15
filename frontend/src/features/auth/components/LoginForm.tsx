@@ -4,7 +4,7 @@ import { Link } from 'react-router';
 export type LoginFormState = {
   email: string;
   password: string;
-  rememberMe: boolean;
+  rememberSession: boolean;
 };
 
 type LoginFormProps = {
@@ -96,13 +96,13 @@ export const LoginForm = ({
       </div>
       <label className="login-form__remember">
         <input
-          id="rememberMe"
-          name="rememberMe"
+          id="rememberSession"
+          name="rememberSession"
           type="checkbox"
-          checked={form.rememberMe}
+          checked={form.rememberSession}
           onChange={onChange}
         />
-        <span>Se souvenir de mon email</span>
+        <span>Rester connecté</span>
       </label>
       <button className="button" type="submit">
         Se connecter

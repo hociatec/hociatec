@@ -31,6 +31,7 @@ final class AppContainer: ObservableObject {
             restoreProfile: RestoreAccountProfileUseCase(repository: accountRepository),
             updateProfile: UpdateAccountProfileUseCase(repository: accountRepository),
             deleteAccount: DeleteAccountUseCase(repository: accountRepository),
+            revokeAllSessions: RevokeAllSessionsUseCase(repository: accountRepository),
             register: RegisterAccountUseCase(repository: accountRepository),
             loadAddresses: LoadAccountAddressesUseCase(repository: accountRepository),
             createAddress: CreateAccountAddressUseCase(repository: accountRepository),

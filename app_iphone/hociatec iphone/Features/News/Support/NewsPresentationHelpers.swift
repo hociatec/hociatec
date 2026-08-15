@@ -9,5 +9,5 @@ let newsDateFormatter: DateFormatter = {
 }()
 
 func newsShareURL(for article: NewsArticle) -> URL {
-    URL(string: "https://hociatec.fr/actualites/\(article.slug)")!
+    AppConfig.websiteURL(path: "/actualites/\(article.slug)")
 }

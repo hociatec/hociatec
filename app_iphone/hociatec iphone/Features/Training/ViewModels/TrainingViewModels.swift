@@ -16,6 +16,7 @@ final class TrainingsCatalogViewModel: ObservableObject {
     private let service: TrainingServing
     private var categoriesRequestID = 0
     private var loadRequestID = 0
+    private var hasLoadedOnce = false
 
     init(service: TrainingServing) {
         self.service = service
@@ -46,7 +47,7 @@ final class TrainingsCatalogViewModel: ObservableObject {
     }
 
     func load(force: Bool = false) async {
-        if isLoading && !force { return }
+        if (isLoading || hasLoadedOnce) && !force { return }
         loadRequestID += 1
         let requestID = loadRequestID
         isLoading = true
@@ -59,6 +60,7 @@ final class TrainingsCatalogViewModel: ObservableObject {
             let data = try await service.trainings(page: requestedPage, perPage: 8, query: requestedSearch, category: requestedCategory)
             guard requestID == loadRequestID else { return }
             apply(data: data)
+            hasLoadedOnce = true
         } catch {
             guard requestID == loadRequestID else { return }
             self.error = error.localizedDescription
@@ -92,6 +94,7 @@ final class TrainingDetailViewModel: ObservableObject {
     private let slug: String
     private var loadRequestID = 0
     private var enrollmentRequestID = 0
+    private var hasLoadedOnce = false
 
     init(service: TrainingServing, slug: String) {
         self.service = service
@@ -99,7 +102,7 @@ final class TrainingDetailViewModel: ObservableObject {
     }
 
     func load(force: Bool = false) async {
-        if isLoading && !force { return }
+        if (isLoading || hasLoadedOnce) && !force { return }
         loadRequestID += 1
         let requestID = loadRequestID
         isLoading = true
@@ -110,6 +113,7 @@ final class TrainingDetailViewModel: ObservableObject {
             let data = try await service.training(slug: slug)
             guard requestID == loadRequestID else { return }
             apply(data: data)
+            hasLoadedOnce = true
         } catch {
             guard requestID == loadRequestID else { return }
             self.error = error.localizedDescription

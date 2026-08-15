@@ -39,6 +39,10 @@ private struct AuditListSection: View {
                         AuditListRow(audit: audit)
                     }
                 }
+
+                if viewModel.isLoading {
+                    InlineLoadingStatus(message: "Actualisation des audits…")
+                }
             }
         }
     }

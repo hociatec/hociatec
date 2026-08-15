@@ -7,6 +7,7 @@ struct AccountUseCases {
     let restoreProfile: RestoreAccountProfileUseCase
     let updateProfile: UpdateAccountProfileUseCase
     let deleteAccount: DeleteAccountUseCase
+    let revokeAllSessions: RevokeAllSessionsUseCase
     let register: RegisterAccountUseCase
     let loadAddresses: LoadAccountAddressesUseCase
     let createAddress: CreateAccountAddressUseCase

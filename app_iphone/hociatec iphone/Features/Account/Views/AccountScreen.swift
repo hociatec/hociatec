@@ -3,6 +3,7 @@ import SwiftUI
 struct AccountScreen: View {
     @EnvironmentObject private var container: AppContainer
     @EnvironmentObject private var account: AccountViewModel
+    @State private var didAttemptSessionRecovery = false
 
     var body: some View {
         Group {
@@ -50,7 +51,11 @@ struct AccountScreen: View {
                 .id("account-logged-out")
             }
         }
-        .task { await account.loadProfileIfPossible() }
+        .task {
+            guard !didAttemptSessionRecovery else { return }
+            didAttemptSessionRecovery = true
+            await account.loadProfileIfPossible()
+        }
         .refreshable {
             if account.isLoggedIn {
                 await account.refreshProfile()

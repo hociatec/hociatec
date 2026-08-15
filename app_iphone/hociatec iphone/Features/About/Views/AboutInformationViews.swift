@@ -37,18 +37,18 @@ struct OpeningHoursView: View {
 }
 
 struct SocialLinksView: View {
-    private let links: [(String, String)] = [
-        ("Facebook", "https://www.facebook.com/hociatec"),
-        ("LinkedIn", "https://www.linkedin.com/company/hociatec"),
-        ("TikTok", "https://www.tiktok.com/@hociatec"),
-        ("X", "https://x.com/hociatec"),
-        ("Instagram", "https://www.instagram.com/hociatec")
+    private let links: [(String, URL)] = [
+        ("Facebook", AppConfig.Social.facebook),
+        ("LinkedIn", AppConfig.Social.linkedIn),
+        ("TikTok", AppConfig.Social.tikTok),
+        ("X", AppConfig.Social.x),
+        ("Instagram", AppConfig.Social.instagram)
     ]
 
     var body: some View {
         List {
             ForEach(links, id: \.0) { label, href in
-                Link(destination: URL(string: href)!) {
+                Link(destination: href) {
                     HStack {
                         Text(label)
                         Spacer()

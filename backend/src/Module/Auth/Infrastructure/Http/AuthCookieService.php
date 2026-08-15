@@ -24,9 +24,11 @@ final class AuthCookieService implements AuthCookieResponseWriter
         string $jwt,
         string $refreshToken,
         string $refreshTokenExpiresAt,
+        bool $rememberSession,
     ): void {
-        $response->headers->setCookie($this->createAccessCookie($request, $jwt));
-        $response->headers->setCookie($this->createRefreshCookie($request, $refreshToken, $refreshTokenExpiresAt));
+        $response->headers->setCookie($this->createAccessCookie($request, $jwt, $rememberSession));
+        $response->headers->setCookie($this->createRefreshCookie($request, $refreshToken, $refreshTokenExpiresAt, $rememberSession));
+        $response->headers->setCookie($this->createSessionPreferenceCookie($request, $refreshTokenExpiresAt, $rememberSession));
     }
 
     public function clearAuthCookies(Response $response, Request $request): void
@@ -34,14 +36,15 @@ final class AuthCookieService implements AuthCookieResponseWriter
         $secure = $this->isSecureCookie($request);
         $response->headers->clearCookie(AuthCookieResponseWriter::ACCESS_COOKIE, '/api', null, $secure, true, Cookie::SAMESITE_LAX);
         $response->headers->clearCookie(AuthCookieResponseWriter::REFRESH_COOKIE, '/api/auth', null, $secure, true, Cookie::SAMESITE_LAX);
+        $response->headers->clearCookie(AuthCookieResponseWriter::SESSION_PREFERENCE_COOKIE, '/api/auth', null, $secure, true, Cookie::SAMESITE_LAX);
     }
 
-    private function createAccessCookie(Request $request, string $jwt): Cookie
+    private function createAccessCookie(Request $request, string $jwt, bool $rememberSession): Cookie
     {
         return Cookie::create(
             AuthCookieResponseWriter::ACCESS_COOKIE,
             $jwt,
-            time() + self::ACCESS_TOKEN_TTL_SECONDS,
+            $rememberSession ? time() + self::ACCESS_TOKEN_TTL_SECONDS : 0,
             '/api',
             null,
             $this->isSecureCookie($request),
@@ -51,12 +54,27 @@ final class AuthCookieService implements AuthCookieResponseWriter
         );
     }
 
-    private function createRefreshCookie(Request $request, string $refreshToken, string $expiresAt): Cookie
+    private function createRefreshCookie(Request $request, string $refreshToken, string $expiresAt, bool $rememberSession): Cookie
     {
         return Cookie::create(
             AuthCookieResponseWriter::REFRESH_COOKIE,
             $refreshToken,
-            new \DateTimeImmutable($expiresAt),
+            $rememberSession ? new \DateTimeImmutable($expiresAt) : 0,
+            '/api/auth',
+            null,
+            $this->isSecureCookie($request),
+            true,
+            false,
+            Cookie::SAMESITE_LAX,
+        );
+    }
+
+    private function createSessionPreferenceCookie(Request $request, string $expiresAt, bool $rememberSession): Cookie
+    {
+        return Cookie::create(
+            AuthCookieResponseWriter::SESSION_PREFERENCE_COOKIE,
+            $rememberSession ? 'persistent' : 'session',
+            $rememberSession ? new \DateTimeImmutable($expiresAt) : 0,
             '/api/auth',
             null,
             $this->isSecureCookie($request),

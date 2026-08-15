@@ -54,7 +54,7 @@ final class HomeNotificationsViewModel: ObservableObject {
 
     func toggleOpen(isLoggedIn: Bool) async {
         if !isOpen {
-            await loadIfNeeded(isLoggedIn: isLoggedIn, force: true)
+            await loadIfNeeded(isLoggedIn: isLoggedIn)
             isOpen = true
             await markVisibleNotificationsAsSeen()
             return

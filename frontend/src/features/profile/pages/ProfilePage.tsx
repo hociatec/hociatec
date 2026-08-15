@@ -17,6 +17,7 @@ export const ProfilePage = () => {
     isEditing,
     isSaving,
     isDeleting,
+    isRevokingSessions,
     form,
     initials,
     formattedRoles,
@@ -27,6 +28,7 @@ export const ProfilePage = () => {
     handleCancelEditing,
     handleSubmitProfile,
     handleConfirmDelete,
+    handleConfirmRevokeAllSessions,
   } = useProfileController();
 
   if (!user) return null;
@@ -67,7 +69,12 @@ export const ProfilePage = () => {
           />
         </div>
 
-        <ProfileDangerZone isDeleting={isDeleting} onConfirmDelete={handleConfirmDelete} />
+        <ProfileDangerZone
+          isDeleting={isDeleting}
+          isRevokingSessions={isRevokingSessions}
+          onConfirmDelete={handleConfirmDelete}
+          onConfirmRevokeAllSessions={handleConfirmRevokeAllSessions}
+        />
         {isEditing ? (
           <ProfileEditDialog
             feedback={feedback}

@@ -60,7 +60,7 @@ struct CommunicationPreferencesView: View {
         }
         .navigationTitle("Préférences")
         .task { await viewModel.load() }
-        .refreshable { await viewModel.load() }
+        .refreshable { await viewModel.load(force: true) }
         .feedbackDialog(error: $viewModel.error, success: $viewModel.message)
     }
 }

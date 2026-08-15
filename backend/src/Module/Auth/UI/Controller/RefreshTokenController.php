@@ -58,6 +58,7 @@ class RefreshTokenController extends AbstractController
         if (null === $rotated) {
             return ApiResponse::error('Refresh token invalide ou expiré.', Response::HTTP_UNAUTHORIZED);
         }
+        $rememberSession = 'persistent' === $request->cookies->get(AuthCookieResponseWriter::SESSION_PREFERENCE_COOKIE);
 
         $jwt = $this->jwtManager->create(new \App\Module\Auth\Infrastructure\Security\SymfonySecurityUser($rotated['user']));
 
@@ -71,6 +72,7 @@ class RefreshTokenController extends AbstractController
             $jwt,
             $rotated['refreshToken'],
             $rotated['expiresAt'],
+            $rememberSession,
         );
 
         return $response;

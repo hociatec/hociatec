@@ -3,12 +3,16 @@ import Foundation
 struct AccountRepositoryLive: AccountRepository {
     let service: AccountServing
 
-    func login(email: String, password: String) async throws {
-        _ = try await service.login(email: email, password: password)
+    func login(email: String, password: String, rememberSession: Bool) async throws {
+        _ = try await service.login(email: email, password: password, rememberSession: rememberSession)
     }
 
     func logout() async {
         await service.logout()
+    }
+
+    func revokeAllSessions() async throws {
+        try await service.revokeAllSessions()
     }
 
     func fetchProfile() async throws -> UserProfile {

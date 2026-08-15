@@ -17,13 +17,15 @@ final class AuditsViewModel: ObservableObject {
     private var metadataRequestID = 0
     private var detailRequestID = 0
     private var attachmentRequestID = 0
+    private var hasLoadedOnce = false
+    private var hasLoadedMetadataOnce = false
 
     init(service: AuditServing) {
         self.service = service
     }
 
     func load(force: Bool = false) async {
-        if isLoading && !force { return }
+        if (isLoading || hasLoadedOnce) && !force { return }
         loadRequestID += 1
         let requestID = loadRequestID
         isLoading = true
@@ -37,6 +39,8 @@ final class AuditsViewModel: ObservableObject {
             guard requestID == loadRequestID else { return }
             self.items = audits.items
             self.metadata = metadata
+            hasLoadedOnce = true
+            hasLoadedMetadataOnce = true
             if let selectedAudit {
                 if let refreshedItem = audits.items.first(where: { $0.id == selectedAudit.id }) {
                     self.selectedAudit = AuditDetail(
@@ -67,7 +71,7 @@ final class AuditsViewModel: ObservableObject {
     }
 
     func loadMetadata(force: Bool = false) async {
-        if isLoading && !force { return }
+        if (isLoading || hasLoadedMetadataOnce) && !force { return }
         metadataRequestID += 1
         let requestID = metadataRequestID
         isLoading = true
@@ -77,6 +81,7 @@ final class AuditsViewModel: ObservableObject {
             let loadedMetadata = try await service.auditMetadata()
             guard requestID == metadataRequestID else { return }
             metadata = loadedMetadata
+            hasLoadedMetadataOnce = true
         } catch {
             guard requestID == metadataRequestID else { return }
             metadata = Self.fallbackMetadata

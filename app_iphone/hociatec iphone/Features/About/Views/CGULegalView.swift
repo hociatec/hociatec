@@ -7,7 +7,7 @@ struct CGULegalView: View {
             updatedAt: "20 juillet 2026",
             sections: [
                 LegalSection(title: "Objet", paragraphs: [
-                    "Les CGU encadrent l'accès et l'utilisation du site hociatec.fr, du compte client, des formulaires, des espaces de suivi et des fonctionnalités proposées par Hociatec.",
+                    "Les CGU encadrent l'accès et l'utilisation du site \(AppConfig.websiteHost), du compte client, des formulaires, des espaces de suivi et des fonctionnalités proposées par Hociatec.",
                     "L'utilisation du site implique l'acceptation des présentes conditions. Les ventes, locations et prestations restent également soumises aux CGV applicables."
                 ]),
                 LegalSection(title: "Accès au site", paragraphs: [
@@ -20,11 +20,11 @@ struct CGULegalView: View {
                 ]),
                 LegalSection(title: "Sécurité et usages interdits", paragraphs: [
                     "Toute tentative d'accès frauduleux, de perturbation, d'extraction massive de contenus, d'envoi de contenus malveillants ou de contournement des mesures de sécurité est interdite.",
-                    "Toute anomalie ou suspicion d'accès non autorisé peut être signalée à contact@hociatec.fr."
+                    "Toute anomalie ou suspicion d'accès non autorisé peut être signalée à \(AppConfig.contactEmail)."
                 ]),
                 LegalSection(title: "Responsabilité et contact", paragraphs: [
                     "Hociatec s'efforce de publier des informations exactes et actualisées, sans que cela constitue à lui seul un engagement contractuel hors validation expresse.",
-                    "Pour toute question relative aux CGU, vous pouvez écrire à contact@hociatec.fr."
+                    "Pour toute question relative aux CGU, vous pouvez écrire à \(AppConfig.contactEmail)."
                 ])
             ]
         )

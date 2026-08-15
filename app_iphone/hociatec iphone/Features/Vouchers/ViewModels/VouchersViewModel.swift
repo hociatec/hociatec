@@ -9,13 +9,14 @@ final class VouchersViewModel: ObservableObject {
 
     private let service: VoucherServing
     private var loadRequestID = 0
+    private var hasLoadedOnce = false
 
     init(service: VoucherServing) {
         self.service = service
     }
 
     func load(force: Bool = false) async {
-        if isLoading && !force { return }
+        if (isLoading || hasLoadedOnce) && !force { return }
         loadRequestID += 1
         let requestID = loadRequestID
         isLoading = true
@@ -25,10 +26,10 @@ final class VouchersViewModel: ObservableObject {
             let loadedItems = try await service.myVouchers(page: 1, perPage: 30).items
             guard requestID == loadRequestID else { return }
             items = loadedItems
+            hasLoadedOnce = true
         } catch {
             guard requestID == loadRequestID else { return }
             self.error = error.localizedDescription
-            items = []
         }
 
         if requestID == loadRequestID {

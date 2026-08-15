@@ -19,6 +19,7 @@ import {
   type LoginFormPayload,
   updateProfile as updateProfileRequest,
   deleteAccount as deleteAccountRequest,
+  revokeAllSessions as revokeAllSessionsRequest,
   type UpdateProfilePayload,
 } from '../api/authApi';
 import { fetchCart } from '@/features/cart/publicApi';
@@ -35,6 +36,7 @@ interface AuthContextValue {
   refresh: () => Promise<void>;
   updateProfile: (payload: UpdateProfilePayload) => Promise<AuthUser>;
   deleteAccount: () => Promise<void>;
+  revokeAllSessions: () => Promise<void>;
 }
 
 const defaultValue: AuthContextValue = {
@@ -53,6 +55,9 @@ const defaultValue: AuthContextValue = {
     throw new Error('AuthProvider not mounted');
   },
   deleteAccount: async () => {
+    throw new Error('AuthProvider not mounted');
+  },
+  revokeAllSessions: async () => {
     throw new Error('AuthProvider not mounted');
   },
 };
@@ -150,8 +155,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       setStatusIfMounted('loading');
 
       try {
-        const { rememberMe: _rememberMe = false, ...credentials } = payload;
-        const response = await loginUser(credentials);
+        const response = await loginUser(payload);
 
         const refreshedStatus = await loadUser();
         if (refreshedStatus !== 'authenticated') {
@@ -204,6 +208,12 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
     await logout();
   }, [logout]);
 
+  const revokeAllSessions = useCallback(async () => {
+    await revokeAllSessionsRequest();
+    clearLocalSessionState();
+    publishAuthSessionEvent('logout');
+  }, [clearLocalSessionState]);
+
   const value = useMemo(
     () => ({
       user,
@@ -215,8 +225,9 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       },
       updateProfile,
       deleteAccount,
+      revokeAllSessions,
     }),
-    [deleteAccount, loadUser, login, logout, status, updateProfile, user],
+    [deleteAccount, loadUser, login, logout, revokeAllSessions, status, updateProfile, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

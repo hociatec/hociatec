@@ -43,8 +43,8 @@ struct LoginView: View {
             }
         }
         .navigationTitle("Connexion")
-        .onChangeCompat(account.profile?.id) { profileID in
-            guard profileID != nil, account.isLoggedIn else { return }
+        .onChangeCompat(account.isLoggedIn) { isLoggedIn in
+            guard isLoggedIn else { return }
             dismiss()
         }
         .feedbackDialog(error: $account.error)

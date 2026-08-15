@@ -4,6 +4,7 @@ struct ProductCatalogActions: View {
     let product: Product
     let cart: CartViewModel
     let addToCart: () -> Void
+    var onFavoriteRemoved: (() -> Void)? = nil
     @Environment(\.openURL) private var openURL
 
     var body: some View {
@@ -14,7 +15,11 @@ struct ProductCatalogActions: View {
             ) { addToCart() }
 
             HStack(spacing: 12) {
-                FavoriteToggleButton(category: .product, targetId: product.id)
+                FavoriteToggleButton(
+                    category: .product,
+                    targetId: product.id,
+                    onRemoved: onFavoriteRemoved
+                )
 
                 Button {
                     openURL(emailShareURL(for: product))

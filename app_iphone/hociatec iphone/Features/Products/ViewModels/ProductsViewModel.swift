@@ -22,6 +22,7 @@ final class ProductsViewModel: ObservableObject {
     private var isLoadingCategories = false
     private var loadRequestID = 0
     private var categoriesRequestID = 0
+    private var hasLoadedOnce = false
 
     init(useCases: ProductsUseCases, initialSellingType: SellingType? = nil) {
         self.loadProductListUseCase = useCases.loadProductList
@@ -30,7 +31,7 @@ final class ProductsViewModel: ObservableObject {
     }
 
     func load(force: Bool = false) async {
-        if isLoading && !force { return }
+        if (isLoading || hasLoadedOnce) && !force { return }
         loadRequestID += 1
         let requestID = loadRequestID
         isLoading = true
@@ -48,14 +49,10 @@ final class ProductsViewModel: ObservableObject {
             products = applySorting(on: result.items)
             totalResults = result.meta.total
             totalPages = max(1, result.meta.totalPages)
+            hasLoadedOnce = true
         } catch let err {
             guard requestID == loadRequestID else { return }
             self.error = err.localizedDescription
-            if force {
-                products = []
-                totalResults = 0
-                totalPages = 1
-            }
         }
 
         if requestID == loadRequestID {
