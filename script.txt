@@ -1,0 +1,40 @@
+[...document.querySelectorAll('*')]
+  .filter((el) => el.textContent?.includes('Réponse API invalide.'))
+  .map((el) => ({
+    tag: el.tagName,
+    className: el.className,
+    text: el.textContent.trim().slice(0, 300),
+  }));
+
+sessionStorage.setItem('diag_errors', '1');
+
+(() => {
+  const oldError = console.error;
+  console.error = (...args) => {
+    oldError(...args);
+    try {
+      localStorage.setItem('last_console_error', JSON.stringify(args.map(String)));
+    } catch {}
+  };
+
+  window.addEventListener('error', (e) => {
+    localStorage.setItem('last_window_error', JSON.stringify({
+      message: e.message,
+      filename: e.filename,
+      lineno: e.lineno,
+      colno: e.colno,
+    }));
+  });
+
+  window.addEventListener('unhandledrejection', (e) => {
+    localStorage.setItem('last_promise_error', String(e.reason));
+  });
+
+  location.reload();
+})();
+
+({
+  console: localStorage.getItem('last_console_error'),
+  window: localStorage.getItem('last_window_error'),
+  promise: localStorage.getItem('last_promise_error'),
+})

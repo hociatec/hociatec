@@ -10,8 +10,8 @@ final readonly class UpdateCartItemInput
 {
     public function __construct(
         #[Assert\PositiveOrZero] public int $quantity,
-        #[Assert\Choice(['sale', 'rental'])] public ?string $sellingType = null,
-        #[Assert\Choice(['sale', 'rental'])] public ?string $currentSellingType = null,
+        #[Assert\Choice(choices: ['sale', 'rental'])] public ?string $sellingType = null,
+        #[Assert\Choice(choices: ['sale', 'rental'])] public ?string $currentSellingType = null,
         #[Assert\Positive] public ?int $rentalMonths = null,
         #[Assert\Positive] public ?int $currentRentalMonths = null,
         public ?string $rentalStartDate = null,

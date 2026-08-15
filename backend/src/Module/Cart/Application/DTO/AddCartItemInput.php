@@ -11,7 +11,7 @@ final readonly class AddCartItemInput
     public function __construct(
         #[Assert\Positive] public int $productId,
         #[Assert\Positive] public int $quantity = 1,
-        #[Assert\Choice(['sale', 'rental'])] public ?string $sellingType = null,
+        #[Assert\Choice(choices: ['sale', 'rental'])] public ?string $sellingType = null,
         #[Assert\Positive] public ?int $rentalMonths = null,
         public ?string $rentalStartDate = null,
     ) {
