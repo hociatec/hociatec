@@ -10,8 +10,19 @@ extension ProductDetailView {
         viewModel.effectiveRentalMonths(using: cart)
     }
 
+    var rentalStartDateIfNeeded: String {
+        viewModel.currentRentalStartDateString()
+    }
+
+    var selectedCartItem: CartItem? {
+        viewModel.matchingRentalItem(using: cart)
+    }
+
     func decreaseQuantity() async {
-        guard let item = cart.cart?.items.first(where: { $0.product.id == viewModel.product.id }) else { return }
+        let fallbackItem = viewModel.product.sellingType == .rental
+            ? nil
+            : cart.cart?.items.first(where: { $0.product.id == viewModel.product.id })
+        guard let item = selectedCartItem ?? fallbackItem else { return }
         let newQuantity = item.quantity - 1
         if newQuantity <= 0 {
             await cart.remove(item: item)
@@ -21,7 +32,10 @@ extension ProductDetailView {
     }
 
     func increaseQuantity() async {
-        let currentCartQuantity = cart.cart?.items.first(where: { $0.product.id == viewModel.product.id })?.quantity ?? 0
+        let fallbackItem = viewModel.product.sellingType == .rental
+            ? nil
+            : cart.cart?.items.first(where: { $0.product.id == viewModel.product.id })
+        let currentCartQuantity = (selectedCartItem ?? fallbackItem)?.quantity ?? 0
         if currentCartQuantity >= stockLimit {
             alertState.presentStock(
                 message: "Stock insuffisant pour \(viewModel.product.name). Quantité max: \(stockLimit)."
@@ -29,17 +43,19 @@ extension ProductDetailView {
             return
         }
 
-        if let item = cart.cart?.items.first(where: { $0.product.id == viewModel.product.id }) {
+        if let item = selectedCartItem ?? fallbackItem {
             await cart.update(
                 item: item,
                 quantity: item.quantity + 1,
-                rentalMonths: item.rentalMonths ?? rentalMonthsIfNeeded
+                rentalMonths: item.rentalMonths ?? rentalMonthsIfNeeded,
+                rentalStartDate: item.rentalStartDate ?? rentalStartDateIfNeeded
             )
         } else {
             await cart.add(
                 product: viewModel.product,
                 quantity: 1,
-                rentalMonths: viewModel.product.sellingType == .rental ? rentalMonthsIfNeeded : nil
+                rentalMonths: viewModel.product.sellingType == .rental ? rentalMonthsIfNeeded : nil,
+                rentalStartDate: viewModel.product.sellingType == .rental ? rentalStartDateIfNeeded : nil
             )
             alertState.presentAddConfirmation(productName: viewModel.product.name)
         }
@@ -52,9 +68,14 @@ extension ProductDetailView {
             return
         }
 
+        if viewModel.product.sellingType == .rental {
+            viewModel.closeRentalSheet()
+        }
+
         await cart.add(
             product: viewModel.product,
-            rentalMonths: viewModel.product.sellingType == .rental ? rentalMonthsIfNeeded : nil
+            rentalMonths: viewModel.product.sellingType == .rental ? rentalMonthsIfNeeded : nil,
+            rentalStartDate: viewModel.product.sellingType == .rental ? rentalStartDateIfNeeded : nil
         )
         alertState.presentAddConfirmation(productName: viewModel.product.name)
         UINotificationFeedbackGenerator().notificationOccurred(.success)

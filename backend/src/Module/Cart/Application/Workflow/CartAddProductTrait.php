@@ -11,7 +11,7 @@ use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 
 trait CartAddProductTrait
 {
-    public function addProduct(?string $token, Product $product, int $quantity = 1, ?int $rentalMonths = null, bool $retryOnDuplicate = true): CartSession
+    public function addProduct(?string $token, Product $product, int $quantity = 1, ?int $rentalMonths = null, ?\DateTimeImmutable $rentalStartDate = null, bool $retryOnDuplicate = true): CartSession
     {
         if ($quantity < 1) {
             throw new \InvalidArgumentException('La quantite doit etre superieure ou egale a 1.');
@@ -19,13 +19,14 @@ trait CartAddProductTrait
 
         $cart = $this->viewCart($token);
         $resolvedRentalMonths = $this->cartItems->determineRentalMonths($product, $rentalMonths);
-        $existing = $this->cartItems->resolveExistingItem($cart, $product, $resolvedRentalMonths);
+        $resolvedRentalStartDate = $this->cartItems->determineRentalStartDate($product, $rentalStartDate);
+        $existing = $this->cartItems->resolveExistingItem($cart, $product, $resolvedRentalMonths, $resolvedRentalStartDate);
 
         $currentQuantity = $this->cartItems->getTotalQuantityForProduct($cart, $product);
         $this->assertStockAvailability($product, $currentQuantity + $quantity);
 
         if (null === $existing) {
-            $item = new CartItem($cart, $product, $quantity, $resolvedRentalMonths);
+            $item = new CartItem($cart, $product, $quantity, $resolvedRentalMonths, $resolvedRentalStartDate);
             $cart->addItem($item);
             $this->persistence->persist($item);
         } else {
@@ -41,11 +42,11 @@ trait CartAddProductTrait
                 throw $exception;
             }
 
-            return $this->retryAddAfterDuplicate($cart, $product, $quantity, $resolvedRentalMonths, $exception);
+            return $this->retryAddAfterDuplicate($cart, $product, $quantity, $resolvedRentalMonths, $resolvedRentalStartDate, $exception);
         }
     }
 
-    private function retryAddAfterDuplicate(CartSession $cart, Product $product, int $quantity, ?int $resolvedRentalMonths, UniqueConstraintViolationException $exception): CartSession
+    private function retryAddAfterDuplicate(CartSession $cart, Product $product, int $quantity, ?int $resolvedRentalMonths, ?\DateTimeImmutable $resolvedRentalStartDate, UniqueConstraintViolationException $exception): CartSession
     {
         $cartToken = $cart->getToken();
         $productId = $product->getId();
@@ -62,6 +63,6 @@ trait CartAddProductTrait
             throw $exception;
         }
 
-        return $this->addProduct($freshCart->getToken(), $freshProduct, $quantity, $resolvedRentalMonths, false);
+        return $this->addProduct($freshCart->getToken(), $freshProduct, $quantity, $resolvedRentalMonths, $resolvedRentalStartDate, false);
     }
 }

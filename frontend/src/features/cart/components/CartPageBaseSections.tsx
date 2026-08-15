@@ -2,6 +2,7 @@ import { Link } from 'react-router';
 
 import type { CartItem } from '@/features/cart/types/cart';
 import { formatCartPrice } from '@/features/cart/utils/cartDisplay';
+import { formatDateInputForDisplay } from '@/shared/lib/formatters';
 import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
 import { clampAtLeast } from '@/shared/lib/number';
 
@@ -148,6 +149,12 @@ export const CartItemsList = ({
             <span className="cart-page__line-total">
               Sous-total : {formatCartPrice(item.linePriceCents)}
             </span>
+            {isRental && item.rentalStartDate ? (
+              <span className="cart-page__meta">
+                Du {formatDateInputForDisplay(item.rentalStartDate)} au{' '}
+                {formatDateInputForDisplay(item.rentalEndDate ?? item.rentalStartDate)}
+              </span>
+            ) : null}
           </div>
 
           <div className="cart-page__actions">

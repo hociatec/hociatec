@@ -21,6 +21,8 @@ export interface CartItem {
   quantity: number;
   linePriceCents: number;
   rentalMonths?: number | null;
+  rentalStartDate?: string | null;
+  rentalEndDate?: string | null;
 }
 
 export interface Cart {
@@ -54,4 +56,6 @@ export type CartStatus = 'idle' | 'loading' | 'ready';
 export type CartActionOptions = {
   rentalMonths?: number;
   currentRentalMonths?: number;
+  rentalStartDate?: string;
+  currentRentalStartDate?: string;
 };

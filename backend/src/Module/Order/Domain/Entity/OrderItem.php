@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Order\Domain\Entity;
 
 use App\Module\Catalog\Domain\Entity\Product;
+use App\Module\Order\Application\Support\RentalPeriodCalculator;
 use App\Shared\Domain\ValueObject\Money;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -48,6 +49,33 @@ class OrderItem
 
     #[ORM\Column(type: 'integer', options: ['default' => 0])]
     private int $lineTotalCents = 0;
+
+    #[ORM\Column(length: 10, options: ['default' => 'sale'])]
+    private string $sellingType = 'sale';
+
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $rentalMonths = null;
+
+    #[ORM\Column(type: 'date_immutable', nullable: true)]
+    private ?\DateTimeImmutable $rentalStartDate = null;
+
+    #[ORM\Column(type: 'date_immutable', nullable: true)]
+    private ?\DateTimeImmutable $rentalEndDate = null;
+
+    #[ORM\Column(length: 20, options: ['default' => 'none'])]
+    private string $rentalRequestStatus = 'none';
+
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $rentalRequestType = null;
+
+    #[ORM\Column(type: 'date_immutable', nullable: true)]
+    private ?\DateTimeImmutable $rentalRequestedEndDate = null;
+
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $rentalRequestCreatedAt = null;
+
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $rentalRequestUpdatedAt = null;
 
     public function __construct(string $productName, string $productSku, int $unitPriceCents, int $quantity)
     {
@@ -172,5 +200,160 @@ class OrderItem
     public function getLinePriceCents(): int
     {
         return $this->lineTotalCents > 0 ? $this->lineTotalCents : $this->unitPriceCents * $this->quantity;
+    }
+
+    public function getSellingType(): string
+    {
+        return $this->sellingType;
+    }
+
+    public function setSellingType(string $sellingType): self
+    {
+        $normalized = strtolower(trim($sellingType));
+        $this->sellingType = 'rental' === $normalized ? 'rental' : 'sale';
+
+        if ('sale' === $this->sellingType) {
+            $this->rentalMonths = null;
+            $this->rentalStartDate = null;
+            $this->rentalEndDate = null;
+            $this->clearRentalRequest();
+        }
+
+        return $this;
+    }
+
+    public function getRentalMonths(): ?int
+    {
+        return $this->rentalMonths;
+    }
+
+    public function setRentalMonths(?int $rentalMonths): self
+    {
+        $this->rentalMonths = null !== $rentalMonths ? max(1, $rentalMonths) : null;
+        $this->refreshRentalEndDate();
+
+        return $this;
+    }
+
+    public function getRentalStartDate(): ?\DateTimeImmutable
+    {
+        return $this->rentalStartDate;
+    }
+
+    public function getRentalStartDateString(): ?string
+    {
+        return RentalPeriodCalculator::formatDate($this->rentalStartDate);
+    }
+
+    public function setRentalStartDate(?\DateTimeImmutable $rentalStartDate): self
+    {
+        $this->rentalStartDate = RentalPeriodCalculator::normalizeDate($rentalStartDate);
+        $this->refreshRentalEndDate();
+
+        return $this;
+    }
+
+    public function getRentalEndDate(): ?\DateTimeImmutable
+    {
+        return $this->rentalEndDate;
+    }
+
+    public function getRentalEndDateString(): ?string
+    {
+        return RentalPeriodCalculator::formatDate($this->rentalEndDate);
+    }
+
+    public function setRentalEndDate(?\DateTimeImmutable $rentalEndDate): self
+    {
+        $this->rentalEndDate = RentalPeriodCalculator::normalizeDate($rentalEndDate);
+
+        return $this;
+    }
+
+    public function getRentalRequestStatus(): string
+    {
+        return $this->rentalRequestStatus;
+    }
+
+    public function getRentalRequestType(): ?string
+    {
+        return $this->rentalRequestType;
+    }
+
+    public function getRentalRequestedEndDate(): ?\DateTimeImmutable
+    {
+        return $this->rentalRequestedEndDate;
+    }
+
+    public function getRentalRequestedEndDateString(): ?string
+    {
+        return RentalPeriodCalculator::formatDate($this->rentalRequestedEndDate);
+    }
+
+    public function getRentalRequestCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->rentalRequestCreatedAt;
+    }
+
+    public function requestRentalChange(string $type, \DateTimeImmutable $requestedEndDate): self
+    {
+        $normalizedType = strtolower(trim($type));
+        if (!in_array($normalizedType, ['extend', 'end_early'], true)) {
+            throw new \InvalidArgumentException('Type de demande de location invalide.');
+        }
+
+        $this->rentalRequestType = $normalizedType;
+        $this->rentalRequestStatus = 'pending';
+        $this->rentalRequestedEndDate = RentalPeriodCalculator::normalizeDate($requestedEndDate);
+        $now = new \DateTimeImmutable();
+        $this->rentalRequestCreatedAt ??= $now;
+        $this->rentalRequestUpdatedAt = $now;
+
+        return $this;
+    }
+
+    public function clearRentalRequest(): self
+    {
+        $this->rentalRequestStatus = 'none';
+        $this->rentalRequestType = null;
+        $this->rentalRequestedEndDate = null;
+        $this->rentalRequestCreatedAt = null;
+        $this->rentalRequestUpdatedAt = null;
+
+        return $this;
+    }
+
+    public function applyApprovedRentalExtension(\DateTimeImmutable $requestedEndDate, int $rentalMonths): self
+    {
+        if ($rentalMonths < 1) {
+            throw new \InvalidArgumentException('La durée de location doit être supérieure ou égale à 1 mois.');
+        }
+
+        $this->rentalMonths = $rentalMonths;
+        $this->rentalEndDate = RentalPeriodCalculator::normalizeDate($requestedEndDate);
+        $this->clearRentalRequest();
+
+        return $this;
+    }
+
+    public function applyApprovedRentalEarlyEnd(\DateTimeImmutable $requestedEndDate, ?int $rentalMonths = null): self
+    {
+        if (null !== $rentalMonths && $rentalMonths < 1) {
+            throw new \InvalidArgumentException('La durée de location doit être supérieure ou égale à 1 mois.');
+        }
+
+        if (null !== $rentalMonths) {
+            $this->rentalMonths = $rentalMonths;
+        }
+
+        $this->rentalEndDate = RentalPeriodCalculator::normalizeDate($requestedEndDate);
+        $this->clearRentalRequest();
+
+        return $this;
+    }
+
+    private function refreshRentalEndDate(): void
+    {
+        $this->rentalEndDate = RentalPeriodCalculator::calculateEndDate($this->rentalStartDate, $this->rentalMonths);
     }
 }

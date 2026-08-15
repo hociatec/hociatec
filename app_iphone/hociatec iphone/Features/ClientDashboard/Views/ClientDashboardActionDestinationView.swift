@@ -19,6 +19,8 @@ struct ClientDashboardActionDestinationView: View {
             FavoritesScreen(service: container.services.favorites)
         case .orders:
             OrdersView(service: container.services.orders)
+        case .rentals:
+            MyRentalsView(service: container.services.rentals)
         case .trainings:
             ClientTrainingsView(service: container.services.training)
         case .communicationPreferences:

@@ -60,6 +60,10 @@ export const MyAppointmentsPage = lazyPage(
   () => import('@/features/appointments/pages/MyAppointmentsPage'),
   'MyAppointmentsPage',
 );
+export const MyRentalsPage = lazyPage(
+  () => import('@/features/rentals/pages/MyRentalsPage'),
+  'MyRentalsPage',
+);
 export const RequestAuditPage = lazyPage(
   () => import('@/features/audits/pages/RequestAuditPage'),
   'RequestAuditPage',

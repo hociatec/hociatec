@@ -11,7 +11,11 @@ struct ProductDetailView: View {
     @ObservedObject var cart: CartViewModel
 
     private var currentQuantity: Int {
-        cart.cart?.items.first(where: { $0.product.id == viewModel.product.id })?.quantity ?? 0
+        if viewModel.product.sellingType == .rental {
+            return viewModel.matchingRentalItem(using: cart)?.quantity ?? 0
+        }
+
+        return cart.cart?.items.first(where: { $0.product.id == viewModel.product.id })?.quantity ?? 0
     }
 
     init(viewModel: ProductDetailViewModel, imageURL: URL?, cart: CartViewModel, selectedTab: Binding<Int>) {
@@ -45,8 +49,13 @@ struct ProductDetailView: View {
                     isOutOfStock: viewModel.product.stock == 0,
                     showRentalSelector: viewModel.product.sellingType == .rental,
                     rentalMonths: viewModel.rentalMonths,
+                    rentalStartDateLabel: DatePresentation.formatAPIDay(viewModel.currentRentalStartDateString()),
+                    rentalEndDateLabel: DatePresentation.formatAPIDay(
+                        viewModel.computedRentalEndDate().map(DatePresentation.encodeAPIDay)
+                    ),
                     decreaseRentalMonths: viewModel.decreaseRentalMonths,
                     increaseRentalMonths: viewModel.increaseRentalMonths,
+                    configureRental: viewModel.openRentalSheet,
                     decreaseQuantity: {
                         Task { await decreaseQuantity() }
                     },
@@ -73,6 +82,14 @@ struct ProductDetailView: View {
         }
         .productDetailAlerts(alertState: $alertState, dismiss: dismiss, selectedTab: $selectedTab)
         .productDetailFavoriteToolbar(viewModel: viewModel)
+        .sheet(isPresented: $viewModel.isShowingRentalSheet) {
+            RentalConfigurationSheet(
+                rentalMonths: $viewModel.rentalMonths,
+                rentalStartDate: $viewModel.rentalStartDate,
+                onCancel: viewModel.closeRentalSheet,
+                onConfirm: viewModel.closeRentalSheet
+            )
+        }
         .feedbackDialog(
             error: Binding(
                 get: { viewModel.detailError ?? viewModel.reviewsError },

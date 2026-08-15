@@ -19,10 +19,7 @@ extension ProductDetailViewModel {
 
         do {
             product = try await loadDetailUseCase.execute(slug: product.slug)
-            if product.sellingType == .rental,
-               let existing = cart.cart?.items.first(where: { $0.product.id == product.id })?.rentalMonths {
-                rentalMonths = max(1, existing)
-            }
+            syncRentalSelection(from: cart)
         } catch {
             detailError = error.localizedDescription
         }

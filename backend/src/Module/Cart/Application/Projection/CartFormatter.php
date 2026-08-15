@@ -36,6 +36,8 @@ final class CartFormatter
                 'quantity' => $line['quantity'],
                 'linePriceCents' => $line['linePriceCents'],
                 'rentalMonths' => $line['rentalMonths'],
+                'rentalStartDate' => $item->getRentalStartDateString(),
+                'rentalEndDate' => $item->getRentalEndDateString(),
             ];
         }
         $subtotalPriceCents = $totals['subtotalPriceCents'];

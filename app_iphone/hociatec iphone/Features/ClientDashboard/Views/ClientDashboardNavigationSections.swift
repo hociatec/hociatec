@@ -6,6 +6,7 @@ struct ClientDashboardQuickAccessSection: View {
             title: "Accès rapides",
             entries: [
                 .init(title: "Commandes", systemImage: "shippingbox", destination: .orders),
+                .init(title: "Mes locations", systemImage: "clock.arrow.trianglehead.counterclockwise.rotate.90", destination: .rentals),
                 .init(title: "Devis", systemImage: "doc.text", destination: .quotes),
                 .init(title: "SAV", systemImage: "wrench.and.screwdriver", destination: .support),
                 .init(title: "Favoris", systemImage: "heart", destination: .favorites),

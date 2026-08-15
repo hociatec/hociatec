@@ -11,6 +11,7 @@ export const isProductInCart = (
   }
 
   const wantedMonths = options?.rentalMonths ?? options?.currentRentalMonths;
+  const wantedStartDate = options?.rentalStartDate ?? options?.currentRentalStartDate;
 
   return cart.items.some((item) => {
     if (item.product.id !== productId) {
@@ -22,6 +23,14 @@ export const isProductInCart = (
     }
 
     const currentMonths = clampAtLeast(item.rentalMonths ?? 1, 1);
-    return currentMonths === clampAtLeast(wantedMonths, 1);
+    if (currentMonths !== clampAtLeast(wantedMonths, 1)) {
+      return false;
+    }
+
+    if (!wantedStartDate) {
+      return true;
+    }
+
+    return (item.rentalStartDate ?? null) === wantedStartDate;
   });
 };

@@ -12,7 +12,12 @@ extension APIClient {
         return data.cart
     }
 
-    func addToCart(productId: Int, quantity: Int, rentalMonths: Int? = nil) async throws -> Cart {
+    func addToCart(
+        productId: Int,
+        quantity: Int,
+        rentalMonths: Int? = nil,
+        rentalStartDate: String? = nil
+    ) async throws -> Cart {
         var body: [String: Any] = [
             "productId": productId,
             "quantity": max(1, quantity)
@@ -22,6 +27,9 @@ extension APIClient {
         }
         if let rentalMonths {
             body["rentalMonths"] = rentalMonths
+        }
+        if let rentalStartDate {
+            body["rentalStartDate"] = rentalStartDate
         }
 
         let data: CartData = try await request(
@@ -34,7 +42,14 @@ extension APIClient {
         return data.cart
     }
 
-    func updateCart(productId: Int, quantity: Int, rentalMonths: Int? = nil, currentRentalMonths: Int? = nil) async throws -> Cart {
+    func updateCart(
+        productId: Int,
+        quantity: Int,
+        rentalMonths: Int? = nil,
+        currentRentalMonths: Int? = nil,
+        rentalStartDate: String? = nil,
+        currentRentalStartDate: String? = nil
+    ) async throws -> Cart {
         var body: [String: Any] = [
             "quantity": max(0, quantity)
         ]
@@ -47,6 +62,12 @@ extension APIClient {
         if let currentRentalMonths {
             body["currentRentalMonths"] = currentRentalMonths
         }
+        if let rentalStartDate {
+            body["rentalStartDate"] = rentalStartDate
+        }
+        if let currentRentalStartDate {
+            body["currentRentalStartDate"] = currentRentalStartDate
+        }
 
         let data: CartData = try await request(
             path: "api/public/cart/items/\(productId)",
@@ -58,10 +79,22 @@ extension APIClient {
         return data.cart
     }
 
-    func removeFromCart(productId: Int) async throws -> Cart {
+    func removeFromCart(
+        productId: Int,
+        rentalMonths: Int? = nil,
+        rentalStartDate: String? = nil
+    ) async throws -> Cart {
+        var query: [URLQueryItem] = []
+        if let rentalMonths {
+            query.append(URLQueryItem(name: "currentRentalMonths", value: String(rentalMonths)))
+        }
+        if let rentalStartDate {
+            query.append(URLQueryItem(name: "currentRentalStartDate", value: rentalStartDate))
+        }
         let data: CartData = try await request(
             path: "api/public/cart/items/\(productId)",
             method: "DELETE",
+            query: query.isEmpty ? nil : query,
             authorized: false,
             attachCartToken: true
         )

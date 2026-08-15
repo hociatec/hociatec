@@ -45,6 +45,7 @@ export const DashboardAccessLinks = () => {
     { icon: <MessageSquareText />, title: 'SAV', to: '/support/me' },
     { icon: <FileText />, title: 'Devis', to: '/quotes/me' },
     { icon: <CalendarDays />, title: 'Rendez-vous', to: '/appointments/me' },
+    { icon: <Package />, title: 'Mes locations', to: '/locations/me' },
     { icon: <GraduationCap />, title: 'Formations', to: '/trainings/me' },
     { icon: <BadgePercent />, title: 'Bons', to: '/vouchers/me' },
     { icon: <Package />, title: 'Reprises', to: '/reprises' },

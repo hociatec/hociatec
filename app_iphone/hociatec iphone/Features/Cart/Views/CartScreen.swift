@@ -186,7 +186,8 @@ struct CartScreen: View {
         await cart.update(
             item: item,
             quantity: item.quantity,
-            rentalMonths: currentMonths - 1
+            rentalMonths: currentMonths - 1,
+            rentalStartDate: item.rentalStartDate
         )
     }
 
@@ -196,7 +197,8 @@ struct CartScreen: View {
         await cart.update(
             item: item,
             quantity: item.quantity,
-            rentalMonths: currentMonths + 1
+            rentalMonths: currentMonths + 1,
+            rentalStartDate: item.rentalStartDate
         )
     }
 

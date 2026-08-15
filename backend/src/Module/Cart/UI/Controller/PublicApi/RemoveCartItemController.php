@@ -8,6 +8,7 @@ use App\Module\Cart\Application\Exception\CartNotFoundException;
 use App\Module\Cart\Application\Projection\CartFormatter;
 use App\Module\Cart\Application\Workflow\CartSessionWorkflow;
 use App\Module\Catalog\Application\Port\ProductRepositoryPort;
+use App\Module\Order\Application\Support\RentalPeriodCalculator;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
@@ -46,12 +47,13 @@ class RemoveCartItemController extends AbstractController
 
         try {
             $rentalMonths = RequestQueryMapper::positiveIntFromAny($request, ['currentRentalMonths', 'rentalMonths']);
+            $rentalStartDate = RentalPeriodCalculator::parseDate(RequestQueryMapper::nullableString($request, 'currentRentalStartDate') ?? RequestQueryMapper::nullableString($request, 'rentalStartDate'));
         } catch (\InvalidArgumentException $exception) {
             return ApiProblemResponse::fromThrowable($exception, 'Paramètres de suppression invalides.', JsonResponse::HTTP_BAD_REQUEST);
         }
 
         try {
-            $cart = $this->cartService->removeProduct($token, $product, $rentalMonths);
+            $cart = $this->cartService->removeProduct($token, $product, $rentalMonths, $rentalStartDate);
         } catch (CartNotFoundException|\InvalidArgumentException $exception) {
             return ApiProblemResponse::fromThrowable($exception);
         }

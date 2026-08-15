@@ -28,11 +28,13 @@ final readonly class StripeCheckoutPayloadProvider
         foreach ($cart->getItems() as $item) {
             $product = $item->getProduct();
             $rentalMonths = $item->getRentalMonths();
+            $rentalStartDate = $item->getRentalStartDateString();
+            $rentalEndDate = $item->getRentalEndDateString();
             $unitPrice = $product->getPriceCents();
             $label = $product->getName();
             if ('rental' === $product->getSellingType() && null !== $rentalMonths) {
                 $unitPrice *= max(1, $rentalMonths);
-                $label .= sprintf(' (%d mois)', $rentalMonths);
+                $label .= sprintf(' (%d mois, du %s au %s)', $rentalMonths, $rentalStartDate ?? '-', $rentalEndDate ?? '-');
             }
 
             $items[] = [
@@ -43,6 +45,9 @@ final readonly class StripeCheckoutPayloadProvider
                 'quantity' => $item->getQuantity(),
                 'vatRateBps' => 2000,
                 'rentalMonths' => $rentalMonths,
+                'rentalStartDate' => $rentalStartDate,
+                'rentalEndDate' => $rentalEndDate,
+                'sellingType' => $product->getSellingType(),
             ];
         }
 

@@ -15,7 +15,7 @@ struct CartItemsSection: View {
                 Text("Votre panier est vide.")
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(cartData.items, id: \.product.id) { item in
+                ForEach(cartData.items, id: \.identityKey) { item in
                     CartItemRow(
                         item: item,
                         isLoading: isLoading,

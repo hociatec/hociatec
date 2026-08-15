@@ -7,6 +7,7 @@ struct ClientDashboardAction: Identifiable {
         case quotes
         case favorites
         case orders
+        case rentals
         case trainings
         case communicationPreferences
         case accessSessions

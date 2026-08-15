@@ -11,14 +11,14 @@ use App\Module\Catalog\Domain\Entity\Product;
 
 trait CartMutationTrait
 {
-    public function removeProduct(?string $token, Product $product, ?int $rentalMonths = null): CartSession
+    public function removeProduct(?string $token, Product $product, ?int $rentalMonths = null, ?\DateTimeImmutable $rentalStartDate = null): CartSession
     {
         $cart = $this->findCartByToken($token);
         if (null === $cart) {
             throw new CartNotFoundException();
         }
 
-        $existing = $this->cartItems->resolveExistingItem($cart, $product, $rentalMonths);
+        $existing = $this->cartItems->resolveExistingItem($cart, $product, $rentalMonths, $rentalStartDate);
         if (null !== $existing) {
             $cart->removeItem($existing);
             $this->persistence->remove($existing);
@@ -28,7 +28,7 @@ trait CartMutationTrait
         return $cart;
     }
 
-    public function updateProductQuantity(?string $token, Product $product, int $quantity, ?int $rentalMonths = null, ?int $currentRentalMonths = null): CartSession
+    public function updateProductQuantity(?string $token, Product $product, int $quantity, ?int $rentalMonths = null, ?int $currentRentalMonths = null, ?\DateTimeImmutable $rentalStartDate = null, ?\DateTimeImmutable $currentRentalStartDate = null): CartSession
     {
         if ($quantity < 0) {
             throw new \InvalidArgumentException('La quantite doit etre superieure ou egale a 0.');
@@ -36,8 +36,10 @@ trait CartMutationTrait
 
         $cart = $this->viewCart($token);
         $lookupMonths = 'rental' === $product->getSellingType() ? ($currentRentalMonths ?? $rentalMonths) : null;
-        $existing = $this->cartItems->resolveExistingItem($cart, $product, $lookupMonths);
+        $lookupStartDate = 'rental' === $product->getSellingType() ? ($currentRentalStartDate ?? $rentalStartDate) : null;
+        $existing = $this->cartItems->resolveExistingItem($cart, $product, $lookupMonths, $lookupStartDate);
         $resolvedRentalMonths = $this->resolveRentalMonthsForUpdate($product, $quantity, $rentalMonths, $existing);
+        $resolvedRentalStartDate = $this->resolveRentalStartDateForUpdate($product, $quantity, $rentalStartDate, $existing);
 
         if ($quantity > 0) {
             $currentQuantity = $this->cartItems->getTotalQuantityForProduct($cart, $product, $existing);
@@ -50,7 +52,7 @@ trait CartMutationTrait
                 $this->persistence->remove($existing);
             }
         } else {
-            $this->upsertItemQuantity($cart, $product, $quantity, $resolvedRentalMonths, $existing);
+            $this->upsertItemQuantity($cart, $product, $quantity, $resolvedRentalMonths, $resolvedRentalStartDate, $existing);
         }
 
         $this->saveCart($cart);
@@ -81,14 +83,23 @@ trait CartMutationTrait
         return null;
     }
 
-    private function upsertItemQuantity(CartSession $cart, Product $product, int $quantity, ?int $resolvedRentalMonths, ?CartItem $existing): void
+    private function resolveRentalStartDateForUpdate(Product $product, int $quantity, ?\DateTimeImmutable $rentalStartDate, ?CartItem $existing): ?\DateTimeImmutable
+    {
+        if ('rental' === $product->getSellingType() && $quantity > 0) {
+            return $this->cartItems->determineRentalStartDate($product, $rentalStartDate, $existing);
+        }
+
+        return null;
+    }
+
+    private function upsertItemQuantity(CartSession $cart, Product $product, int $quantity, ?int $resolvedRentalMonths, ?\DateTimeImmutable $resolvedRentalStartDate, ?CartItem $existing): void
     {
         if (null === $existing) {
-            if ('rental' === $product->getSellingType() && null === $resolvedRentalMonths) {
-                throw new \InvalidArgumentException('Champ "rentalMonths" requis pour ce produit.');
+            if ('rental' === $product->getSellingType() && (null === $resolvedRentalMonths || null === $resolvedRentalStartDate)) {
+                throw new \InvalidArgumentException('Les champs "rentalMonths" et "rentalStartDate" sont requis pour ce produit.');
             }
 
-            $existing = new CartItem($cart, $product, $quantity, $resolvedRentalMonths);
+            $existing = new CartItem($cart, $product, $quantity, $resolvedRentalMonths, $resolvedRentalStartDate);
             $cart->addItem($existing);
             $this->persistence->persist($existing);
 
@@ -96,8 +107,16 @@ trait CartMutationTrait
         }
 
         $skipQuantityUpdate = false;
-        if ('rental' === $product->getSellingType() && null !== $resolvedRentalMonths && $existing->getRentalMonths() !== $resolvedRentalMonths) {
-            $duplicate = $cart->getItemForProduct($product, $resolvedRentalMonths);
+        if (
+            'rental' === $product->getSellingType()
+            && null !== $resolvedRentalMonths
+            && null !== $resolvedRentalStartDate
+            && (
+                $existing->getRentalMonths() !== $resolvedRentalMonths
+                || $existing->getRentalStartDate()?->format('Y-m-d') !== $resolvedRentalStartDate->format('Y-m-d')
+            )
+        ) {
+            $duplicate = $cart->getItemForProduct($product, $resolvedRentalMonths, $resolvedRentalStartDate);
             if (null !== $duplicate && $duplicate !== $existing) {
                 $duplicate->increaseQuantity($quantity);
                 $cart->removeItem($existing);
@@ -105,6 +124,7 @@ trait CartMutationTrait
                 $skipQuantityUpdate = true;
             } else {
                 $existing->setRentalMonths($resolvedRentalMonths);
+                $existing->setRentalStartDate($resolvedRentalStartDate);
             }
         }
 

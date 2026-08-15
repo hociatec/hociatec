@@ -167,6 +167,8 @@ export const fetchCart = async (): Promise<Cart> => {
 interface CartItemOptions {
   rentalMonths?: number;
   currentRentalMonths?: number;
+  rentalStartDate?: string;
+  currentRentalStartDate?: string;
 }
 
 export const addCartItem = async (
@@ -174,12 +176,15 @@ export const addCartItem = async (
   quantity = 1,
   options?: CartItemOptions,
 ): Promise<Cart> => {
-  const payload: { productId: number; quantity: number; rentalMonths?: number } = {
+  const payload: { productId: number; quantity: number; rentalMonths?: number; rentalStartDate?: string } = {
     productId,
     quantity,
   };
   if (options?.rentalMonths !== undefined) {
     payload.rentalMonths = options.rentalMonths;
+  }
+  if (options?.rentalStartDate) {
+    payload.rentalStartDate = options.rentalStartDate;
   }
 
   return runCartRequest(
@@ -190,7 +195,16 @@ export const addCartItem = async (
 
 const buildRentalParams = (options?: CartItemOptions) => {
   const months = options?.currentRentalMonths ?? options?.rentalMonths;
-  return typeof months === 'number' ? { currentRentalMonths: months } : undefined;
+  const startDate = options?.currentRentalStartDate ?? options?.rentalStartDate;
+  const params: Record<string, number | string> = {};
+  if (typeof months === 'number') {
+    params.currentRentalMonths = months;
+  }
+  if (typeof startDate === 'string' && startDate.trim() !== '') {
+    params.currentRentalStartDate = startDate;
+  }
+
+  return Object.keys(params).length > 0 ? params : undefined;
 };
 
 export const removeCartItem = async (
@@ -213,7 +227,7 @@ export const updateCartItemQuantity = async (
   quantity: number,
   options?: CartItemOptions,
 ): Promise<Cart> => {
-  const payload: { quantity: number; rentalMonths?: number; currentRentalMonths?: number } = {
+  const payload: { quantity: number; rentalMonths?: number; currentRentalMonths?: number; rentalStartDate?: string; currentRentalStartDate?: string } = {
     quantity,
   };
   if (options?.rentalMonths !== undefined) {
@@ -221,6 +235,12 @@ export const updateCartItemQuantity = async (
   }
   if (options?.currentRentalMonths !== undefined) {
     payload.currentRentalMonths = options.currentRentalMonths;
+  }
+  if (options?.rentalStartDate) {
+    payload.rentalStartDate = options.rentalStartDate;
+  }
+  if (options?.currentRentalStartDate) {
+    payload.currentRentalStartDate = options.currentRentalStartDate;
   }
 
   return runCartRequest(

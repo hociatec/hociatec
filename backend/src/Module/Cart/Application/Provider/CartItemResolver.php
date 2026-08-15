@@ -7,6 +7,7 @@ namespace App\Module\Cart\Application\Provider;
 use App\Module\Cart\Domain\Entity\CartItem;
 use App\Module\Cart\Domain\Entity\CartSession;
 use App\Module\Catalog\Domain\Entity\Product;
+use App\Module\Order\Application\Support\RentalPeriodCalculator;
 
 final readonly class CartItemResolver
 {
@@ -33,14 +34,38 @@ final readonly class CartItemResolver
         return $requestedMonths;
     }
 
-    public function resolveExistingItem(CartSession $cart, Product $product, ?int $rentalMonths = null): ?CartItem
+    public function determineRentalStartDate(Product $product, ?\DateTimeImmutable $requestedStartDate, ?CartItem $existingItem = null): ?\DateTimeImmutable
+    {
+        if ('rental' !== $product->getSellingType()) {
+            return null;
+        }
+
+        $requestedStartDate = RentalPeriodCalculator::normalizeDate($requestedStartDate);
+        if (null === $requestedStartDate) {
+            $existingStartDate = $existingItem?->getRentalStartDate();
+            if (null === $existingStartDate) {
+                throw new \InvalidArgumentException('Champ "rentalStartDate" requis pour ce produit.');
+            }
+
+            return $existingStartDate;
+        }
+
+        $today = new \DateTimeImmutable('today');
+        if ($requestedStartDate < $today) {
+            throw new \InvalidArgumentException('La date de debut de location doit etre aujourd\'hui ou dans le futur.');
+        }
+
+        return $requestedStartDate;
+    }
+
+    public function resolveExistingItem(CartSession $cart, Product $product, ?int $rentalMonths = null, ?\DateTimeImmutable $rentalStartDate = null): ?CartItem
     {
         if ('rental' !== $product->getSellingType()) {
             return $cart->getItemForProduct($product);
         }
 
         if (null !== $rentalMonths) {
-            return $cart->getItemForProduct($product, $rentalMonths);
+            return $cart->getItemForProduct($product, $rentalMonths, RentalPeriodCalculator::normalizeDate($rentalStartDate));
         }
 
         $items = $cart->getItemsForProduct($product);

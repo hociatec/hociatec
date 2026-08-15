@@ -16,7 +16,12 @@ extension CartViewModel {
         isLoading = false
     }
 
-    func add(product: Product, quantity: Int = 1, rentalMonths: Int? = nil) async {
+    func add(
+        product: Product,
+        quantity: Int = 1,
+        rentalMonths: Int? = nil,
+        rentalStartDate: String? = nil
+    ) async {
         isLoading = true
         error = nil
         statusMessage = nil
@@ -24,10 +29,12 @@ extension CartViewModel {
             cart = try await service.addToCart(
                 productId: product.id,
                 quantity: quantity,
-                rentalMonths: rentalMonths
+                rentalMonths: rentalMonths,
+                rentalStartDate: rentalStartDate
             )
             if product.sellingType == .rental, let rentalMonths {
-                presentSuccess("\(product.name) loué pour \(rentalMonths) mois.")
+                let dateLabel = DatePresentation.formatAPIDay(rentalStartDate)
+                presentSuccess("\(product.name) loué pour \(rentalMonths) mois à partir du \(dateLabel).")
             } else {
                 presentSuccess("\(product.name) ajouté au panier.")
             }
@@ -43,7 +50,11 @@ extension CartViewModel {
         statusMessage = nil
 
         do {
-            cart = try await service.removeFromCart(productId: item.product.id)
+            cart = try await service.removeFromCart(
+                productId: item.product.id,
+                rentalMonths: item.rentalMonths,
+                rentalStartDate: item.rentalStartDate
+            )
         } catch let err {
             presentError(err.localizedDescription)
         }

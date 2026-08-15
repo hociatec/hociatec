@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Module\Cart\Domain\Entity;
 
 use App\Module\Catalog\Domain\Entity\Product;
+use App\Module\Order\Application\Support\RentalPeriodCalculator;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'cart_items')]
-#[ORM\UniqueConstraint(name: 'cart_item_unique_product_months', columns: ['cart_id', 'product_id', 'rental_months'])]
+#[ORM\UniqueConstraint(name: 'cart_item_unique_product_period', columns: ['cart_id', 'product_id', 'rental_months', 'rental_start_date'])]
 class CartItem
 {
     #[ORM\Id]
@@ -31,12 +32,16 @@ class CartItem
     #[ORM\Column(name: 'rental_months', type: 'integer', options: ['default' => -1])]
     private int $rentalMonths = -1;
 
-    public function __construct(CartSession $cart, Product $product, int $quantity = 1, ?int $rentalMonths = null)
+    #[ORM\Column(name: 'rental_start_date', type: 'date_immutable', nullable: true)]
+    private ?\DateTimeImmutable $rentalStartDate = null;
+
+    public function __construct(CartSession $cart, Product $product, int $quantity = 1, ?int $rentalMonths = null, ?\DateTimeImmutable $rentalStartDate = null)
     {
         $this->cart = $cart;
         $this->product = $product;
         $this->setQuantity($quantity);
         $this->setRentalMonths($rentalMonths);
+        $this->setRentalStartDate($rentalStartDate);
     }
 
     public function getId(): ?int
@@ -109,6 +114,7 @@ class CartItem
     {
         if (null === $rentalMonths) {
             $this->rentalMonths = -1;
+            $this->rentalStartDate = null;
 
             return $this;
         }
@@ -118,6 +124,43 @@ class CartItem
         }
 
         $this->rentalMonths = $rentalMonths;
+
+        return $this;
+    }
+
+    public function getRentalStartDate(): ?\DateTimeImmutable
+    {
+        return $this->rentalStartDate;
+    }
+
+    public function getRentalStartDateString(): ?string
+    {
+        return RentalPeriodCalculator::formatDate($this->rentalStartDate);
+    }
+
+    public function getRentalEndDate(): ?\DateTimeImmutable
+    {
+        return RentalPeriodCalculator::calculateEndDate($this->rentalStartDate, $this->getRentalMonths());
+    }
+
+    public function getRentalEndDateString(): ?string
+    {
+        return RentalPeriodCalculator::formatDate($this->getRentalEndDate());
+    }
+
+    public function setRentalStartDate(?\DateTimeImmutable $rentalStartDate): self
+    {
+        if (null === $this->getRentalMonths()) {
+            $this->rentalStartDate = null;
+
+            return $this;
+        }
+
+        if (null === $rentalStartDate) {
+            throw new \InvalidArgumentException('La date de debut de location est requise.');
+        }
+
+        $this->rentalStartDate = RentalPeriodCalculator::normalizeDate($rentalStartDate);
 
         return $this;
     }

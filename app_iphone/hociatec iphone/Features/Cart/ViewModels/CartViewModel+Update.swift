@@ -1,17 +1,25 @@
 import Foundation
 
 extension CartViewModel {
-    func update(item: CartItem, quantity: Int, rentalMonths: Int? = nil) async {
+    func update(
+        item: CartItem,
+        quantity: Int,
+        rentalMonths: Int? = nil,
+        rentalStartDate: String? = nil
+    ) async {
         guard quantity >= 0 else { return }
 
-        let current = cart?.items.first(where: { $0.product.id == item.product.id })
+        let current = cart?.items.first(where: { $0.identityKey == item.identityKey })
         let currentQty = current?.quantity ?? item.quantity
         let currentMonths = current?.rentalMonths ?? item.rentalMonths
+        let currentStartDate = current?.rentalStartDate ?? item.rentalStartDate
         let desiredMonths = rentalMonths ?? currentMonths
+        let desiredStartDate = rentalStartDate ?? currentStartDate
 
         let quantityChanged = quantity != currentQty
         let monthsChanged = rentalMonthsChanged(currentMonths: currentMonths, desiredMonths: desiredMonths)
-        if !quantityChanged && !monthsChanged {
+        let startDateChanged = currentStartDate != desiredStartDate
+        if !quantityChanged && !monthsChanged && !startDateChanged {
             return
         }
 
@@ -33,14 +41,18 @@ extension CartViewModel {
                 productId: item.product.id,
                 quantity: quantity,
                 rentalMonths: desiredMonths,
-                currentRentalMonths: currentMonths
+                currentRentalMonths: currentMonths,
+                rentalStartDate: desiredStartDate,
+                currentRentalStartDate: currentStartDate
             )
             tryApplyUpdatedCart(
                 updatedCart,
                 previousCart: previousCart,
                 item: item,
                 requestedQuantity: quantity,
-                isIncreasing: isIncreasing
+                isIncreasing: isIncreasing,
+                desiredMonths: desiredMonths,
+                desiredStartDate: desiredStartDate
             )
         } catch {
             cart = previousCart
@@ -71,7 +83,9 @@ extension CartViewModel {
         previousCart: Cart?,
         item: CartItem,
         requestedQuantity: Int,
-        isIncreasing: Bool
+        isIncreasing: Bool,
+        desiredMonths: Int?,
+        desiredStartDate: String?
     ) {
         if isIncreasing {
             let previousTotal = previousCart?.totalQuantity ?? 0
@@ -83,7 +97,13 @@ extension CartViewModel {
         }
 
         if isIncreasing {
-            if let updatedItem = updatedCart.items.first(where: { $0.product.id == item.product.id }) {
+            if let updatedItem = updatedCart.items.first(where: {
+                $0.matches(
+                    productId: item.product.id,
+                    rentalMonths: desiredMonths,
+                    rentalStartDate: desiredStartDate
+                )
+            }) {
                 if updatedItem.quantity < requestedQuantity {
                     cart = updatedCart
                     statusMessage = "Stock insuffisant pour \(item.product.name). Quantité ajustée à \(updatedItem.quantity)."

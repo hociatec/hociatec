@@ -7,6 +7,7 @@ final class AppServices {
     let products: ProductServing
     let favorites: FavoritesServing
     let orders: OrderServing
+    let rentals: RentalServing
     let appointments: AppointmentServing
     let quotes: QuoteServing
     let news: NewsServing
@@ -26,6 +27,7 @@ final class AppServices {
         let products = ProductService(api: apiClient)
         let favorites = FavoritesService(api: apiClient)
         let orders = OrderService(api: apiClient)
+        let rentals = RentalService(api: apiClient)
         let appointments = AppointmentService(api: apiClient)
         let quotes = QuoteServiceLayer(api: apiClient)
         let news = NewsService(api: apiClient)
@@ -45,6 +47,7 @@ final class AppServices {
         self.products = products
         self.favorites = favorites
         self.orders = orders
+        self.rentals = rentals
         self.appointments = appointments
         self.quotes = quotes
         self.news = news

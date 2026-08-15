@@ -47,4 +47,29 @@ enum DateFormatters {
         formatter.timeStyle = .short
         return formatter
     }()
+
+    static let apiDay: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
+}
+
+enum DatePresentation {
+    static func parseAPIDay(_ value: String?) -> Date? {
+        guard let value, !value.isEmpty else { return nil }
+        return DateFormatters.apiDay.date(from: value)
+    }
+
+    static func formatAPIDay(_ value: String?) -> String {
+        guard let date = parseAPIDay(value) else { return value ?? "-" }
+        return DateFormatters.frDay.string(from: date)
+    }
+
+    static func encodeAPIDay(_ date: Date) -> String {
+        DateFormatters.apiDay.string(from: date)
+    }
 }

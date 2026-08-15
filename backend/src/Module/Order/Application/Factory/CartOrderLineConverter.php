@@ -45,6 +45,9 @@ final readonly class CartOrderLineConverter
 
             $item = (new OrderItem($product->getName(), $product->getSku(), $product->getPriceCents(), $quantity))
                 ->setProduct($product)
+                ->setSellingType($product->getSellingType())
+                ->setRentalMonths($cartItem->getRentalMonths())
+                ->setRentalStartDate($cartItem->getRentalStartDate())
                 ->setVatRateBps(2000);
             $order->addItem($item);
             $this->persistence->persist($item);

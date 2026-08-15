@@ -8,6 +8,7 @@ use App\Module\Cart\Application\DTO\AddCartItemInput;
 use App\Module\Cart\Application\Projection\CartFormatter;
 use App\Module\Cart\Application\Workflow\CartSessionWorkflow;
 use App\Module\Catalog\Application\Port\ProductRepositoryPort;
+use App\Module\Order\Application\Support\RentalPeriodCalculator;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
@@ -50,6 +51,9 @@ class AddCartItemController extends AbstractController
             if (null === $input->rentalMonths) {
                 return ApiResponse::error('Champ "rentalMonths" requis pour ce produit.', JsonResponse::HTTP_BAD_REQUEST);
             }
+            if (null === $input->rentalStartDate || null === RentalPeriodCalculator::parseDate($input->rentalStartDate)) {
+                return ApiResponse::error('Champ "rentalStartDate" requis pour ce produit.', JsonResponse::HTTP_BAD_REQUEST);
+            }
 
             $rentalMonths = $input->rentalMonths;
         }
@@ -57,8 +61,9 @@ class AddCartItemController extends AbstractController
         $quantity = $input->quantity;
 
         $token = $this->headers->nonEmptyString($request, 'X-Cart-Token');
+        $rentalStartDate = RentalPeriodCalculator::parseDate($input->rentalStartDate);
         try {
-            $cart = $this->cartService->addProduct($token, $product, $quantity, $rentalMonths);
+            $cart = $this->cartService->addProduct($token, $product, $quantity, $rentalMonths, $rentalStartDate);
         } catch (\InvalidArgumentException $exception) {
             return ApiProblemResponse::fromThrowable($exception, 'Impossible d’ajouter cet article au panier.', JsonResponse::HTTP_BAD_REQUEST);
         }

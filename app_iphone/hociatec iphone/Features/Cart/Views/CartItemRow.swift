@@ -18,6 +18,14 @@ struct CartItemRow: View {
                 .fontWeight(.semibold)
 
             if item.product.sellingType == .rental {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Du \(DatePresentation.formatAPIDay(item.rentalStartDate)) au \(DatePresentation.formatAPIDay(item.rentalEndDate))")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    Text("Sous-total: \(PriceFormatter.format(cents: item.linePriceCents))")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
                 CartRentalMonthsControl(
                     currentMonths: currentMonths,
                     isLoading: isLoading,

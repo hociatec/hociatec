@@ -5,6 +5,8 @@ import Combine
 final class ProductDetailViewModel: ObservableObject {
     @Published var product: Product
     @Published var rentalMonths: Int = 1
+    @Published var rentalStartDate: Date = Calendar.current.startOfDay(for: Date())
+    @Published var isShowingRentalSheet = false
     @Published var isLoadingDetail = false
     @Published var detailError: String?
     @Published var reviews: [Review] = []

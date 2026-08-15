@@ -116,6 +116,9 @@ final readonly class CheckoutSessionOrderCreator
             $quantity,
         ))
             ->setProduct($product)
+            ->setSellingType((string) ($rawItem['sellingType'] ?? $product->getSellingType()))
+            ->setRentalMonths(is_numeric($rawItem['rentalMonths'] ?? null) ? (int) $rawItem['rentalMonths'] : null)
+            ->setRentalStartDate(isset($rawItem['rentalStartDate']) && is_string($rawItem['rentalStartDate']) ? new \DateTimeImmutable((string) $rawItem['rentalStartDate']) : null)
             ->setVatRateBps(max(0, (int) ($rawItem['vatRateBps'] ?? 2000)));
         $order->addItem($item);
         $this->persistence->persist($item);

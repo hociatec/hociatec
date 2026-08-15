@@ -107,7 +107,7 @@ class CartSession
         return null !== $this->getItemForProduct($product);
     }
 
-    public function getItemForProduct(Product $product, ?int $rentalMonths = null): ?CartItem
+    public function getItemForProduct(Product $product, ?int $rentalMonths = null, ?\DateTimeImmutable $rentalStartDate = null): ?CartItem
     {
         $firstMatch = null;
 
@@ -125,7 +125,10 @@ class CartSession
                 continue;
             }
 
-            if ($item->getRentalMonths() === $rentalMonths) {
+            if (
+                $item->getRentalMonths() === $rentalMonths
+                && $item->getRentalStartDate()?->format('Y-m-d') === $rentalStartDate?->format('Y-m-d')
+            ) {
                 return $item;
             }
         }

@@ -12,6 +12,7 @@ final readonly class AddCartItemInput
         #[Assert\Positive] public int $productId,
         #[Assert\Positive] public int $quantity = 1,
         #[Assert\Positive] public ?int $rentalMonths = null,
+        public ?string $rentalStartDate = null,
     ) {
     }
 
@@ -22,6 +23,7 @@ final readonly class AddCartItemInput
             is_numeric($payload['productId'] ?? null) ? (int) $payload['productId'] : 0,
             is_numeric($payload['quantity'] ?? null) ? (int) $payload['quantity'] : 1,
             is_numeric($payload['rentalMonths'] ?? null) ? (int) $payload['rentalMonths'] : null,
+            is_string($payload['rentalStartDate'] ?? null) ? trim((string) $payload['rentalStartDate']) : null,
         );
     }
 }

@@ -73,6 +73,8 @@ export const parseCart = (value: unknown): Cart => {
       const item = requireRecord(value);
 
       const rentalMonths = optionalNumber(item.rentalMonths);
+      const rentalStartDate = optionalString(item.rentalStartDate);
+      const rentalEndDate = optionalString(item.rentalEndDate);
 
       return {
         id: requireNumber(item.id),
@@ -80,6 +82,8 @@ export const parseCart = (value: unknown): Cart => {
         quantity: requireNumber(item.quantity),
         linePriceCents: requireNumber(item.linePriceCents),
         ...(rentalMonths !== undefined ? { rentalMonths } : {}),
+        ...(rentalStartDate !== undefined ? { rentalStartDate } : {}),
+        ...(rentalEndDate !== undefined ? { rentalEndDate } : {}),
       };
     }),
     totalQuantity: requireNumber(cart.totalQuantity),
