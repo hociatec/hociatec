@@ -13,6 +13,8 @@ readonly class ProductCatalogQuery
     public ?bool $onlyFeatured;
     public ?string $sellingType;
     public ?string $brand;
+    /** @var array<string, string> */
+    public array $attributeFilters;
     public ?string $storageCapacity;
     public ?string $memoryRam;
     public ?string $color;
@@ -30,9 +32,10 @@ readonly class ProductCatalogQuery
      *   onlyFeatured:?bool,
      *   sellingType:?string,
      *   brand:?string,
-     *   storageCapacity:?string,
-     *   memoryRam:?string,
-     *   color:?string,
+     *   attributeFilters?:array<string,string>,
+     *   storageCapacity?:?string,
+     *   memoryRam?:?string,
+     *   color?:?string,
      *   minPriceCents:?int,
      *   maxPriceCents:?int,
      *   inStockOnly:?bool,
@@ -49,6 +52,7 @@ readonly class ProductCatalogQuery
             'onlyFeatured' => null,
             'sellingType' => null,
             'brand' => null,
+            'attributeFilters' => [],
             'storageCapacity' => null,
             'memoryRam' => null,
             'color' => null,
@@ -67,6 +71,7 @@ readonly class ProductCatalogQuery
         $this->storageCapacity = $payload['storageCapacity'];
         $this->memoryRam = $payload['memoryRam'];
         $this->color = $payload['color'];
+        $this->attributeFilters = is_array($payload['attributeFilters'] ?? null) ? $payload['attributeFilters'] : [];
         $this->minPriceCents = $payload['minPriceCents'];
         $this->maxPriceCents = $payload['maxPriceCents'];
         $this->inStockOnly = $payload['inStockOnly'];

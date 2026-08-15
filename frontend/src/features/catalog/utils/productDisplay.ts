@@ -15,3 +15,84 @@ const stripTrailingVariantParts = (name: string) => {
 export const getCatalogProductDisplayName = (product: CatalogProduct) => {
   return stripTrailingVariantParts(product.modelName?.trim() || product.name);
 };
+
+const nonEmpty = (value?: string | null) => {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
+};
+
+export const getCatalogProductConfiguration = (product: CatalogProduct) => {
+  const variantCount = product.variantsCount ?? 1;
+  const dynamicValues = (product.attributes ?? [])
+    .map((attribute) => nonEmpty(attribute.value))
+    .filter((value): value is string => Boolean(value));
+
+  if (dynamicValues.length > 0) {
+    return Array.from(new Set(dynamicValues)).join(' • ');
+  }
+
+  const fallbackValues = [
+    nonEmpty(product.brand),
+    nonEmpty(product.memoryRam),
+    variantCount > 1 ? null : nonEmpty(product.storageCapacity),
+    variantCount > 1 ? null : nonEmpty(product.color),
+  ].filter((value): value is string => Boolean(value));
+
+  return fallbackValues.length > 0 ? fallbackValues.join(' • ') : null;
+};
+
+export const getCatalogVariantSummaries = (product: CatalogProduct) => {
+  const dynamicSummaries = (product.variantAttributes ?? [])
+    .map((attribute) => {
+      const values = attribute.values
+        .map((value) => nonEmpty(value))
+        .filter((value): value is string => Boolean(value));
+
+      if (values.length === 0) {
+        return null;
+      }
+
+      return {
+        code: attribute.code,
+        label: attribute.label,
+        values,
+      };
+    })
+    .filter(
+      (
+        attribute,
+      ): attribute is {
+        code: string;
+        label: string;
+        values: string[];
+      } => Boolean(attribute),
+    );
+
+  if (dynamicSummaries.length > 0) {
+    return dynamicSummaries;
+  }
+
+  return [
+    {
+      code: 'ram',
+      label: 'RAM',
+      values: (product.variantMemoryRams ?? [])
+        .map((value) => nonEmpty(value))
+        .filter((value): value is string => Boolean(value)),
+    },
+    {
+      code: 'storage',
+      label: 'Stockages',
+      values: (product.variantStorages ?? [])
+        .map((value) => nonEmpty(value))
+        .filter((value): value is string => Boolean(value)),
+    },
+    {
+      code: 'color',
+      label: 'Coloris',
+      values: (product.variantColors ?? [])
+        .map((value) => nonEmpty(value))
+        .filter((value): value is string => Boolean(value)),
+    },
+  ].filter((attribute) => attribute.values.length > 0);
+};

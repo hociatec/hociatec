@@ -43,9 +43,9 @@ final readonly class CartOrderLineConverter
             }
             $product->reserveStock($quantity);
 
-            $item = (new OrderItem($product->getName(), $product->getSku(), $product->getPriceCents(), $quantity))
+            $item = (new OrderItem($product->getName(), $product->getSku(), $product->getUnitPriceCentsForSellingType($cartItem->getSellingType()), $quantity))
                 ->setProduct($product)
-                ->setSellingType($product->getSellingType())
+                ->setSellingType($cartItem->getSellingType())
                 ->setRentalMonths($cartItem->getRentalMonths())
                 ->setRentalStartDate($cartItem->getRentalStartDate())
                 ->setVatRateBps(2000);

@@ -7,18 +7,25 @@ struct ProductsListToolbarSection: View {
     let onOpenSort: () -> Void
     let onClearCategory: () -> Void
     let onClearSellingType: () -> Void
+    let onClearBrand: () -> Void
+    let onClearAttributeFilter: (String) -> Void
 
     var body: some View {
         Section {
             ProductCatalogToolbar(
                 selectedCategory: viewModel.selectedCategory,
                 selectedSellingType: viewModel.selectedSellingType,
+                selectedBrand: viewModel.selectedBrand,
+                selectedAttributeFilters: viewModel.selectedAttributeFilters,
+                availableAttributeFacets: viewModel.availableFacets.attributes,
                 sort: viewModel.sort,
                 summaryText: summaryText,
                 onOpenFilters: onOpenFilters,
                 onOpenSort: onOpenSort,
                 onClearCategory: onClearCategory,
-                onClearSellingType: onClearSellingType
+                onClearSellingType: onClearSellingType,
+                onClearBrand: onClearBrand,
+                onClearAttributeFilter: onClearAttributeFilter
             )
         }
     }

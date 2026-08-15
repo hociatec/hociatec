@@ -1,28 +1,35 @@
-import type { CatalogBrand, CatalogProduct, UpsertProductPayload } from '@/features/catalog/adminApi';
+import type {
+  CatalogBrand,
+  CatalogCategory,
+  CatalogProduct,
+  UpsertProductPayload,
+} from '@/features/catalog/adminApi';
 import { formatEuroInputFromCents } from '@/shared/lib/formatters';
 import { omitUndefinedProperties } from '@/shared/lib/object';
 import type { ProductFormState, VariantRowState } from './productFormConfig';
 import { parseNonNegativeDecimal, parseNonNegativeInteger } from '@/shared/lib/parsers';
 import {
   buildVariantIdentityKey,
-  extractNumericValue,
   formatVariantConflictLabel,
   parseProductPrice,
   normalizeTextValue,
+  normalizeAttributeRows,
+  validateAttributeValuesAgainstDefinitions,
+  validateRequiredAttributes,
 } from './productFormUtils';
 
 export const buildProductFormState = (product: CatalogProduct): ProductFormState => ({
   name: product.name,
   slug: product.slug,
   sku: product.sku,
-  price: formatEuroInputFromCents(product.priceCents),
-  sellingType: product.sellingType,
+  salePrice: formatEuroInputFromCents(product.salePriceCents ?? 0),
+  rentalPrice: product.rentalPriceCents !== null && product.rentalPriceCents !== undefined ? formatEuroInputFromCents(product.rentalPriceCents) : '',
+  availableForSale: product.availableForSale ?? product.sellingType === 'sale',
+  availableForRental: product.availableForRental ?? product.sellingType === 'rental',
   brand: product.brand ?? '',
   variantGroup: product.variantGroup ?? '',
   releaseYear: product.releaseYear?.toString() ?? '',
-  storageCapacity: extractNumericValue(product.storageCapacity),
-  memoryRam: extractNumericValue(product.memoryRam),
-  color: product.color ?? '',
+  attributes: normalizeAttributeRows(product.attributes ?? []),
   stock: product.stock.toString(),
   shortDescription: product.shortDescription ?? '',
   description: product.description,
@@ -43,6 +50,7 @@ export const buildProductFormState = (product: CatalogProduct): ProductFormState
 interface BuildProductPayloadInput {
   form: ProductFormState;
   brands: CatalogBrand[];
+  categories: CatalogCategory[];
   variantRows: VariantRowState[];
   groupVariants: CatalogProduct[];
   currentProductId: number | null;
@@ -56,40 +64,61 @@ type ProductPayloadResult =
 export const buildProductPayload = ({
   form,
   brands,
+  categories,
   variantRows,
   groupVariants,
   currentProductId,
   galleryFiles,
   galleryToRemove,
 }: BuildProductPayloadInput): ProductPayloadResult => {
-  const priceValue = parseProductPrice(form.price);
+  const normalizedAttributes = normalizeAttributeRows(form.attributes);
+  const selectedCategory = categories.find((category) => category.id.toString() === form.categoryId) ?? null;
+  const categoryDefinitions = selectedCategory?.attributeDefinitions ?? [];
+  const salePriceValue =
+    form.salePrice.trim() === '' ? null : parseProductPrice(form.salePrice);
+  const rentalPriceValue =
+    form.rentalPrice.trim() === '' ? null : parseProductPrice(form.rentalPrice);
   const stockValue = parseNonNegativeInteger(form.stock);
   const releaseYearValue =
     form.releaseYear.trim() === '' ? null : parseNonNegativeInteger(form.releaseYear, Number.NaN);
   const categoryId = parseNonNegativeInteger(form.categoryId);
   const variantPayload = variantRows
     .map((row) => {
+      const attributes = normalizeAttributeRows(row.attributes);
       const stock = parseNonNegativeInteger(row.stock);
-      const price = row.price.trim() === '' ? priceValue : parseProductPrice(row.price);
-      const storageCapacity =
-        row.storageCapacity.trim() === '' ? null : parseNonNegativeInteger(row.storageCapacity);
+      const salePrice =
+        row.salePrice.trim() === ''
+          ? salePriceValue
+          : parseProductPrice(row.salePrice);
+      const rentalPrice =
+        row.rentalPrice.trim() === ''
+          ? rentalPriceValue
+          : parseProductPrice(row.rentalPrice);
+
       return {
-        color: row.color.trim() || null,
-        storageCapacity:
-          storageCapacity !== null && !Number.isNaN(storageCapacity)
-            ? `${storageCapacity} Go`
-            : null,
+        attributes,
         stock,
-        price,
+        salePrice,
+        rentalPrice,
       };
     })
-    .filter((row) => row.color !== null || row.storageCapacity !== null);
+    .filter((row) => row.attributes.length > 0);
   const discountValue =
     form.discountEnabled && form.discountValue.trim() !== ''
       ? parseNonNegativeDecimal(form.discountValue, Number.NaN)
       : undefined;
 
-  if (Number.isNaN(priceValue)) return { error: 'Le prix indiqué est invalide.' };
+  if (salePriceValue !== null && Number.isNaN(salePriceValue)) return { error: 'Le prix de vente indiqué est invalide.' };
+  if (rentalPriceValue !== null && Number.isNaN(rentalPriceValue)) return { error: 'Le prix mensuel de location indiqué est invalide.' };
+  if (!form.availableForSale && !form.availableForRental) {
+    return { error: 'Activez au moins la vente ou la location.' };
+  }
+  if (form.availableForSale && salePriceValue === null) {
+    return { error: 'Le prix de vente est obligatoire.' };
+  }
+  if (form.availableForRental && rentalPriceValue === null) {
+    return { error: 'Le prix mensuel de location est obligatoire.' };
+  }
   if (Number.isNaN(stockValue))
     return { error: 'Le stock doit être un entier positif.' };
   if (
@@ -99,6 +128,17 @@ export const buildProductPayload = ({
     return { error: 'L’année du modèle doit être comprise entre 2000 et 2100.' };
   }
   if (Number.isNaN(categoryId)) return { error: 'Merci de sélectionner une catégorie.' };
+  const missingMainAttributeError = validateRequiredAttributes(normalizedAttributes, categoryDefinitions);
+  if (missingMainAttributeError) {
+    return { error: missingMainAttributeError };
+  }
+  const invalidMainAttributeValueError = validateAttributeValuesAgainstDefinitions(
+    normalizedAttributes,
+    categoryDefinitions,
+  );
+  if (invalidMainAttributeValueError) {
+    return { error: invalidMainAttributeValueError };
+  }
   if (form.discountEnabled && form.discountValue.trim() !== '' && Number.isNaN(discountValue)) {
     return { error: 'La remise doit être un nombre valide.' };
   }
@@ -113,8 +153,33 @@ export const buildProductPayload = ({
   if (variantPayload.some((row) => Number.isNaN(row.stock))) {
     return { error: 'Le stock des variantes doit être un entier positif.' };
   }
-  if (variantPayload.some((row) => Number.isNaN(row.price))) {
-    return { error: 'Le prix des variantes doit être un nombre valide.' };
+  if (variantPayload.some((row) => row.salePrice !== null && Number.isNaN(row.salePrice))) {
+    return { error: 'Le prix de vente des variantes doit être un nombre valide.' };
+  }
+  if (variantPayload.some((row) => row.rentalPrice !== null && Number.isNaN(row.rentalPrice))) {
+    return { error: 'Le prix location des variantes doit être un nombre valide.' };
+  }
+  const missingVariantAttributeDefinition = variantPayload.find((row) =>
+    validateRequiredAttributes(row.attributes, categoryDefinitions),
+  );
+  if (missingVariantAttributeDefinition) {
+    return {
+      error:
+        validateRequiredAttributes(missingVariantAttributeDefinition.attributes, categoryDefinitions) ??
+        'Une variante ne respecte pas les attributs requis de la catégorie.',
+    };
+  }
+  const invalidVariantAttributeValueError = variantPayload
+    .map((row) => validateAttributeValuesAgainstDefinitions(row.attributes, categoryDefinitions))
+    .find((error): error is string => Boolean(error));
+  if (invalidVariantAttributeValueError) {
+    return { error: invalidVariantAttributeValueError };
+  }
+  if (form.availableForSale && variantPayload.some((row) => row.salePrice === null)) {
+    return { error: 'Chaque variante doit avoir un prix de vente ou hériter du prix de vente principal.' };
+  }
+  if (form.availableForRental && variantPayload.some((row) => row.rentalPrice === null)) {
+    return { error: 'Chaque variante doit avoir un prix de location ou hériter du prix location principal.' };
   }
 
   const selectedBrand =
@@ -122,48 +187,29 @@ export const buildProductPayload = ({
       ? null
       : (brands.find((brand) => normalizeTextValue(brand.name) === normalizeTextValue(form.brand)) ??
         null);
-  const storageCapacityValue =
-    form.storageCapacity.trim() === '' ? null : parseNonNegativeInteger(form.storageCapacity);
-  const memoryRamValue =
-    form.memoryRam.trim() === '' ? null : parseNonNegativeInteger(form.memoryRam);
 
   if (selectedBrand === null)
     return { error: 'La marque est obligatoire. Recherchez puis cochez une marque existante.' };
-  if (
-    storageCapacityValue !== null &&
-    (Number.isNaN(storageCapacityValue) || storageCapacityValue < 1 || storageCapacityValue > 4096)
-  ) {
-    return { error: 'Le stockage doit être un nombre compris entre 1 et 4096.' };
-  }
-  if (
-    memoryRamValue !== null &&
-    (Number.isNaN(memoryRamValue) || memoryRamValue < 1 || memoryRamValue > 256)
-  ) {
-    return { error: 'La mémoire RAM doit être un nombre compris entre 1 et 256.' };
-  }
-
-  const normalizedStorage =
-    storageCapacityValue !== null && !Number.isNaN(storageCapacityValue)
-      ? `${storageCapacityValue} Go`
-      : null;
   const existingVariantKeys = new Set(
     groupVariants
       .filter((variant) => variant.id !== currentProductId)
-      .map((variant) => buildVariantIdentityKey(variant.color, variant.storageCapacity)),
+      .map((variant) => buildVariantIdentityKey(variant.attributes ?? [])),
   );
-  const currentVariantKey = buildVariantIdentityKey(form.color.trim() || null, normalizedStorage);
-  if (existingVariantKeys.has(currentVariantKey)) {
+  const currentVariantKey = buildVariantIdentityKey(normalizedAttributes);
+  if (normalizedAttributes.length > 0 && existingVariantKeys.has(currentVariantKey)) {
     return {
-      error: `La variante ${formatVariantConflictLabel(form.color, normalizedStorage)} existe déjà.`,
+      error: `La variante ${formatVariantConflictLabel(normalizedAttributes)} existe déjà.`,
     };
   }
 
-  const incomingVariantKeys = new Set<string>([currentVariantKey]);
+  const incomingVariantKeys = new Set<string>(
+    normalizedAttributes.length > 0 ? [currentVariantKey] : [],
+  );
   for (const row of variantPayload) {
-    const key = buildVariantIdentityKey(row.color, row.storageCapacity);
+    const key = buildVariantIdentityKey(row.attributes);
     if (existingVariantKeys.has(key) || incomingVariantKeys.has(key)) {
       return {
-        error: `La variante ${formatVariantConflictLabel(row.color, row.storageCapacity)} existe déjà.`,
+        error: `La variante ${formatVariantConflictLabel(row.attributes)} existe déjà.`,
       };
     }
     incomingVariantKeys.add(key);
@@ -174,20 +220,20 @@ export const buildProductPayload = ({
     galleryToRemove.length > 0 ? Array.from(new Set(galleryToRemove)) : undefined;
   return {
     payload: omitUndefinedProperties({
-      sellingType: form.sellingType,
+      salePrice: form.availableForSale ? salePriceValue : null,
+      rentalPrice: form.availableForRental ? rentalPriceValue : null,
+      availableForSale: form.availableForSale,
+      availableForRental: form.availableForRental,
       brandId: selectedBrand.id,
       variantGroup: null,
       releaseYear: releaseYearValue,
-      storageCapacity: normalizedStorage,
-      memoryRam: memoryRamValue !== null ? `${memoryRamValue} Go` : null,
-      color: form.color.trim() || null,
+      attributes: normalizedAttributes,
       variants: variantPayload.length > 0 ? variantPayload : undefined,
       name: form.name.trim(),
       slug: form.slug.trim() ? form.slug.trim() : null,
       sku: form.sku.trim(),
       description: form.description.trim(),
       shortDescription: form.shortDescription.trim() || null,
-      price: priceValue,
       stock: stockValue,
       isPublished: form.isPublished,
       isFeaturedHome: form.isFeaturedHome,

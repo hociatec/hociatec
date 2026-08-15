@@ -37,12 +37,13 @@ export const useCartPageController = () => {
   const checkoutState = useCartCheckout(authStatus === 'authenticated');
 
   const buildRentalReference = useCallback(
-    (months?: number, startDate?: string) => {
+    (sellingType: 'sale' | 'rental', months?: number, startDate?: string) => {
       if (!months) {
-        return undefined;
+        return { currentSellingType: sellingType };
       }
 
       return {
+        currentSellingType: sellingType,
         currentRentalMonths: months,
         ...(startDate ? { currentRentalStartDate: startDate } : {}),
       };
@@ -51,7 +52,9 @@ export const useCartPageController = () => {
   );
 
   const buildRentalUpdate = useCallback(
-    (currentMonths: number, nextMonths: number, startDate?: string) => ({
+    (sellingType: 'sale' | 'rental', currentMonths: number, nextMonths: number, startDate?: string) => ({
+      currentSellingType: sellingType,
+      sellingType,
       currentRentalMonths: currentMonths,
       rentalMonths: nextMonths,
       ...(startDate ? { currentRentalStartDate: startDate, rentalStartDate: startDate } : {}),
@@ -82,14 +85,14 @@ export const useCartPageController = () => {
 
   const handleDecrease = useCallback(
     (item: CartLine) => {
-      const isRental = item.product.sellingType === 'rental';
+      const isRental = item.sellingType === 'rental';
       const rentalReference = isRental ? clampAtLeast(item.rentalMonths ?? 1, 1) : undefined;
       const rentalStartDate = isRental ? item.rentalStartDate ?? undefined : undefined;
 
       if (item.quantity <= 1) {
         void removeItem(
           item.product.id,
-          buildRentalReference(rentalReference, rentalStartDate),
+          buildRentalReference(item.sellingType, rentalReference, rentalStartDate),
         ).catch(() =>
           show("Nous n'avons pas pu retirer cet article. Réessayez dans quelques secondes.", {
             variant: 'error',
@@ -101,7 +104,7 @@ export const useCartPageController = () => {
       void setItemQuantity(
         item.product.id,
         item.quantity - 1,
-        buildRentalReference(rentalReference, rentalStartDate),
+        buildRentalReference(item.sellingType, rentalReference, rentalStartDate),
       ).catch(() =>
         show("La quantité n'a pas pu être mise à jour. Vérifiez le stock puis réessayez.", {
           variant: 'error',
@@ -113,14 +116,14 @@ export const useCartPageController = () => {
 
   const handleIncrease = useCallback(
     (item: CartLine) => {
-      const isRental = item.product.sellingType === 'rental';
+      const isRental = item.sellingType === 'rental';
       const rentalReference = isRental ? clampAtLeast(item.rentalMonths ?? 1, 1) : undefined;
       const rentalStartDate = isRental ? item.rentalStartDate ?? undefined : undefined;
 
       void setItemQuantity(
         item.product.id,
         item.quantity + 1,
-        buildRentalReference(rentalReference, rentalStartDate),
+        buildRentalReference(item.sellingType, rentalReference, rentalStartDate),
       ).catch(() =>
         show("La quantité n'a pas pu être mise à jour. Vérifiez le stock puis réessayez.", {
           variant: 'error',
@@ -132,14 +135,14 @@ export const useCartPageController = () => {
 
   const updateRentalMonths = useCallback(
     (item: CartLine, nextValue: number) => {
-      if (item.product.sellingType !== 'rental') return;
+      if (item.sellingType !== 'rental') return;
 
       const currentMonths = clampAtLeast(item.rentalMonths ?? 1, 1);
       const currentStartDate = item.rentalStartDate ?? undefined;
       const normalized = clampAtLeast(Number.isNaN(nextValue) ? 1 : nextValue, 1);
       if (normalized === currentMonths) return;
 
-      void setItemQuantity(item.product.id, item.quantity, buildRentalUpdate(currentMonths, normalized, currentStartDate)).catch(() =>
+      void setItemQuantity(item.product.id, item.quantity, buildRentalUpdate(item.sellingType, currentMonths, normalized, currentStartDate)).catch(() =>
         show("La durée de location n'a pas pu être mise à jour. Réessayez avant de valider.", {
           variant: 'error',
         }),
@@ -180,12 +183,12 @@ export const useCartPageController = () => {
 
   const handleRemoveItem = useCallback(
     (item: CartLine) => {
-      const isRental = item.product.sellingType === 'rental';
+      const isRental = item.sellingType === 'rental';
       const rentalMonths = clampAtLeast(item.rentalMonths ?? 1, 1);
       const rentalStartDate = item.rentalStartDate ?? undefined;
       void removeItem(
         item.product.id,
-        isRental ? buildRentalReference(rentalMonths, rentalStartDate) : undefined,
+        buildRentalReference(item.sellingType, isRental ? rentalMonths : undefined, rentalStartDate),
       ).catch(() =>
         show("Nous n'avons pas pu retirer cet article. Réessayez dans quelques secondes.", {
           variant: 'error',

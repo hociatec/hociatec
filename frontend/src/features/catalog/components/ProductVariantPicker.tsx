@@ -68,8 +68,8 @@ export const ProductVariantPicker = ({
         aria-labelledby={titleId}
       >
         {groups.map((group) => (
-          <section key={group.storage} className="catalog-detail-variant-group">
-            <h3 className="catalog-detail-variant-group__title">Stockage : {group.storage}</h3>
+          <section key={group.label} className="catalog-detail-variant-group">
+            <h3 className="catalog-detail-variant-group__title">{group.label}</h3>
             <div className="catalog-detail-variant-picker__grid">
               {group.items.map((variant) => {
                 const isSelected = variant.id === currentProductId;
@@ -82,14 +82,12 @@ export const ProductVariantPicker = ({
                     role="radio"
                     className={`catalog-detail-variant-card${isSelected ? ' is-active' : ''}`}
                     aria-checked={isSelected}
-                    aria-label={`${variant.color ? `Couleur : ${variant.color}. ` : ''}${variant.storage ? `Stockage : ${variant.storage}. ` : ''}Prix : ${variant.priceLabel}.${variant.isAvailable ? '' : ' Indisponible.'}`}
+                    aria-label={variant.accessibilityLabel}
                     tabIndex={variantIndex === selectedIndex ? 0 : -1}
                     onClick={() => onVariantChange(String(variant.id))}
                     onKeyDown={(event) => handleKeyDown(event, variant.id)}
                   >
-                    <span className="catalog-detail-variant-card__title">
-                      {variant.color ? `Couleur : ${variant.color}` : variant.title}
-                    </span>
+                    <span className="catalog-detail-variant-card__title">{variant.title}</span>
                     <span className="catalog-detail-variant-card__meta">{variant.subtitle}</span>
                     <span className="catalog-detail-variant-card__footer">
                       <span className="catalog-detail-variant-card__price">

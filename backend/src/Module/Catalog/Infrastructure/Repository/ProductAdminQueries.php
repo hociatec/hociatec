@@ -50,15 +50,21 @@ trait ProductAdminQueries
         }
 
         if (null !== $criteria->sellingType && \in_array($criteria->sellingType, ['sale', 'rental'], true)) {
-            $qb->andWhere('p.pricing.sellingType = :adminSellingType')->setParameter('adminSellingType', $criteria->sellingType);
+            if ('sale' === $criteria->sellingType) {
+                $qb->andWhere('p.pricing.availableForSale = :adminAvailableForSale')->setParameter('adminAvailableForSale', true);
+            } else {
+                $qb->andWhere('p.pricing.availableForRental = :adminAvailableForRental')->setParameter('adminAvailableForRental', true);
+            }
         }
 
         if (null !== $criteria->minPriceCents && $criteria->minPriceCents >= 0) {
-            $qb->andWhere('p.pricing.priceCents >= :adminMinPrice')->setParameter('adminMinPrice', $criteria->minPriceCents);
+            $field = 'rental' === $criteria->sellingType ? 'p.pricing.rentalPriceCents' : 'p.pricing.salePriceCents';
+            $qb->andWhere(sprintf('%s >= :adminMinPrice', $field))->setParameter('adminMinPrice', $criteria->minPriceCents);
         }
 
         if (null !== $criteria->maxPriceCents && $criteria->maxPriceCents >= 0) {
-            $qb->andWhere('p.pricing.priceCents <= :adminMaxPrice')->setParameter('adminMaxPrice', $criteria->maxPriceCents);
+            $field = 'rental' === $criteria->sellingType ? 'p.pricing.rentalPriceCents' : 'p.pricing.salePriceCents';
+            $qb->andWhere(sprintf('%s <= :adminMaxPrice', $field))->setParameter('adminMaxPrice', $criteria->maxPriceCents);
         }
 
         if (true === $criteria->lowStockOnly) {

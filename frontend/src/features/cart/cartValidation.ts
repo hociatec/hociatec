@@ -1,4 +1,5 @@
 import {
+  ApiContractError,
   requireArray,
   requireBoolean,
   requireNumber,
@@ -12,6 +13,7 @@ import type { Cart, CartPromotion } from './types/cart';
 
 const DISCOUNT_TYPES = new Set(['percent', 'fixed_cents']);
 const VOUCHER_STATUSES = new Set(['none', 'applied', 'invalid', 'ineligible']);
+const SELLING_TYPES = new Set(['sale', 'rental']);
 
 const parseDiscountType = (value: unknown): CartPromotion['discountType'] => {
   const type = requireString(value);
@@ -75,10 +77,15 @@ export const parseCart = (value: unknown): Cart => {
       const rentalMonths = optionalNumber(item.rentalMonths);
       const rentalStartDate = optionalString(item.rentalStartDate);
       const rentalEndDate = optionalString(item.rentalEndDate);
+      const sellingType = requireString(item.sellingType);
+      if (!SELLING_TYPES.has(sellingType)) {
+        throw new ApiContractError('Réponse panier invalide.');
+      }
 
       return {
         id: requireNumber(item.id),
         product: parseCatalogProduct(item.product),
+        sellingType: sellingType as Cart['items'][number]['sellingType'],
         quantity: requireNumber(item.quantity),
         linePriceCents: requireNumber(item.linePriceCents),
         ...(rentalMonths !== undefined ? { rentalMonths } : {}),

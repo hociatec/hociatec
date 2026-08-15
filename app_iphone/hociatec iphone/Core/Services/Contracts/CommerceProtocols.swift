@@ -2,26 +2,28 @@ import Foundation
 
 protocol CartServing {
     func fetchCart() async throws -> Cart
-    func addToCart(productId: Int, quantity: Int, rentalMonths: Int?, rentalStartDate: String?) async throws -> Cart
+    func addToCart(productId: Int, quantity: Int, sellingType: SellingType, rentalMonths: Int?, rentalStartDate: String?) async throws -> Cart
     func updateCart(
         productId: Int,
         quantity: Int,
+        sellingType: SellingType,
+        currentSellingType: SellingType,
         rentalMonths: Int?,
         currentRentalMonths: Int?,
         rentalStartDate: String?,
         currentRentalStartDate: String?
     ) async throws -> Cart
-    func removeFromCart(productId: Int, rentalMonths: Int?, rentalStartDate: String?) async throws -> Cart
+    func removeFromCart(productId: Int, sellingType: SellingType, rentalMonths: Int?, rentalStartDate: String?) async throws -> Cart
     func clearCart() async throws -> Cart
     func checkout() async throws -> CheckoutResult
 }
 
 protocol ProductServing: AssetServing {
     func featuredProducts() async throws -> [Product]
-    func productList(search: String?, categorySlug: String?, sellingType: SellingType?, page: Int?, perPage: Int?) async throws -> ProductListData
-    func products(search: String?, categorySlug: String?, sellingType: SellingType?) async throws -> [Product]
+    func productList(search: String?, categorySlug: String?, sellingType: SellingType?, brand: String?, attributeFilters: [String: String], page: Int?, perPage: Int?) async throws -> ProductListData
+    func products(search: String?, categorySlug: String?, sellingType: SellingType?, brand: String?, attributeFilters: [String: String]) async throws -> [Product]
     func categories() async throws -> [CategorySummary]
-    func product(slug: String) async throws -> Product
+    func product(slug: String, sellingType: SellingType?) async throws -> Product
     func productReviews(slug: String, page: Int, perPage: Int) async throws -> ReviewListData
 }
 

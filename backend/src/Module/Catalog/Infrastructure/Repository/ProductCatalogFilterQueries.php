@@ -26,26 +26,23 @@ trait ProductCatalogFilterQueries
         }
 
         if (null !== $criteria->sellingType && in_array($criteria->sellingType, ['sale', 'rental'], true)) {
-            $qb
-                ->andWhere('p.pricing.sellingType = :stype')
-                ->setParameter('stype', $criteria->sellingType);
+            if ('sale' === $criteria->sellingType) {
+                $qb->andWhere('p.pricing.availableForSale = :availableForSale')->setParameter('availableForSale', true);
+            } else {
+                $qb->andWhere('p.pricing.availableForRental = :availableForRental')->setParameter('availableForRental', true);
+            }
         }
 
         $this->applyExactLowerFilter($qb, 'b.name', 'brand', $criteria->brand);
-        $this->applyExactLowerFilter($qb, 'p.characteristics.storageCapacity', 'storageCapacity', $criteria->storageCapacity);
-        $this->applyExactLowerFilter($qb, 'p.characteristics.memoryRam', 'memoryRam', $criteria->memoryRam);
-        $this->applyExactLowerFilter($qb, 'p.characteristics.color', 'color', $criteria->color);
 
         if (null !== $criteria->minPriceCents && $criteria->minPriceCents >= 0) {
-            $qb
-                ->andWhere('p.pricing.priceCents >= :minPriceCents')
-                ->setParameter('minPriceCents', $criteria->minPriceCents);
+            $field = 'rental' === $criteria->sellingType ? 'p.pricing.rentalPriceCents' : 'p.pricing.salePriceCents';
+            $qb->andWhere(sprintf('%s >= :minPriceCents', $field))->setParameter('minPriceCents', $criteria->minPriceCents);
         }
 
         if (null !== $criteria->maxPriceCents && $criteria->maxPriceCents >= 0) {
-            $qb
-                ->andWhere('p.pricing.priceCents <= :maxPriceCents')
-                ->setParameter('maxPriceCents', $criteria->maxPriceCents);
+            $field = 'rental' === $criteria->sellingType ? 'p.pricing.rentalPriceCents' : 'p.pricing.salePriceCents';
+            $qb->andWhere(sprintf('%s <= :maxPriceCents', $field))->setParameter('maxPriceCents', $criteria->maxPriceCents);
         }
 
         if (true === $criteria->inStockOnly) {
@@ -88,8 +85,8 @@ trait ProductCatalogFilterQueries
             'relevance' => null !== $search && '' !== trim($search)
                 ? $qb->orderBy('relevanceScore', 'DESC')->addOrderBy('p.name', 'ASC')
                 : $qb->orderBy('p.name', 'ASC'),
-            'price_asc' => $qb->orderBy('p.pricing.priceCents', 'ASC')->addOrderBy('p.name', 'ASC'),
-            'price_desc' => $qb->orderBy('p.pricing.priceCents', 'DESC')->addOrderBy('p.name', 'ASC'),
+            'price_asc' => $qb->orderBy('CASE WHEN p.pricing.availableForRental = true THEN p.pricing.rentalPriceCents ELSE p.pricing.salePriceCents END', 'ASC')->addOrderBy('p.name', 'ASC'),
+            'price_desc' => $qb->orderBy('CASE WHEN p.pricing.availableForRental = true THEN p.pricing.rentalPriceCents ELSE p.pricing.salePriceCents END', 'DESC')->addOrderBy('p.name', 'ASC'),
             'release_year_desc' => $qb->orderBy('p.characteristics.releaseYear', 'DESC')->addOrderBy('p.name', 'ASC'),
             'release_year_asc' => $qb->orderBy('p.characteristics.releaseYear', 'ASC')->addOrderBy('p.name', 'ASC'),
             'name_desc' => $qb->orderBy('p.name', 'DESC'),

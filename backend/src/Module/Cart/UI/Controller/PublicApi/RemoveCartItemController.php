@@ -8,6 +8,7 @@ use App\Module\Cart\Application\Exception\CartNotFoundException;
 use App\Module\Cart\Application\Projection\CartFormatter;
 use App\Module\Cart\Application\Workflow\CartSessionWorkflow;
 use App\Module\Catalog\Application\Port\ProductRepositoryPort;
+use App\Module\Catalog\Domain\Entity\ProductSellingType;
 use App\Module\Order\Application\Support\RentalPeriodCalculator;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiProblemResponse;
@@ -46,6 +47,10 @@ class RemoveCartItemController extends AbstractController
         }
 
         try {
+            $sellingType = RequestQueryMapper::nullableString($request, 'currentSellingType')
+                ?? RequestQueryMapper::nullableString($request, 'sellingType')
+                ?? $product->resolveDisplaySellingType()->value;
+            $sellingType = ProductSellingType::fromInput($sellingType)->value;
             $rentalMonths = RequestQueryMapper::positiveIntFromAny($request, ['currentRentalMonths', 'rentalMonths']);
             $rentalStartDate = RentalPeriodCalculator::parseDate(RequestQueryMapper::nullableString($request, 'currentRentalStartDate') ?? RequestQueryMapper::nullableString($request, 'rentalStartDate'));
         } catch (\InvalidArgumentException $exception) {
@@ -53,7 +58,7 @@ class RemoveCartItemController extends AbstractController
         }
 
         try {
-            $cart = $this->cartService->removeProduct($token, $product, $rentalMonths, $rentalStartDate);
+            $cart = $this->cartService->removeProduct($token, $product, $sellingType, $rentalMonths, $rentalStartDate);
         } catch (CartNotFoundException|\InvalidArgumentException $exception) {
             return ApiProblemResponse::fromThrowable($exception);
         }

@@ -17,12 +17,15 @@ import { adminCatalogQueryKeys } from '@/features/admin/catalog/queryKeys';
 import { slugify } from '@/shared/lib/slugify';
 import { useDelayedNavigation } from '@/shared/hooks/useDelayedNavigation';
 import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
+import { normalizeAttributeCode } from '@/features/admin/catalog/utils/productFormUtils';
+import type { CatalogCategoryAttributeDefinition } from '@/features/catalog/adminApi';
 
 type CategoryFormState = {
   name: string;
   slug: string;
   description: string;
   isVisible: boolean;
+  attributeDefinitions: CatalogCategoryAttributeDefinition[];
 };
 
 const emptyForm: CategoryFormState = {
@@ -30,6 +33,7 @@ const emptyForm: CategoryFormState = {
   slug: '',
   description: '',
   isVisible: true,
+  attributeDefinitions: [],
 };
 
 export const CategoryFormPage = () => {
@@ -77,6 +81,7 @@ export const CategoryFormPage = () => {
       slug: category.slug,
       description: category.description ?? '',
       isVisible: category.isVisible,
+      attributeDefinitions: category.attributeDefinitions ?? [],
     });
   };
 
@@ -115,7 +120,68 @@ export const CategoryFormPage = () => {
     slug: form.slug.trim() || null,
     description: form.description.trim() || null,
     isVisible: form.isVisible,
+    attributeDefinitions: form.attributeDefinitions
+      .map((attribute) => ({
+        code: normalizeAttributeCode(attribute.code || attribute.label),
+        label: attribute.label.trim(),
+        inputType: attribute.inputType,
+        helpText: attribute.helpText?.trim() || null,
+        options: (attribute.options ?? [])
+          .map((option) => option.trim())
+          .filter((option) => option !== ''),
+        isRequired: attribute.isRequired,
+        isGlobalFilter: attribute.isGlobalFilter,
+      }))
+      .filter((attribute) => attribute.code && attribute.label),
   });
+
+  const addAttributeDefinition = () => {
+    setForm((previous) => ({
+      ...previous,
+      attributeDefinitions: [
+        ...previous.attributeDefinitions,
+        { code: '', label: '', inputType: 'text', helpText: null, options: [], isRequired: false, isGlobalFilter: false },
+      ],
+    }));
+  };
+
+  const updateAttributeDefinition = (
+    index: number,
+    field: keyof CatalogCategoryAttributeDefinition,
+    value: string | boolean | string[] | null,
+  ) => {
+    setForm((previous) => ({
+      ...previous,
+      attributeDefinitions: previous.attributeDefinitions.map((attribute, attributeIndex) => {
+        if (attributeIndex !== index) {
+          return attribute;
+        }
+
+        if (field === 'label') {
+          const nextLabel = String(value);
+          const nextCode =
+            attribute.code.trim() === '' || attribute.code === normalizeAttributeCode(attribute.label)
+              ? normalizeAttributeCode(nextLabel)
+              : attribute.code;
+
+          return { ...attribute, label: nextLabel, code: nextCode };
+        }
+
+        if (field === 'code') {
+          return { ...attribute, code: normalizeAttributeCode(String(value)) };
+        }
+
+        return { ...attribute, [field]: value };
+      }),
+    }));
+  };
+
+  const removeAttributeDefinition = (index: number) => {
+    setForm((previous) => ({
+      ...previous,
+      attributeDefinitions: previous.attributeDefinitions.filter((_, attributeIndex) => attributeIndex !== index),
+    }));
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -200,6 +266,130 @@ export const CategoryFormPage = () => {
             />
             Catégorie visible
           </label>
+
+          <section className="catalog-form-section">
+            <div className="catalog-form-section__header">
+              <h2 className="catalog-form-section__title">Attributs de la catégorie</h2>
+              <p className="catalog-form-section__description">
+                Définissez les caractéristiques attendues pour les produits de cette catégorie.
+              </p>
+            </div>
+
+            <div className="catalog-attribute-editor">
+              {form.attributeDefinitions.length === 0 && (
+                <p className="muted">
+                  Aucun attribut configuré. Vous pourrez toujours ajouter une caractéristique exceptionnelle sur un produit.
+                </p>
+              )}
+              {form.attributeDefinitions.map((attribute, index) => (
+                <div
+                  key={`${attribute.code}-${index}`}
+                  className="catalog-form-row catalog-form-row--columns"
+                >
+                  <label>
+                    Libellé
+                    <input
+                      value={attribute.label}
+                      onChange={(event) =>
+                        updateAttributeDefinition(index, 'label', event.target.value)
+                      }
+                      placeholder="Ex. Stockage, RAM, Couleur"
+                    />
+                  </label>
+                  <label>
+                    Code
+                    <input
+                      value={attribute.code}
+                      onChange={(event) =>
+                        updateAttributeDefinition(index, 'code', event.target.value)
+                      }
+                      placeholder="stockage"
+                    />
+                  </label>
+                  <label>
+                    Type
+                    <select
+                      value={attribute.inputType}
+                      onChange={(event) =>
+                        updateAttributeDefinition(index, 'inputType', event.target.value)
+                      }
+                    >
+                      <option value="text">Texte libre</option>
+                      <option value="number">Nombre</option>
+                      <option value="select">Liste fermée</option>
+                      <option value="color">Couleur</option>
+                      <option value="boolean">Oui / Non</option>
+                    </select>
+                  </label>
+                  <label>
+                    Aide de saisie
+                    <input
+                      value={attribute.helpText ?? ''}
+                      onChange={(event) =>
+                        updateAttributeDefinition(index, 'helpText', event.target.value)
+                      }
+                      placeholder="Ex. Choisissez une capacité disponible"
+                    />
+                  </label>
+                  {attribute.inputType === 'select' && (
+                    <label>
+                      Options
+                      <input
+                        value={(attribute.options ?? []).join(', ')}
+                        onChange={(event) =>
+                          updateAttributeDefinition(
+                            index,
+                            'options',
+                            event.target.value
+                              .split(',')
+                              .map((option) => option.trim())
+                              .filter((option) => option !== ''),
+                          )
+                        }
+                        placeholder="Ex. 64 Go, 128 Go, 256 Go"
+                      />
+                    </label>
+                  )}
+                  <label className="booking__checkbox">
+                    <input
+                      type="checkbox"
+                      checked={attribute.isRequired}
+                      onChange={(event) =>
+                        updateAttributeDefinition(index, 'isRequired', event.target.checked)
+                      }
+                    />
+                    Attribut obligatoire
+                  </label>
+                  <label className="booking__checkbox">
+                    <input
+                      type="checkbox"
+                      checked={attribute.isGlobalFilter}
+                      onChange={(event) =>
+                        updateAttributeDefinition(index, 'isGlobalFilter', event.target.checked)
+                      }
+                    />
+                    Filtre global
+                  </label>
+                  <div className="catalog-form-field-actions">
+                    <button
+                      type="button"
+                      className="catalog-variant-switcher__remove"
+                      onClick={() => removeAttributeDefinition(index)}
+                    >
+                      Supprimer
+                    </button>
+                  </div>
+                </div>
+              ))}
+              <button
+                type="button"
+                className="catalog-admin-actions__edit w-fit"
+                onClick={addAttributeDefinition}
+              >
+                Ajouter un attribut
+              </button>
+            </div>
+          </section>
 
           <button className="register-form__submit" type="submit" disabled={saveMutation.isPending}>
             {saveMutation.isPending ? 'Enregistrement...' : isEdit ? 'Mettre à jour' : 'Créer'}

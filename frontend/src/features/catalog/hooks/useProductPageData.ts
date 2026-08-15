@@ -10,17 +10,22 @@ import {
 import { catalogQueryKeys } from '@/features/catalog/queryKeys';
 import { buildVariantGroupKey } from '@/features/catalog/utils/productPageDisplay';
 
-export const useProductPageData = (slug?: string) => {
+export const useProductPageData = (slug?: string, sellingType?: 'sale' | 'rental') => {
+  const requestOptions = (signal: AbortSignal) => ({
+    signal,
+    ...(sellingType ? { sellingType } : {}),
+  });
+
   const productQuery = useQuery<CatalogProduct, Error>({
-    queryKey: catalogQueryKeys.publicProduct(slug ?? null),
-    queryFn: ({ signal }) => fetchPublicProduct(slug ?? '', { signal }),
+    queryKey: catalogQueryKeys.publicProduct(slug ?? null, sellingType ?? null),
+    queryFn: ({ signal }) => fetchPublicProduct(slug ?? '', requestOptions(signal)),
     enabled: Boolean(slug),
   });
   const product = productQuery.data ?? null;
   const variantsQuery = useQuery<CatalogProduct[], Error>({
-    queryKey: catalogQueryKeys.publicProductVariants(product?.slug ?? null),
+    queryKey: catalogQueryKeys.publicProductVariants(product?.slug ?? null, sellingType ?? null),
     queryFn: ({ signal }) =>
-      fetchPublicProductVariants(product?.slug ?? '', { signal }),
+      fetchPublicProductVariants(product?.slug ?? '', requestOptions(signal)),
     enabled: Boolean(product),
   });
   const fallbackVariantsQuery = useQuery<CatalogProduct[], Error>({

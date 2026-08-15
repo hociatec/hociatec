@@ -4,10 +4,11 @@ struct CartService: CartServing {
     let api: APIClient
 
     func fetchCart() async throws -> Cart { try await api.fetchCart() }
-    func addToCart(productId: Int, quantity: Int, rentalMonths: Int?, rentalStartDate: String?) async throws -> Cart {
+    func addToCart(productId: Int, quantity: Int, sellingType: SellingType, rentalMonths: Int?, rentalStartDate: String?) async throws -> Cart {
         try await api.addToCart(
             productId: productId,
             quantity: quantity,
+            sellingType: sellingType,
             rentalMonths: rentalMonths,
             rentalStartDate: rentalStartDate
         )
@@ -15,6 +16,8 @@ struct CartService: CartServing {
     func updateCart(
         productId: Int,
         quantity: Int,
+        sellingType: SellingType,
+        currentSellingType: SellingType,
         rentalMonths: Int?,
         currentRentalMonths: Int?,
         rentalStartDate: String?,
@@ -23,15 +26,18 @@ struct CartService: CartServing {
         try await api.updateCart(
             productId: productId,
             quantity: quantity,
+            sellingType: sellingType,
+            currentSellingType: currentSellingType,
             rentalMonths: rentalMonths,
             currentRentalMonths: currentRentalMonths,
             rentalStartDate: rentalStartDate,
             currentRentalStartDate: currentRentalStartDate
         )
     }
-    func removeFromCart(productId: Int, rentalMonths: Int?, rentalStartDate: String?) async throws -> Cart {
+    func removeFromCart(productId: Int, sellingType: SellingType, rentalMonths: Int?, rentalStartDate: String?) async throws -> Cart {
         try await api.removeFromCart(
             productId: productId,
+            sellingType: sellingType,
             rentalMonths: rentalMonths,
             rentalStartDate: rentalStartDate
         )

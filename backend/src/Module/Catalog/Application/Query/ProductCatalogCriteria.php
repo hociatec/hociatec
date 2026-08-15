@@ -11,6 +11,8 @@ final readonly class ProductCatalogCriteria
     public ?bool $onlyFeatured;
     public ?string $sellingType;
     public ?string $brand;
+    /** @var array<string, string> */
+    public array $attributeFilters;
     public ?string $storageCapacity;
     public ?string $memoryRam;
     public ?string $color;
@@ -28,9 +30,10 @@ final readonly class ProductCatalogCriteria
      *   onlyFeatured:?bool,
      *   sellingType:?string,
      *   brand:?string,
-     *   storageCapacity:?string,
-     *   memoryRam:?string,
-     *   color:?string,
+     *   attributeFilters?:array<string,string>,
+     *   storageCapacity?:?string,
+     *   memoryRam?:?string,
+     *   color?:?string,
      *   minPriceCents:?int,
      *   maxPriceCents:?int,
      *   inStockOnly:?bool,
@@ -47,9 +50,7 @@ final readonly class ProductCatalogCriteria
          *   onlyFeatured:?bool,
          *   sellingType:?string,
          *   brand:?string,
-         *   storageCapacity:?string,
-         *   memoryRam:?string,
-         *   color:?string,
+         *   attributeFilters:array<string,string>,
          *   minPriceCents:?int,
          *   maxPriceCents:?int,
          *   inStockOnly:?bool,
@@ -64,6 +65,7 @@ final readonly class ProductCatalogCriteria
             'onlyFeatured' => null,
             'sellingType' => null,
             'brand' => null,
+            'attributeFilters' => [],
             'storageCapacity' => null,
             'memoryRam' => null,
             'color' => null,
@@ -79,9 +81,10 @@ final readonly class ProductCatalogCriteria
         $this->onlyFeatured = $data['onlyFeatured'];
         $this->sellingType = $data['sellingType'];
         $this->brand = $data['brand'];
-        $this->storageCapacity = $data['storageCapacity'];
-        $this->memoryRam = $data['memoryRam'];
-        $this->color = $data['color'];
+        $this->attributeFilters = is_array($data['attributeFilters'] ?? null) ? $data['attributeFilters'] : [];
+        $this->storageCapacity = is_string($data['storageCapacity'] ?? null) ? $data['storageCapacity'] : ($this->attributeFilters['storage'] ?? null);
+        $this->memoryRam = is_string($data['memoryRam'] ?? null) ? $data['memoryRam'] : ($this->attributeFilters['ram'] ?? null);
+        $this->color = is_string($data['color'] ?? null) ? $data['color'] : ($this->attributeFilters['color'] ?? null);
         $this->minPriceCents = $data['minPriceCents'];
         $this->maxPriceCents = $data['maxPriceCents'];
         $this->inStockOnly = $data['inStockOnly'];
@@ -99,9 +102,10 @@ final readonly class ProductCatalogCriteria
                 'onlyFeatured' => $query->onlyFeatured,
                 'sellingType' => $query->sellingType,
                 'brand' => $query->brand,
-                'storageCapacity' => $query->storageCapacity,
-                'memoryRam' => $query->memoryRam,
-                'color' => $query->color,
+                'attributeFilters' => $query->attributeFilters,
+                'storageCapacity' => $query->storageCapacity ?? ($query->attributeFilters['storage'] ?? null),
+                'memoryRam' => $query->memoryRam ?? ($query->attributeFilters['ram'] ?? null),
+                'color' => $query->color ?? ($query->attributeFilters['color'] ?? null),
                 'minPriceCents' => $query->minPriceCents,
                 'maxPriceCents' => $query->maxPriceCents,
                 'inStockOnly' => $query->inStockOnly,
@@ -121,6 +125,7 @@ final readonly class ProductCatalogCriteria
                 'onlyFeatured' => $this->onlyFeatured,
                 'sellingType' => $this->sellingType,
                 'brand' => $this->brand,
+                'attributeFilters' => $this->attributeFilters,
                 'storageCapacity' => $this->storageCapacity,
                 'memoryRam' => $this->memoryRam,
                 'color' => $this->color,
@@ -143,6 +148,7 @@ final readonly class ProductCatalogCriteria
                 'onlyFeatured' => $this->onlyFeatured,
                 'sellingType' => $this->sellingType,
                 'brand' => $this->brand,
+                'attributeFilters' => $this->attributeFilters,
                 'storageCapacity' => $this->storageCapacity,
                 'memoryRam' => $this->memoryRam,
                 'color' => $this->color,
@@ -165,6 +171,7 @@ final readonly class ProductCatalogCriteria
             'onlyFeatured' => $this->onlyFeatured,
             'sellingType' => $this->sellingType,
             'brand' => $this->brand,
+            'attributeFilters' => $this->attributeFilters,
             'storageCapacity' => $this->storageCapacity,
             'memoryRam' => $this->memoryRam,
             'color' => $this->color,

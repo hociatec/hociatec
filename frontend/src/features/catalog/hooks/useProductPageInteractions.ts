@@ -42,7 +42,9 @@ export const useProductPageInteractions = (product: CatalogProduct | null, color
     const parsedVariantId = parseNullablePositiveInteger(variantId);
     if (parsedVariantId === null) return;
     const target = colorVariants.find((variant) => variant.id === parsedVariantId);
-    if (target && target.id !== product?.id) void navigate(`/catalogue/produits/${target.slug}`);
+    if (target && target.id !== product?.id) {
+      void navigate(`/catalogue/produits/${target.slug}?mode=${product?.sellingType ?? target.sellingType}`);
+    }
   };
   const handleAddFavorite = () => {
     void favorite.toggle()

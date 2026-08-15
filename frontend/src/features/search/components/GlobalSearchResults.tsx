@@ -64,7 +64,7 @@ export const ProductSearchResults = ({ products }: { products: CatalogProduct[] 
     {products.map((product) => (
       <SearchCard
         key={product.id}
-        to={`/catalogue/produits/${product.slug}`}
+        to={`/catalogue/produits/${product.slug}?mode=${product.sellingType}`}
         title={getCatalogProductDisplayName(product)}
         description={product.shortDescription}
         price={`${formatEuroCents(product.priceCents)}${product.sellingType === 'rental' ? ' / mois' : ''}`}

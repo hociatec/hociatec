@@ -25,8 +25,8 @@ final class CartMergeService
         if ($userCart && $tokenCart && $userCart->getId() !== $tokenCart->getId()) {
             // Merge token cart into user's cart
             foreach ($tokenCart->getItems() as $item) {
-                $rentalMonths = 'rental' === $item->getProduct()->getSellingType() ? $item->getRentalMonths() : null;
-                $existing = $userCart->getItemForProduct($item->getProduct(), $rentalMonths);
+                $rentalMonths = 'rental' === $item->getSellingType() ? $item->getRentalMonths() : null;
+                $existing = $userCart->getItemForProduct($item->getProduct(), $item->getSellingType(), $rentalMonths, $item->getRentalStartDate());
                 if ($existing) {
                     $existing->increaseQuantity($item->getQuantity());
                     $this->persistence->remove($item);

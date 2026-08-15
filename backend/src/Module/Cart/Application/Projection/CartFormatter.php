@@ -32,9 +32,10 @@ final class CartFormatter
             $item = $line['item'];
             $items[] = [
                 'id' => $item->getId(),
-                'product' => $this->catalogFormatter->formatProduct($item->getProduct()),
+                'product' => $this->catalogFormatter->formatProduct($item->getProduct(), false, $item->getSellingType()),
                 'quantity' => $line['quantity'],
                 'linePriceCents' => $line['linePriceCents'],
+                'sellingType' => $item->getSellingType(),
                 'rentalMonths' => $line['rentalMonths'],
                 'rentalStartDate' => $item->getRentalStartDateString(),
                 'rentalEndDate' => $item->getRentalEndDateString(),

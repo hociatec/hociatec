@@ -9,18 +9,28 @@ use App\Module\Catalog\Domain\ValueObject\ProductDiscount;
 
 final class ProductCatalogListProjectionFormatter
 {
+    public function __construct(
+        private readonly ?CatalogProductMediaProjection $media = null,
+        private readonly ?ProductCatalogProjectionSupport $support = null,
+    ) {
+    }
+
     /**
      * @param array<string, mixed> $product
      *
      * @return array<string, mixed>
      */
-    public function format(array $product): array
+    public function format(array $product, ?string $preferredSellingType = null): array
     {
+        $support = $this->support ?? new ProductCatalogProjectionSupport();
+        $media = $this->media ?? new CatalogProductMediaProjection();
         $name = (string) $product['name'];
-        $sellingType = $this->normalizeSellingType($product['sellingType']);
+        $sellingType = $support->resolveSellingType($product, $preferredSellingType);
+        $availableForSale = $support->supportsSellingType($product, ProductSellingType::Sale->value);
+        $availableForRental = $support->supportsSellingType($product, ProductSellingType::Rental->value);
         $imageAlt = null !== $product['imageAlt'] ? (string) $product['imageAlt'] : null;
-        $gallery = $this->formatGallery($product, $imageAlt ?? $name);
-        $priceCents = (int) $product['priceCents'];
+        $gallery = $media->formatProjectionGallery($product, $imageAlt ?? $name);
+        $priceCents = $support->resolvePriceCents($product, $sellingType);
         $discount = new ProductDiscount(
             (bool) $product['discountEnabled'],
             null !== $product['discountType'] ? (string) $product['discountType'] : null,
@@ -39,8 +49,13 @@ final class ProductCatalogListProjectionFormatter
             'description' => (string) $product['description'],
             'priceCents' => $priceCents,
             'sellingType' => $sellingType,
-            'sellingTypeLabel' => 'rental' === $sellingType ? 'Location' : 'Vente',
-            'priceUnitLabel' => 'rental' === $sellingType ? '/ mois' : null,
+            'sellingTypeLabel' => ProductSellingType::label($sellingType),
+            'priceUnitLabel' => ProductSellingType::priceUnitLabel($sellingType),
+            'availableForSale' => $availableForSale,
+            'availableForRental' => $availableForRental,
+            'availableModes' => $support->availableModes($product),
+            'salePriceCents' => isset($product['salePriceCents']) ? (null !== $product['salePriceCents'] ? (int) $product['salePriceCents'] : null) : null,
+            'rentalPriceCents' => isset($product['rentalPriceCents']) ? (null !== $product['rentalPriceCents'] ? (int) $product['rentalPriceCents'] : null) : null,
             'brand' => null !== $product['brand'] ? (string) $product['brand'] : null,
             'brandId' => null !== $product['brandId'] ? (int) $product['brandId'] : null,
             'variantGroup' => null !== $product['variantGroup'] ? (string) $product['variantGroup'] : null,
@@ -49,19 +64,22 @@ final class ProductCatalogListProjectionFormatter
             'totalStock' => isset($product['totalStock']) ? (int) $product['totalStock'] : null,
             'variantColors' => isset($product['variantColors']) && is_array($product['variantColors']) ? array_values(array_map('strval', $product['variantColors'])) : null,
             'variantStorages' => isset($product['variantStorages']) && is_array($product['variantStorages']) ? array_values(array_map('strval', $product['variantStorages'])) : null,
+            'variantMemoryRams' => isset($product['variantMemoryRams']) && is_array($product['variantMemoryRams']) ? array_values(array_map('strval', $product['variantMemoryRams'])) : null,
+            'variantAttributes' => isset($product['variantAttributes']) && is_array($product['variantAttributes']) ? $product['variantAttributes'] : null,
             'minVariantPriceCents' => isset($product['minVariantPriceCents']) ? (int) $product['minVariantPriceCents'] : null,
             'maxVariantPriceCents' => isset($product['maxVariantPriceCents']) ? (int) $product['maxVariantPriceCents'] : null,
             'minVariantEffectivePriceCents' => isset($product['minVariantEffectivePriceCents']) ? (int) $product['minVariantEffectivePriceCents'] : null,
             'maxVariantEffectivePriceCents' => isset($product['maxVariantEffectivePriceCents']) ? (int) $product['maxVariantEffectivePriceCents'] : null,
             'releaseYear' => null !== $product['releaseYear'] ? (int) $product['releaseYear'] : null,
-            'storageCapacity' => null !== $product['storageCapacity'] ? (string) $product['storageCapacity'] : null,
-            'memoryRam' => null !== $product['memoryRam'] ? (string) $product['memoryRam'] : null,
-            'color' => null !== $product['color'] ? (string) $product['color'] : null,
+            'attributes' => $support->normalizeAttributes($product['attributes'] ?? null),
+            'storageCapacity' => $support->attributeValue($product['attributes'] ?? null, 'storage'),
+            'memoryRam' => $support->attributeValue($product['attributes'] ?? null, 'ram'),
+            'color' => $support->attributeValue($product['attributes'] ?? null, 'color'),
             'effectivePriceCents' => $discount->effectivePriceCents($priceCents),
             'stock' => (int) $product['stock'],
             'isPublished' => (bool) $product['isPublished'],
             'isFeaturedHome' => (bool) $product['isFeaturedHome'],
-            'imageUrl' => $gallery[0]['url'] ?? $this->resolveExternalImageUrl($product) ?? $this->resolveImageUrlFromName(null !== $product['imageName'] ? (string) $product['imageName'] : null),
+            'imageUrl' => $gallery[0]['url'] ?? $media->resolveExternalImageUrl($product) ?? $media->resolveImageUrlFromName(null !== $product['imageName'] ? (string) $product['imageName'] : null),
             'imageAlt' => $imageAlt,
             'createdAt' => $product['createdAt'] instanceof \DateTimeInterface ? $product['createdAt']->format(DATE_ATOM) : null,
             'updatedAt' => $product['updatedAt'] instanceof \DateTimeInterface ? $product['updatedAt']->format(DATE_ATOM) : null,
@@ -88,81 +106,5 @@ final class ProductCatalogListProjectionFormatter
         }
 
         return $data;
-    }
-
-    /**
-     * @param array<string, mixed> $product
-     *
-     * @return list<array{position:int,url:string,alt:string,isPrimary:bool}>
-     */
-    private function formatGallery(array $product, string $alt): array
-    {
-        $items = [];
-        $externalImageUrl = $this->resolveExternalImageUrl($product);
-        if (null !== $externalImageUrl) {
-            $items[] = [
-                'position' => 0,
-                'url' => $externalImageUrl,
-                'alt' => $alt,
-                'isPrimary' => true,
-            ];
-        }
-
-        $imageColumns = null === $externalImageUrl
-            ? [0 => 'imageName', 1 => 'galleryImage2Name', 2 => 'galleryImage3Name', 3 => 'galleryImage4Name']
-            : [1 => 'galleryImage2Name', 2 => 'galleryImage3Name', 3 => 'galleryImage4Name'];
-
-        foreach ($imageColumns as $position => $key) {
-            $fileName = null !== $product[$key] ? (string) $product[$key] : null;
-            $url = $this->resolveImageUrlFromName($fileName);
-            if (null === $url) {
-                continue;
-            }
-
-            $items[] = [
-                'position' => $position,
-                'url' => $url,
-                'alt' => $alt,
-                'isPrimary' => 0 === $position,
-            ];
-        }
-
-        return $items;
-    }
-
-    private function resolveImageUrlFromName(?string $fileName): ?string
-    {
-        if (null === $fileName || '' === $fileName) {
-            return null;
-        }
-
-        return sprintf('/uploads/products/%s', ltrim($fileName, '/'));
-    }
-
-    private function normalizeSellingType(mixed $sellingType): string
-    {
-        if ($sellingType instanceof ProductSellingType) {
-            return $sellingType->value;
-        }
-
-        if (\is_string($sellingType)) {
-            return $sellingType;
-        }
-
-        return '';
-    }
-
-    /**
-     * @param array<string, mixed> $product
-     */
-    private function resolveExternalImageUrl(array $product): ?string
-    {
-        $url = $product['imageExternalUrl'] ?? null;
-
-        if (null === $url || '' === trim((string) $url)) {
-            return null;
-        }
-
-        return (string) $url;
     }
 }

@@ -42,13 +42,19 @@ class CreateCategoryController extends AbstractController
         $this->validator->validate($input);
 
         try {
-            $category = $this->categoryService->create($input->name, $input->slug, $input->description, $input->isVisible);
+            $category = $this->categoryService->createWithAttributes(
+                $input->name,
+                $input->slug,
+                $input->description,
+                $input->isVisible,
+                $input->attributeDefinitions,
+            );
         } catch (\InvalidArgumentException $exception) {
             return ApiProblemResponse::fromThrowable($exception, 'Création de catégorie invalide.', Response::HTTP_UNPROCESSABLE_ENTITY);
         } catch (CatalogOperationException) {
             return ApiResponse::internalError();
         }
 
-        return ApiResponse::created($this->catalogFormatter->formatCategory($category, true), 'La catégorie a bien été créée.');
+        return ApiResponse::created($this->catalogFormatter->formatCategory($category, 0), 'La catégorie a bien été créée.');
     }
 }

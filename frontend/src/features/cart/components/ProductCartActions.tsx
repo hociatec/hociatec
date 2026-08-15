@@ -52,7 +52,11 @@ export const ProductCartActions = ({ product, variant = 'card' }: ProductCartAct
     }
 
     if (!isRentalProduct) {
-      return cart.items.find((item) => item.product.id === product.id) ?? null;
+      return (
+        cart.items.find(
+          (item) => item.product.id === product.id && item.sellingType === product.sellingType,
+        ) ?? null
+      );
     }
 
     return (
@@ -67,9 +71,12 @@ export const ProductCartActions = ({ product, variant = 'card' }: ProductCartAct
 
   const hasProductInCart = isProductInCart(
     product.id,
-    isRentalProduct && normalizedRentalMonths && normalizedRentalStartDate
-      ? { rentalMonths: normalizedRentalMonths, rentalStartDate: normalizedRentalStartDate }
-      : undefined,
+    {
+      sellingType: product.sellingType,
+      ...(isRentalProduct && normalizedRentalMonths && normalizedRentalStartDate
+        ? { rentalMonths: normalizedRentalMonths, rentalStartDate: normalizedRentalStartDate }
+        : {}),
+    },
   );
   const isInCart = hasProductInCart;
   const currentQuantity = matchingItem?.quantity ?? 0;
@@ -94,7 +101,10 @@ export const ProductCartActions = ({ product, variant = 'card' }: ProductCartAct
       return;
     }
 
-    const stillInCart = cart?.items.some((item) => item.product.id === product.id) ?? false;
+    const stillInCart =
+      cart?.items.some(
+        (item) => item.product.id === product.id && item.sellingType === product.sellingType,
+      ) ?? false;
     if (!stillInCart) {
       setRentalMonths(1);
       setRentalStartDate(todayDateInput());
@@ -105,9 +115,12 @@ export const ProductCartActions = ({ product, variant = 'card' }: ProductCartAct
     mutationFn: () =>
       removeItem(
         product.id,
-        isRentalProduct && normalizedRentalMonths && normalizedRentalStartDate
-          ? { rentalMonths: normalizedRentalMonths, rentalStartDate: normalizedRentalStartDate }
-          : undefined,
+        {
+          sellingType: product.sellingType,
+          ...(isRentalProduct && normalizedRentalMonths && normalizedRentalStartDate
+            ? { rentalMonths: normalizedRentalMonths, rentalStartDate: normalizedRentalStartDate }
+            : {}),
+        },
       ),
     onSuccess: () => show('Produit retiré du panier', { variant: 'info', persistent: true }),
     onError: () => show("Nous n'avons pas pu retirer cet article du panier.", { variant: 'error' }),
@@ -117,9 +130,12 @@ export const ProductCartActions = ({ product, variant = 'card' }: ProductCartAct
       addItem(
         product.id,
         1,
-        isRentalProduct && normalizedRentalMonths && normalizedRentalStartDate
-          ? { rentalMonths: normalizedRentalMonths, rentalStartDate: normalizedRentalStartDate }
-          : undefined,
+        {
+          sellingType: product.sellingType,
+          ...(isRentalProduct && normalizedRentalMonths && normalizedRentalStartDate
+            ? { rentalMonths: normalizedRentalMonths, rentalStartDate: normalizedRentalStartDate }
+            : {}),
+        },
       ),
     onSuccess: () => show('Produit ajouté au panier', { variant: 'success', persistent: true }),
     onError: () => show("Nous n'avons pas pu ajouter cet article au panier.", { variant: 'error' }),

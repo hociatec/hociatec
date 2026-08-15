@@ -55,6 +55,13 @@ services:
             $databasePath: '%env(GEOIP_DATABASE_PATH)%'
             $locales: '%env(GEOIP_LOCALES)%'
 
+    App\Module\Admin\UI\Catalog\Mapper\ProductFormRequestMapper:
+        arguments:
+            $attributesOrVariants: '@App\Module\Admin\Application\Catalog\Parser\ProductAttributePayloadParser'
+            $variantsOrGallery: '@App\Module\Admin\Application\Catalog\Parser\ProductVariantPayloadParser'
+            $galleryOrDiscount: '@App\Module\Admin\UI\Catalog\Mapper\ProductGalleryRequestMapper'
+            $discount: '@App\Module\Admin\UI\Catalog\Mapper\ProductDiscountRequestMapper'
+
     App\Module\Auth\Infrastructure\Http\ChainAccessSessionLocationResolver:
         arguments:
             $resolvers:

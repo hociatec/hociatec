@@ -24,6 +24,7 @@ import {
 
 type RequestOptions = {
   signal?: AbortSignal;
+  sellingType?: 'sale' | 'rental';
 };
 
 type PublicProductSearchParams = {
@@ -32,9 +33,7 @@ type PublicProductSearchParams = {
   homepage?: boolean;
   sellingType?: 'sale' | 'rental';
   brand?: string;
-  storageCapacity?: string;
-  memoryRam?: string;
-  color?: string;
+  attributeFilters?: Record<string, string | undefined>;
   minPrice?: number;
   maxPrice?: number;
   inStock?: boolean;
@@ -54,15 +53,13 @@ const toPublicProductQueryParams = (params: PublicProductSearchParams) =>
       ['homepage', params.homepage === undefined ? undefined : params.homepage ? '1' : '0'],
       ['sellingType', params.sellingType],
       ['brand', params.brand],
-      ['storageCapacity', params.storageCapacity],
-      ['memoryRam', params.memoryRam],
-      ['color', params.color],
       ['minPrice', hasValidNumber(params.minPrice) ? String(params.minPrice) : undefined],
       ['maxPrice', hasValidNumber(params.maxPrice) ? String(params.maxPrice) : undefined],
       ['inStock', params.inStock ? '1' : undefined],
       ['page', params.page === undefined ? undefined : String(params.page)],
       ['perPage', params.perPage === undefined ? undefined : String(params.perPage)],
       ['sort', params.sort],
+      ...Object.entries(params.attributeFilters ?? {}).map(([code, value]) => [`attribute_${code}`, value]),
     ].filter((entry): entry is [string, string] => typeof entry[1] === 'string' && entry[1] !== ''),
   );
 
@@ -97,7 +94,10 @@ export const fetchPublicProduct = async (slug: string, options: RequestOptions =
   try {
     const { data } = await httpClient.get<ApiResponse<CatalogProduct>>(
       `/api/public/catalog/products/${slug}`,
-      requestSignalConfig(options.signal),
+      {
+        params: options.sellingType ? { sellingType: options.sellingType } : undefined,
+        ...requestSignalConfig(options.signal),
+      },
     );
     const payload = unwrapApiData(data, 'Produit introuvable.');
 
@@ -111,7 +111,10 @@ export const fetchPublicProductVariants = async (slug: string, options: RequestO
   try {
     const { data } = await httpClient.get<ApiResponse<{ items: CatalogProduct[] }>>(
       `/api/public/catalog/products/${slug}/variants`,
-      requestSignalConfig(options.signal),
+      {
+        params: options.sellingType ? { sellingType: options.sellingType } : undefined,
+        ...requestSignalConfig(options.signal),
+      },
     );
     const payload = unwrapApiData(data, 'Impossible de charger les variantes du produit.');
 

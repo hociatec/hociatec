@@ -12,9 +12,7 @@ interface CatalogFiltersProps {
   query: string;
   category: string;
   brand: string;
-  storageCapacity: string;
-  memoryRam: string;
-  color: string;
+  attributeFilters: Record<string, string>;
   sort: CatalogSort;
   inStock: boolean;
   minPrice: number | null;
@@ -32,9 +30,7 @@ export const CatalogFilters = ({
   query,
   category,
   brand,
-  storageCapacity,
-  memoryRam,
-  color,
+  attributeFilters,
   sort,
   inStock,
   minPrice,
@@ -61,35 +57,9 @@ export const CatalogFilters = ({
           label: `${item.value} (${item.count})`,
         })),
       ],
-      storage: [
-        { value: ALL_CATALOG_FILTER, label: 'Tous les stockages' },
-        ...facets.storageCapacities.map((item) => ({
-          value: item.value,
-          label: `${item.value} (${item.count})`,
-        })),
-      ],
-      memory: [
-        { value: ALL_CATALOG_FILTER, label: 'Toutes les RAM' },
-        ...facets.memoryRams.map((item) => ({
-          value: item.value,
-          label: `${item.value} (${item.count})`,
-        })),
-      ],
-      color: [
-        { value: ALL_CATALOG_FILTER, label: 'Toutes les couleurs' },
-        ...facets.colors.map((item) => ({
-          value: item.value,
-          label: `${item.value} (${item.count})`,
-        })),
-      ],
     }),
     [facets],
   );
-  const show = {
-    storage: facets.storageCapacities.length > 0 || storageCapacity !== ALL_CATALOG_FILTER,
-    memory: facets.memoryRams.length > 0 || memoryRam !== ALL_CATALOG_FILTER,
-    color: facets.colors.length > 0 || color !== ALL_CATALOG_FILTER,
-  };
   const sortOptions = [
     {
       value: query.trim() ? 'relevance' : 'release_year_desc',
@@ -139,30 +109,21 @@ export const CatalogFilters = ({
           ariaLabel="Marque"
         />
         <NumberRangeFilter min={minPrice} max={maxPrice} onChange={onPriceChange} step={50} />
-        {show.storage && (
+        {facets.attributes.map((attribute) => (
           <SelectFilter
-            value={storageCapacity}
-            onChange={(value) => onParamChange('storageCapacity', value)}
-            options={options.storage}
-            ariaLabel="Stockage"
+            key={attribute.code}
+            value={attributeFilters[attribute.code] ?? ALL_CATALOG_FILTER}
+            onChange={(value) => onParamChange(`attribute_${attribute.code}`, value)}
+            options={[
+              { value: ALL_CATALOG_FILTER, label: `Tous les ${attribute.label.toLowerCase()}` },
+              ...attribute.values.map((item) => ({
+                value: item.value,
+                label: `${item.value} (${item.count})`,
+              })),
+            ]}
+            ariaLabel={attribute.label}
           />
-        )}
-        {show.memory && (
-          <SelectFilter
-            value={memoryRam}
-            onChange={(value) => onParamChange('memoryRam', value)}
-            options={options.memory}
-            ariaLabel="Mémoire RAM"
-          />
-        )}
-        {show.color && (
-          <SelectFilter
-            value={color}
-            onChange={(value) => onParamChange('color', value)}
-            options={options.color}
-            ariaLabel="Couleur"
-          />
-        )}
+        ))}
         <SelectFilter
           value={sort}
           onChange={(value) => onParamChange('sort', value)}

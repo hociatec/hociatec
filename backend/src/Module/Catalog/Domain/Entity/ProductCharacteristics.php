@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace App\Module\Catalog\Domain\Entity;
 
-use App\Module\Catalog\Domain\ValueObject\ProductColor;
-use App\Module\Catalog\Domain\ValueObject\ProductMemoryRam;
-use App\Module\Catalog\Domain\ValueObject\ProductStorageCapacity;
 use App\Module\Catalog\Domain\ValueObject\ProductVariantGroup;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -22,14 +19,9 @@ final class ProductCharacteristics
     #[ORM\Column(type: 'smallint', nullable: true)]
     private ?int $releaseYear = null;
 
-    #[ORM\Column(length: 40, nullable: true)]
-    private ?string $storageCapacity = null;
-
-    #[ORM\Column(length: 40, nullable: true)]
-    private ?string $memoryRam = null;
-
-    #[ORM\Column(length: 60, nullable: true)]
-    private ?string $color = null;
+    /** @var list<array{code:string,label:string,value:string}> */
+    #[ORM\Column(type: 'json')]
+    private array $attributes = [];
 
     public function variantGroup(): ?string
     {
@@ -71,39 +63,125 @@ final class ProductCharacteristics
         $this->releaseYear = $year;
     }
 
-    public function storageCapacity(): ?string
+    /**
+     * @return list<array{code:string,label:string,value:string}>
+     */
+    public function attributes(): array
     {
-        return $this->storageCapacity;
+        return $this->attributes;
     }
 
-    public function changeStorageCapacity(ProductStorageCapacity|string|null $capacity): void
+    /**
+     * @param list<array<string, mixed>> $attributes
+     */
+    public function replaceAttributes(array $attributes): void
     {
-        $this->storageCapacity = $capacity instanceof ProductStorageCapacity
-            ? $capacity->value()
-            : ProductStorageCapacity::fromNullable($capacity)->value();
+        $normalized = [];
+
+        foreach ($attributes as $attribute) {
+            if (!is_array($attribute)) {
+                continue;
+            }
+
+            $code = $this->normalizeAttributeCode($attribute['code'] ?? null);
+            $label = $this->normalizeAttributeText($attribute['label'] ?? null);
+            $value = $this->normalizeAttributeText($attribute['value'] ?? null);
+
+            if (null === $code || null === $label || null === $value) {
+                continue;
+            }
+
+            $normalized[$code] = [
+                'code' => $code,
+                'label' => $label,
+                'value' => $value,
+            ];
+        }
+
+        $this->attributes = array_values($normalized);
     }
 
-    public function memoryRam(): ?string
+    public function attributeValue(string $code): ?string
     {
-        return $this->memoryRam;
+        $normalizedCode = $this->normalizeAttributeCode($code);
+        if (null === $normalizedCode) {
+            return null;
+        }
+
+        foreach ($this->attributes as $attribute) {
+            if (($attribute['code'] ?? null) === $normalizedCode) {
+                return $attribute['value'] ?? null;
+            }
+        }
+
+        return null;
     }
 
-    public function changeMemoryRam(ProductMemoryRam|string|null $memoryRam): void
+    public function changeAttributeValue(string $code, ?string $label, ?string $value): void
     {
-        $this->memoryRam = $memoryRam instanceof ProductMemoryRam
-            ? $memoryRam->value()
-            : ProductMemoryRam::fromNullable($memoryRam)->value();
+        $normalizedCode = $this->normalizeAttributeCode($code);
+        if (null === $normalizedCode) {
+            return;
+        }
+
+        $normalizedLabel = $this->normalizeAttributeText($label) ?? ucfirst(str_replace('-', ' ', $normalizedCode));
+        $normalizedValue = $this->normalizeAttributeText($value);
+
+        $attributes = $this->attributes;
+        $updated = false;
+
+        foreach ($attributes as $index => $attribute) {
+            if (($attribute['code'] ?? null) !== $normalizedCode) {
+                continue;
+            }
+
+            $updated = true;
+
+            if (null === $normalizedValue) {
+                unset($attributes[$index]);
+            } else {
+                $attributes[$index] = [
+                    'code' => $normalizedCode,
+                    'label' => $normalizedLabel,
+                    'value' => $normalizedValue,
+                ];
+            }
+
+            break;
+        }
+
+        if (!$updated && null !== $normalizedValue) {
+            $attributes[] = [
+                'code' => $normalizedCode,
+                'label' => $normalizedLabel,
+                'value' => $normalizedValue,
+            ];
+        }
+
+        $this->attributes = array_values($attributes);
     }
 
-    public function color(): ?string
+    private function normalizeAttributeCode(mixed $code): ?string
     {
-        return $this->color;
+        if (!is_string($code)) {
+            return null;
+        }
+
+        $normalized = trim(mb_strtolower($code));
+        $normalized = preg_replace('/[^a-z0-9]+/u', '-', $normalized) ?? $normalized;
+        $normalized = trim($normalized, '-');
+
+        return '' !== $normalized ? $normalized : null;
     }
 
-    public function changeColor(ProductColor|string|null $color): void
+    private function normalizeAttributeText(mixed $value): ?string
     {
-        $this->color = $color instanceof ProductColor
-            ? $color->value()
-            : ProductColor::fromNullable($color)->value();
+        if (!is_scalar($value) && null !== $value) {
+            return null;
+        }
+
+        $normalized = trim((string) $value);
+
+        return '' !== $normalized ? $normalized : null;
     }
 }

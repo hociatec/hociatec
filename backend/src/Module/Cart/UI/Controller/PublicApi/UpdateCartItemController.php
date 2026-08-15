@@ -8,6 +8,7 @@ use App\Module\Cart\Application\DTO\UpdateCartItemInput;
 use App\Module\Cart\Application\Projection\CartFormatter;
 use App\Module\Cart\Application\Workflow\CartSessionWorkflow;
 use App\Module\Catalog\Application\Port\ProductRepositoryPort;
+use App\Module\Catalog\Domain\Entity\ProductSellingType;
 use App\Module\Order\Application\Support\RentalPeriodCalculator;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiProblemResponse;
@@ -48,23 +49,30 @@ final class UpdateCartItemController extends AbstractController
             return ApiResponse::error('Produit introuvable.', JsonResponse::HTTP_NOT_FOUND);
         }
 
-        $rentalMonths = null;
-        $currentRentalMonths = null;
+        try {
+            $sellingType = ProductSellingType::fromInput($input->sellingType ?? $product->resolveDisplaySellingType()->value)->value;
+            $currentSellingType = ProductSellingType::fromInput($input->currentSellingType ?? $sellingType)->value;
+        } catch (\InvalidArgumentException $exception) {
+            return ApiProblemResponse::fromThrowable($exception, 'Mode de commercialisation invalide.', JsonResponse::HTTP_BAD_REQUEST);
+        }
+
         $rentalMonths = $input->rentalMonths;
         $currentRentalMonths = $input->currentRentalMonths;
         $rentalStartDate = RentalPeriodCalculator::parseDate($input->rentalStartDate);
         $currentRentalStartDate = RentalPeriodCalculator::parseDate($input->currentRentalStartDate);
 
-        if ('rental' === $product->getSellingType()) {
-        } else {
+        if ('rental' !== $sellingType) {
             $rentalMonths = null;
-            $currentRentalMonths = null;
             $rentalStartDate = null;
+        }
+
+        if ('rental' !== $currentSellingType) {
+            $currentRentalMonths = null;
             $currentRentalStartDate = null;
         }
 
         try {
-            $cart = $this->cartService->updateProductQuantity($token, $product, $quantity, $rentalMonths, $currentRentalMonths, $rentalStartDate, $currentRentalStartDate);
+            $cart = $this->cartService->updateProductQuantity($token, $product, $sellingType, $quantity, $currentSellingType, $rentalMonths, $currentRentalMonths, $rentalStartDate, $currentRentalStartDate);
         } catch (\InvalidArgumentException $exception) {
             return ApiProblemResponse::fromThrowable($exception, 'Impossible de mettre à jour cet article du panier.', JsonResponse::HTTP_BAD_REQUEST);
         }

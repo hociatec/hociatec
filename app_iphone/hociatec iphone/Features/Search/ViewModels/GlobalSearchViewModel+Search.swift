@@ -57,7 +57,8 @@ extension GlobalSearchViewModel {
         guard shouldLoad(.products) else {
             return ProductListData(
                 items: [],
-                meta: PaginationMeta(page: 1, perPage: 6, total: 0, totalPages: 1)
+                meta: PaginationMeta(page: 1, perPage: 6, total: 0, totalPages: 1),
+                facets: nil
             )
         }
 
@@ -65,6 +66,8 @@ extension GlobalSearchViewModel {
             search: query,
             categorySlug: nil,
             sellingType: nil,
+            brand: nil,
+            attributeFilters: [:],
             page: 1,
             perPage: 6
         )

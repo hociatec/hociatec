@@ -9,6 +9,9 @@ final class ProductsViewModel: ObservableObject {
     @Published var categories: [CategorySummary] = []
     @Published var selectedCategory: CategorySummary?
     @Published var selectedSellingType: SellingType? = nil
+    @Published var selectedBrand: String? = nil
+    @Published var selectedAttributeFilters: [String: String] = [:]
+    @Published var availableFacets: ProductSearchFacets = .empty
     @Published var sort: ProductSortOption = .relevance
     @Published var search = ""
     @Published var page = 1
@@ -42,6 +45,8 @@ final class ProductsViewModel: ObservableObject {
                 search: search.isEmpty ? nil : search,
                 categorySlug: selectedCategory?.slug,
                 sellingType: selectedSellingType,
+                brand: selectedBrand,
+                attributeFilters: selectedAttributeFilters,
                 page: page,
                 perPage: Self.pageSize
             )
@@ -49,6 +54,7 @@ final class ProductsViewModel: ObservableObject {
             products = applySorting(on: result.items)
             totalResults = result.meta.total
             totalPages = max(1, result.meta.totalPages)
+            availableFacets = result.facets ?? .empty
             hasLoadedOnce = true
         } catch let err {
             guard requestID == loadRequestID else { return }
@@ -103,6 +109,14 @@ final class ProductsViewModel: ObservableObject {
 
     func applySearch() {
         page = 1
+    }
+
+    func clearBrandFilter() {
+        selectedBrand = nil
+    }
+
+    func clearAttributeFilter(code: String) {
+        selectedAttributeFilters.removeValue(forKey: code)
     }
 
     func previousPage() {

@@ -21,6 +21,15 @@ interface CategoryRepositoryPort
 
     public function countForAdmin(?string $search = null): int;
 
+    public function countProductsForCategory(Category $category): int;
+
+    /**
+     * @param list<int> $categoryIds
+     *
+     * @return array<int, int>
+     */
+    public function countProductsByCategoryIds(array $categoryIds): array;
+
     public function findOneVisibleBySlug(string $slug): ?Category;
 
     public function existsWithSlug(string $slug, ?int $excludeId = null): bool;

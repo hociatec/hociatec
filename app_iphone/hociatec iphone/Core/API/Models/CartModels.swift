@@ -3,6 +3,7 @@ import Foundation
 struct CartItem: Decodable, Identifiable {
     let id: Int
     let product: Product
+    let sellingType: SellingType
     let quantity: Int
     let linePriceCents: Int
     let rentalMonths: Int?
@@ -10,11 +11,12 @@ struct CartItem: Decodable, Identifiable {
     let rentalEndDate: String?
 
     var identityKey: String {
-        "\(product.id)-\(rentalMonths ?? 0)-\(rentalStartDate ?? "")"
+        "\(product.id)-\(sellingType.rawValue)-\(rentalMonths ?? 0)-\(rentalStartDate ?? "")"
     }
 
-    func matches(productId: Int, rentalMonths: Int?, rentalStartDate: String?) -> Bool {
+    func matches(productId: Int, sellingType: SellingType, rentalMonths: Int?, rentalStartDate: String?) -> Bool {
         product.id == productId
+            && self.sellingType == sellingType
             && self.rentalMonths == rentalMonths
             && self.rentalStartDate == rentalStartDate
     }

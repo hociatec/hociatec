@@ -21,10 +21,10 @@ final class CartTotalsCalculator
         /** @var CartItem $item */
         foreach ($cart->getItems() as $item) {
             $quantity = $item->getQuantity();
-            $linePriceCents = $item->getProduct()->getPriceCents() * $quantity;
+            $linePriceCents = $item->getProduct()->getUnitPriceCentsForSellingType($item->getSellingType()) * $quantity;
             $rentalMonths = $item->getRentalMonths();
 
-            if ('rental' === $item->getProduct()->getSellingType()) {
+            if ('rental' === $item->getSellingType()) {
                 $linePriceCents *= $rentalMonths ?? 1;
             }
 

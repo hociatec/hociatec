@@ -15,8 +15,8 @@ final readonly class CartSubtotalCalculator
 
         /** @var CartItem $item */
         foreach ($cart->getItems() as $item) {
-            $linePrice = $item->getProduct()->getPriceCents() * $item->getQuantity();
-            if ('rental' === $item->getProduct()->getSellingType()) {
+            $linePrice = $item->getProduct()->getUnitPriceCentsForSellingType($item->getSellingType()) * $item->getQuantity();
+            if ('rental' === $item->getSellingType()) {
                 $linePrice *= max(1, $item->getRentalMonths() ?? 1);
             }
 

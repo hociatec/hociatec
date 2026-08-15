@@ -37,6 +37,7 @@ final class ProductSearchRequestMapper
             'onlyFeatured' => $query->has('homepage') && $this->boolean($query->get('homepage')) ? true : null,
             'sellingType' => $this->choice($query->get('sellingType'), ['sale', 'rental']),
             'brand' => $this->string($query->get('brand')),
+            'attributeFilters' => $this->attributeFilters($request),
             'storageCapacity' => $this->string($query->get('storageCapacity')),
             'memoryRam' => $this->string($query->get('memoryRam')),
             'color' => $this->string($query->get('color')),
@@ -86,5 +87,40 @@ final class ProductSearchRequestMapper
         }
 
         return 0 > $cents ? 0 : $cents;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function attributeFilters(Request $request): array
+    {
+        $filters = [];
+
+        foreach ($request->query->all() as $key => $value) {
+            if (!is_string($key) || !str_starts_with($key, 'attribute_')) {
+                continue;
+            }
+
+            $code = trim(mb_strtolower(substr($key, 10)));
+            $normalizedValue = $this->string($value);
+
+            if ('' === $code || null === $normalizedValue) {
+                continue;
+            }
+
+            $filters[$code] = $normalizedValue;
+        }
+
+        foreach ([
+            'storage' => $this->string($request->query->get('storageCapacity')),
+            'ram' => $this->string($request->query->get('memoryRam')),
+            'color' => $this->string($request->query->get('color')),
+        ] as $code => $value) {
+            if (null !== $value && !isset($filters[$code])) {
+                $filters[$code] = $value;
+            }
+        }
+
+        return $filters;
     }
 }

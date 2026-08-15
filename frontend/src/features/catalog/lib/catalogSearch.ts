@@ -26,9 +26,7 @@ export const normalizeCatalogFilter = (value: string | null): string =>
 export const emptyCatalogFacets: CatalogSearchFacets = {
   brands: [],
   categories: [],
-  storageCapacities: [],
-  memoryRams: [],
-  colors: [],
+  attributes: [],
   price: { min: null, max: null },
 };
 

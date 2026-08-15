@@ -15,12 +15,14 @@ extension APIClient {
     func addToCart(
         productId: Int,
         quantity: Int,
+        sellingType: SellingType,
         rentalMonths: Int? = nil,
         rentalStartDate: String? = nil
     ) async throws -> Cart {
         var body: [String: Any] = [
             "productId": productId,
-            "quantity": max(1, quantity)
+            "quantity": max(1, quantity),
+            "sellingType": sellingType.rawValue
         ]
         if let token = sessionStore.cartToken {
             body["cartToken"] = token
@@ -45,13 +47,17 @@ extension APIClient {
     func updateCart(
         productId: Int,
         quantity: Int,
+        sellingType: SellingType,
+        currentSellingType: SellingType,
         rentalMonths: Int? = nil,
         currentRentalMonths: Int? = nil,
         rentalStartDate: String? = nil,
         currentRentalStartDate: String? = nil
     ) async throws -> Cart {
         var body: [String: Any] = [
-            "quantity": max(0, quantity)
+            "quantity": max(0, quantity),
+            "sellingType": sellingType.rawValue,
+            "currentSellingType": currentSellingType.rawValue
         ]
         if let token = sessionStore.cartToken {
             body["cartToken"] = token
@@ -81,10 +87,11 @@ extension APIClient {
 
     func removeFromCart(
         productId: Int,
+        sellingType: SellingType,
         rentalMonths: Int? = nil,
         rentalStartDate: String? = nil
     ) async throws -> Cart {
-        var query: [URLQueryItem] = []
+        var query: [URLQueryItem] = [.init(name: "currentSellingType", value: sellingType.rawValue)]
         if let rentalMonths {
             query.append(URLQueryItem(name: "currentRentalMonths", value: String(rentalMonths)))
         }

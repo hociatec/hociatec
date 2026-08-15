@@ -82,6 +82,41 @@ class CategoryRepository extends ServiceEntityRepository implements CategoryRepo
             ->getSingleScalarResult();
     }
 
+    public function countProductsForCategory(Category $category): int
+    {
+        return (int) $this->getEntityManager()->createQueryBuilder()
+            ->select('COUNT(p.id)')
+            ->from(\App\Module\Catalog\Domain\Entity\Product::class, 'p')
+            ->andWhere('p.category = :category')
+            ->setParameter('category', $category)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function countProductsByCategoryIds(array $categoryIds): array
+    {
+        $categoryIds = array_values(array_unique(array_filter(array_map(static fn (mixed $id): int => (int) $id, $categoryIds), static fn (int $id): bool => $id > 0)));
+        if ([] === $categoryIds) {
+            return [];
+        }
+
+        $rows = $this->getEntityManager()->createQueryBuilder()
+            ->select('IDENTITY(p.category) AS categoryId, COUNT(p.id) AS productsCount')
+            ->from(\App\Module\Catalog\Domain\Entity\Product::class, 'p')
+            ->andWhere('p.category IN (:categoryIds)')
+            ->setParameter('categoryIds', $categoryIds)
+            ->groupBy('p.category')
+            ->getQuery()
+            ->getArrayResult();
+
+        $counts = array_fill_keys($categoryIds, 0);
+        foreach ($rows as $row) {
+            $counts[(int) $row['categoryId']] = (int) $row['productsCount'];
+        }
+
+        return $counts;
+    }
+
     public function findOneVisibleBySlug(string $slug): ?Category
     {
         return $this->createQueryBuilder('c')

@@ -13,11 +13,8 @@ struct ProductInfoSection: View {
             if let unitLabel = nonEmptyValue(product.priceUnitLabel), product.sellingType == .sale {
                 LabeledContent("Unité de prix", value: unitLabel)
             }
-            if let variantColors = product.variantColors, !variantColors.isEmpty {
-                LabeledContent("Coloris", value: variantColors.joined(separator: ", "))
-            }
-            if let variantStorages = product.variantStorages, !variantStorages.isEmpty {
-                LabeledContent("Stockages", value: variantStorages.joined(separator: ", "))
+            ForEach(productVariantSummaries(product), id: \.label) { summary in
+                LabeledContent(summary.label, value: summary.values)
             }
             ProductPriceRow(product: product)
             if let createdAt = product.createdAt {

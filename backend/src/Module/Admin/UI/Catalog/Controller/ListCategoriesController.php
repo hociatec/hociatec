@@ -30,10 +30,11 @@ class ListCategoriesController extends AbstractController
         $pagination = RequestQueryMapper::pagination($request, 10, 50);
         $search = RequestQueryMapper::string($request, 'q');
         $categories = $this->categoryService->listForAdmin($pagination->perPage, $pagination->offset(), $search);
+        $counts = $this->categoryService->countProductsByCategoryIds(array_values(array_filter(array_map(static fn ($category): ?int => $category->getId(), $categories))));
 
         return ApiResponse::paginated(
             array_map(
-                fn ($category) => $this->catalogFormatter->formatCategory($category, true),
+                fn ($category) => $this->catalogFormatter->formatCategory($category, $counts[$category->getId() ?? 0] ?? 0),
                 $categories
             ),
             $pagination->metadata($this->categoryService->countForAdmin($search)),

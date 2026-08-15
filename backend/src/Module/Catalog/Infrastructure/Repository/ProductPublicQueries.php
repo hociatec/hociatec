@@ -46,16 +46,16 @@ trait ProductPublicQueries
                 'p.sku AS sku',
                 'p.shortDescription AS shortDescription',
                 'p.description AS description',
-                'p.pricing.priceCents AS priceCents',
-                'p.pricing.sellingType AS sellingType',
+                'p.pricing.salePriceCents AS salePriceCents',
+                'p.pricing.rentalPriceCents AS rentalPriceCents',
+                'p.pricing.availableForSale AS availableForSale',
+                'p.pricing.availableForRental AS availableForRental',
                 'b.id AS brandId',
                 'b.name AS brand',
                 'p.characteristics.variantGroup AS variantGroup',
                 'p.characteristics.variantPosition AS variantPosition',
                 'p.characteristics.releaseYear AS releaseYear',
-                'p.characteristics.storageCapacity AS storageCapacity',
-                'p.characteristics.memoryRam AS memoryRam',
-                'p.characteristics.color AS color',
+                'p.characteristics.attributes AS attributes',
                 'p.inventory.stock AS stock',
                 'p.publication.isPublished AS isPublished',
                 'p.publication.isFeaturedHome AS isFeaturedHome',
@@ -94,7 +94,7 @@ trait ProductPublicQueries
         /** @var list<array<string, mixed>> $rows */
         $rows = $qb->getQuery()->getArrayResult();
 
-        return $rows;
+        return array_map(fn (array $row): array => $this->appendLegacyAttributeFields($row), $rows);
     }
 
     public function countPublished(ProductCatalogCriteria $criteria): int
@@ -120,14 +120,16 @@ trait ProductPublicQueries
             $criteria->withoutSortAndPagination(),
             false,
         );
+        $projectedProducts = $this->findPublishedListProjection($criteria->withoutSortAndPagination());
 
         return [
             'brands' => $this->collectFacetCounts(clone $base, 'b.name', 'brandName'),
             'categories' => $this->collectFacetCounts(clone $base, 'c.name', 'categoryName', 'c.slug'),
-            'storageCapacities' => $this->collectFacetCounts(clone $base, 'p.characteristics.storageCapacity', 'storageCapacity'),
-            'memoryRams' => $this->collectFacetCounts(clone $base, 'p.characteristics.memoryRam', 'memoryRam'),
-            'colors' => $this->collectFacetCounts(clone $base, 'p.characteristics.color', 'color'),
-            'price' => $this->collectPriceBounds(clone $base),
+            'attributes' => [],
+            'storageCapacities' => $this->collectProjectionScalarFacet($projectedProducts, 'storageCapacity'),
+            'memoryRams' => $this->collectProjectionScalarFacet($projectedProducts, 'memoryRam'),
+            'colors' => $this->collectProjectionScalarFacet($projectedProducts, 'color'),
+            'price' => $this->collectPriceBounds(clone $base, $criteria->sellingType),
         ];
     }
 
@@ -145,5 +147,70 @@ trait ProductPublicQueries
             ->setParameter('visible', true)
             ->getQuery()
             ->getOneOrNullResult();
+    }
+
+    /**
+     * @param list<array<string, mixed>> $products
+     *
+     * @return list<array{value:string,count:int}>
+     */
+    private function collectProjectionScalarFacet(array $products, string $key): array
+    {
+        $counts = [];
+
+        foreach ($products as $product) {
+            $value = trim((string) ($product[$key] ?? ''));
+            if ('' === $value) {
+                continue;
+            }
+
+            $normalized = mb_strtolower($value);
+            $counts[$normalized] = [
+                'value' => $value,
+                'count' => ($counts[$normalized]['count'] ?? 0) + 1,
+            ];
+        }
+
+        uasort($counts, static fn (array $left, array $right): int => strcasecmp($left['value'], $right['value']));
+
+        return array_values($counts);
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     *
+     * @return array<string, mixed>
+     */
+    private function appendLegacyAttributeFields(array $row): array
+    {
+        $attributes = is_array($row['attributes'] ?? null) ? $row['attributes'] : [];
+        $legacy = [
+            'storageCapacity' => null,
+            'memoryRam' => null,
+            'color' => null,
+        ];
+
+        foreach ($attributes as $attribute) {
+            if (!is_array($attribute)) {
+                continue;
+            }
+
+            $code = trim((string) ($attribute['code'] ?? ''));
+            $value = trim((string) ($attribute['value'] ?? ''));
+
+            if ('' === $value) {
+                continue;
+            }
+
+            if ('storage' === $code && null === $legacy['storageCapacity']) {
+                $legacy['storageCapacity'] = $value;
+            } elseif ('ram' === $code && null === $legacy['memoryRam']) {
+                $legacy['memoryRam'] = $value;
+            } elseif ('color' === $code && null === $legacy['color']) {
+                $legacy['color'] = $value;
+            }
+        }
+
+        return $row + $legacy;
     }
 }

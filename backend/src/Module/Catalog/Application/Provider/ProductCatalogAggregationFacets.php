@@ -14,14 +14,14 @@ final class ProductCatalogAggregationFacets
      *
      * @return array<string, mixed>
      */
-    public function collect(array $products): array
+    public function collect(array $products, array $categoryAttributeDefinitions = [], ?string $selectedCategorySlug = null): array
     {
+        $allowedAttributes = $this->resolveAllowedAttributeDefinitions($categoryAttributeDefinitions, $selectedCategorySlug);
+
         return [
             'brands' => $this->facetItemsToArrays($this->countScalarFacet($products, 'brand')),
             'categories' => $this->facetItemsToArrays($this->countCategoryFacet($products)),
-            'storageCapacities' => $this->facetItemsToArrays($this->countArrayFacet($products, 'variantStorages', 'storageCapacity')),
-            'memoryRams' => $this->facetItemsToArrays($this->countArrayFacet($products, 'variantMemoryRams', 'memoryRam')),
-            'colors' => $this->facetItemsToArrays($this->countArrayFacet($products, 'variantColors', 'color')),
+            'attributes' => $this->countAttributeFacets($products, $allowedAttributes),
             'price' => $this->collectPriceBounds($products)->toArray(),
         ];
     }
@@ -114,6 +114,143 @@ final class ProductCatalogAggregationFacets
 
     /**
      * @param list<array<string, mixed>> $products
+     *
+     * @return list<array{code:string,label:string,values:list<array{value:string,count:int,extra:?string}>}>
+     */
+    private function countAttributeFacets(array $products, array $allowedAttributes): array
+    {
+        $facets = [];
+
+        foreach ($products as $product) {
+            $attributeGroups = $product['variantAttributes'] ?? null;
+
+            if (!is_array($attributeGroups) || [] === $attributeGroups) {
+                $attributeGroups = [];
+
+                foreach ($this->normalizeProductAttributes($product) as $attribute) {
+                    $attributeGroups[] = [
+                        'code' => $attribute['code'],
+                        'label' => $attribute['label'],
+                        'values' => [$attribute['value']],
+                    ];
+                }
+            }
+
+            foreach ($attributeGroups as $attributeGroup) {
+                if (!is_array($attributeGroup)) {
+                    continue;
+                }
+
+                $code = trim((string) ($attributeGroup['code'] ?? ''));
+                $label = trim((string) ($attributeGroup['label'] ?? ''));
+                $values = $attributeGroup['values'] ?? null;
+
+                if ('' === $code || '' === $label || !is_array($values)) {
+                    continue;
+                }
+
+                if (!isset($facets[$code])) {
+                    $facets[$code] = [
+                        'code' => $code,
+                        'label' => $label,
+                        'counts' => [],
+                    ];
+                }
+
+                foreach ($values as $rawValue) {
+                    $value = trim((string) $rawValue);
+                    if ('' === $value) {
+                        continue;
+                    }
+
+                    $this->incrementFacetCount($facets[$code]['counts'], $value);
+                }
+            }
+        }
+
+        $formatted = array_map(function (array $facet): array {
+            return [
+                'code' => $facet['code'],
+                'label' => $facet['label'],
+                'values' => $this->facetItemsToArrays($this->sortFacetItems($facet['counts'])),
+            ];
+        }, array_values($facets));
+
+        if ([] !== $allowedAttributes) {
+            $formatted = array_values(array_filter(
+                $formatted,
+                static fn (array $facet): bool => isset($allowedAttributes[$facet['code']]),
+            ));
+
+            usort($formatted, static function (array $left, array $right) use ($allowedAttributes): int {
+                $leftPosition = $allowedAttributes[$left['code']]['position'] ?? PHP_INT_MAX;
+                $rightPosition = $allowedAttributes[$right['code']]['position'] ?? PHP_INT_MAX;
+
+                if ($leftPosition !== $rightPosition) {
+                    return $leftPosition <=> $rightPosition;
+                }
+
+                return strcasecmp($left['label'], $right['label']);
+            });
+        } else {
+            usort($formatted, static fn (array $left, array $right): int => strcasecmp($left['label'], $right['label']));
+        }
+
+        return $formatted;
+    }
+
+    /**
+     * @param array<string, list<array{code:string,label:string,isRequired:bool,isGlobalFilter:bool}>> $categoryAttributeDefinitions
+     *
+     * @return array<string, array{code:string,label:string,position:int}>
+     */
+    private function resolveAllowedAttributeDefinitions(array $categoryAttributeDefinitions, ?string $selectedCategorySlug): array
+    {
+        $allowed = [];
+        $position = 0;
+
+        if (null !== $selectedCategorySlug && isset($categoryAttributeDefinitions[$selectedCategorySlug])) {
+            foreach ($categoryAttributeDefinitions[$selectedCategorySlug] as $definition) {
+                $code = trim((string) ($definition['code'] ?? ''));
+                $label = trim((string) ($definition['label'] ?? ''));
+
+                if ('' === $code || '' === $label) {
+                    continue;
+                }
+
+                $allowed[$code] = [
+                    'code' => $code,
+                    'label' => $label,
+                    'position' => $position++,
+                ];
+            }
+
+            return $allowed;
+        }
+
+        foreach ($categoryAttributeDefinitions as $definitions) {
+            foreach ($definitions as $definition) {
+                $code = trim((string) ($definition['code'] ?? ''));
+                $label = trim((string) ($definition['label'] ?? ''));
+                $isGlobalFilter = (bool) ($definition['isGlobalFilter'] ?? false);
+
+                if (!$isGlobalFilter || '' === $code || '' === $label || isset($allowed[$code])) {
+                    continue;
+                }
+
+                $allowed[$code] = [
+                    'code' => $code,
+                    'label' => $label,
+                    'position' => $position++,
+                ];
+            }
+        }
+
+        return $allowed;
+    }
+
+    /**
+     * @param list<array<string, mixed>> $products
      */
     private function collectPriceBounds(array $products): ProductCatalogPriceRange
     {
@@ -122,7 +259,7 @@ final class ProductCatalogAggregationFacets
         }
 
         $prices = array_map(
-            static fn (array $product): int => (int) ($product['minVariantEffectivePriceCents'] ?? $product['priceCents'] ?? 0),
+            static fn (array $product): int => (int) ($product['minVariantEffectivePriceCents'] ?? $product['effectivePriceCents'] ?? $product['minVariantPriceCents'] ?? $product['priceCents'] ?? 0),
             $products,
         );
 
@@ -158,5 +295,43 @@ final class ProductCatalogAggregationFacets
     private function facetItemsToArrays(array $items): array
     {
         return array_map(static fn (ProductCatalogFacetItem $item): array => $item->toArray(), $items);
+    }
+
+    /**
+     * @param array<string, mixed> $product
+     *
+     * @return list<array{code:string,label:string,value:string}>
+     */
+    private function normalizeProductAttributes(array $product): array
+    {
+        $attributes = $product['attributes'] ?? null;
+
+        if (!is_array($attributes)) {
+            return [];
+        }
+
+        $normalized = [];
+
+        foreach ($attributes as $attribute) {
+            if (!is_array($attribute)) {
+                continue;
+            }
+
+            $code = trim((string) ($attribute['code'] ?? ''));
+            $label = trim((string) ($attribute['label'] ?? ''));
+            $value = trim((string) ($attribute['value'] ?? ''));
+
+            if ('' === $code || '' === $label || '' === $value) {
+                continue;
+            }
+
+            $normalized[] = [
+                'code' => $code,
+                'label' => $label,
+                'value' => $value,
+            ];
+        }
+
+        return $normalized;
     }
 }

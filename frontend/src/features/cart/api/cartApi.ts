@@ -165,6 +165,8 @@ export const fetchCart = async (): Promise<Cart> => {
 };
 
 interface CartItemOptions {
+  sellingType?: 'sale' | 'rental';
+  currentSellingType?: 'sale' | 'rental';
   rentalMonths?: number;
   currentRentalMonths?: number;
   rentalStartDate?: string;
@@ -176,10 +178,13 @@ export const addCartItem = async (
   quantity = 1,
   options?: CartItemOptions,
 ): Promise<Cart> => {
-  const payload: { productId: number; quantity: number; rentalMonths?: number; rentalStartDate?: string } = {
+  const payload: { productId: number; quantity: number; sellingType?: 'sale' | 'rental'; rentalMonths?: number; rentalStartDate?: string } = {
     productId,
     quantity,
   };
+  if (options?.sellingType) {
+    payload.sellingType = options.sellingType;
+  }
   if (options?.rentalMonths !== undefined) {
     payload.rentalMonths = options.rentalMonths;
   }
@@ -196,7 +201,11 @@ export const addCartItem = async (
 const buildRentalParams = (options?: CartItemOptions) => {
   const months = options?.currentRentalMonths ?? options?.rentalMonths;
   const startDate = options?.currentRentalStartDate ?? options?.rentalStartDate;
+  const sellingType = options?.currentSellingType ?? options?.sellingType;
   const params: Record<string, number | string> = {};
+  if (sellingType) {
+    params.currentSellingType = sellingType;
+  }
   if (typeof months === 'number') {
     params.currentRentalMonths = months;
   }
@@ -227,9 +236,15 @@ export const updateCartItemQuantity = async (
   quantity: number,
   options?: CartItemOptions,
 ): Promise<Cart> => {
-  const payload: { quantity: number; rentalMonths?: number; currentRentalMonths?: number; rentalStartDate?: string; currentRentalStartDate?: string } = {
+  const payload: { quantity: number; sellingType?: 'sale' | 'rental'; currentSellingType?: 'sale' | 'rental'; rentalMonths?: number; currentRentalMonths?: number; rentalStartDate?: string; currentRentalStartDate?: string } = {
     quantity,
   };
+  if (options?.sellingType) {
+    payload.sellingType = options.sellingType;
+  }
+  if (options?.currentSellingType) {
+    payload.currentSellingType = options.currentSellingType;
+  }
   if (options?.rentalMonths !== undefined) {
     payload.rentalMonths = options.rentalMonths;
   }

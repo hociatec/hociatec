@@ -50,13 +50,24 @@ class UpdateCategoryController extends AbstractController
         $this->validator->validate($input);
 
         try {
-            $category = $this->categoryService->update($category, $input->name, $input->slug, $input->description, $input->isVisible);
+            $category = $this->categoryService->update(
+                $category,
+                $input->name,
+                $input->slug,
+                $input->description,
+                $input->isVisible,
+                $input->attributeDefinitions,
+            );
         } catch (\InvalidArgumentException $exception) {
             return ApiProblemResponse::fromThrowable($exception, 'Mise à jour de catégorie invalide.', Response::HTTP_UNPROCESSABLE_ENTITY);
         } catch (CatalogOperationException) {
             return ApiResponse::internalError();
         }
 
-        return ApiResponse::success($this->catalogFormatter->formatCategory($category, true), JsonResponse::HTTP_OK, 'La catégorie a bien été mise à jour.');
+        return ApiResponse::success(
+            $this->catalogFormatter->formatCategory($category, $this->categoryRepository->countProductsForCategory($category)),
+            JsonResponse::HTTP_OK,
+            'La catégorie a bien été mise à jour.'
+        );
     }
 }

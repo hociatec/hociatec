@@ -39,8 +39,8 @@ final class VoucherEngine
                 throw new \InvalidArgumentException('La quantite doit etre superieure ou egale a 1.');
             }
 
-            $linePrice = $item->getProduct()->getPriceCents() * $item->getQuantity();
-            if ('rental' === $item->getProduct()->getSellingType()) {
+            $linePrice = $item->getProduct()->getUnitPriceCentsForSellingType($item->getSellingType()) * $item->getQuantity();
+            if ('rental' === $item->getSellingType()) {
                 $storedRentalMonths = $item->getStoredRentalMonths();
                 if (0 === $storedRentalMonths || $storedRentalMonths < -1) {
                     throw new \InvalidArgumentException('La duree de location doit etre superieure ou egale a 1 mois.');

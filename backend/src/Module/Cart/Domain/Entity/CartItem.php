@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Module\Cart\Domain\Entity;
 
 use App\Module\Catalog\Domain\Entity\Product;
+use App\Module\Catalog\Domain\Entity\ProductSellingType;
 use App\Module\Order\Domain\Support\RentalPeriodCalculator;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'cart_items')]
-#[ORM\UniqueConstraint(name: 'cart_item_unique_product_period', columns: ['cart_id', 'product_id', 'rental_months', 'rental_start_date'])]
+#[ORM\UniqueConstraint(name: 'cart_item_unique_product_period', columns: ['cart_id', 'product_id', 'selling_type', 'rental_months', 'rental_start_date'])]
 class CartItem
 {
     #[ORM\Id]
@@ -29,19 +30,43 @@ class CartItem
     #[ORM\Column(type: 'integer')]
     private int $quantity;
 
+    #[ORM\Column(name: 'selling_type', length: 10)]
+    private string $sellingType = ProductSellingType::Sale->value;
+
     #[ORM\Column(name: 'rental_months', type: 'integer', options: ['default' => -1])]
     private int $rentalMonths = -1;
 
     #[ORM\Column(name: 'rental_start_date', type: 'date_immutable', nullable: true)]
     private ?\DateTimeImmutable $rentalStartDate = null;
 
-    public function __construct(CartSession $cart, Product $product, int $quantity = 1, ?int $rentalMonths = null, ?\DateTimeImmutable $rentalStartDate = null)
+    public function __construct(CartSession $cart, Product $product, ProductSellingType|string|int $sellingTypeOrQuantity, int|\DateTimeImmutable|null $quantityOrRentalMonths = 1, ?int $rentalMonths = null, ?\DateTimeImmutable $rentalStartDate = null)
     {
         $this->cart = $cart;
         $this->product = $product;
-        $this->setQuantity($quantity);
-        $this->setRentalMonths($rentalMonths);
-        $this->setRentalStartDate($rentalStartDate);
+
+        if (is_int($sellingTypeOrQuantity)) {
+            if ($product->isAvailableForRental() && !$product->isAvailableForSale()) {
+                $resolvedSellingType = ProductSellingType::Rental->value;
+                $resolvedQuantity = $sellingTypeOrQuantity;
+                $resolvedRentalMonths = is_int($quantityOrRentalMonths) ? $quantityOrRentalMonths : $rentalMonths;
+                $resolvedRentalStartDate = $quantityOrRentalMonths instanceof \DateTimeImmutable ? $quantityOrRentalMonths : $rentalStartDate;
+            } else {
+                $resolvedSellingType = ProductSellingType::Sale->value;
+                $resolvedQuantity = $sellingTypeOrQuantity;
+                $resolvedRentalMonths = null;
+                $resolvedRentalStartDate = null;
+            }
+        } else {
+            $resolvedSellingType = $sellingTypeOrQuantity;
+            $resolvedQuantity = is_int($quantityOrRentalMonths) ? $quantityOrRentalMonths : 1;
+            $resolvedRentalMonths = $rentalMonths;
+            $resolvedRentalStartDate = $rentalStartDate;
+        }
+
+        $this->setSellingType($resolvedSellingType);
+        $this->setQuantity($resolvedQuantity);
+        $this->setRentalMonths($resolvedRentalMonths);
+        $this->setRentalStartDate($resolvedRentalStartDate);
     }
 
     public function getId(): ?int
@@ -69,6 +94,29 @@ class CartItem
     public function getQuantity(): int
     {
         return $this->quantity;
+    }
+
+    public function getSellingType(): string
+    {
+        return $this->sellingType;
+    }
+
+    public function setSellingType(ProductSellingType|string $sellingType): self
+    {
+        $mode = ProductSellingType::fromInput($sellingType);
+
+        if (!$this->product->supportsSellingType($mode)) {
+            throw new \InvalidArgumentException('Ce produit ne supporte pas ce mode de commercialisation.');
+        }
+
+        $this->sellingType = $mode->value;
+
+        if (ProductSellingType::Sale === $mode) {
+            $this->rentalMonths = -1;
+            $this->rentalStartDate = null;
+        }
+
+        return $this;
     }
 
     public function setQuantity(int $quantity): self
@@ -112,6 +160,10 @@ class CartItem
 
     public function setRentalMonths(?int $rentalMonths): self
     {
+        if (ProductSellingType::Sale === $this->sellingType && null !== $rentalMonths) {
+            throw new \InvalidArgumentException('La durée de location ne s’applique pas à un achat.');
+        }
+
         if (null === $rentalMonths) {
             $this->rentalMonths = -1;
             $this->rentalStartDate = null;
@@ -150,6 +202,12 @@ class CartItem
 
     public function setRentalStartDate(?\DateTimeImmutable $rentalStartDate): self
     {
+        if (ProductSellingType::Sale === $this->sellingType) {
+            $this->rentalStartDate = null;
+
+            return $this;
+        }
+
         if (null === $this->getRentalMonths()) {
             $this->rentalStartDate = null;
 

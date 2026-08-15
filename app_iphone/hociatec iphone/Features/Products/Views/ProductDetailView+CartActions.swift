@@ -21,7 +21,9 @@ extension ProductDetailView {
     func decreaseQuantity() async {
         let fallbackItem = viewModel.product.sellingType == .rental
             ? nil
-            : cart.cart?.items.first(where: { $0.product.id == viewModel.product.id })
+            : cart.cart?.items.first(where: {
+                $0.product.id == viewModel.product.id && $0.sellingType == viewModel.product.sellingType
+            })
         guard let item = selectedCartItem ?? fallbackItem else { return }
         let newQuantity = item.quantity - 1
         if newQuantity <= 0 {
@@ -34,7 +36,9 @@ extension ProductDetailView {
     func increaseQuantity() async {
         let fallbackItem = viewModel.product.sellingType == .rental
             ? nil
-            : cart.cart?.items.first(where: { $0.product.id == viewModel.product.id })
+            : cart.cart?.items.first(where: {
+                $0.product.id == viewModel.product.id && $0.sellingType == viewModel.product.sellingType
+            })
         let currentCartQuantity = (selectedCartItem ?? fallbackItem)?.quantity ?? 0
         if currentCartQuantity >= stockLimit {
             alertState.presentStock(

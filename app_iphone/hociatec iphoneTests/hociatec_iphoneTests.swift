@@ -1126,7 +1126,7 @@ private final class MockProductService: ProductServing {
 
     func products(search: String?, categorySlug: String?, sellingType: SellingType?) async throws -> [Product] { [] }
     func categories() async throws -> [CategorySummary] { [] }
-    func product(slug: String) async throws -> Product { throw SampleError(message: "Unused") }
+    func product(slug: String, sellingType: SellingType?) async throws -> Product { throw SampleError(message: "Unused") }
 
     func productReviews(slug: String, page: Int, perPage: Int) async throws -> ReviewListData {
         guard !reviewResponses.isEmpty else {
@@ -1337,16 +1337,18 @@ private final class MockCartService: CartServing {
     var cartToReturn = Cart(token: "empty", items: [], totalQuantity: 0, totalPriceCents: 0, updatedAt: nil)
 
     func fetchCart() async throws -> Cart { cartToReturn }
-    func addToCart(productId: Int, quantity: Int, rentalMonths: Int?, rentalStartDate: String?) async throws -> Cart { cartToReturn }
+    func addToCart(productId: Int, quantity: Int, sellingType: SellingType, rentalMonths: Int?, rentalStartDate: String?) async throws -> Cart { cartToReturn }
     func updateCart(
         productId: Int,
         quantity: Int,
+        sellingType: SellingType,
+        currentSellingType: SellingType,
         rentalMonths: Int?,
         currentRentalMonths: Int?,
         rentalStartDate: String?,
         currentRentalStartDate: String?
     ) async throws -> Cart { cartToReturn }
-    func removeFromCart(productId: Int, rentalMonths: Int?, rentalStartDate: String?) async throws -> Cart { cartToReturn }
+    func removeFromCart(productId: Int, sellingType: SellingType, rentalMonths: Int?, rentalStartDate: String?) async throws -> Cart { cartToReturn }
     func clearCart() async throws -> Cart { cartToReturn }
     func checkout() async throws -> CheckoutResult { CheckoutResult(order: nil, checkoutURL: nil, checkoutSessionId: nil) }
 }

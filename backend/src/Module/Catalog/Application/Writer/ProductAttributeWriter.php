@@ -20,7 +20,10 @@ final class ProductAttributeWriter
             $slug,
             $sku,
             $command->core->description,
-            $command->core->priceCents,
+            $command->core->salePriceCents,
+            $command->core->rentalPriceCents,
+            $command->core->availableForSale,
+            $command->core->availableForRental,
             $command->core->stock,
             $command->core->category,
         );
@@ -40,7 +43,9 @@ final class ProductAttributeWriter
             ->setSlug($slug)
             ->setSku($sku)
             ->setDescription($command->core->description)
-            ->setPriceCents($command->core->priceCents)
+            ->setSalePriceCents($command->core->salePriceCents)
+            ->setRentalPriceCents($command->core->rentalPriceCents)
+            ->setAvailability($command->core->availableForSale, $command->core->availableForRental)
             ->setStock($command->core->stock)
             ->setCategory($command->core->category);
 
@@ -61,11 +66,7 @@ final class ProductAttributeWriter
             ->setBrandReference($command->core->brand)
             ->setVariantGroup($variantGroup)
             ->setReleaseYear($command->variant->releaseYear)
-            ->setStorageCapacity($command->variant->storageCapacity)
-            ->setMemoryRam($command->variant->memoryRam)
-            ->setColor($command->variant->color);
-
-        $product->setSellingType($command->core->sellingType);
+            ->setAttributes($command->variant->attributes);
 
         return $product;
     }

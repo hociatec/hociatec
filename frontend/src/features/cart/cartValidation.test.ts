@@ -29,7 +29,7 @@ describe('parseCart', () => {
     expect(
       parseCart({
         token: 'cart_token',
-        items: [{ id: 10, product, quantity: 2, linePriceCents: 25980 }],
+        items: [{ id: 10, product, sellingType: 'sale', quantity: 2, linePriceCents: 25980 }],
         totalQuantity: 2,
         subtotalPriceCents: 25980,
         discountAmountCents: 0,

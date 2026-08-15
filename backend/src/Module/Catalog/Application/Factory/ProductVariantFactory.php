@@ -19,12 +19,17 @@ final readonly class ProductVariantFactory
 
     public function createVariantCopy(ProductVariantCopyData $data): Product
     {
+        $attributeSuffix = $this->attributeValueSuffix($data->attributes);
+
         $variantProduct = new Product(
-            $this->buildVariantName($data->baseName, $data->color, $data->storageCapacity),
-            $this->buildVariantSlug($data->baseSlug ?? $data->baseName, $data->color, $data->storageCapacity, $data->position),
-            $this->buildVariantSku($data->baseSku, $data->color, $data->storageCapacity, $data->position),
+            $this->buildVariantName($data->baseName, $attributeSuffix),
+            $this->buildVariantSlug($data->baseSlug ?? $data->baseName, $attributeSuffix, $data->position),
+            $this->buildVariantSku($data->baseSku, $attributeSuffix, $data->position),
             $data->template->getDescription(),
-            $data->priceCents,
+            $data->salePriceCents,
+            $data->rentalPriceCents,
+            $data->availableForSale,
+            $data->availableForRental,
             $data->stock,
             $data->template->getCategory(),
         );
@@ -38,10 +43,7 @@ final readonly class ProductVariantFactory
             ->setVariantGroup($data->variantGroup)
             ->setVariantPosition($data->position)
             ->setReleaseYear($data->template->getReleaseYear())
-            ->setStorageCapacity($data->storageCapacity)
-            ->setMemoryRam($data->template->getMemoryRam())
-            ->setColor($data->color)
-            ->setSellingType($data->template->getSellingType())
+            ->setAttributes($data->attributes)
             ->setDiscountEnabled($data->template->isDiscountEnabled())
             ->setDiscountType($data->template->getDiscountType())
             ->setDiscountValue($data->template->getDiscountValue())
@@ -57,19 +59,14 @@ final readonly class ProductVariantFactory
             ->setGalleryImage4Size($data->template->getGalleryImage4Size());
     }
 
-    private function buildVariantName(string $baseName, ?string $color, ?string $storageCapacity): string
+    private function buildVariantName(string $baseName, string $attributeSuffix): string
     {
-        $parts = array_values(array_filter([
-            null !== $color ? trim($color) : '',
-            null !== $storageCapacity ? trim($storageCapacity) : '',
-        ]));
-
-        return [] === $parts ? $baseName : sprintf('%s (%s)', $baseName, implode(') (', $parts));
+        return '' === $attributeSuffix ? $baseName : sprintf('%s %s', $baseName, $attributeSuffix);
     }
 
-    private function buildVariantSku(string $baseSku, ?string $color, ?string $storageCapacity, int $index): string
+    private function buildVariantSku(string $baseSku, string $attributeSuffix, int $index): string
     {
-        $suffix = $this->rules->slugify(trim((string) $color.' '.(string) $storageCapacity));
+        $suffix = $this->rules->slugify($attributeSuffix);
         if ('produit' === $suffix) {
             $suffix = (string) ($index + 1);
         }
@@ -77,10 +74,10 @@ final readonly class ProductVariantFactory
         return strtoupper(sprintf('%s-%s', $baseSku, $suffix));
     }
 
-    private function buildVariantSlug(string $baseSlugOrName, ?string $color, ?string $storageCapacity, int $index): string
+    private function buildVariantSlug(string $baseSlugOrName, string $attributeSuffix, int $index): string
     {
         $base = $this->rules->slugify($baseSlugOrName);
-        $suffix = $this->rules->slugify(trim((string) $color.' '.(string) $storageCapacity));
+        $suffix = $this->rules->slugify($attributeSuffix);
 
         if ('produit' === $suffix) {
             $suffix = (string) ($index + 1);
@@ -95,5 +92,21 @@ final readonly class ProductVariantFactory
         }
 
         return $candidate;
+    }
+
+    /**
+     * @param list<array{code:string,label:string,value:string}> $attributes
+     */
+    private function attributeValueSuffix(array $attributes): string
+    {
+        $parts = array_map(
+            static fn (array $attribute): string => sprintf('(%s)', trim((string) $attribute['value'])),
+            array_values(array_filter(
+                $attributes,
+                static fn (array $attribute): bool => '' !== trim((string) ($attribute['value'] ?? '')),
+            )),
+        );
+
+        return implode(' ', $parts);
     }
 }

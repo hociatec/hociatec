@@ -88,7 +88,7 @@ trait ProductDiscountTrait
 
     public function getEffectivePriceCents(?\DateTimeImmutable $now = null): int
     {
-        return $this->discount()->effectivePriceCents($this->getPriceCents(), $now);
+        return $this->getDisplayEffectivePriceCents(null, $now);
     }
 
     public function discount(): ProductDiscount

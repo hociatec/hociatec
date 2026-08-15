@@ -31,9 +31,23 @@ export const CategoryPage = () => {
 
   const search = searchParams.get('q') ?? '';
   const brand = normalizeCatalogFilter(searchParams.get('brand'));
-  const storageCapacity = normalizeCatalogFilter(searchParams.get('storageCapacity'));
-  const memoryRam = normalizeCatalogFilter(searchParams.get('memoryRam'));
-  const color = normalizeCatalogFilter(searchParams.get('color'));
+  const attributeFilters = Array.from(searchParams.entries()).reduce<Record<string, string>>(
+    (filters, [key, value]) => {
+      if (!key.startsWith('attribute_')) {
+        return filters;
+      }
+
+      const code = key.slice('attribute_'.length).trim();
+      const normalizedValue = normalizeCatalogFilter(value);
+
+      if (code !== '' && normalizedValue !== ALL_CATALOG_FILTER) {
+        filters[code] = normalizedValue;
+      }
+
+      return filters;
+    },
+    {},
+  );
   const sort = normalizeCatalogSort(
     searchParams.get('sort'),
     search.trim() ? 'relevance' : 'release_year_desc',
@@ -47,9 +61,7 @@ export const CategoryPage = () => {
     slug,
     search,
     brand,
-    storageCapacity,
-    memoryRam,
-    color,
+    attributeFilters,
     minPrice,
     maxPrice,
     inStock,
@@ -168,9 +180,7 @@ export const CategoryPage = () => {
               <CategoryFiltersPanel
                 search={search}
                 brand={brand}
-                storageCapacity={storageCapacity}
-                memoryRam={memoryRam}
-                color={color}
+                attributeFilters={attributeFilters}
                 sort={sort}
                 minPrice={minPrice}
                 maxPrice={maxPrice}

@@ -4,9 +4,9 @@ export const catalogQueryKeys = {
   publicCategory: (slug: string | null) => ['catalog', 'public-category', slug] as const,
   publicCategoryProducts: (params: Record<string, unknown>) =>
     ['catalog', 'public-category-products', params] as const,
-  publicProduct: (slug: string | null) => ['catalog', 'public-product', slug] as const,
-  publicProductVariants: (slug: string | null) =>
-    ['catalog', 'public-product-variants', slug] as const,
+  publicProduct: (slug: string | null, sellingType: string | null) => ['catalog', 'public-product', { slug, sellingType }] as const,
+  publicProductVariants: (slug: string | null, sellingType: string | null) =>
+    ['catalog', 'public-product-variants', { slug, sellingType }] as const,
   productVariants: (category: string, sellingType: string, group: string) =>
     ['catalog', 'product-variants', { category, sellingType, group }] as const,
   productReviews: (slug: string | null, page: number) =>

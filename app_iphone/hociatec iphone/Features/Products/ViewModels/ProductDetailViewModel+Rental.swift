@@ -22,7 +22,9 @@ extension ProductDetailViewModel {
     }
 
     func stockLimit(using cart: CartViewModel) -> Int {
-        let cartItem = matchingRentalItem(using: cart) ?? cart.cart?.items.first(where: { $0.product.id == product.id })
+        let cartItem = matchingRentalItem(using: cart) ?? cart.cart?.items.first(where: {
+            $0.product.id == product.id && $0.sellingType == product.sellingType
+        })
         let currentQuantity = cartItem?.quantity ?? 0
         let cartItemStock = cartItem?.product.stock
         return max(cartItemStock ?? product.stock, currentQuantity)
@@ -41,12 +43,15 @@ extension ProductDetailViewModel {
 
     func matchingRentalItem(using cart: CartViewModel) -> CartItem? {
         guard product.sellingType == .rental else {
-            return cart.cart?.items.first(where: { $0.product.id == product.id })
+            return cart.cart?.items.first(where: {
+                $0.product.id == product.id && $0.sellingType == product.sellingType
+            })
         }
 
         return cart.cart?.items.first(where: {
             $0.matches(
                 productId: product.id,
+                sellingType: product.sellingType,
                 rentalMonths: rentalMonths,
                 rentalStartDate: currentRentalStartDateString()
             )
@@ -55,7 +60,9 @@ extension ProductDetailViewModel {
 
     func syncRentalSelection(from cart: CartViewModel) {
         guard product.sellingType == .rental,
-              let existing = cart.cart?.items.first(where: { $0.product.id == product.id }) else {
+              let existing = cart.cart?.items.first(where: {
+                  $0.product.id == product.id && $0.sellingType == product.sellingType
+              }) else {
             return
         }
 

@@ -48,9 +48,7 @@ export const CatalogSearchPage = () => {
             query={catalog.query}
             category={catalog.category}
             brand={catalog.brand}
-            storageCapacity={catalog.storageCapacity}
-            memoryRam={catalog.memoryRam}
-            color={catalog.color}
+            attributeFilters={catalog.attributeFilters}
             sort={catalog.sort}
             inStock={catalog.inStock}
             minPrice={catalog.minPrice}

@@ -13,6 +13,8 @@ extension APIClient {
         search: String? = nil,
         categorySlug: String? = nil,
         sellingType: SellingType? = nil,
+        brand: String? = nil,
+        attributeFilters: [String: String] = [:],
         page: Int? = nil,
         perPage: Int? = nil
     ) async throws -> ProductListData {
@@ -25,6 +27,12 @@ extension APIClient {
         }
         if let sellingType {
             query.append(.init(name: "sellingType", value: sellingType.rawValue))
+        }
+        if let brand, !brand.isEmpty {
+            query.append(.init(name: "brand", value: brand))
+        }
+        for (code, value) in attributeFilters.sorted(by: { $0.key < $1.key }) where !value.isEmpty {
+            query.append(.init(name: "attribute_\(code)", value: value))
         }
         if let page {
             query.append(.init(name: "page", value: String(page)))
@@ -39,16 +47,32 @@ extension APIClient {
         )
     }
 
-    func products(search: String? = nil, categorySlug: String? = nil, sellingType: SellingType? = nil) async throws -> [Product] {
+    func products(
+        search: String? = nil,
+        categorySlug: String? = nil,
+        sellingType: SellingType? = nil,
+        brand: String? = nil,
+        attributeFilters: [String: String] = [:]
+    ) async throws -> [Product] {
         try await productList(
             search: search,
             categorySlug: categorySlug,
-            sellingType: sellingType
+            sellingType: sellingType,
+            brand: brand,
+            attributeFilters: attributeFilters
         ).items
     }
 
-    func product(slug: String) async throws -> Product {
-        try await request(path: "api/public/catalog/products/\(slug)")
+    func product(slug: String, sellingType: SellingType? = nil) async throws -> Product {
+        var query: [URLQueryItem] = []
+        if let sellingType {
+            query.append(.init(name: "sellingType", value: sellingType.rawValue))
+        }
+
+        return try await request(
+            path: "api/public/catalog/products/\(slug)",
+            query: query.isEmpty ? nil : query
+        )
     }
 
     func productReviews(slug: String, page: Int = 1, perPage: Int = 10) async throws -> ReviewListData {

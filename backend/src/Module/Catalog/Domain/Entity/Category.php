@@ -13,6 +13,11 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\HasLifecycleCallbacks]
 class Category
 {
+    /**
+     * @var list<array{code:string,label:string,inputType:string,helpText:?string,options:list<string>,isRequired:bool,isGlobalFilter:bool}>
+     */
+    private const EMPTY_ATTRIBUTE_DEFINITIONS = [];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -29,6 +34,12 @@ class Category
 
     #[ORM\Column(type: 'boolean')]
     private bool $isVisible = true;
+
+    /**
+     * @var list<array{code:string,label:string,inputType:string,helpText:?string,options:list<string>,isRequired:bool,isGlobalFilter:bool}>
+     */
+    #[ORM\Column(type: 'json')]
+    private array $attributeDefinitions = self::EMPTY_ATTRIBUTE_DEFINITIONS;
 
     /**
      * @var Collection<int, Product>
@@ -101,6 +112,24 @@ class Category
     public function setIsVisible(bool $isVisible): self
     {
         $this->isVisible = $isVisible;
+
+        return $this;
+    }
+
+    /**
+     * @return list<array{code:string,label:string,inputType:string,helpText:?string,options:list<string>,isRequired:bool,isGlobalFilter:bool}>
+     */
+    public function getAttributeDefinitions(): array
+    {
+        return $this->attributeDefinitions;
+    }
+
+    /**
+     * @param list<array{code:string,label:string,inputType:string,helpText:?string,options:list<string>,isRequired:bool,isGlobalFilter:bool}> $attributeDefinitions
+     */
+    public function setAttributeDefinitions(array $attributeDefinitions): self
+    {
+        $this->attributeDefinitions = array_values($attributeDefinitions);
 
         return $this;
     }

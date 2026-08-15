@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { createProduct, deleteProduct, updateProduct, type CatalogBrand, type CatalogProduct, type UpsertProductPayload } from '@/features/catalog/adminApi';
+import type { CatalogCategory } from '@/features/catalog/adminApi';
 import { type ProductFormState, type VariantRowState } from '@/features/admin/catalog/utils/productFormConfig';
 import { formatVariantDetails } from '@/features/admin/catalog/utils/productFormUtils';
 import { buildProductPayload } from '@/features/admin/catalog/utils/productFormModel';
@@ -15,6 +16,7 @@ type UseProductFormActionsParams = {
   isEdit: boolean;
   form: ProductFormState;
   brands: CatalogBrand[];
+  categories: CatalogCategory[];
   variantRows: VariantRowState[];
   groupVariants: CatalogProduct[];
   currentProductId: number | null;
@@ -30,6 +32,7 @@ export const useProductFormActions = ({
   isEdit,
   form,
   brands,
+  categories,
   variantRows,
   groupVariants,
   currentProductId,
@@ -104,6 +107,7 @@ export const useProductFormActions = ({
     const result = buildProductPayload({
       form,
       brands,
+      categories,
       variantRows,
       groupVariants,
       currentProductId,

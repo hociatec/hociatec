@@ -108,15 +108,16 @@ final readonly class CheckoutSessionOrderCreator
             throw new \InvalidArgumentException('Stock insuffisant pour le produit '.$product->getSku().'.');
         }
         $product->reserveStock($quantity);
+        $sellingType = (string) ($rawItem['sellingType'] ?? $product->resolveDisplaySellingType()->value);
 
         $item = (new OrderItem(
             (string) ($rawItem['productName'] ?? $product->getName()),
             (string) ($rawItem['productSku'] ?? $product->getSku()),
-            max(0, (int) ($rawItem['unitPriceCents'] ?? $product->getPriceCents())),
+            max(0, (int) ($rawItem['unitPriceCents'] ?? $product->getUnitPriceCentsForSellingType($sellingType))),
             $quantity,
         ))
             ->setProduct($product)
-            ->setSellingType((string) ($rawItem['sellingType'] ?? $product->getSellingType()))
+            ->setSellingType($sellingType)
             ->setRentalMonths(is_numeric($rawItem['rentalMonths'] ?? null) ? (int) $rawItem['rentalMonths'] : null)
             ->setRentalStartDate(isset($rawItem['rentalStartDate']) && is_string($rawItem['rentalStartDate']) ? new \DateTimeImmutable((string) $rawItem['rentalStartDate']) : null)
             ->setVatRateBps(max(0, (int) ($rawItem['vatRateBps'] ?? 2000)));

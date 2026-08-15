@@ -8,6 +8,7 @@ use App\Module\Cart\Application\DTO\AddCartItemInput;
 use App\Module\Cart\Application\Projection\CartFormatter;
 use App\Module\Cart\Application\Workflow\CartSessionWorkflow;
 use App\Module\Catalog\Application\Port\ProductRepositoryPort;
+use App\Module\Catalog\Domain\Entity\ProductSellingType;
 use App\Module\Order\Application\Support\RentalPeriodCalculator;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Infrastructure\Http\ApiProblemResponse;
@@ -46,8 +47,15 @@ class AddCartItemController extends AbstractController
             return ApiResponse::error('Produit introuvable.', JsonResponse::HTTP_NOT_FOUND);
         }
 
+        try {
+            $sellingType = $input->sellingType ?? $product->resolveDisplaySellingType()->value;
+            $sellingType = ProductSellingType::fromInput($sellingType)->value;
+        } catch (\InvalidArgumentException $exception) {
+            return ApiProblemResponse::fromThrowable($exception, 'Mode de commercialisation invalide.', JsonResponse::HTTP_BAD_REQUEST);
+        }
+
         $rentalMonths = null;
-        if ('rental' === $product->getSellingType()) {
+        if ('rental' === $sellingType) {
             if (null === $input->rentalMonths) {
                 return ApiResponse::error('Champ "rentalMonths" requis pour ce produit.', JsonResponse::HTTP_BAD_REQUEST);
             }
@@ -63,7 +71,7 @@ class AddCartItemController extends AbstractController
         $token = $this->headers->nonEmptyString($request, 'X-Cart-Token');
         $rentalStartDate = RentalPeriodCalculator::parseDate($input->rentalStartDate);
         try {
-            $cart = $this->cartService->addProduct($token, $product, $quantity, $rentalMonths, $rentalStartDate);
+            $cart = $this->cartService->addProduct($token, $product, $sellingType, $quantity, $rentalMonths, $rentalStartDate);
         } catch (\InvalidArgumentException $exception) {
             return ApiProblemResponse::fromThrowable($exception, 'Impossible d’ajouter cet article au panier.', JsonResponse::HTTP_BAD_REQUEST);
         }

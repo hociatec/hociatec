@@ -10,23 +10,36 @@ use App\Module\Catalog\Domain\Entity\Product;
 
 final class CatalogFormatter
 {
+    public function __construct(private readonly ?CatalogProductMediaProjection $media = null)
+    {
+    }
+
     /**
      * @return array<string, mixed>
      */
-    public function formatCategory(Category $category, bool $includeCounts = false): array
+    public function formatCategory(Category $category, int|bool|null $productsCount = null): array
     {
+        if (true === $productsCount) {
+            $productsCount = $category->getProducts()->count();
+        }
+
+        if (false === $productsCount) {
+            $productsCount = null;
+        }
+
         $data = [
             'id' => $category->getId(),
             'name' => $category->getName(),
             'slug' => $category->getSlug(),
             'description' => $category->getDescription(),
             'isVisible' => $category->isVisible(),
+            'attributeDefinitions' => $category->getAttributeDefinitions(),
             'createdAt' => $category->getCreatedAt()->format(DATE_ATOM),
             'updatedAt' => $category->getUpdatedAt()->format(DATE_ATOM),
         ];
 
-        if ($includeCounts) {
-            $data['productsCount'] = $category->getProducts()->count();
+        if (null !== $productsCount) {
+            $data['productsCount'] = $productsCount;
         }
 
         return $data;
@@ -54,9 +67,10 @@ final class CatalogFormatter
     /**
      * @return array<string, mixed>
      */
-    public function formatProduct(Product $product, bool $includePrivateFields = false): array
+    public function formatProduct(Product $product, bool $includePrivateFields = false, ?string $preferredSellingType = null): array
     {
-        $gallery = $this->formatGallery($product);
+        $gallery = ($this->media ?? new CatalogProductMediaProjection())->formatEntityGallery($product);
+        $sellingContext = $product->getSellingTypeContext($preferredSellingType);
 
         $data = [
             'id' => $product->getId(),
@@ -65,23 +79,29 @@ final class CatalogFormatter
             'sku' => $product->getSku(),
             'shortDescription' => $product->getShortDescription(),
             'description' => $product->getDescription(),
-            'priceCents' => $product->getPriceCents(),
-            'sellingType' => $product->getSellingType(),
-            'sellingTypeLabel' => 'rental' === $product->getSellingType() ? 'Location' : 'Vente',
-            'priceUnitLabel' => 'rental' === $product->getSellingType() ? '/ mois' : null,
+            'priceCents' => $sellingContext['priceCents'],
+            'sellingType' => $sellingContext['sellingType'],
+            'sellingTypeLabel' => $sellingContext['sellingTypeLabel'],
+            'priceUnitLabel' => $sellingContext['priceUnitLabel'],
+            'availableForSale' => $product->isAvailableForSale(),
+            'availableForRental' => $product->isAvailableForRental(),
+            'availableModes' => $product->getAvailableSellingTypes(),
+            'salePriceCents' => $product->getSalePriceCents(),
+            'rentalPriceCents' => $product->getRentalPriceCents(),
             'brand' => $product->getBrand(),
             'brandId' => $product->getBrandId(),
             'variantGroup' => $product->getVariantGroup(),
             'variantPosition' => $product->getVariantPosition(),
             'releaseYear' => $product->getReleaseYear(),
+            'attributes' => $product->getAttributes(),
             'storageCapacity' => $product->getStorageCapacity(),
             'memoryRam' => $product->getMemoryRam(),
             'color' => $product->getColor(),
-            'effectivePriceCents' => $product->getEffectivePriceCents(),
+            'effectivePriceCents' => $product->getDisplayEffectivePriceCents($preferredSellingType),
             'stock' => $product->getStock(),
             'isPublished' => $product->isPublished(),
             'isFeaturedHome' => $product->isFeaturedHome(),
-            'imageUrl' => $gallery[0]['url'] ?? $product->getImageExternalUrl() ?? $this->resolveImageUrlFromName($product->getImageName()),
+            'imageUrl' => $gallery[0]['url'] ?? $product->getImageExternalUrl() ?? ($this->media ?? new CatalogProductMediaProjection())->resolveImageUrlFromName($product->getImageName()),
             'imageAlt' => $product->getImageAlt(),
             'createdAt' => $product->getCreatedAt()->format(DATE_ATOM),
             'updatedAt' => $product->getUpdatedAt()->format(DATE_ATOM),
@@ -116,61 +136,10 @@ final class CatalogFormatter
                 'value' => $product->getDiscountValue(),
                 'startsAt' => $product->getDiscountStartsAt()?->format(DATE_ATOM),
                 'endsAt' => $product->getDiscountEndsAt()?->format(DATE_ATOM),
-                'active' => $product->getEffectivePriceCents() < $product->getPriceCents(),
+                'active' => $product->getDisplayEffectivePriceCents($preferredSellingType) < $sellingContext['priceCents'],
             ];
         }
 
         return $data;
-    }
-
-    /**
-     * @return list<array{position:int,url:string,alt:string,isPrimary:bool}>
-     */
-    private function formatGallery(Product $product): array
-    {
-        $items = [];
-
-        $hasExternalImage = null !== $product->getImageExternalUrl() && '' !== trim($product->getImageExternalUrl());
-
-        if ($hasExternalImage) {
-            $items[] = [
-                'position' => 0,
-                'url' => $product->getImageExternalUrl(),
-                'alt' => $product->getImageAlt() ?? $product->getName(),
-                'isPrimary' => true,
-            ];
-        }
-
-        foreach ($hasExternalImage ? [1, 2, 3] : [0, 1, 2, 3] as $position) {
-            $fileName = $product->getGalleryImageNameByPosition($position);
-
-            if (null === $fileName) {
-                continue;
-            }
-
-            $url = $this->resolveImageUrlFromName($fileName);
-
-            if (null === $url) {
-                continue;
-            }
-
-            $items[] = [
-                'position' => $position,
-                'url' => $url,
-                'alt' => $product->getImageAlt() ?? $product->getName(),
-                'isPrimary' => 0 === $position,
-            ];
-        }
-
-        return $items;
-    }
-
-    private function resolveImageUrlFromName(?string $fileName): ?string
-    {
-        if (null === $fileName || '' === $fileName) {
-            return null;
-        }
-
-        return sprintf('/uploads/products/%s', ltrim($fileName, '/'));
     }
 }

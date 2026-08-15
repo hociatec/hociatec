@@ -102,13 +102,18 @@ class CartSession
         return $this;
     }
 
-    public function hasProduct(Product $product): bool
+    public function hasProduct(Product $product, mixed $sellingType = null): bool
     {
-        return null !== $this->getItemForProduct($product);
+        return null !== $this->getItemForProduct($product, $sellingType);
     }
 
-    public function getItemForProduct(Product $product, ?int $rentalMonths = null, ?\DateTimeImmutable $rentalStartDate = null): ?CartItem
+    public function getItemForProduct(Product $product, mixed $sellingType = null, ?int $rentalMonths = null, ?\DateTimeImmutable $rentalStartDate = null): ?CartItem
     {
+        if (is_int($sellingType) && null === $rentalMonths) {
+            $rentalMonths = $sellingType;
+            $sellingType = null;
+        }
+
         $firstMatch = null;
 
         foreach ($this->items as $item) {
@@ -116,7 +121,11 @@ class CartSession
                 continue;
             }
 
-            if ('rental' !== $product->getSellingType()) {
+            if (null !== $sellingType && $item->getSellingType() !== $sellingType) {
+                continue;
+            }
+
+            if ('rental' !== $item->getSellingType()) {
                 return $item;
             }
 
@@ -139,12 +148,12 @@ class CartSession
     /**
      * @return list<CartItem>
      */
-    public function getItemsForProduct(Product $product): array
+    public function getItemsForProduct(Product $product, mixed $sellingType = null): array
     {
         $matches = [];
 
         foreach ($this->items as $item) {
-            if ($item->getProduct() === $product) {
+            if ($item->getProduct() === $product && (null === $sellingType || $item->getSellingType() === $sellingType)) {
                 $matches[] = $item;
             }
         }

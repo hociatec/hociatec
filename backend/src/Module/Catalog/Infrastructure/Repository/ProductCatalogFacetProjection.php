@@ -52,11 +52,17 @@ trait ProductCatalogFacetProjection
     /**
      * @return array{min:int|null,max:int|null}
      */
-    private function collectPriceBounds(QueryBuilder $qb): array
+    private function collectPriceBounds(QueryBuilder $qb, ?string $sellingType = null): array
     {
+        $field = match ($sellingType) {
+            'rental' => 'p.pricing.rentalPriceCents',
+            'sale' => 'p.pricing.salePriceCents',
+            default => 'COALESCE(p.pricing.salePriceCents, p.pricing.rentalPriceCents)',
+        };
+
         $row = $qb
             ->resetDQLPart('orderBy')
-            ->select('MIN(p.pricing.priceCents) AS minPrice, MAX(p.pricing.priceCents) AS maxPrice')
+            ->select(sprintf('MIN(%1$s) AS minPrice, MAX(%1$s) AS maxPrice', $field))
             ->getQuery()
             ->getOneOrNullResult();
 

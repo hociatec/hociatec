@@ -71,12 +71,22 @@ export const ProductFormContent = ({
       currentVariantPosition={controller.currentVariantPosition}
       form={controller.form}
       onChange={controller.handleChange}
+      onAddAttribute={controller.addMainAttribute}
+      onRemoveAttribute={controller.removeMainAttribute}
+      onUpdateAttribute={controller.updateMainAttribute}
+      categoryDefinitions={controller.selectedCategory?.attributeDefinitions ?? []}
     />
     <ProductExtraVariantsSection
+      form={controller.form}
+      currentVariantPosition={controller.currentVariantPosition}
       rows={controller.variantRows}
       onAdd={controller.addVariantRow}
       onRemove={controller.removeVariantRow}
       onUpdate={controller.updateVariantRow}
+      onAddAttribute={controller.addVariantAttributeRow}
+      onRemoveAttribute={controller.removeVariantAttributeRow}
+      onUpdateAttribute={controller.updateVariantAttributeRow}
+      categoryDefinitions={controller.selectedCategory?.attributeDefinitions ?? []}
     />
     <ProductContentMediaSection
       form={controller.form}

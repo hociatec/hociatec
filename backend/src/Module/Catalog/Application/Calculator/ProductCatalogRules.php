@@ -41,11 +41,17 @@ final readonly class ProductCatalogRules
         if (null !== $core->shortDescription && mb_strlen($core->shortDescription) > 255) {
             $errors[] = 'Le resume est trop long.';
         }
-        if ($core->priceCents < 0) {
+        if (null !== $core->salePriceCents && $core->salePriceCents < 0) {
             $errors[] = 'Le prix doit etre positif.';
         }
-        if ($core->priceCents > 100000000) {
-            $errors[] = 'Le prix indique est trop eleve.';
+        if (null !== $core->salePriceCents && $core->salePriceCents > 100000000) {
+            $errors[] = 'Le prix de vente indique est trop eleve.';
+        }
+        if (null !== $core->rentalPriceCents && $core->rentalPriceCents < 0) {
+            $errors[] = 'Le prix mensuel de location doit etre positif.';
+        }
+        if (null !== $core->rentalPriceCents && $core->rentalPriceCents > 100000000) {
+            $errors[] = 'Le prix mensuel de location indique est trop eleve.';
         }
         if ($core->stock < 0) {
             $errors[] = 'Le stock doit etre positif.';

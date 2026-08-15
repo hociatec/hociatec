@@ -8,6 +8,8 @@ struct ProductsRepositoryLive: ProductsRepository {
         search: String?,
         categorySlug: String?,
         sellingType: SellingType?,
+        brand: String?,
+        attributeFilters: [String : String],
         page: Int,
         perPage: Int
     ) async throws -> ProductListData {
@@ -15,21 +17,23 @@ struct ProductsRepositoryLive: ProductsRepository {
             search: search,
             categorySlug: categorySlug,
             sellingType: sellingType,
+            brand: brand,
+            attributeFilters: attributeFilters,
             page: page,
             perPage: perPage
         )
     }
 
-    func fetchProducts(search: String?, categorySlug: String?, sellingType: SellingType?) async throws -> [Product] {
-        try await productsService.products(search: search, categorySlug: categorySlug, sellingType: sellingType)
+    func fetchProducts(search: String?, categorySlug: String?, sellingType: SellingType?, brand: String?, attributeFilters: [String : String]) async throws -> [Product] {
+        try await productsService.products(search: search, categorySlug: categorySlug, sellingType: sellingType, brand: brand, attributeFilters: attributeFilters)
     }
 
     func fetchCategories() async throws -> [CategorySummary] {
         try await productsService.categories()
     }
 
-    func fetchProduct(slug: String) async throws -> Product {
-        try await productsService.product(slug: slug)
+    func fetchProduct(slug: String, sellingType: SellingType?) async throws -> Product {
+        try await productsService.product(slug: slug, sellingType: sellingType)
     }
 
     func fetchReviews(slug: String, page: Int, perPage: Int) async throws -> ReviewListData {

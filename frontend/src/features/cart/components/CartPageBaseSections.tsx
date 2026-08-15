@@ -117,7 +117,7 @@ export const CartItemsList = ({
   <ul className="cart-page__list">
     {items.map((item) => {
       const pending = isProductPending(item.product.id);
-      const isRental = item.product.sellingType === 'rental';
+      const isRental = item.sellingType === 'rental';
       const rentalMonths = clampAtLeast(item.rentalMonths ?? 1, 1);
 
       return (
@@ -139,12 +139,12 @@ export const CartItemsList = ({
           )}
 
           <div className="cart-page__details">
-            <Link to={`/catalogue/produits/${item.product.slug}`} className="cart-page__title">
+            <Link to={`/catalogue/produits/${item.product.slug}?mode=${item.sellingType}`} className="cart-page__title">
               {item.product.name}
             </Link>
             <span className="cart-page__meta">SKU {item.product.sku}</span>
             <span className="cart-page__price">
-              {formatCartPrice(item.product.priceCents)} / unité
+              {formatCartPrice(item.product.priceCents)}{item.product.priceUnitLabel ?? ''} / unité
             </span>
             <span className="cart-page__line-total">
               Sous-total : {formatCartPrice(item.linePriceCents)}

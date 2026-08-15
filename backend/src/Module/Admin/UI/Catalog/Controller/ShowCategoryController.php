@@ -31,6 +31,8 @@ class ShowCategoryController extends AbstractController
             return ApiResponse::error('Catégorie introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        return ApiResponse::success($this->catalogFormatter->formatCategory($category, true));
+        return ApiResponse::success(
+            $this->catalogFormatter->formatCategory($category, $this->categoryRepository->countProductsForCategory($category))
+        );
     }
 }

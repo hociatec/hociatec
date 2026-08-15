@@ -15,7 +15,9 @@ struct ProductDetailView: View {
             return viewModel.matchingRentalItem(using: cart)?.quantity ?? 0
         }
 
-        return cart.cart?.items.first(where: { $0.product.id == viewModel.product.id })?.quantity ?? 0
+        return cart.cart?.items.first(where: {
+            $0.product.id == viewModel.product.id && $0.sellingType == viewModel.product.sellingType
+        })?.quantity ?? 0
     }
 
     init(viewModel: ProductDetailViewModel, imageURL: URL?, cart: CartViewModel, selectedTab: Binding<Int>) {

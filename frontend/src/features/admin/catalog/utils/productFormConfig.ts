@@ -1,15 +1,21 @@
+export type AttributeRowState = {
+  code: string;
+  label: string;
+  value: string;
+};
+
 export type ProductFormState = {
   name: string;
   slug: string;
   sku: string;
-  price: string;
-  sellingType: 'sale' | 'rental';
+  salePrice: string;
+  rentalPrice: string;
+  availableForSale: boolean;
+  availableForRental: boolean;
   brand: string;
   variantGroup: string;
   releaseYear: string;
-  storageCapacity: string;
-  memoryRam: string;
-  color: string;
+  attributes: AttributeRowState[];
   stock: string;
   shortDescription: string;
   description: string;
@@ -25,24 +31,24 @@ export type ProductFormState = {
 };
 
 export type VariantRowState = {
-  color: string;
-  storageCapacity: string;
+  attributes: AttributeRowState[];
   stock: string;
-  price: string;
+  salePrice: string;
+  rentalPrice: string;
 };
 
 export const emptyProductForm: ProductFormState = {
   name: '',
   slug: '',
   sku: '',
-  price: '0',
-  sellingType: 'sale',
+  salePrice: '0',
+  rentalPrice: '',
+  availableForSale: true,
+  availableForRental: false,
   brand: '',
   variantGroup: '',
   releaseYear: '',
-  storageCapacity: '',
-  memoryRam: '',
-  color: '',
+  attributes: [],
   stock: '0',
   shortDescription: '',
   description: '',

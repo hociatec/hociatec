@@ -19,8 +19,8 @@ final readonly class SupportRequestService
     public function __construct(
         private UnitOfWork $persistence,
         private SupportCustomerMessengerPort $messenger,
-        private SupportAttachmentNormalizer $attachments,
-        private SupportRequestTimelineRecorder $timeline,
+        private ?SupportAttachmentNormalizer $attachments = null,
+        private ?SupportRequestTimelineRecorder $timeline = null,
     ) {
     }
 
@@ -129,11 +129,11 @@ final readonly class SupportRequestService
 
     private function timeline(): SupportRequestTimelineRecorder
     {
-        return $this->timeline;
+        return $this->timeline ?? new SupportRequestTimelineRecorder(new SupportTimelineEntryFactory());
     }
 
     private function attachments(): SupportAttachmentNormalizer
     {
-        return $this->attachments;
+        return $this->attachments ?? new SupportAttachmentNormalizer();
     }
 }

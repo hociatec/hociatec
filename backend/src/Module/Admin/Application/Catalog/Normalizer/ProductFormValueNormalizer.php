@@ -50,6 +50,17 @@ final class ProductFormValueNormalizer
         return -1;
     }
 
+    public static function optionalPriceToCents(mixed $value): ?int
+    {
+        if (null === $value || '' === $value) {
+            return null;
+        }
+
+        $cents = DecimalNumber::toScaledInt($value, 2);
+
+        return null !== $cents ? $cents : -1;
+    }
+
     public static function date(mixed $value): ?\DateTimeImmutable
     {
         if (!is_string($value) || '' === trim($value)) {

@@ -70,12 +70,22 @@ final readonly class AdminOperationsExporter
     /** @return \Generator<list<int|string|null>> */
     private function products(): \Generator
     {
-        yield ['id', 'sku', 'nom', 'stock', 'prix_centimes', 'publie'];
+        yield ['id', 'sku', 'nom', 'stock', 'prix_vente_centimes', 'prix_location_centimes', 'vente_active', 'location_active', 'publie'];
         $offset = 0;
         do {
             $page = $this->products->findBy([], ['updatedAt' => 'DESC'], self::BATCH_SIZE, $offset);
             foreach ($page as $product) {
-                yield [$product->getId(), $product->getSku(), $product->getName(), $product->getStock(), $product->getPriceCents(), $product->isPublished() ? 'oui' : 'non'];
+                yield [
+                    $product->getId(),
+                    $product->getSku(),
+                    $product->getName(),
+                    $product->getStock(),
+                    $product->getSalePriceCents(),
+                    $product->getRentalPriceCents(),
+                    $product->isAvailableForSale() ? 'oui' : 'non',
+                    $product->isAvailableForRental() ? 'oui' : 'non',
+                    $product->isPublished() ? 'oui' : 'non',
+                ];
             }
             $offset += self::BATCH_SIZE;
         } while (self::BATCH_SIZE === count($page));

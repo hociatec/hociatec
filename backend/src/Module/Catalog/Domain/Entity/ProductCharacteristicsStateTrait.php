@@ -44,36 +44,66 @@ trait ProductCharacteristicsStateTrait
 
     public function getStorageCapacity(): ?string
     {
-        return $this->characteristics->storageCapacity();
+        return $this->characteristics->attributeValue(LegacyProductAttribute::STORAGE_CODE);
     }
 
     public function setStorageCapacity(?string $storageCapacity): self
     {
-        $this->characteristics->changeStorageCapacity($storageCapacity);
+        $this->characteristics->changeAttributeValue(
+            LegacyProductAttribute::STORAGE_CODE,
+            LegacyProductAttribute::STORAGE_LABEL,
+            $storageCapacity,
+        );
 
         return $this;
     }
 
     public function getMemoryRam(): ?string
     {
-        return $this->characteristics->memoryRam();
+        return $this->characteristics->attributeValue(LegacyProductAttribute::MEMORY_RAM_CODE);
     }
 
     public function setMemoryRam(?string $memoryRam): self
     {
-        $this->characteristics->changeMemoryRam($memoryRam);
+        $this->characteristics->changeAttributeValue(
+            LegacyProductAttribute::MEMORY_RAM_CODE,
+            LegacyProductAttribute::MEMORY_RAM_LABEL,
+            $memoryRam,
+        );
 
         return $this;
     }
 
     public function getColor(): ?string
     {
-        return $this->characteristics->color();
+        return $this->characteristics->attributeValue(LegacyProductAttribute::COLOR_CODE);
     }
 
     public function setColor(?string $color): self
     {
-        $this->characteristics->changeColor($color);
+        $this->characteristics->changeAttributeValue(
+            LegacyProductAttribute::COLOR_CODE,
+            LegacyProductAttribute::COLOR_LABEL,
+            $color,
+        );
+
+        return $this;
+    }
+
+    /**
+     * @return list<array{code:string,label:string,value:string}>
+     */
+    public function getAttributes(): array
+    {
+        return $this->characteristics->attributes();
+    }
+
+    /**
+     * @param list<array<string, mixed>> $attributes
+     */
+    public function setAttributes(array $attributes): self
+    {
+        $this->characteristics->replaceAttributes($attributes);
 
         return $this;
     }

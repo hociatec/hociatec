@@ -13,10 +13,14 @@ final readonly class ProductVariantCopyData
     public string $baseSku;
     public ?string $baseSlug;
     public string $variantGroup;
-    public ?string $color;
-    public ?string $storageCapacity;
+    /** @var list<array{code:string,label:string,value:string}> */
+    public array $attributes;
     public int $stock;
     public int $priceCents;
+    public ?int $salePriceCents;
+    public ?int $rentalPriceCents;
+    public bool $availableForSale;
+    public bool $availableForRental;
     public int $position;
 
     /**
@@ -26,10 +30,11 @@ final readonly class ProductVariantCopyData
      *   baseSku?: string,
      *   baseSlug?: ?string,
      *   variantGroup?: string,
-     *   color?: ?string,
-     *   storageCapacity?: ?string,
+     *   attributes?: list<array{code:string,label:string,value:string}>,
      *   stock?: int,
      *   priceCents?: ?int,
+     *   salePriceCents?: ?int,
+     *   rentalPriceCents?: ?int,
      *   position?: int
      * }|null $payload
      */
@@ -41,10 +46,11 @@ final readonly class ProductVariantCopyData
          *   baseSku: string,
          *   baseSlug: ?string,
          *   variantGroup: string,
-         *   color: ?string,
-         *   storageCapacity: ?string,
+         *   attributes: list<array{code:string,label:string,value:string}>,
          *   stock: int,
          *   priceCents: ?int,
+         *   salePriceCents: ?int,
+         *   rentalPriceCents: ?int,
          *   position: int
          * } $data
          */
@@ -54,10 +60,11 @@ final readonly class ProductVariantCopyData
             'baseSku' => '',
             'baseSlug' => null,
             'variantGroup' => '',
-            'color' => null,
-            'storageCapacity' => null,
+            'attributes' => [],
             'stock' => 0,
             'priceCents' => null,
+            'salePriceCents' => null,
+            'rentalPriceCents' => null,
             'position' => 1,
         ], $payload ?? []);
 
@@ -69,10 +76,21 @@ final readonly class ProductVariantCopyData
         $this->baseSku = (string) $data['baseSku'];
         $this->baseSlug = $data['baseSlug'];
         $this->variantGroup = (string) $data['variantGroup'];
-        $this->color = $data['color'];
-        $this->storageCapacity = $data['storageCapacity'];
+        $this->attributes = is_array($data['attributes']) ? array_values($data['attributes']) : [];
         $this->stock = (int) $data['stock'];
         $this->priceCents = null !== $data['priceCents'] ? (int) $data['priceCents'] : $this->template->getPriceCents();
+        $this->availableForSale = $this->template->isAvailableForSale();
+        $this->availableForRental = $this->template->isAvailableForRental();
+        $this->salePriceCents = $this->availableForSale
+            ? (null !== $data['salePriceCents']
+                ? (int) $data['salePriceCents']
+                : (null !== $data['priceCents'] ? (int) $data['priceCents'] : $this->template->getSalePriceCents()))
+            : null;
+        $this->rentalPriceCents = $this->availableForRental
+            ? (null !== $data['rentalPriceCents']
+                ? (int) $data['rentalPriceCents']
+                : (null !== $data['priceCents'] ? (int) $data['priceCents'] : $this->template->getRentalPriceCents()))
+            : null;
         $this->position = (int) $data['position'];
     }
 }

@@ -7,6 +7,7 @@ namespace App\Module\Admin\UI\Catalog\Mapper;
 use App\Module\Admin\Application\Catalog\DTO\ProductWriteData;
 use App\Module\Admin\Application\Catalog\Exception\ProductFormRequestException;
 use App\Module\Admin\Application\Catalog\Normalizer\ProductFormValueNormalizer;
+use App\Module\Admin\Application\Catalog\Parser\ProductAttributePayloadParser;
 use App\Module\Admin\Application\Catalog\Parser\ProductVariantPayloadParser;
 use App\Module\Catalog\Application\DTO\ProductCoreWriteData;
 use App\Module\Catalog\Application\DTO\ProductDiscountWriteData;
@@ -16,19 +17,39 @@ use App\Module\Catalog\Application\Port\BrandRepositoryPort;
 use App\Module\Catalog\Application\Port\CategoryRepositoryPort;
 use App\Module\Catalog\Domain\Entity\Brand;
 use App\Module\Catalog\Domain\Entity\Category;
+use App\Module\Catalog\Domain\Entity\LegacyProductAttribute;
 use App\Module\Catalog\Domain\Entity\Product;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-final readonly class ProductFormRequestMapper
+final class ProductFormRequestMapper
 {
+    private ProductAttributePayloadParser $attributes;
+    private ProductVariantPayloadParser $variants;
+    private ProductGalleryRequestMapper $gallery;
+    private ProductDiscountRequestMapper $discount;
+
     public function __construct(
         private CategoryRepositoryPort $categories,
         private BrandRepositoryPort $brands,
-        private ProductVariantPayloadParser $variants,
-        private ProductGalleryRequestMapper $gallery,
-        private ProductDiscountRequestMapper $discount,
+        ProductAttributePayloadParser|ProductVariantPayloadParser $attributesOrVariants,
+        ProductVariantPayloadParser|ProductGalleryRequestMapper $variantsOrGallery,
+        ProductGalleryRequestMapper|ProductDiscountRequestMapper $galleryOrDiscount,
+        ?ProductDiscountRequestMapper $discount = null,
     ) {
+        if ($attributesOrVariants instanceof ProductAttributePayloadParser) {
+            $this->attributes = $attributesOrVariants;
+            $this->variants = $variantsOrGallery instanceof ProductVariantPayloadParser ? $variantsOrGallery : new ProductVariantPayloadParser($this->attributes);
+            $this->gallery = $galleryOrDiscount instanceof ProductGalleryRequestMapper ? $galleryOrDiscount : new ProductGalleryRequestMapper();
+            $this->discount = $discount ?? new ProductDiscountRequestMapper();
+
+            return;
+        }
+
+        $this->attributes = new ProductAttributePayloadParser();
+        $this->variants = $attributesOrVariants;
+        $this->gallery = $variantsOrGallery instanceof ProductGalleryRequestMapper ? $variantsOrGallery : new ProductGalleryRequestMapper();
+        $this->discount = $galleryOrDiscount instanceof ProductDiscountRequestMapper ? $galleryOrDiscount : ($discount ?? new ProductDiscountRequestMapper());
     }
 
     public function create(Request $request): ProductWriteData
@@ -44,12 +65,28 @@ final readonly class ProductFormRequestMapper
     private function map(Request $request, ?Product $product): ProductWriteData
     {
         try {
-            $priceCents = ProductFormValueNormalizer::priceToCents(
-                $request->request->get('price', null !== $product?->getPriceCents() ? $product->getPriceCents() / 100 : 0),
+            $legacyPriceCents = ProductFormValueNormalizer::optionalPriceToCents(
+                $request->request->get('price', null !== $product?->getSalePriceCents() ? $product->getSalePriceCents() / 100 : 0),
             );
-            if ($priceCents < 0) {
+            if (null !== $legacyPriceCents && $legacyPriceCents < 0) {
                 throw new ProductFormRequestException('Le prix doit être positif.', Response::HTTP_UNPROCESSABLE_ENTITY);
             }
+
+            $salePriceCents = ProductFormValueNormalizer::optionalPriceToCents(
+                $request->request->get('salePrice', $legacyPriceCents ?? (null !== $product?->getSalePriceCents() ? $product->getSalePriceCents() / 100 : 0)),
+            );
+            $rentalPriceCents = ProductFormValueNormalizer::optionalPriceToCents(
+                $request->request->get('rentalPrice', 'rental' === ($request->request->get('sellingType') ?? $product?->getSellingType()) ? $legacyPriceCents : (null !== $product?->getRentalPriceCents() ? $product->getRentalPriceCents() / 100 : null)),
+            );
+            if (null !== $salePriceCents && $salePriceCents < 0) {
+                throw new ProductFormRequestException('Le prix de vente doit être positif.', Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+            if (null !== $rentalPriceCents && $rentalPriceCents < 0) {
+                throw new ProductFormRequestException('Le prix mensuel de location doit être positif.', Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+
+            $availableForSale = ProductFormValueNormalizer::boolean($request->request->get('availableForSale', $product?->isAvailableForSale() ?? true));
+            $availableForRental = ProductFormValueNormalizer::boolean($request->request->get('availableForRental', $product?->isAvailableForRental() ?? false));
 
             $category = $this->resolveCategory((int) $request->request->get(
                 'categoryId',
@@ -67,13 +104,17 @@ final readonly class ProductFormRequestMapper
                     'slug' => ProductFormValueNormalizer::optionalString($request->request->get('slug', $product?->getSlug())),
                     'description' => (string) $request->request->get('description', $product?->getDescription() ?? ''),
                     'shortDescription' => ProductFormValueNormalizer::optionalString($request->request->get('shortDescription', $product?->getShortDescription())),
-                    'priceCents' => $priceCents,
+                    'salePriceCents' => $salePriceCents,
+                    'rentalPriceCents' => $rentalPriceCents,
+                    'availableForSale' => $availableForSale,
+                    'availableForRental' => $availableForRental,
                     'stock' => (int) $request->request->get('stock', $product?->getStock() ?? 0),
                     'isPublished' => ProductFormValueNormalizer::boolean($request->request->get('isPublished', $product?->isPublished() ?? '1')),
                     'isFeaturedHome' => ProductFormValueNormalizer::boolean($request->request->get('isFeaturedHome', $product?->isFeaturedHome() ?? false)),
                     'category' => $category,
                     'imageAlt' => ProductFormValueNormalizer::optionalString($request->request->get('imageAlt', $product?->getImageAlt())),
-                    'sellingType' => (string) $request->request->get('sellingType', $product?->getSellingType() ?? 'sale'),
+                    'priceCents' => $legacyPriceCents,
+                    'sellingType' => $request->request->get('sellingType', $product?->getSellingType()),
                     'brand' => $brand,
                 ]),
                 gallery: new ProductGalleryWriteData(
@@ -84,9 +125,7 @@ final readonly class ProductFormRequestMapper
                 variant: new ProductVariantWriteData(
                     group: ProductFormValueNormalizer::optionalString($request->request->get('variantGroup', $product?->getVariantGroup())),
                     releaseYear: ProductFormValueNormalizer::optionalInt($request->request->get('releaseYear', $product?->getReleaseYear())),
-                    storageCapacity: ProductFormValueNormalizer::optionalString($request->request->get('storageCapacity', $product?->getStorageCapacity())),
-                    memoryRam: ProductFormValueNormalizer::optionalString($request->request->get('memoryRam', $product?->getMemoryRam())),
-                    color: ProductFormValueNormalizer::optionalString($request->request->get('color', $product?->getColor())),
+                    attributes: $this->resolveAttributes($request, $product),
                     definitions: $this->variants->parse($request->request->get('variants')),
                 ),
                 discount: new ProductDiscountWriteData(
@@ -126,5 +165,43 @@ final readonly class ProductFormRequestMapper
         }
 
         return $brand;
+    }
+
+    /**
+     * @return list<array{code:string,label:string,value:string}>
+     */
+    private function resolveAttributes(Request $request, ?Product $product): array
+    {
+        $parsed = $this->attributes->parse($request->request->get('attributes'));
+
+        if ([] !== $parsed) {
+            return $parsed;
+        }
+
+        $legacy = [];
+
+        $storage = ProductFormValueNormalizer::optionalString($request->request->get('storageCapacity', $product?->getStorageCapacity()));
+        $storageAttribute = LegacyProductAttribute::fromValue(LegacyProductAttribute::STORAGE_CODE, $storage);
+        if (null !== $storageAttribute) {
+            $legacy[] = $storageAttribute;
+        }
+
+        $memoryRam = ProductFormValueNormalizer::optionalString($request->request->get('memoryRam', $product?->getMemoryRam()));
+        $memoryRamAttribute = LegacyProductAttribute::fromValue(LegacyProductAttribute::MEMORY_RAM_CODE, $memoryRam);
+        if (null !== $memoryRamAttribute) {
+            $legacy[] = $memoryRamAttribute;
+        }
+
+        $color = ProductFormValueNormalizer::optionalString($request->request->get('color', $product?->getColor()));
+        $colorAttribute = LegacyProductAttribute::fromValue(LegacyProductAttribute::COLOR_CODE, $color);
+        if (null !== $colorAttribute) {
+            $legacy[] = $colorAttribute;
+        }
+
+        if ([] !== $legacy) {
+            return $legacy;
+        }
+
+        return $product?->getAttributes() ?? [];
     }
 }

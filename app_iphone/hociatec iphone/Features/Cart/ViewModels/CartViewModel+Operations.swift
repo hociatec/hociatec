@@ -29,6 +29,7 @@ extension CartViewModel {
             cart = try await service.addToCart(
                 productId: product.id,
                 quantity: quantity,
+                sellingType: product.sellingType,
                 rentalMonths: rentalMonths,
                 rentalStartDate: rentalStartDate
             )
@@ -52,6 +53,7 @@ extension CartViewModel {
         do {
             cart = try await service.removeFromCart(
                 productId: item.product.id,
+                sellingType: item.sellingType,
                 rentalMonths: item.rentalMonths,
                 rentalStartDate: item.rentalStartDate
             )

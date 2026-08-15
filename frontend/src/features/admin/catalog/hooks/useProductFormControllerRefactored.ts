@@ -3,6 +3,11 @@ import { useParams } from 'react-router';
 
 import { emptyProductForm, type ProductFormState } from '@/features/admin/catalog/utils/productFormConfig';
 import { formatVariantDetails } from '@/features/admin/catalog/utils/productFormUtils';
+import {
+  applyCategoryAttributeDefinitions,
+  applyCategorySchemaToVariantRows,
+  buildAttributesFromDefinitions,
+} from '@/features/admin/catalog/utils/productFormUtils';
 import { useProductGallery } from './useProductGallery';
 import { useProductVariantRows } from './useProductVariantRows';
 import { useProductBrandSelection } from './useProductBrandSelection';
@@ -10,6 +15,7 @@ import { useProductFormFields } from './useProductFormFields';
 import { useProductFormLoader } from './useProductFormLoader';
 import { useProductFormActions } from './useProductFormActions';
 import { parseNullablePositiveInteger } from '@/shared/lib/parsers';
+import type { AttributeRowState } from '@/features/admin/catalog/utils/productFormConfig';
 
 export const useProductFormController = () => {
   const { productId } = useParams();
@@ -23,9 +29,13 @@ export const useProductFormController = () => {
   const gallery = useProductGallery();
   const {
     variantRows,
+    setVariantRows,
     addVariantRow,
     updateVariantRow,
     removeVariantRow,
+    addVariantAttributeRow,
+    updateVariantAttributeRow,
+    removeVariantAttributeRow,
     resetVariantRows,
   } = useProductVariantRows();
   const {
@@ -55,6 +65,30 @@ export const useProductFormController = () => {
     setBrandQuery(loadedBrandQuery);
   }, [loadedBrandQuery, setBrandQuery]);
 
+  const selectedCategory =
+    categories.find((category) => category.id.toString() === form.categoryId) ?? null;
+
+  useEffect(() => {
+    if (!selectedCategory) {
+      return;
+    }
+
+    const definitions = selectedCategory.attributeDefinitions ?? [];
+    setForm((previous) => {
+      const nextAttributes =
+        definitions.length > 0
+          ? applyCategoryAttributeDefinitions(previous.attributes, definitions)
+          : previous.attributes;
+
+      return nextAttributes === previous.attributes
+        ? previous
+        : { ...previous, attributes: nextAttributes };
+    });
+    setVariantRows((previous) =>
+      definitions.length > 0 ? applyCategorySchemaToVariantRows(previous, definitions) : previous,
+    );
+  }, [selectedCategory, setForm, setVariantRows]);
+
   const resetForm = () => {
     setForm(emptyProductForm);
     gallery.reset();
@@ -62,10 +96,42 @@ export const useProductFormController = () => {
     setBrandQuery('');
   };
 
+  const addMainAttribute = () => {
+    setForm((previous) => ({
+      ...previous,
+      attributes: [...previous.attributes, { code: '', label: '', value: '' }],
+    }));
+  };
+
+  const updateMainAttribute = (
+    index: number,
+    field: keyof AttributeRowState,
+    value: string,
+  ) => {
+    setForm((previous) => ({
+      ...previous,
+      attributes: previous.attributes.map((attribute, attributeIndex) =>
+        attributeIndex === index ? { ...attribute, [field]: value } : attribute,
+      ),
+    }));
+  };
+
+  const removeMainAttribute = (index: number) => {
+    setForm((previous) => ({
+      ...previous,
+      attributes: previous.attributes.filter((_, attributeIndex) => attributeIndex !== index),
+    }));
+  };
+
+  const handleAddVariantRow = () => {
+    addVariantRow(buildAttributesFromDefinitions(selectedCategory?.attributeDefinitions ?? []));
+  };
+
   const actions = useProductFormActions({
     isEdit,
     form,
     brands,
+    categories,
     variantRows,
     groupVariants,
     currentProductId,
@@ -78,7 +144,8 @@ export const useProductFormController = () => {
   });
 
   return {
-    addVariantRow,
+    addVariantRow: handleAddVariantRow,
+    selectedCategory,
     brandQuery,
     categories,
     currentProductId,
@@ -98,6 +165,9 @@ export const useProductFormController = () => {
     handleDeleteVariant: actions.handleDeleteVariant,
     handleGalleryFileChange: gallery.onFileChange,
     handleRemoveGallery: gallery.remove,
+    addMainAttribute,
+    updateMainAttribute,
+    removeMainAttribute,
     handleSubmit: actions.handleSubmit,
     initialGallery: gallery.initialGallery,
     initialLoading,
@@ -106,6 +176,9 @@ export const useProductFormController = () => {
     navigateToProductList: actions.navigateToProductList,
     navigateToVariant: actions.navigateToVariant,
     removeVariantRow,
+    addVariantAttributeRow,
+    updateVariantAttributeRow,
+    removeVariantAttributeRow,
     saving: actions.saving,
     updateVariantRow,
     variantRows,

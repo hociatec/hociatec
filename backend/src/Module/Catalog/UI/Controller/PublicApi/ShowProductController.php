@@ -8,10 +8,12 @@ use App\Module\Catalog\Application\Projection\CatalogFormatter;
 use App\Module\Catalog\Application\Workflow\ProductQueryService;
 use App\Module\Rating\Application\Port\ProductRatingRepositoryPort;
 use App\Module\Rating\Application\Projection\ProductReviewFormatter;
+use App\Module\Catalog\UI\Http\CatalogPreferredSellingTypeRequestMapper;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\RateLimited;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -24,10 +26,11 @@ class ShowProductController extends AbstractController
         private readonly ProductRatingRepositoryPort $ratings,
         private readonly CatalogFormatter $catalogFormatter,
         private readonly ProductReviewFormatter $productReviewFormatter,
+        private readonly ?CatalogPreferredSellingTypeRequestMapper $sellingType = null,
     ) {
     }
 
-    public function __invoke(string $slug): JsonResponse
+    public function __invoke(string $slug, Request $request): JsonResponse
     {
         $product = $this->productService->findPublishedBySlug($slug);
 
@@ -35,7 +38,8 @@ class ShowProductController extends AbstractController
             return ApiResponse::error('Produit introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        $data = $this->catalogFormatter->formatProduct($product);
+        $preferredSellingType = ($this->sellingType ?? new CatalogPreferredSellingTypeRequestMapper())->map($request);
+        $data = $this->catalogFormatter->formatProduct($product, false, $preferredSellingType);
 
         if ($product->getReviewsCount() > 0) {
             $latestReviews = $this->ratings->findPublishedByProduct($product, 3, 0);

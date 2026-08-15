@@ -7,7 +7,11 @@ import { Image as ImageIcon } from 'lucide-react';
 import { formatEuroCents } from '@/shared/lib/formatters';
 import { FavoriteToggleButton } from '@/features/favorites/publicApi';
 import type { CatalogProduct } from '../api';
-import { getCatalogProductDisplayName } from '../utils/productDisplay';
+import {
+  getCatalogProductConfiguration,
+  getCatalogProductDisplayName,
+  getCatalogVariantSummaries,
+} from '../utils/productDisplay';
 import { resolveDisplayPriceCents } from '../utils/productPageDisplay';
 
 interface ProductCardProps {
@@ -17,19 +21,10 @@ interface ProductCardProps {
 
 export const ProductCard = ({ product, actionSlot }: ProductCardProps) => {
   const [imageFailed, setImageFailed] = useState(false);
-  const productLink = `/catalogue/produits/${product.slug}`;
+  const productLink = `/catalogue/produits/${product.slug}?mode=${product.sellingType}`;
   const productDisplayName = getCatalogProductDisplayName(product);
-  const availableColors = product.variantColors ?? (product.color ? [product.color] : []);
-  const availableStorages =
-    product.variantStorages ?? (product.storageCapacity ? [product.storageCapacity] : []);
-  const compactSpecs = [
-    product.brand?.trim(),
-    product.memoryRam?.trim(),
-    (product.variantsCount ?? 1) > 1 ? null : product.storageCapacity?.trim(),
-    (product.variantsCount ?? 1) > 1 ? null : product.color?.trim(),
-  ]
-    .filter((value): value is string => Boolean(value))
-    .join(' • ');
+  const compactSpecs = getCatalogProductConfiguration(product);
+  const variantSummaries = getCatalogVariantSummaries(product);
   const sellingContext = `${product.category.name} (${product.sellingTypeLabel})`;
   const productPrice = resolveDisplayPriceCents(product);
 
@@ -69,7 +64,7 @@ export const ProductCard = ({ product, actionSlot }: ProductCardProps) => {
           <p className="catalog-product-card__fact">
             <span className="catalog-product-card__fact-label">Type:</span> {sellingContext}
           </p>
-          {compactSpecs.length > 0 && (
+          {compactSpecs && (
             <p className="catalog-product-card__fact">
               <span className="catalog-product-card__fact-label">Configuration:</span> {compactSpecs}
             </p>
@@ -77,16 +72,12 @@ export const ProductCard = ({ product, actionSlot }: ProductCardProps) => {
         </div>
         {(product.variantsCount ?? 1) > 1 && (
           <div className="catalog-product-card__variant-summary">
-            {availableStorages.length > 0 && (
-              <p className="catalog-product-card__variant-line">
-                <span className="catalog-product-card__fact-label">Stockages:</span> {availableStorages.join(', ')}
+            {variantSummaries.map((attribute) => (
+              <p key={attribute.code} className="catalog-product-card__variant-line">
+                <span className="catalog-product-card__fact-label">{attribute.label}:</span>{' '}
+                {attribute.values.join(', ')}
               </p>
-            )}
-            {availableColors.length > 0 && (
-              <p className="catalog-product-card__variant-line">
-                <span className="catalog-product-card__fact-label">Coloris:</span> {availableColors.join(', ')}
-              </p>
-            )}
+            ))}
           </div>
         )}
         {product.shortDescription && (

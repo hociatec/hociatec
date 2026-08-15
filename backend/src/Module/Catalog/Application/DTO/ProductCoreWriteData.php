@@ -14,13 +14,17 @@ final readonly class ProductCoreWriteData
     public ?string $slug;
     public string $description;
     public ?string $shortDescription;
-    public int $priceCents;
+    public ?int $priceCents;
+    public ?int $salePriceCents;
+    public ?int $rentalPriceCents;
+    public ?string $sellingType;
+    public bool $availableForSale;
+    public bool $availableForRental;
     public int $stock;
     public bool $isPublished;
     public bool $isFeaturedHome;
     public Category $category;
     public ?string $imageAlt;
-    public string $sellingType;
     public ?Brand $brand;
 
     /**
@@ -30,13 +34,17 @@ final readonly class ProductCoreWriteData
      *   slug?: ?string,
      *   description?: string,
      *   shortDescription?: ?string,
-     *   priceCents?: int,
+     *   priceCents?: ?int,
+     *   salePriceCents?: ?int,
+     *   rentalPriceCents?: ?int,
+     *   sellingType?: ?string,
+     *   availableForSale?: bool,
+     *   availableForRental?: bool,
      *   stock?: int,
      *   isPublished?: bool,
      *   isFeaturedHome?: bool,
      *   category?: Category,
      *   imageAlt?: ?string,
-     *   sellingType?: string,
      *   brand?: ?Brand
      * }|null $payload
      */
@@ -48,13 +56,15 @@ final readonly class ProductCoreWriteData
          *   slug: ?string,
          *   description: string,
          *   shortDescription: ?string,
-         *   priceCents: int,
+         *   salePriceCents: ?int,
+         *   rentalPriceCents: ?int,
+         *   availableForSale: bool,
+         *   availableForRental: bool,
          *   stock: int,
          *   isPublished: bool,
          *   isFeaturedHome: bool,
          *   category: ?Category,
          *   imageAlt: ?string,
-         *   sellingType: string,
          *   brand: ?Brand
          * } $data
          */
@@ -64,13 +74,17 @@ final readonly class ProductCoreWriteData
             'slug' => null,
             'description' => '',
             'shortDescription' => null,
-            'priceCents' => 0,
+            'priceCents' => null,
+            'salePriceCents' => 0,
+            'rentalPriceCents' => null,
+            'sellingType' => null,
+            'availableForSale' => true,
+            'availableForRental' => false,
             'stock' => 0,
             'isPublished' => false,
             'isFeaturedHome' => false,
             'category' => null,
             'imageAlt' => null,
-            'sellingType' => 'sale',
             'brand' => null,
         ], $payload ?? []);
 
@@ -79,7 +93,23 @@ final readonly class ProductCoreWriteData
         $this->slug = $data['slug'];
         $this->description = (string) $data['description'];
         $this->shortDescription = $data['shortDescription'];
-        $this->priceCents = (int) $data['priceCents'];
+        $sellingType = is_string($data['sellingType']) ? strtolower(trim($data['sellingType'])) : null;
+        $legacyPriceCents = null !== $data['priceCents'] ? (int) $data['priceCents'] : null;
+        $hasExplicitSalePrice = is_array($payload) && array_key_exists('salePriceCents', $payload);
+        $hasExplicitRentalPrice = is_array($payload) && array_key_exists('rentalPriceCents', $payload);
+
+        $this->priceCents = $legacyPriceCents;
+        $this->sellingType = $sellingType;
+        $this->salePriceCents = $hasExplicitSalePrice
+            ? (int) $data['salePriceCents']
+            : ('rental' === $sellingType ? null : $legacyPriceCents);
+        $this->rentalPriceCents = $hasExplicitRentalPrice
+            ? (int) $data['rentalPriceCents']
+            : ('rental' === $sellingType ? $legacyPriceCents : null);
+        $hasExplicitAvailability = is_array($payload)
+            && (array_key_exists('availableForSale', $payload) || array_key_exists('availableForRental', $payload));
+        $this->availableForSale = $hasExplicitAvailability ? (bool) $data['availableForSale'] : 'rental' !== $sellingType;
+        $this->availableForRental = $hasExplicitAvailability ? (bool) $data['availableForRental'] : 'rental' === $sellingType;
         $this->stock = (int) $data['stock'];
         $this->isPublished = (bool) $data['isPublished'];
         $this->isFeaturedHome = (bool) $data['isFeaturedHome'];
@@ -88,7 +118,18 @@ final readonly class ProductCoreWriteData
         }
         $this->category = $data['category'];
         $this->imageAlt = $data['imageAlt'];
-        $this->sellingType = (string) $data['sellingType'];
         $this->brand = $data['brand'];
+
+        if (!$this->availableForSale && !$this->availableForRental) {
+            throw new \InvalidArgumentException('Le produit doit être disponible à la vente, à la location ou aux deux.');
+        }
+
+        if ($this->availableForSale && null === $this->salePriceCents) {
+            throw new \InvalidArgumentException('Le prix de vente est obligatoire.');
+        }
+
+        if ($this->availableForRental && null === $this->rentalPriceCents) {
+            throw new \InvalidArgumentException('Le prix mensuel de location est obligatoire.');
+        }
     }
 }

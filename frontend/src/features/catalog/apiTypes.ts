@@ -4,9 +4,20 @@ export interface CatalogCategory {
   slug: string;
   description: string | null;
   isVisible: boolean;
+  attributeDefinitions: CatalogCategoryAttributeDefinition[];
   createdAt: string;
   updatedAt: string;
   productsCount?: number;
+}
+
+export interface CatalogCategoryAttributeDefinition {
+  code: string;
+  label: string;
+  inputType: 'text' | 'number' | 'select' | 'color' | 'boolean';
+  helpText?: string | null;
+  options?: string[];
+  isRequired: boolean;
+  isGlobalFilter: boolean;
 }
 
 export interface CatalogBrand {
@@ -29,6 +40,18 @@ export interface CatalogProductGalleryMeta {
   name: string | null;
 }
 
+export interface CatalogProductAttribute {
+  code: string;
+  label: string;
+  value: string;
+}
+
+export interface CatalogProductAttributeSummary {
+  code: string;
+  label: string;
+  values: string[];
+}
+
 export interface CatalogProduct {
   id: number;
   name: string;
@@ -41,6 +64,11 @@ export interface CatalogProduct {
   sellingType: 'sale' | 'rental';
   sellingTypeLabel: string;
   priceUnitLabel: string | null;
+  availableForSale?: boolean;
+  availableForRental?: boolean;
+  availableModes?: Array<'sale' | 'rental'>;
+  salePriceCents?: number | null;
+  rentalPriceCents?: number | null;
   brand?: string | null;
   brandId?: number | null;
   variantGroup?: string | null;
@@ -49,11 +77,14 @@ export interface CatalogProduct {
   totalStock?: number;
   variantColors?: string[];
   variantStorages?: string[];
+  variantMemoryRams?: string[];
+  variantAttributes?: CatalogProductAttributeSummary[];
   minVariantPriceCents?: number;
   maxVariantPriceCents?: number;
   minVariantEffectivePriceCents?: number;
   maxVariantEffectivePriceCents?: number;
   releaseYear?: number | null;
+  attributes?: CatalogProductAttribute[];
   storageCapacity?: string | null;
   memoryRam?: string | null;
   color?: string | null;
@@ -113,12 +144,16 @@ export interface CatalogFacetCount {
   extra?: string | null;
 }
 
+export interface CatalogAttributeFacet {
+  code: string;
+  label: string;
+  values: CatalogFacetCount[];
+}
+
 export interface CatalogSearchFacets {
   brands: CatalogFacetCount[];
   categories: CatalogFacetCount[];
-  storageCapacities: CatalogFacetCount[];
-  memoryRams: CatalogFacetCount[];
-  colors: CatalogFacetCount[];
+  attributes: CatalogAttributeFacet[];
   price: {
     min: number | null;
     max: number | null;
@@ -160,6 +195,7 @@ export interface UpsertCategoryPayload {
   slug?: string | null;
   description?: string | null;
   isVisible?: boolean;
+  attributeDefinitions?: CatalogCategoryAttributeDefinition[];
 }
 
 export interface UpsertBrandPayload {
@@ -172,14 +208,14 @@ export interface UpsertProductPayload {
   slug?: string | null;
   description: string;
   shortDescription?: string | null;
-  price: number;
-  sellingType?: 'sale' | 'rental';
+  salePrice?: number | null;
+  rentalPrice?: number | null;
+  availableForSale?: boolean;
+  availableForRental?: boolean;
   brandId?: number | null;
   variantGroup?: string | null;
   releaseYear?: number | null;
-  storageCapacity?: string | null;
-  memoryRam?: string | null;
-  color?: string | null;
+  attributes?: CatalogProductAttribute[];
   stock: number;
   isPublished: boolean;
   isFeaturedHome: boolean;
@@ -190,10 +226,10 @@ export interface UpsertProductPayload {
   removeImage?: boolean;
   removeGallery?: number[];
   variants?: Array<{
-    color?: string | null;
-    storageCapacity?: string | null;
+    attributes?: CatalogProductAttribute[];
     stock: number;
-    price?: number | null;
+    salePrice?: number | null;
+    rentalPrice?: number | null;
   }>;
   discountEnabled?: boolean;
   discountType?: 'percent' | 'fixed';

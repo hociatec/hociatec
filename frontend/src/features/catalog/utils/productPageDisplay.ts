@@ -51,33 +51,56 @@ export const buildProductVariantOptions = (variants: CatalogProduct[]) =>
           (right.variantPosition ?? Number.MAX_SAFE_INTEGER) || left.id - right.id,
     )
     .map((variant) => {
-      const storage = variant.storageCapacity?.trim() || null;
-      const color = variant.color?.trim() || null;
+      const normalizedAttributes = (variant.attributes ?? []).filter(
+        (attribute) => attribute.value.trim() !== '',
+      );
+      const primaryAttribute = normalizedAttributes[0];
+      const storage =
+        normalizedAttributes.find((attribute) => attribute.code === 'storage')?.value.trim() ||
+        variant.storageCapacity?.trim() ||
+        null;
+      const color =
+        normalizedAttributes.find((attribute) => attribute.code === 'color')?.value.trim() ||
+        variant.color?.trim() ||
+        null;
+      const title = primaryAttribute?.value.trim() || variant.name;
+      const detailAttributes = normalizedAttributes
+        .filter((attribute) => attribute.value.trim() !== title)
+        .slice(0, 2)
+        .map((attribute) => `${attribute.label} : ${attribute.value}`);
+      const accessibilityParts = [
+        title,
+        ...detailAttributes,
+        `Prix : ${formatProductPrice(resolveDisplayPriceCents(variant))}${variant.priceUnitLabel ? ` ${variant.priceUnitLabel}` : ''}`,
+        variant.isPublished && variant.stock > 0 ? null : 'Indisponible',
+      ].filter((value): value is string => Boolean(value));
+
       return {
         id: variant.id,
         slug: variant.slug,
-        title: color ?? storage ?? variant.name,
-        subtitle: storage ? `Stockage : ${storage}` : 'Version disponible',
+        title,
+        subtitle: detailAttributes.length > 0 ? detailAttributes.join(' • ') : 'Version disponible',
+        groupLabel: primaryAttribute?.label ?? 'Variantes',
+        groupValue: primaryAttribute?.value.trim() || null,
         storage,
         color,
+        accessibilityLabel: accessibilityParts.join('. '),
         priceLabel: `${formatProductPrice(resolveDisplayPriceCents(variant))}${variant.priceUnitLabel ? ` ${variant.priceUnitLabel}` : ''}`,
         isAvailable: variant.stock > 0,
         position: variant.variantPosition ?? Number.MAX_SAFE_INTEGER,
       };
     });
 
-export const groupProductVariants = <T extends { id: number; storage: string | null; position: number }>(
+export const groupProductVariants = <T extends { id: number; groupLabel?: string; groupValue?: string | null; position: number }>(
   variants: T[],
 ) => {
   const groups = new Map<string, T[]>();
-  variants.forEach((variant) =>
-    groups.set(variant.storage ?? 'Autres versions', [
-      ...(groups.get(variant.storage ?? 'Autres versions') ?? []),
-      variant,
-    ]),
-  );
-  return Array.from(groups.entries()).map(([storage, items]) => ({
-    storage,
+  variants.forEach((variant) => {
+    const key = variant.groupValue?.trim() || variant.groupLabel?.trim() || 'Autres versions';
+    groups.set(key, [...(groups.get(key) ?? []), variant]);
+  });
+  return Array.from(groups.entries()).map(([label, items]) => ({
+    label,
     items: items.sort((left, right) => left.position - right.position || left.id - right.id),
   }));
 };

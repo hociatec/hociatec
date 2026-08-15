@@ -38,8 +38,8 @@ final class ProductCatalogModelAggregator
      *
      * @return array<string, mixed>
      */
-    public function collectFacets(array $products): array
+    public function collectFacets(array $products, array $categoryAttributeDefinitions = [], ?string $selectedCategorySlug = null): array
     {
-        return $this->facets->collect($this->aggregate($products));
+        return $this->facets->collect($this->aggregate($products), $categoryAttributeDefinitions, $selectedCategorySlug);
     }
 }

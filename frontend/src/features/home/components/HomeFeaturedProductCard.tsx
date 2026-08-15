@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import { Image as ImageIcon } from 'lucide-react';
 
 import {
+  getCatalogProductConfiguration,
   getCatalogProductDisplayName,
   resolveDisplayPriceCents,
   type CatalogProduct,
@@ -19,18 +20,11 @@ export const HomeFeaturedProductCard = ({
 }) => {
   const [imageFailed, setImageFailed] = useState(false);
   const productDisplayName = getCatalogProductDisplayName(product);
-  const compactSpecs = [
-    product.brand?.trim(),
-    product.memoryRam?.trim(),
-    (product.variantsCount ?? 1) > 1 ? null : product.storageCapacity?.trim(),
-    (product.variantsCount ?? 1) > 1 ? null : product.color?.trim(),
-  ]
-    .filter(Boolean)
-    .join(' • ');
+  const compactSpecs = getCatalogProductConfiguration(product);
   const sellingContext = `${product.category.name} (${product.sellingTypeLabel})`;
   const productPrice = resolveDisplayPriceCents(product);
 
-  const productLink = `/catalogue/produits/${product.slug}`;
+  const productLink = `/catalogue/produits/${product.slug}?mode=${product.sellingType}`;
 
   return (
     <article className="home-product-card">
@@ -66,7 +60,7 @@ export const HomeFeaturedProductCard = ({
             <p className="home-product-card__fact">
               <span className="home-product-card__fact-label">Type:</span> {sellingContext}
             </p>
-            {compactSpecs.length > 0 && (
+            {compactSpecs && (
               <p className="home-product-card__fact">
                 <span className="home-product-card__fact-label">Configuration:</span> {compactSpecs}
               </p>

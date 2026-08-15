@@ -29,9 +29,24 @@ export const useCatalogSearch = ({
   const category = normalizeCatalogFilter(searchParams.get('category'));
   const sellingType = normalizeCatalogFilter(searchParams.get('sellingType'));
   const brand = normalizeCatalogFilter(searchParams.get('brand'));
-  const storageCapacity = normalizeCatalogFilter(searchParams.get('storageCapacity'));
-  const memoryRam = normalizeCatalogFilter(searchParams.get('memoryRam'));
-  const color = normalizeCatalogFilter(searchParams.get('color'));
+  const attributeFilters = useMemo(
+    () =>
+      Array.from(searchParams.entries()).reduce<Record<string, string>>((filters, [key, value]) => {
+        if (!key.startsWith('attribute_')) {
+          return filters;
+        }
+
+        const code = key.slice('attribute_'.length).trim();
+        const normalizedValue = normalizeCatalogFilter(value);
+
+        if (code !== '' && normalizedValue !== ALL_CATALOG_FILTER) {
+          filters[code] = normalizedValue;
+        }
+
+        return filters;
+      }, {}),
+    [searchParams],
+  );
   const sort = normalizeCatalogSort(
     searchParams.get('sort'),
     query.trim() ? 'relevance' : 'release_year_desc',
@@ -48,9 +63,7 @@ export const useCatalogSearch = ({
         fixedSellingType ??
         (sellingType !== ALL_CATALOG_FILTER ? (sellingType as 'sale' | 'rental') : undefined),
       brand: brand !== ALL_CATALOG_FILTER ? brand : undefined,
-      storageCapacity: storageCapacity !== ALL_CATALOG_FILTER ? storageCapacity : undefined,
-      memoryRam: memoryRam !== ALL_CATALOG_FILTER ? memoryRam : undefined,
-      color: color !== ALL_CATALOG_FILTER ? color : undefined,
+      attributeFilters,
       minPrice: minPrice ?? undefined,
       maxPrice: maxPrice ?? undefined,
       ...(inStock ? { inStock } : {}),
@@ -61,18 +74,16 @@ export const useCatalogSearch = ({
     [
       brand,
       category,
-      color,
       fixedCategory,
       fixedSellingType,
       inStock,
       maxPrice,
-      memoryRam,
       minPrice,
       page,
       query,
       sellingType,
       sort,
-      storageCapacity,
+      attributeFilters,
     ],
   );
   const catalogQuery = useQuery<Awaited<ReturnType<typeof searchPublicProducts>>, Error>({
@@ -123,9 +134,7 @@ export const useCatalogSearch = ({
       category,
       sellingType,
       brand,
-      storageCapacity,
-      memoryRam,
-      color,
+      attributeFilters,
       sort,
       minPrice,
       maxPrice,
@@ -141,16 +150,14 @@ export const useCatalogSearch = ({
       catalogQuery.error,
       catalogQuery.refetch,
       catalogQuery.isLoading,
-      color,
       inStock,
       maxPrice,
-      memoryRam,
       minPrice,
       query,
       resetFilters,
       sellingType,
       sort,
-      storageCapacity,
+      attributeFilters,
       updateParam,
       updatePriceRange,
     ],

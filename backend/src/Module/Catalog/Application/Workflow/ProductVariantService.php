@@ -7,6 +7,7 @@ namespace App\Module\Catalog\Application\Workflow;
 use App\Module\Catalog\Application\DTO\ProductVariantCopyData;
 use App\Module\Catalog\Application\Factory\ProductVariantFactory;
 use App\Module\Catalog\Application\Policy\ProductVariantIdentityPolicy;
+use App\Module\Catalog\Domain\Entity\LegacyProductAttribute;
 use App\Module\Catalog\Domain\Entity\Product;
 
 final readonly class ProductVariantService
@@ -42,11 +43,28 @@ final readonly class ProductVariantService
     public function assertDefinitionsAreUnique(
         ?string $variantGroup,
         ?Product $currentProduct,
-        ?string $currentColor,
-        ?string $currentStorageCapacity,
-        array $variantDefinitions,
+        mixed $currentColorOrAttributes,
+        mixed $currentStorageCapacityOrDefinitions = null,
+        ?array $variantDefinitions = null,
     ): void {
-        $this->identityPolicy->assertDefinitionsAreUnique($variantGroup, $currentProduct, $currentColor, $currentStorageCapacity, $variantDefinitions);
+        if (is_array($currentColorOrAttributes)) {
+            $currentAttributes = $currentColorOrAttributes;
+            $variantDefinitions = is_array($currentStorageCapacityOrDefinitions) ? $currentStorageCapacityOrDefinitions : ($variantDefinitions ?? []);
+        } else {
+            $currentAttributes = [];
+
+            if (is_string($currentColorOrAttributes) && '' !== trim($currentColorOrAttributes)) {
+                $currentAttributes[] = LegacyProductAttribute::fromValue(LegacyProductAttribute::COLOR_CODE, $currentColorOrAttributes);
+            }
+
+            if (is_string($currentStorageCapacityOrDefinitions) && '' !== trim($currentStorageCapacityOrDefinitions)) {
+                $currentAttributes[] = LegacyProductAttribute::fromValue(LegacyProductAttribute::STORAGE_CODE, $currentStorageCapacityOrDefinitions);
+            }
+
+            $currentAttributes = array_values(array_filter($currentAttributes));
+        }
+
+        $this->identityPolicy->assertDefinitionsAreUnique($variantGroup, $currentProduct, $currentAttributes, $variantDefinitions ?? []);
     }
 
     private function buildVariantGroupLabel(string $name): string

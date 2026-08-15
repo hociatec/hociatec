@@ -17,6 +17,8 @@ struct LoadProductListUseCase {
         search: String?,
         categorySlug: String?,
         sellingType: SellingType?,
+        brand: String?,
+        attributeFilters: [String: String],
         page: Int,
         perPage: Int
     ) async throws -> ProductListData {
@@ -24,6 +26,8 @@ struct LoadProductListUseCase {
             search: search,
             categorySlug: categorySlug,
             sellingType: sellingType,
+            brand: brand,
+            attributeFilters: attributeFilters,
             page: page,
             perPage: perPage
         )
@@ -33,8 +37,8 @@ struct LoadProductListUseCase {
 struct LoadProductsUseCase {
     let repository: ProductsRepository
 
-    func execute(search: String?, categorySlug: String?, sellingType: SellingType?) async throws -> [Product] {
-        try await repository.fetchProducts(search: search, categorySlug: categorySlug, sellingType: sellingType)
+    func execute(search: String?, categorySlug: String?, sellingType: SellingType?, brand: String?, attributeFilters: [String: String]) async throws -> [Product] {
+        try await repository.fetchProducts(search: search, categorySlug: categorySlug, sellingType: sellingType, brand: brand, attributeFilters: attributeFilters)
     }
 }
 
@@ -49,8 +53,8 @@ struct LoadProductCategoriesUseCase {
 struct LoadProductDetailUseCase {
     let repository: ProductsRepository
 
-    func execute(slug: String) async throws -> Product {
-        try await repository.fetchProduct(slug: slug)
+    func execute(slug: String, sellingType: SellingType?) async throws -> Product {
+        try await repository.fetchProduct(slug: slug, sellingType: sellingType)
     }
 }
 

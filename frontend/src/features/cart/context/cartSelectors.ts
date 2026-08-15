@@ -12,13 +12,18 @@ export const isProductInCart = (
 
   const wantedMonths = options?.rentalMonths ?? options?.currentRentalMonths;
   const wantedStartDate = options?.rentalStartDate ?? options?.currentRentalStartDate;
+  const wantedSellingType = options?.currentSellingType ?? options?.sellingType;
 
   return cart.items.some((item) => {
     if (item.product.id !== productId) {
       return false;
     }
 
-    if (item.product.sellingType !== 'rental' || wantedMonths === undefined) {
+    if (wantedSellingType && item.sellingType !== wantedSellingType) {
+      return false;
+    }
+
+    if (item.sellingType !== 'rental' || wantedMonths === undefined) {
       return true;
     }
 

@@ -60,9 +60,17 @@ const buildProductFormData = (payload: UpsertProductPayload) => {
   if (payload.shortDescription !== undefined) {
     formData.set('shortDescription', payload.shortDescription ?? '');
   }
-  formData.set('price', payload.price.toString());
-  if (payload.sellingType) {
-    formData.set('sellingType', payload.sellingType);
+  if (payload.salePrice !== undefined) {
+    formData.set('salePrice', payload.salePrice === null ? '' : payload.salePrice.toString());
+  }
+  if (payload.rentalPrice !== undefined) {
+    formData.set('rentalPrice', payload.rentalPrice === null ? '' : payload.rentalPrice.toString());
+  }
+  if (payload.availableForSale !== undefined) {
+    formData.set('availableForSale', payload.availableForSale ? '1' : '0');
+  }
+  if (payload.availableForRental !== undefined) {
+    formData.set('availableForRental', payload.availableForRental ? '1' : '0');
   }
   if (payload.brandId !== undefined && payload.brandId !== null) {
     formData.set('brandId', payload.brandId.toString());
@@ -77,14 +85,8 @@ const buildProductFormData = (payload: UpsertProductPayload) => {
   } else if (payload.releaseYear === null) {
     formData.set('releaseYear', '');
   }
-  if (payload.storageCapacity !== undefined) {
-    formData.set('storageCapacity', payload.storageCapacity ?? '');
-  }
-  if (payload.memoryRam !== undefined) {
-    formData.set('memoryRam', payload.memoryRam ?? '');
-  }
-  if (payload.color !== undefined) {
-    formData.set('color', payload.color ?? '');
+  if (payload.attributes !== undefined) {
+    formData.set('attributes', JSON.stringify(payload.attributes));
   }
   if (payload.variants && payload.variants.length > 0) {
     formData.set('variants', JSON.stringify(payload.variants));

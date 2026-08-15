@@ -10,9 +10,13 @@ import {
 } from '@/shared/lib/contractValidation';
 import { resolveApiAssetUrl } from '@/shared/lib/apiAssetUrl';
 import type {
+  CatalogAttributeFacet,
   CatalogBrand,
   CatalogCategory,
+  CatalogCategoryAttributeDefinition,
   CatalogFacetCount,
+  CatalogProductAttribute,
+  CatalogProductAttributeSummary,
   CatalogProduct,
   CatalogProductGalleryItem,
   CatalogSearchFacets,
@@ -33,10 +37,37 @@ export const parseCatalogCategory = (value: unknown): CatalogCategory => {
     slug: requireString(category.slug),
     description: optionalString(category.description) ?? null,
     isVisible: requireBoolean(category.isVisible),
+    attributeDefinitions:
+      category.attributeDefinitions === undefined
+        ? []
+        : requireArray(category.attributeDefinitions).map(parseCategoryAttributeDefinition),
     createdAt: requireString(category.createdAt),
     updatedAt: requireString(category.updatedAt),
     productsCount: optionalNumber(category.productsCount) ?? undefined,
   } as CatalogCategory;
+};
+
+const parseCategoryAttributeDefinition = (value: unknown): CatalogCategoryAttributeDefinition => {
+  const attribute = requireRecord(value);
+
+  return {
+    code: requireString(attribute.code),
+    label: requireString(attribute.label),
+    inputType: (() => {
+      const inputType = optionalString(attribute.inputType) ?? 'text';
+      if (!['text', 'number', 'select', 'color', 'boolean'].includes(inputType)) {
+        throw new ApiContractError('Réponse catégorie invalide.');
+      }
+      return inputType as CatalogCategoryAttributeDefinition['inputType'];
+    })(),
+    helpText: optionalString(attribute.helpText) ?? null,
+    options:
+      attribute.options === undefined
+        ? []
+        : requireArray(attribute.options).map((item) => requireString(item)),
+    isRequired: requireBoolean(attribute.isRequired),
+    isGlobalFilter: requireBoolean(attribute.isGlobalFilter),
+  };
 };
 
 export const parseCatalogBrand = (value: unknown): CatalogBrand => {
@@ -70,6 +101,26 @@ const parseProductCategorySummary = (value: unknown) => {
     id: requireNumber(category.id),
     name: requireString(category.name),
     slug: requireString(category.slug),
+  };
+};
+
+const parseProductAttribute = (value: unknown): CatalogProductAttribute => {
+  const attribute = requireRecord(value);
+
+  return {
+    code: requireString(attribute.code),
+    label: requireString(attribute.label),
+    value: requireString(attribute.value),
+  };
+};
+
+const parseProductAttributeSummary = (value: unknown): CatalogProductAttributeSummary => {
+  const attribute = requireRecord(value);
+
+  return {
+    code: requireString(attribute.code),
+    label: requireString(attribute.label),
+    values: requireArray(attribute.values).map((item) => requireString(item)),
   };
 };
 
@@ -112,6 +163,18 @@ export const parseCatalogProduct = (value: unknown): CatalogProduct => {
     sellingType: sellingType as CatalogProduct['sellingType'],
     sellingTypeLabel: requireString(product.sellingTypeLabel),
     priceUnitLabel: optionalString(product.priceUnitLabel) ?? null,
+    availableForSale: product.availableForSale === undefined ? undefined : requireBoolean(product.availableForSale),
+    availableForRental: product.availableForRental === undefined ? undefined : requireBoolean(product.availableForRental),
+    availableModes:
+      product.availableModes === undefined
+        ? undefined
+        : requireArray(product.availableModes).map((item) => {
+            const mode = requireString(item);
+            if (!SELLING_TYPES.has(mode)) throw new ApiContractError('Réponse produit invalide.');
+            return mode as CatalogProduct['sellingType'];
+          }),
+    salePriceCents: optionalNumber(product.salePriceCents) ?? null,
+    rentalPriceCents: optionalNumber(product.rentalPriceCents) ?? null,
     brand: optionalString(product.brand) ?? undefined,
     brandId: optionalNumber(product.brandId) ?? undefined,
     variantGroup: optionalString(product.variantGroup) ?? undefined,
@@ -126,11 +189,23 @@ export const parseCatalogProduct = (value: unknown): CatalogProduct => {
       product.variantStorages === undefined
         ? undefined
         : requireArray(product.variantStorages).map((item) => requireString(item)),
+    variantMemoryRams:
+      product.variantMemoryRams === undefined
+        ? undefined
+        : requireArray(product.variantMemoryRams).map((item) => requireString(item)),
+    variantAttributes:
+      product.variantAttributes === undefined
+        ? undefined
+        : requireArray(product.variantAttributes).map(parseProductAttributeSummary),
     minVariantPriceCents: optionalNumber(product.minVariantPriceCents) ?? undefined,
     maxVariantPriceCents: optionalNumber(product.maxVariantPriceCents) ?? undefined,
     minVariantEffectivePriceCents: optionalNumber(product.minVariantEffectivePriceCents) ?? undefined,
     maxVariantEffectivePriceCents: optionalNumber(product.maxVariantEffectivePriceCents) ?? undefined,
     releaseYear: optionalNumber(product.releaseYear) ?? null,
+    attributes:
+      product.attributes === undefined
+        ? undefined
+        : requireArray(product.attributes).map(parseProductAttribute),
     storageCapacity: optionalString(product.storageCapacity) ?? null,
     memoryRam: optionalString(product.memoryRam) ?? null,
     color: optionalString(product.color) ?? null,
@@ -160,6 +235,16 @@ const parseFacetCount = (value: unknown): CatalogFacetCount => {
   };
 };
 
+const parseAttributeFacet = (value: unknown): CatalogAttributeFacet => {
+  const facet = requireRecord(value);
+
+  return {
+    code: requireString(facet.code),
+    label: requireString(facet.label),
+    values: requireArray(facet.values).map(parseFacetCount),
+  };
+};
+
 export const parseCatalogSearchMeta = (value: unknown): CatalogSearchMeta => {
   const meta = requireRecord(value);
 
@@ -178,9 +263,7 @@ export const parseCatalogSearchFacets = (value: unknown): CatalogSearchFacets =>
   return {
     brands: requireArray(facets.brands).map(parseFacetCount),
     categories: requireArray(facets.categories).map(parseFacetCount),
-    storageCapacities: requireArray(facets.storageCapacities).map(parseFacetCount),
-    memoryRams: requireArray(facets.memoryRams).map(parseFacetCount),
-    colors: requireArray(facets.colors).map(parseFacetCount),
+    attributes: requireArray(facets.attributes).map(parseAttributeFacet),
     price: {
       min: optionalNumber(price.min) ?? null,
       max: optionalNumber(price.max) ?? null,

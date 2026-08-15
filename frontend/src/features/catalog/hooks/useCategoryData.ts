@@ -16,9 +16,7 @@ import { omitUndefinedProperties } from '@/shared/lib/object';
 const emptyFacets: CatalogSearchFacets = {
   brands: [],
   categories: [],
-  storageCapacities: [],
-  memoryRams: [],
-  colors: [],
+  attributes: [],
   price: { min: null, max: null },
 };
 const initialMeta: CatalogSearchMeta = { page: 1, perPage: 10, total: 0, totalPages: 1 };
@@ -27,9 +25,7 @@ interface CategorySearchParams {
   slug?: string | undefined;
   search: string;
   brand: string;
-  storageCapacity: string;
-  memoryRam: string;
-  color: string;
+  attributeFilters: Record<string, string>;
   minPrice: number | null;
   maxPrice: number | null;
   inStock: boolean;
@@ -42,9 +38,7 @@ export const useCategoryData = ({
   slug,
   search,
   brand,
-  storageCapacity,
-  memoryRam,
-  color,
+  attributeFilters,
   minPrice,
   maxPrice,
   inStock,
@@ -57,9 +51,7 @@ export const useCategoryData = ({
       category: slug,
       q: search.trim() || undefined,
       brand: brand !== 'all' ? brand : undefined,
-      storageCapacity: storageCapacity !== 'all' ? storageCapacity : undefined,
-      memoryRam: memoryRam !== 'all' ? memoryRam : undefined,
-      color: color !== 'all' ? color : undefined,
+      attributeFilters,
       minPrice: minPrice ?? undefined,
       maxPrice: maxPrice ?? undefined,
       ...(inStock ? { inStock } : {}),
@@ -69,17 +61,15 @@ export const useCategoryData = ({
     }),
     [
       brand,
-      color,
       inStock,
       maxPrice,
-      memoryRam,
       minPrice,
       page,
       perPage,
       search,
       slug,
       sort,
-      storageCapacity,
+      attributeFilters,
     ],
   );
   const categoryQuery = useQuery<CategoryWithProducts, Error>({

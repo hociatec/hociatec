@@ -9,7 +9,7 @@ struct QuotesRepositoryLive: QuotesRepository {
     }
 
     func searchProducts(query: String) async throws -> [Product] {
-        try await productService.products(search: query, categorySlug: nil, sellingType: nil)
+        try await productService.products(search: query, categorySlug: nil, sellingType: nil, brand: nil, attributeFilters: [:])
     }
 
     func createQuote(name: String, email: String, company: String?, address: String?, items: [QuoteRequestItem]) async throws -> QuoteSummary {

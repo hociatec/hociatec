@@ -18,7 +18,7 @@ extension ProductDetailViewModel {
         defer { isLoadingDetail = false }
 
         do {
-            product = try await loadDetailUseCase.execute(slug: product.slug)
+            product = try await loadDetailUseCase.execute(slug: product.slug, sellingType: product.sellingType)
             syncRentalSelection(from: cart)
         } catch {
             detailError = error.localizedDescription

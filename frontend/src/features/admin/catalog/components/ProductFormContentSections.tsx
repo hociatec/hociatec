@@ -71,24 +71,60 @@ export const ProductGeneralSection = ({
           ))}
         </select>
       </label>
+      <fieldset className="catalog-form-fieldset">
+        <legend>Modes disponibles</legend>
+        <div className="flex flex-wrap gap-4">
+          <label>
+            <input
+              name="availableForSale"
+              type="checkbox"
+              checked={form.availableForSale}
+              onChange={onChange}
+            />{' '}
+            Vente
+          </label>
+          <label>
+            <input
+              name="availableForRental"
+              type="checkbox"
+              checked={form.availableForRental}
+              onChange={onChange}
+            />{' '}
+            Location
+          </label>
+        </div>
+      </fieldset>
       <label>
-        Type du produit
-        <select name="sellingType" value={form.sellingType} onChange={onChange}>
-          <option value="sale">Vente</option>
-          <option value="rental">Location</option>
-        </select>
-      </label>
-      <label>
-        {form.sellingType === 'rental' ? 'Prix mensuel (euros TTC / mois)' : 'Prix (en euros TTC)'}
+        Prix de vente (euros TTC)
         <input
-          name="price"
+          name="salePrice"
           type="number"
           step="0.01"
           min="0"
-          value={form.price}
+          value={form.salePrice}
           onChange={onChange}
-          required
+          required={form.availableForSale}
+          disabled={!form.availableForSale}
         />
+        <span className="muted">
+          Utilisé pour la variante principale et comme valeur par défaut des variantes supplémentaires.
+        </span>
+      </label>
+      <label>
+        Prix mensuel de location (euros TTC / mois)
+        <input
+          name="rentalPrice"
+          type="number"
+          step="0.01"
+          min="0"
+          value={form.rentalPrice}
+          onChange={onChange}
+          required={form.availableForRental}
+          disabled={!form.availableForRental}
+        />
+        <span className="muted">
+          Utilisé pour la variante principale et comme valeur par défaut des variantes supplémentaires.
+        </span>
       </label>
       <label>
         Année du modèle
@@ -101,19 +137,6 @@ export const ProductGeneralSection = ({
           value={form.releaseYear}
           onChange={onChange}
           placeholder="2025"
-        />
-      </label>
-      <label>
-        Mémoire RAM (Go)
-        <input
-          name="memoryRam"
-          type="number"
-          min="1"
-          max="256"
-          step="1"
-          value={form.memoryRam}
-          onChange={onChange}
-          placeholder="8"
         />
       </label>
     </div>
@@ -157,7 +180,12 @@ export const ProductGeneralSection = ({
                 key={brand.id}
                 className={`catalog-brand-picker__option${checked ? ' is-selected' : ''}`}
               >
-                <input type="checkbox" checked={checked} onChange={() => onBrandSelection(brand)} />
+                <input
+                  type="radio"
+                  name="brandIdSelection"
+                  checked={checked}
+                  onChange={() => onBrandSelection(brand)}
+                />
                 <span>{brand.name}</span>
               </label>
             );

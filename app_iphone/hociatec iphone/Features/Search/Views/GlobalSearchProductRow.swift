@@ -31,7 +31,7 @@ struct GlobalSearchProductRow: View {
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
-            Text(PriceFormatter.format(cents: product.priceCents))
+            Text(productPriceLabel(product))
                 .font(.footnote.weight(.semibold))
 
             ProductCatalogActions(

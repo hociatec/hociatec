@@ -18,6 +18,7 @@ export interface CartPromotion {
 export interface CartItem {
   id: number;
   product: CatalogProduct;
+  sellingType: 'sale' | 'rental';
   quantity: number;
   linePriceCents: number;
   rentalMonths?: number | null;
@@ -54,6 +55,8 @@ export interface Cart {
 export type CartStatus = 'idle' | 'loading' | 'ready';
 
 export type CartActionOptions = {
+  sellingType?: 'sale' | 'rental';
+  currentSellingType?: 'sale' | 'rental';
   rentalMonths?: number;
   currentRentalMonths?: number;
   rentalStartDate?: string;

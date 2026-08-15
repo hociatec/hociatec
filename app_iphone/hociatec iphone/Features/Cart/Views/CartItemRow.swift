@@ -17,7 +17,7 @@ struct CartItemRow: View {
             Text(item.product.name)
                 .fontWeight(.semibold)
 
-            if item.product.sellingType == .rental {
+            if item.sellingType == .rental {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Du \(DatePresentation.formatAPIDay(item.rentalStartDate)) au \(DatePresentation.formatAPIDay(item.rentalEndDate))")
                         .font(.subheadline)
@@ -36,7 +36,7 @@ struct CartItemRow: View {
 
             HStack {
                 Text(PriceFormatter.format(cents: item.product.effectivePriceCents))
-                if item.product.sellingType == .rental {
+                if item.sellingType == .rental {
                     Text("/mois")
                         .foregroundStyle(.secondary)
                 }

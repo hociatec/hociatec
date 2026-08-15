@@ -40,6 +40,8 @@ extension CartViewModel {
             let updatedCart = try await service.updateCart(
                 productId: item.product.id,
                 quantity: quantity,
+                sellingType: item.sellingType,
+                currentSellingType: item.sellingType,
                 rentalMonths: desiredMonths,
                 currentRentalMonths: currentMonths,
                 rentalStartDate: desiredStartDate,
@@ -100,6 +102,7 @@ extension CartViewModel {
             if let updatedItem = updatedCart.items.first(where: {
                 $0.matches(
                     productId: item.product.id,
+                    sellingType: item.sellingType,
                     rentalMonths: desiredMonths,
                     rentalStartDate: desiredStartDate
                 )

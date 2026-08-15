@@ -42,6 +42,14 @@ struct ProductsListView: View {
                 onClearSellingType: {
                     viewModel.selectedSellingType = nil
                     Task { await viewModel.load(force: true) }
+                },
+                onClearBrand: {
+                    viewModel.clearBrandFilter()
+                    Task { await viewModel.load(force: true) }
+                },
+                onClearAttributeFilter: { code in
+                    viewModel.clearAttributeFilter(code: code)
+                    Task { await viewModel.load(force: true) }
                 }
             )
 
@@ -64,15 +72,22 @@ struct ProductsListView: View {
         .sheet(isPresented: $showFilterSheet) {
             ProductFiltersSheet(
                 categories: viewModel.categories,
+                facets: viewModel.availableFacets,
                 selectedCategoryID: $filterDraft.selectedCategoryID,
                 selectedSellingType: $filterDraft.selectedSellingType,
+                selectedBrand: $filterDraft.selectedBrand,
+                selectedAttributeFilters: $filterDraft.selectedAttributeFilters,
                 currentCategoryID: viewModel.selectedCategory?.id,
                 currentSellingType: viewModel.selectedSellingType,
+                currentBrand: viewModel.selectedBrand,
+                currentAttributeFilters: viewModel.selectedAttributeFilters,
                 didInitDraftFilters: $filterDraft.didInit,
                 onClose: { showFilterSheet = false },
                 onApply: {
                     viewModel.selectedCategory = viewModel.categories.first(where: { $0.id == filterDraft.selectedCategoryID })
                     viewModel.selectedSellingType = filterDraft.selectedSellingType
+                    viewModel.selectedBrand = filterDraft.selectedBrand
+                    viewModel.selectedAttributeFilters = filterDraft.selectedAttributeFilters
                     Task { await viewModel.load(force: true) }
                     showFilterSheet = false
                 }
@@ -98,6 +113,7 @@ struct ProductsListView: View {
         }
         .onChangeCompat(viewModel.selectedCategory?.id) { _ in if !showFilterSheet { updateFiltersBadge() } }
         .onChangeCompat(viewModel.selectedSellingType) { _ in if !showFilterSheet { updateFiltersBadge() } }
+        .onChangeCompat(viewModel.selectedBrand) { _ in if !showFilterSheet { updateFiltersBadge() } }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {

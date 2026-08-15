@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Catalog\Application\Policy;
 
 use App\Module\Catalog\Application\Port\ProductCatalogRepository;
+use App\Module\Catalog\Domain\Entity\LegacyProductAttribute;
 use App\Module\Catalog\Domain\Entity\Product;
 
 final readonly class ProductVariantIdentityPolicy
@@ -19,8 +20,7 @@ final readonly class ProductVariantIdentityPolicy
     public function assertDefinitionsAreUnique(
         ?string $variantGroup,
         ?Product $currentProduct,
-        ?string $currentColor,
-        ?string $currentStorageCapacity,
+        array $currentAttributes,
         array $variantDefinitions,
     ): void {
         if (null === $variantGroup || '' === trim($variantGroup)) {
@@ -28,10 +28,10 @@ final readonly class ProductVariantIdentityPolicy
         }
 
         $existingKeys = $this->existingKeys($variantGroup, $currentProduct);
-        $currentKey = $this->buildVariantIdentityKey($currentColor, $currentStorageCapacity);
+        $currentKey = $this->buildVariantIdentityKey($currentAttributes);
 
         if (isset($existingKeys[$currentKey])) {
-            throw new \InvalidArgumentException(sprintf('La variante %s existe déjà.', $this->formatVariantConflictLabel($currentColor, $currentStorageCapacity)));
+            throw new \InvalidArgumentException(sprintf('La variante %s existe déjà.', $this->formatVariantConflictLabel($currentAttributes)));
         }
 
         $incomingKeys = [$currentKey => true];
@@ -41,11 +41,10 @@ final readonly class ProductVariantIdentityPolicy
                 continue;
             }
 
-            [$variantColor, $variantStorage] = $variant;
-            $variantKey = $this->buildVariantIdentityKey($variantColor, $variantStorage);
+            $variantKey = $this->buildVariantIdentityKey($variant);
 
             if (isset($existingKeys[$variantKey]) || isset($incomingKeys[$variantKey])) {
-                throw new \InvalidArgumentException(sprintf('La variante %s existe déjà.', $this->formatVariantConflictLabel($variantColor, $variantStorage)));
+                throw new \InvalidArgumentException(sprintf('La variante %s existe déjà.', $this->formatVariantConflictLabel($variant)));
             }
 
             $incomingKeys[$variantKey] = true;
@@ -61,49 +60,103 @@ final readonly class ProductVariantIdentityPolicy
                 continue;
             }
 
-            $existingKeys[$this->buildVariantIdentityKey($variant->getColor(), $variant->getStorageCapacity())] = true;
+            $existingKeys[$this->buildVariantIdentityKey($variant->getAttributes())] = true;
         }
 
         return $existingKeys;
     }
 
-    /** @return array{0:string|null,1:string|null}|null */
+    /**
+     * @return list<array{code:string,label:string,value:string}>|null
+     */
     private function normalizeVariantDefinition(mixed $variantDefinition): ?array
     {
         if (!is_array($variantDefinition)) {
             return null;
         }
 
-        $variantColor = isset($variantDefinition['color']) && is_string($variantDefinition['color'])
-            ? trim($variantDefinition['color'])
-            : null;
-        $variantStorage = isset($variantDefinition['storageCapacity']) && is_string($variantDefinition['storageCapacity'])
-            ? trim($variantDefinition['storageCapacity'])
-            : null;
+        $attributes = isset($variantDefinition['attributes']) && is_array($variantDefinition['attributes'])
+            ? $this->normalizeAttributes($variantDefinition['attributes'])
+            : [];
 
-        if ((null === $variantColor || '' === $variantColor) && (null === $variantStorage || '' === $variantStorage)) {
-            return null;
+        if ([] === $attributes) {
+            $legacyAttributes = [];
+            $variantColor = isset($variantDefinition['color']) && is_string($variantDefinition['color'])
+                ? trim($variantDefinition['color'])
+                : null;
+            $variantStorage = isset($variantDefinition['storageCapacity']) && is_string($variantDefinition['storageCapacity'])
+                ? trim($variantDefinition['storageCapacity'])
+                : null;
+
+            $variantColorAttribute = LegacyProductAttribute::fromValue(LegacyProductAttribute::COLOR_CODE, $variantColor);
+            if (null !== $variantColorAttribute) {
+                $legacyAttributes[] = $variantColorAttribute;
+            }
+            $variantStorageAttribute = LegacyProductAttribute::fromValue(LegacyProductAttribute::STORAGE_CODE, $variantStorage);
+            if (null !== $variantStorageAttribute) {
+                $legacyAttributes[] = $variantStorageAttribute;
+            }
+
+            $attributes = $legacyAttributes;
         }
 
-        return [$variantColor, $variantStorage];
+        return [] !== $attributes ? $attributes : null;
     }
 
-    private function buildVariantIdentityKey(?string $color, ?string $storageCapacity): string
+    /**
+     * @param list<array{code:string,label:string,value:string}> $attributes
+     */
+    private function buildVariantIdentityKey(array $attributes): string
     {
-        return sprintf(
-            '%s|%s',
-            null !== $color ? mb_strtolower(trim($color)) : '',
-            null !== $storageCapacity ? mb_strtolower(trim($storageCapacity)) : '',
+        $pairs = [];
+
+        foreach ($this->normalizeAttributes($attributes) as $attribute) {
+            $pairs[] = sprintf('%s=%s', $attribute['code'], mb_strtolower(trim($attribute['value'])));
+        }
+
+        sort($pairs, SORT_STRING);
+
+        return implode('|', $pairs);
+    }
+
+    /**
+     * @param list<array{code:string,label:string,value:string}> $attributes
+     */
+    private function formatVariantConflictLabel(array $attributes): string
+    {
+        $parts = array_map(
+            static fn (array $attribute): string => $attribute['value'],
+            $this->normalizeAttributes($attributes),
         );
-    }
-
-    private function formatVariantConflictLabel(?string $color, ?string $storageCapacity): string
-    {
-        $parts = array_values(array_filter([
-            null !== $color ? trim($color) : '',
-            null !== $storageCapacity ? trim($storageCapacity) : '',
-        ]));
 
         return [] !== $parts ? implode(' / ', $parts) : 'cette variante';
+    }
+
+    /**
+     * @param list<array<string, mixed>> $attributes
+     *
+     * @return list<array{code:string,label:string,value:string}>
+     */
+    private function normalizeAttributes(array $attributes): array
+    {
+        $normalized = [];
+
+        foreach ($attributes as $attribute) {
+            $code = isset($attribute['code']) && is_string($attribute['code']) ? trim(mb_strtolower($attribute['code'])) : '';
+            $label = isset($attribute['label']) && is_string($attribute['label']) ? trim($attribute['label']) : '';
+            $value = isset($attribute['value']) && is_string($attribute['value']) ? trim($attribute['value']) : '';
+
+            if ('' === $code || '' === $label || '' === $value) {
+                continue;
+            }
+
+            $normalized[$code] = [
+                'code' => $code,
+                'label' => $label,
+                'value' => $value,
+            ];
+        }
+
+        return array_values($normalized);
     }
 }

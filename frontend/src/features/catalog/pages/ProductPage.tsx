@@ -1,4 +1,4 @@
-import { useParams } from 'react-router';
+import { useParams, useSearchParams } from 'react-router';
 
 import { ProductDescriptionSection } from '@/features/catalog/components/ProductDescriptionSection';
 import {
@@ -23,10 +23,17 @@ import './CatalogPages.css';
 
 export const ProductPage = () => {
   const { slug } = useParams<{ slug: string }>();
-  const { product, colorVariants, loading, error } = useProductPageData(slug);
+  const [searchParams] = useSearchParams();
+  const sellingTypeParam = searchParams.get('mode');
+  const sellingType = sellingTypeParam === 'sale' || sellingTypeParam === 'rental' ? sellingTypeParam : undefined;
+  const { product, colorVariants, loading, error } = useProductPageData(slug, sellingType);
   const { hasMoreReviews, loadMoreReviews, reviews, reviewsError, reviewsLoading, reviewsMeta } = useProductReviews(product);
   const productDisplayName = product ? getCatalogProductDisplayName(product) : null;
-  const canonicalUrl = product ? `${SITE_URL}/catalogue/produits/${product.slug}` : slug ? `${SITE_URL}/catalogue/produits/${slug}` : undefined;
+  const canonicalUrl = product
+    ? `${SITE_URL}/catalogue/produits/${product.slug}${sellingType ? `?mode=${sellingType}` : ''}`
+    : slug
+      ? `${SITE_URL}/catalogue/produits/${slug}${sellingType ? `?mode=${sellingType}` : ''}`
+      : undefined;
   const productStructuredData =
     product && productDisplayName && canonicalUrl
       ? buildProductStructuredData(product, productDisplayName, canonicalUrl)
