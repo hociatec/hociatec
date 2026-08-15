@@ -31,8 +31,8 @@ export const adminNavGroups: AdminNavGroup[] = [
     icon: ShoppingCart,
     links: [
       { to: '/admin/orders', label: 'Commandes' },
+      { to: '/admin/rentals', label: 'Locations' },
       { to: '/admin/orders/fulfillment', label: 'Expéditions' },
-      { to: '/admin/orders/bulk-actions', label: 'Actions groupées' },
       { to: '/admin/payments', label: 'Paiements' },
       { to: '/admin/quotes', label: 'Devis' },
       { to: '/admin/trade-ins', label: 'Reprises matériel' },

@@ -47,10 +47,11 @@ import {
   VouchersPage,
 } from './adminPageGroups/AdminPromotionPages';
 import {
-  AdminBulkActionsPage,
   AdminFulfillmentOperationsPage,
   AdminOrderDetailPage,
   AdminQuoteDetailPage,
+  AdminRentalDetailPage,
+  AdminRentalsListPage,
   OrdersListPage,
   PaymentDetailPage,
   PaymentsListPage,
@@ -147,8 +148,14 @@ export const adminRoutes: AppRouteDefinition = {
       children: [
         { index: true, element: <OrdersListPage /> },
         { path: 'fulfillment', element: <AdminFulfillmentOperationsPage /> },
-        { path: 'bulk-actions', element: <AdminBulkActionsPage /> },
         { path: ':orderId', element: <AdminOrderDetailPage /> },
+      ],
+    },
+    {
+      path: 'rentals',
+      children: [
+        { index: true, element: <AdminRentalsListPage /> },
+        { path: ':rentalId', element: <AdminRentalDetailPage /> },
       ],
     },
     { path: 'payments', children: [{ index: true, element: <PaymentsListPage /> }, { path: ':paymentId', element: <PaymentDetailPage /> }] },

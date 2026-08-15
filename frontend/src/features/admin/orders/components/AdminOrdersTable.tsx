@@ -18,13 +18,24 @@ import {
 type AdminOrdersTableProps = {
   orders: OrderDto[];
   onEditStatus: (order: OrderDto, options: OrderStatus[]) => void;
+  selectedOrderIds: number[];
+  onToggleOrderSelection: (orderId: number) => void;
+  onToggleVisibleOrders: () => void;
 };
 
-export const AdminOrdersTable = memo(({ orders, onEditStatus }: AdminOrdersTableProps) => (
+export const AdminOrdersTable = memo(({ orders, onEditStatus, selectedOrderIds, onToggleOrderSelection, onToggleVisibleOrders }: AdminOrdersTableProps) => (
   <AdminTableShell>
     <table className="catalog-admin-table">
       <thead>
         <tr>
+          <th scope="col">
+            <input
+              type="checkbox"
+              checked={orders.length > 0 && orders.every((order) => selectedOrderIds.includes(order.id))}
+              onChange={onToggleVisibleOrders}
+              aria-label="Sélectionner toutes les commandes visibles"
+            />
+          </th>
           <th scope="col">Commande</th>
           <th scope="col">Client</th>
           <th scope="col">Date</th>
@@ -38,6 +49,14 @@ export const AdminOrdersTable = memo(({ orders, onEditStatus }: AdminOrdersTable
       <tbody>
         {orders.map((order) => (
           <tr key={order.id}>
+            <td>
+              <input
+                type="checkbox"
+                checked={selectedOrderIds.includes(order.id)}
+                onChange={() => onToggleOrderSelection(order.id)}
+                aria-label={`Sélectionner la commande ${order.number}`}
+              />
+            </td>
             <th scope="row">
               <div className="font-semibold text-brand-900">{order.number}</div>
               {order.invoice?.purchaseOrderNumber ? (

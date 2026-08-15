@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { fetchAdminOrders, fetchAdminOrderMetadata, updateAdminOrderStatus, type OrderDto } from '@/features/orders/publicApi';
+import { bulkUpdateOrderStatus } from '@/features/admin/operations/api';
 import {
   type OrderHealthFilter,
   type OrderSortKey,
@@ -36,6 +37,10 @@ export const useAdminOrdersList = () => {
     order: OrderDto;
   } | null>(null);
   const [updateError, setUpdateError] = useState<string | null>(null);
+  const [selectedOrderIds, setSelectedOrderIds] = useState<number[]>([]);
+  const [bulkStatus, setBulkStatus] = useState<OrderStatus>('confirmed');
+  const [bulkMessage, setBulkMessage] = useState<string | null>(null);
+  const [bulkError, setBulkError] = useState<string | null>(null);
   const debouncedSearch = useDebounce(search.trim(), 250);
   const metadataQuery = useQuery({
     queryKey: adminOrderQueryKeys.metadata(),
@@ -62,6 +67,24 @@ export const useAdminOrdersList = () => {
     onError: (e) =>
       setUpdateError(getHttpErrorMessage(e, 'Impossible de mettre à jour le statut.')),
   });
+  const bulkUpdateMutation = useMutation({
+    mutationFn: ({ orderIds, status }: { orderIds: number[]; status: OrderStatus }) =>
+      bulkUpdateOrderStatus(orderIds, status),
+    onSuccess: async (updatedCount, variables) => {
+      await queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] });
+      setSelectedOrderIds([]);
+      setBulkError(null);
+      setBulkMessage(
+        updatedCount === variables.orderIds.length
+          ? `${updatedCount} commande(s) mise(s) à jour.`
+          : `${updatedCount} commande(s) mise(s) à jour sur ${variables.orderIds.length} sélectionnée(s).`,
+      );
+    },
+    onError: (error) => {
+      setBulkMessage(null);
+      setBulkError(getHttpErrorMessage(error, 'Impossible de mettre à jour les commandes sélectionnées.'));
+    },
+  });
   const orders = ordersQuery.data?.items ?? [];
   const pagination = ordersQuery.data?.meta ?? { page, perPage: 10, total: 0, totalPages: 1 };
   const status = ordersQuery.isLoading ? 'loading' : ordersQuery.isError ? 'error' : 'success';
@@ -80,6 +103,14 @@ export const useAdminOrdersList = () => {
   useEffect(() => {
     setPage(1);
   }, [filter, health, debouncedSearch, sort]);
+  useEffect(() => {
+    setSelectedOrderIds((current) => current.filter((id) => orders.some((order) => order.id === id)));
+  }, [orders]);
+  useEffect(() => {
+    if (statusOptions.length > 0 && !statusOptions.some((option) => option.value === bulkStatus)) {
+      setBulkStatus(statusOptions[0]?.value ?? 'confirmed');
+    }
+  }, [bulkStatus, statusOptions]);
   const handleConfirmUpdate = useCallback(() => {
     if (!editing) return;
     if (!editing.options.length) {
@@ -102,6 +133,31 @@ export const useAdminOrdersList = () => {
     },
     [setEditing],
   );
+  const toggleSelectedOrder = useCallback((orderId: number) => {
+    setBulkMessage(null);
+    setBulkError(null);
+    setSelectedOrderIds((current) =>
+      current.includes(orderId) ? current.filter((id) => id !== orderId) : [...current, orderId],
+    );
+  }, []);
+  const toggleVisibleOrders = useCallback(() => {
+    const visibleIds = orders.map((order) => order.id);
+    const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedOrderIds.includes(id));
+
+    setBulkMessage(null);
+    setBulkError(null);
+    setSelectedOrderIds(allVisibleSelected ? [] : visibleIds);
+  }, [orders, selectedOrderIds]);
+  const submitBulkUpdate = useCallback(() => {
+    if (selectedOrderIds.length === 0) {
+      setBulkMessage(null);
+      setBulkError('Sélectionne au moins une commande.');
+      return;
+    }
+
+    bulkUpdateMutation.mutate({ orderIds: selectedOrderIds, status: bulkStatus });
+  }, [bulkStatus, bulkUpdateMutation, selectedOrderIds]);
+
   return {
     orders,
     pagination,
@@ -123,5 +179,14 @@ export const useAdminOrdersList = () => {
     setUpdateError,
     handleEditStatus,
     handleConfirmUpdate,
+    selectedOrderIds,
+    bulkStatus,
+    setBulkStatus,
+    bulkMessage,
+    bulkError,
+    bulkUpdating: bulkUpdateMutation.isPending,
+    toggleSelectedOrder,
+    toggleVisibleOrders,
+    submitBulkUpdate,
   };
 };

@@ -40,7 +40,11 @@ export const AdminFulfillmentOperationsPage = lazyPage(
   () => import('@/features/admin/operations/pages/AdminFulfillmentOperationsPage'),
   'AdminFulfillmentOperationsPage',
 );
-export const AdminBulkActionsPage = lazyPage(
-  () => import('@/features/admin/operations/pages/AdminBulkActionsPage'),
-  'AdminBulkActionsPage',
+export const AdminRentalsListPage = lazyPage(
+  () => import('@/features/admin/rentals/pages/AdminRentalsListPage'),
+  'AdminRentalsListPage',
+);
+export const AdminRentalDetailPage = lazyPage(
+  () => import('@/features/admin/rentals/pages/AdminRentalDetailPage'),
+  'AdminRentalDetailPage',
 );
