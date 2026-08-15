@@ -220,7 +220,7 @@ struct hociatec_iphoneTests {
         let product = sampleProduct(id: 99, name: "Routeur", slug: "routeur", category: sampleCategory())
         let cart = Cart(
             token: "cart-token",
-            items: [CartItem(id: 1, product: product, quantity: 1, linePriceCents: 1000, rentalMonths: nil, rentalStartDate: nil, rentalEndDate: nil)],
+            items: [CartItem(id: 1, product: product, sellingType: .sale, quantity: 1, linePriceCents: 1000, rentalMonths: nil, rentalStartDate: nil, rentalEndDate: nil)],
             totalQuantity: 1,
             totalPriceCents: 1000,
             updatedAt: nil
@@ -565,11 +565,19 @@ struct hociatec_iphoneTests {
             sellingType: .sale,
             sellingTypeLabel: "Vente",
             priceUnitLabel: nil,
+            availableForSale: true,
+            availableForRental: false,
+            availableModes: [.sale],
+            salePriceCents: 1000,
+            rentalPriceCents: nil,
             effectivePriceCents: 1000,
             brand: "Hociatec",
             variantsCount: nil,
             variantColors: nil,
             variantStorages: nil,
+            variantMemoryRams: nil,
+            variantAttributes: nil,
+            attributes: nil,
             storageCapacity: nil,
             memoryRam: nil,
             color: nil,

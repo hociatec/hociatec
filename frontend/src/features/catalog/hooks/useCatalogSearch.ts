@@ -25,6 +25,7 @@ export const useCatalogSearch = ({
   sellingType: fixedSellingType,
 }: UseCatalogSearchOptions = {}) => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const searchParamsKey = searchParams.toString();
   const query = searchParams.get('q') ?? '';
   const category = normalizeCatalogFilter(searchParams.get('category'));
   const sellingType = normalizeCatalogFilter(searchParams.get('sellingType'));
@@ -45,7 +46,7 @@ export const useCatalogSearch = ({
 
         return filters;
       }, {}),
-    [searchParams],
+    [searchParamsKey],
   );
   const sort = normalizeCatalogSort(
     searchParams.get('sort'),

@@ -102,11 +102,11 @@ struct Product: Decodable, Identifiable {
     let category: CategorySummary
 
     var supportsSale: Bool {
-        availableForSale ?? sellingType == .sale
+        availableForSale ?? (sellingType == .sale)
     }
 
     var supportsRental: Bool {
-        availableForRental ?? sellingType == .rental
+        availableForRental ?? (sellingType == .rental)
     }
 }
 
