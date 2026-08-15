@@ -1337,9 +1337,16 @@ private final class MockCartService: CartServing {
     var cartToReturn = Cart(token: "empty", items: [], totalQuantity: 0, totalPriceCents: 0, updatedAt: nil)
 
     func fetchCart() async throws -> Cart { cartToReturn }
-    func addToCart(productId: Int, quantity: Int, rentalMonths: Int?) async throws -> Cart { cartToReturn }
-    func updateCart(productId: Int, quantity: Int, rentalMonths: Int?, currentRentalMonths: Int?) async throws -> Cart { cartToReturn }
-    func removeFromCart(productId: Int) async throws -> Cart { cartToReturn }
+    func addToCart(productId: Int, quantity: Int, rentalMonths: Int?, rentalStartDate: String?) async throws -> Cart { cartToReturn }
+    func updateCart(
+        productId: Int,
+        quantity: Int,
+        rentalMonths: Int?,
+        currentRentalMonths: Int?,
+        rentalStartDate: String?,
+        currentRentalStartDate: String?
+    ) async throws -> Cart { cartToReturn }
+    func removeFromCart(productId: Int, rentalMonths: Int?, rentalStartDate: String?) async throws -> Cart { cartToReturn }
     func clearCart() async throws -> Cart { cartToReturn }
     func checkout() async throws -> CheckoutResult { CheckoutResult(order: nil, checkoutURL: nil, checkoutSessionId: nil) }
 }
