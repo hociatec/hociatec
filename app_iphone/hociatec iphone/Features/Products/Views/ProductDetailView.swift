@@ -2,10 +2,10 @@ import SwiftUI
 
 struct ProductDetailView: View {
     @EnvironmentObject private var container: AppContainer
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.dismiss) var dismiss
     @StateObject var viewModel: ProductDetailViewModel
     @Binding var selectedTab: Int
-    @State private var feedbackDialog: FeedbackDialogState?
+    @State var feedbackDialog: FeedbackDialogState?
 
     let initialImageURL: URL?
     @ObservedObject var cart: CartViewModel
