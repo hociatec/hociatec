@@ -15,6 +15,9 @@ struct RentalRequestState: Decodable {
 struct RentalExtensionState: Decodable {
     let orderId: Int?
     let sourceOrderItemId: Int?
+    let checkoutSessionId: String?
+    let checkoutUrl: String?
+    let checkoutStatus: String?
 }
 
 struct RentalReturnPlanState: Decodable {

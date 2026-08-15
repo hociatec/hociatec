@@ -8,6 +8,9 @@ export interface RentalRequestDto {
 export interface RentalExtensionDto {
   orderId?: number | null;
   sourceOrderItemId?: number | null;
+  checkoutSessionId?: string | null;
+  checkoutUrl?: string | null;
+  checkoutStatus?: 'open' | 'paid' | 'failed' | 'expired' | string | null;
 }
 
 export interface RentalReturnPlanDto {

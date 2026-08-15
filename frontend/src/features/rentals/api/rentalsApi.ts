@@ -42,6 +42,15 @@ const parseRental = (value: unknown): RentalItemDto => {
       sourceOrderItemId: typeof item.extension === 'object' && item.extension && typeof (item.extension as Record<string, unknown>).sourceOrderItemId === 'number'
         ? ((item.extension as Record<string, unknown>).sourceOrderItemId as number)
         : null,
+      checkoutSessionId: typeof item.extension === 'object' && item.extension
+        ? optionalString((item.extension as Record<string, unknown>).checkoutSessionId) ?? null
+        : null,
+      checkoutUrl: typeof item.extension === 'object' && item.extension
+        ? optionalString((item.extension as Record<string, unknown>).checkoutUrl) ?? null
+        : null,
+      checkoutStatus: typeof item.extension === 'object' && item.extension
+        ? optionalString((item.extension as Record<string, unknown>).checkoutStatus) ?? null
+        : null,
     },
     returnPlan: {
       status: typeof item.returnPlan === 'object' && item.returnPlan

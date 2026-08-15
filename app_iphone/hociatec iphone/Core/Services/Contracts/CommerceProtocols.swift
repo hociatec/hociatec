@@ -49,6 +49,7 @@ protocol RentalServing {
     func requestRentalChange(orderItemId: Int, action: RentalRequestAction, requestedEndDate: String) async throws -> RentalChangeData
     func planRentalReturn(orderItemId: Int, mode: String, requestedDate: String) async throws -> RentalItem
     func terminateRental(orderItemId: Int, requestedEndDate: String, returnMode: String, returnRequestedDate: String) async throws -> RentalItem
+    func cancelPendingExtensionCheckout(stripeSessionId: String) async throws -> CheckoutSessionStatusData
 }
 
 protocol VoucherServing {

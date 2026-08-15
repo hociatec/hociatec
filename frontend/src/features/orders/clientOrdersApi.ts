@@ -59,6 +59,29 @@ export const fetchCheckoutSessionStatus = async (
   };
 };
 
+export const cancelCheckoutSession = async (
+  stripeSessionId: string,
+): Promise<{
+  status: string;
+  checkoutSessionId: string;
+  orderId?: number | null;
+  order?: OrderDto | null;
+}> => {
+  const { data } = await httpClient.post<
+    ApiResponse<{
+      status: string;
+      checkoutSessionId: string;
+      orderId?: number | null;
+      order?: OrderDto | null;
+    }>
+  >(`/api/orders/checkout/sessions/${encodeURIComponent(stripeSessionId)}/cancel`);
+  const payload = unwrapApiData(data, 'Impossible d’annuler le paiement en attente');
+  return {
+    ...payload,
+    order: payload.order ? parseOrder(payload.order) : null,
+  };
+};
+
 export const fetchMyOrders = async (
   page = 1,
   perPage = 10,

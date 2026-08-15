@@ -20,6 +20,7 @@ final readonly class CustomerRentalPortalService
         private UnitOfWork $persistence,
         private RentalExtensionCheckoutService $extensions,
         private CustomerRentalTerminationService $termination,
+        private RentalExtensionPaymentReconciliationService $extensionPayments,
     ) {
     }
 
@@ -36,10 +37,11 @@ final readonly class CustomerRentalPortalService
         $today = new \DateTimeImmutable('today');
         $upcoming = $this->orderItems->findUpcomingRentalsForUser($user, $today, $limit, $offset);
         $past = $this->orderItems->findPastRentalsForUser($user, $today, $limit, $offset);
+        $this->extensionPayments->reconcileCollection(array_merge($upcoming, $past));
 
         return [
-            'upcoming' => array_map(fn (OrderItem $item): array => $this->formatter->format($item, $today), $upcoming),
-            'past' => array_map(fn (OrderItem $item): array => $this->formatter->format($item, $today), $past),
+            'upcoming' => $this->formatRentals($upcoming, $today),
+            'past' => $this->formatRentals($past, $today),
             'upcomingTotal' => $this->orderItems->countUpcomingRentalsForUser($user, $today),
             'pastTotal' => $this->orderItems->countPastRentalsForUser($user, $today),
         ];
@@ -72,35 +74,17 @@ final readonly class CustomerRentalPortalService
             throw new \InvalidArgumentException('La date demandée doit être aujourd\'hui ou dans le futur.');
         }
 
-        if ('extend' === $action && $requestedDate <= $currentEndDate) {
-            throw new \InvalidArgumentException('Une prolongation doit demander une date de fin postérieure à la fin actuelle.');
-        }
-
         if ('extend' === $action) {
-            $coveredMonths = RentalPeriodCalculator::findMinimumMonthsCoveringEndDate($currentStartDate, $requestedDate);
-            if (null === $coveredMonths) {
-                throw new \InvalidArgumentException('La nouvelle échéance demandée est invalide.');
-            }
-
-            return $this->preparePaidExtension($user, $item, $coveredMonths, $requestedDate, $clientPlatform, $today);
+            return $this->prepareExtensionChange($user, $item, $currentEndDate, $currentStartDate, $requestedDate, $clientPlatform, $today);
         }
-
         if ('end_early' === $action) {
-            if ($requestedDate >= $currentEndDate) {
-                throw new \InvalidArgumentException('Une fin anticipée doit demander une date de fin antérieure à la fin actuelle.');
-            }
-            if ($requestedDate < $currentStartDate) {
-                throw new \InvalidArgumentException('La date de fin demandée ne peut pas être antérieure au début de location.');
-            }
+            $this->assertEarlyTerminationDate($requestedDate, $currentStartDate, $currentEndDate);
         }
-
         $item->requestRentalChange($action, $requestedDate);
         $this->persistence->persist($item);
         $this->persistence->flush();
 
-        return [
-            'rental' => $this->formatter->format($item, $today),
-        ];
+        return ['rental' => $this->formatRental($item, $today)];
     }
 
     /**
@@ -134,9 +118,7 @@ final readonly class CustomerRentalPortalService
         $this->persistence->persist($item);
         $this->persistence->flush();
 
-        return [
-            'rental' => $this->formatter->format($item, $today),
-        ];
+        return ['rental' => $this->formatRental($item, $today)];
     }
 
     /**
@@ -156,50 +138,16 @@ final readonly class CustomerRentalPortalService
         $this->assertClientRentalMutable($item);
 
         $today = new \DateTimeImmutable('today');
-        $this->termination->terminate(
-            $item,
-            $requestedEndDate,
-            $returnMode,
-            $returnRequestedDate,
-            $today,
-        );
+        $this->termination->terminate($item, $requestedEndDate, $returnMode, $returnRequestedDate, $today);
         $this->persistence->persist($item);
         $this->persistence->flush();
 
-        return [
-            'rental' => $this->formatter->format($item, $today),
-        ];
+        return ['rental' => $this->formatRental($item, $today)];
     }
 
     public function applyPaidExtensionOrder(Order $order): void
     {
-        foreach ($order->getItems() as $extensionLine) {
-            $sourceId = $extensionLine->getRentalOriginOrderItemId();
-            if (null === $sourceId) {
-                continue;
-            }
-
-            $rental = $this->orderItems->findById($sourceId);
-            if (!$rental instanceof OrderItem || 'pending_payment' !== $rental->getRentalRequestStatus()) {
-                continue;
-            }
-
-            $requestedEndDate = $rental->getRentalRequestedEndDate();
-            $startDate = $rental->getRentalStartDate();
-            if (null === $requestedEndDate || null === $startDate) {
-                continue;
-            }
-
-            $alignedMonths = RentalPeriodCalculator::findAlignedMonthsForEndDate($startDate, $requestedEndDate);
-            if (null === $alignedMonths) {
-                continue;
-            }
-
-            $rental->applyApprovedRentalExtension($requestedEndDate, $alignedMonths);
-            $this->persistence->persist($rental);
-        }
-
-        $this->persistence->flush();
+        $this->extensionPayments->applyPaidExtensionOrder($order);
     }
 
     private function findRentalForUser(User $user, int $orderItemId): ?OrderItem
@@ -213,11 +161,7 @@ final readonly class CustomerRentalPortalService
             throw new \DomainException('Vous n\'êtes pas autorisé à modifier cette location.');
         }
 
-        if ('rental' !== $item->getSellingType()) {
-            return null;
-        }
-
-        return $item;
+        return 'rental' === $item->getSellingType() ? $item : null;
     }
 
     private function assertClientRentalMutable(OrderItem $item): void
@@ -228,13 +172,72 @@ final readonly class CustomerRentalPortalService
     }
 
     /** @return array{rental:array<string,mixed>,checkout:array<string,mixed>} */
-    private function preparePaidExtension(User $user, OrderItem $item, int $coveredMonths, \DateTimeImmutable $requestedDate, ?string $clientPlatform, \DateTimeImmutable $today): array
-    {
+    private function prepareExtensionChange(
+        User $user,
+        OrderItem $item,
+        \DateTimeImmutable $currentEndDate,
+        \DateTimeImmutable $currentStartDate,
+        \DateTimeImmutable $requestedDate,
+        ?string $clientPlatform,
+        \DateTimeImmutable $today,
+    ): array {
+        if ($requestedDate <= $currentEndDate) {
+            throw new \InvalidArgumentException('Une prolongation doit demander une date de fin postérieure à la fin actuelle.');
+        }
+
+        $coveredMonths = RentalPeriodCalculator::findMinimumMonthsCoveringEndDate($currentStartDate, $requestedDate);
+        if (null === $coveredMonths) {
+            throw new \InvalidArgumentException('La nouvelle échéance demandée est invalide.');
+        }
+
         $additionalMonths = $coveredMonths - max(1, (int) ($item->getRentalMonths() ?? 1));
         if ($additionalMonths < 1) {
             throw new \InvalidArgumentException('Cette prolongation ne crée aucun mois supplémentaire à facturer.');
         }
 
         return $this->extensions->prepare($user, $item, $additionalMonths, $requestedDate, $clientPlatform, $today);
+    }
+
+    private function assertEarlyTerminationDate(
+        \DateTimeImmutable $requestedDate,
+        \DateTimeImmutable $currentStartDate,
+        \DateTimeImmutable $currentEndDate,
+    ): void {
+        if ($requestedDate >= $currentEndDate) {
+            throw new \InvalidArgumentException('Une fin anticipée doit demander une date de fin antérieure à la fin actuelle.');
+        }
+
+        if ($requestedDate < $currentStartDate) {
+            throw new \InvalidArgumentException('La date de fin demandée ne peut pas être antérieure au début de location.');
+        }
+    }
+
+    /**
+     * @param list<OrderItem> $items
+     *
+     * @return list<array<string,mixed>>
+     */
+    private function formatRentals(array $items, \DateTimeImmutable $today): array
+    {
+        return array_map(
+            fn (OrderItem $item): array => $this->formatRental($this->extensionPayments->reload($item), $today),
+            $items,
+        );
+    }
+
+    /**
+     * @return array<string,mixed>
+     */
+    private function formatRental(OrderItem $item, \DateTimeImmutable $today): array
+    {
+        $payload = $this->formatter->format($item, $today);
+        $extensionOrderId = $item->getRentalExtensionOrderId();
+        $checkout = null !== $extensionOrderId ? $this->extensionPayments->latestCheckoutSessionForOrder($extensionOrderId) : null;
+
+        $payload['extension']['checkoutSessionId'] = $checkout?->getStripeSessionId();
+        $payload['extension']['checkoutUrl'] = $checkout?->getCheckoutUrl();
+        $payload['extension']['checkoutStatus'] = $checkout?->getStatus();
+
+        return $payload;
     }
 }

@@ -22,6 +22,7 @@ struct MyRentalsView: View {
     @State private var activeSheet: RentalActionSheetState?
     @State private var activeFilter: RentalFilter = .all
     @Environment(\.openURL) private var openURL
+    @Environment(\.scenePhase) private var scenePhase
 
     init(service: RentalServing) {
         self.service = service
@@ -76,6 +77,12 @@ struct MyRentalsView: View {
             openURL(newValue)
             viewModel.checkoutURL = nil
         }
+        .onChange(of: scenePhase) { _, newValue in
+            guard newValue == .active else { return }
+            Task {
+                await viewModel.load(force: true)
+            }
+        }
         .overlay(alignment: .bottom) {
             if viewModel.isLoading && !(viewModel.upcoming.isEmpty && viewModel.past.isEmpty) {
                 InlineLoadingStatus(message: "Actualisation des locations…")
@@ -123,8 +130,15 @@ struct MyRentalsView: View {
                         rental: rental,
                         isSubmittingExtend: viewModel.submittingActionKey == "extend:\(rental.orderItemId)",
                         isSubmittingTerminate: viewModel.submittingActionKey == "terminate:\(rental.orderItemId)",
+                        isSubmittingCancelPayment: viewModel.submittingActionKey == "cancel-payment:\(rental.orderItemId)",
                         requestExtend: { activeSheet = RentalActionSheetState(rental: rental, kind: .extend) },
-                        requestTerminate: { activeSheet = RentalActionSheetState(rental: rental, kind: .terminate) }
+                        requestTerminate: { activeSheet = RentalActionSheetState(rental: rental, kind: .terminate) },
+                        resumeExtensionPayment: { viewModel.resumePendingExtensionPayment(for: rental) },
+                        cancelExtensionPayment: {
+                            Task {
+                                await viewModel.cancelPendingExtensionPayment(for: rental)
+                            }
+                        }
                     )
                 }
             }
@@ -158,8 +172,11 @@ private struct RentalRow: View {
     let rental: RentalItem
     let isSubmittingExtend: Bool
     let isSubmittingTerminate: Bool
+    let isSubmittingCancelPayment: Bool
     let requestExtend: () -> Void
     let requestTerminate: () -> Void
+    let resumeExtensionPayment: () -> Void
+    let cancelExtensionPayment: () -> Void
 
     private var isReturned: Bool {
         rental.returnPlan.status == "completed"
@@ -167,6 +184,18 @@ private struct RentalRow: View {
 
     private var hasPendingRequest: Bool {
         rental.request.status == "pending" || rental.request.status == "pending_payment"
+    }
+
+    private var canResumePendingExtension: Bool {
+        rental.request.status == "pending_payment"
+            && rental.extensionState.checkoutStatus == "open"
+            && rental.extensionState.checkoutUrl != nil
+    }
+
+    private var canCancelPendingExtension: Bool {
+        rental.request.status == "pending_payment"
+            && rental.extensionState.checkoutStatus == "open"
+            && rental.extensionState.checkoutSessionId != nil
     }
 
     var body: some View {
@@ -199,13 +228,25 @@ private struct RentalRow: View {
 
             if !isReturned {
                 HStack {
+                    if canResumePendingExtension {
+                        Button(isSubmittingExtend ? "Ouverture..." : "Reprendre le paiement", action: resumeExtensionPayment)
+                            .buttonStyle(.bordered)
+                            .disabled(isSubmittingExtend || isSubmittingTerminate || isSubmittingCancelPayment)
+                    }
+
+                    if canCancelPendingExtension {
+                        Button(isSubmittingCancelPayment ? "Annulation..." : "Annuler cette tentative", action: cancelExtensionPayment)
+                            .buttonStyle(.bordered)
+                            .disabled(isSubmittingExtend || isSubmittingTerminate || isSubmittingCancelPayment)
+                    }
+
                     Button(isSubmittingExtend ? "Preparation..." : "Prolonger", action: requestExtend)
                         .buttonStyle(.bordered)
-                        .disabled(isSubmittingExtend || isSubmittingTerminate || hasPendingRequest)
+                        .disabled(isSubmittingExtend || isSubmittingTerminate || isSubmittingCancelPayment || hasPendingRequest)
 
                     Button(isSubmittingTerminate ? "Envoi..." : "Terminer la location", action: requestTerminate)
                         .buttonStyle(.borderedProminent)
-                        .disabled(isSubmittingExtend || isSubmittingTerminate)
+                        .disabled(isSubmittingExtend || isSubmittingTerminate || isSubmittingCancelPayment)
                 }
             }
         }
@@ -267,10 +308,14 @@ private struct RentalRequestSheet: View {
         self.rental = rental
         self.onCancel = onCancel
         self.onSubmit = onSubmit
+        let calendar = Calendar(identifier: .gregorian)
+        let today = calendar.startOfDay(for: Date())
+        let tomorrow = calendar.date(byAdding: .day, value: 1, to: today) ?? today
         let baseDate = DatePresentation.parseAPIDay(rental.endDate)
             ?? DatePresentation.parseAPIDay(rental.startDate)
-            ?? Date()
-        let minimumDate = Calendar(identifier: .gregorian).date(byAdding: .day, value: 1, to: baseDate) ?? baseDate
+            ?? today
+        let dayAfterCurrentEnd = calendar.date(byAdding: .day, value: 1, to: baseDate) ?? baseDate
+        let minimumDate = max(tomorrow, dayAfterCurrentEnd)
         self.minimumExtensionDate = minimumDate
         _requestedEndDate = State(initialValue: minimumDate)
     }
@@ -304,6 +349,11 @@ private struct RentalRequestSheet: View {
                     Button("Annuler", action: onCancel)
                 }
             }
+            .onChangeCompat(requestedEndDate) { newValue in
+                if newValue < minimumExtensionDate {
+                    requestedEndDate = minimumExtensionDate
+                }
+            }
         }
     }
 
@@ -330,6 +380,7 @@ private struct RentalTerminationSheet: View {
     @State private var requestedEndDate: Date
     @State private var requestedDate: Date
     @State private var mode: MyRentalsViewModel.ReturnMode = .pickupHome
+    private let minimumTerminationDate: Date
 
     init(
         rental: RentalItem,
@@ -339,9 +390,14 @@ private struct RentalTerminationSheet: View {
         self.rental = rental
         self.onCancel = onCancel
         self.onSubmit = onSubmit
-        let fallbackDate = DatePresentation.parseAPIDay(rental.endDate) ?? Date()
-        _requestedEndDate = State(initialValue: fallbackDate)
-        _requestedDate = State(initialValue: fallbackDate)
+        let calendar = Calendar(identifier: .gregorian)
+        let today = calendar.startOfDay(for: Date())
+        let rentalStartDate = DatePresentation.parseAPIDay(rental.startDate) ?? today
+        let minimumDate = max(today, rentalStartDate)
+        let fallbackDate = DatePresentation.parseAPIDay(rental.endDate) ?? minimumDate
+        self.minimumTerminationDate = minimumDate
+        _requestedEndDate = State(initialValue: max(minimumDate, fallbackDate))
+        _requestedDate = State(initialValue: max(minimumDate, fallbackDate))
     }
 
     var body: some View {
@@ -353,7 +409,7 @@ private struct RentalTerminationSheet: View {
                     LocalizedDatePicker(
                         date: $requestedEndDate,
                         displayedComponents: [.date],
-                        minimumDate: DatePresentation.parseAPIDay(rental.startDate) ?? Date(),
+                        minimumDate: minimumTerminationDate,
                         maximumDate: DatePresentation.parseAPIDay(rental.endDate),
                         style: .inline
                     )
@@ -371,7 +427,7 @@ private struct RentalTerminationSheet: View {
                     LocalizedDatePicker(
                         date: $requestedDate,
                         displayedComponents: [.date],
-                        minimumDate: DatePresentation.parseAPIDay(rental.startDate) ?? Date(),
+                        minimumDate: minimumTerminationDate,
                         maximumDate: requestedEndDate,
                         style: .inline
                     )
@@ -400,8 +456,24 @@ private struct RentalTerminationSheet: View {
                 }
             }
             .onChangeCompat(requestedEndDate) { newValue in
+                if newValue < minimumTerminationDate {
+                    requestedEndDate = minimumTerminationDate
+                    return
+                }
                 if requestedDate > newValue {
                     requestedDate = newValue
+                }
+                if requestedDate < minimumTerminationDate {
+                    requestedDate = minimumTerminationDate
+                }
+            }
+            .onChangeCompat(requestedDate) { newValue in
+                if newValue < minimumTerminationDate {
+                    requestedDate = minimumTerminationDate
+                    return
+                }
+                if newValue > requestedEndDate {
+                    requestedDate = requestedEndDate
                 }
             }
         }

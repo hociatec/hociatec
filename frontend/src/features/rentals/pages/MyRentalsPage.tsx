@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { SiteLayout } from '@/shared/components/layout/SiteLayout';
 import { PublicPageShell, PublicPageSection } from '@/shared/components/layout/PublicPageShell';
@@ -10,6 +10,7 @@ import { useToast } from '@/shared/components/ui/toast';
 import { getHttpErrorMessage } from '@/shared/lib/httpClient';
 import { redirectToTrustedUrl } from '@/shared/lib/redirects';
 import { Dialog, DialogBackdrop, DialogDescription, DialogPanel, DialogTitle } from '@/shared/components/ui/dialog';
+import { cancelCheckoutSession } from '@/features/orders/publicApi';
 import type { RentalItemDto } from '../types/rentals';
 
 type RentalFilter = 'all' | 'upcoming' | 'past';
@@ -38,17 +39,66 @@ const addDaysToApiDate = (value: string | null | undefined, days: number) => {
   return formatApiDateForDateInput(date);
 };
 
+const todayApiDate = () => formatApiDateForDateInput(new Date());
+
+const getMinimumExtensionDate = (currentEndDate: string | null | undefined) => {
+  const tomorrow = addDaysToApiDate(todayApiDate(), 1);
+  const dayAfterCurrentEnd = addDaysToApiDate(currentEndDate, 1);
+
+  if (!tomorrow) {
+    return dayAfterCurrentEnd;
+  }
+  if (!dayAfterCurrentEnd) {
+    return tomorrow;
+  }
+
+  return tomorrow > dayAfterCurrentEnd ? tomorrow : dayAfterCurrentEnd;
+};
+
+const getLatestApiDate = (...values: Array<string | null | undefined>) =>
+  values.reduce<string | null>((latest, value) => {
+    if (!value) {
+      return latest;
+    }
+    if (!latest || value > latest) {
+      return value;
+    }
+
+    return latest;
+  }, null) ?? '';
+
+const clampApiDate = (value: string, minimum?: string, maximum?: string) => {
+  if (!value) {
+    return value;
+  }
+
+  if (minimum && value < minimum) {
+    return minimum;
+  }
+  if (maximum && value > maximum) {
+    return maximum;
+  }
+
+  return value;
+};
+
 const RentalCard = ({
   rental,
   onOpenDialog,
+  onResumeExtensionPayment,
+  onCancelExtensionPayment,
   loadingAction,
 }: {
   rental: RentalItemDto;
   onOpenDialog: (state: RentalDialogState) => void;
+  onResumeExtensionPayment: (rental: RentalItemDto) => void;
+  onCancelExtensionPayment: (rental: RentalItemDto) => void;
   loadingAction?: string | null;
 }) => {
   const isReturned = rental.returnPlan.status === 'completed';
   const hasPendingExtensionPayment = rental.request.status === 'pending_payment';
+  const canResumePendingExtension = hasPendingExtensionPayment && rental.extension.checkoutStatus === 'open' && Boolean(rental.extension.checkoutUrl);
+  const canCancelPendingExtension = hasPendingExtensionPayment && rental.extension.checkoutStatus === 'open' && Boolean(rental.extension.checkoutSessionId);
 
   return (
     <article className="rounded-3xl border border-brand-100 bg-white p-5 shadow-sm">
@@ -82,6 +132,26 @@ const RentalCard = ({
         </div>
         {!isReturned ? (
           <div className="flex flex-wrap gap-2">
+            {canResumePendingExtension ? (
+              <button
+                type="button"
+                className="inline-flex rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-brand-900"
+                onClick={() => onResumeExtensionPayment(rental)}
+                disabled={loadingAction === `resume:${rental.orderItemId}`}
+              >
+                {loadingAction === `resume:${rental.orderItemId}` ? 'Ouverture...' : 'Reprendre le paiement'}
+              </button>
+            ) : null}
+            {canCancelPendingExtension ? (
+              <button
+                type="button"
+                className="inline-flex rounded-full border border-stone-200 px-4 py-2 text-sm font-semibold text-stone-700"
+                onClick={() => onCancelExtensionPayment(rental)}
+                disabled={loadingAction === `cancel-payment:${rental.orderItemId}`}
+              >
+                {loadingAction === `cancel-payment:${rental.orderItemId}` ? 'Annulation...' : 'Annuler cette tentative'}
+              </button>
+            ) : null}
             <button
               type="button"
               className="inline-flex rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-brand-900"
@@ -126,20 +196,71 @@ const RentalActionDialog = ({
   const [requestedEndDate, setRequestedEndDate] = useState<string>('');
   const [requestedReturnDate, setRequestedReturnDate] = useState<string>('');
   const [returnMode, setReturnMode] = useState<'pickup_home' | 'dropoff_store'>('pickup_home');
+  const rental = state?.rental ?? null;
+  const stateType = state?.type ?? null;
+  const minimumExtensionDate = rental ? getMinimumExtensionDate(rental.endDate) : '';
+  const minimumTerminationDate = rental ? getLatestApiDate(todayApiDate(), rental.startDate) : '';
+  const defaultTerminationDate = rental?.endDate ?? '';
+  const normalizedTerminationDate = requestedEndDate || defaultTerminationDate;
+  const minimumReturnDate = getLatestApiDate(minimumTerminationDate, rental?.startDate);
+  const normalizedReturnDate = requestedReturnDate || normalizedTerminationDate;
+  const terminationMaxDate = normalizedTerminationDate || rental?.endDate || undefined;
+  const normalizedExtensionDate = requestedEndDate || minimumExtensionDate;
+
+  useEffect(() => {
+    setRequestedEndDate('');
+    setRequestedReturnDate('');
+    setReturnMode('pickup_home');
+  }, [state?.type, state?.rental.orderItemId]);
+
+  useEffect(() => {
+    if (stateType !== 'extend') {
+      return;
+    }
+
+    const clampedValue = clampApiDate(normalizedExtensionDate, minimumExtensionDate || undefined);
+    if (clampedValue !== requestedEndDate) {
+      setRequestedEndDate(clampedValue);
+    }
+  }, [minimumExtensionDate, normalizedExtensionDate, requestedEndDate, stateType]);
+
+  useEffect(() => {
+    if (stateType !== 'terminate' || !rental) {
+      return;
+    }
+
+    const clampedEndDate = clampApiDate(normalizedTerminationDate, minimumTerminationDate || undefined, rental.endDate || undefined);
+    if (clampedEndDate !== requestedEndDate) {
+      setRequestedEndDate(clampedEndDate);
+      return;
+    }
+
+    const clampedReturnDate = clampApiDate(
+      normalizedReturnDate,
+      minimumReturnDate || undefined,
+      clampedEndDate || terminationMaxDate,
+    );
+    if (clampedReturnDate !== requestedReturnDate) {
+      setRequestedReturnDate(clampedReturnDate);
+    }
+  }, [
+    minimumReturnDate,
+    minimumTerminationDate,
+    normalizedReturnDate,
+    normalizedTerminationDate,
+    requestedEndDate,
+    requestedReturnDate,
+    rental,
+    stateType,
+    terminationMaxDate,
+  ]);
 
   if (!state) {
     return null;
   }
 
-  const rental = state.rental;
+  const activeRental: RentalItemDto = state.rental;
   const title = state.type === 'extend' ? 'Prolonger la location' : 'Terminer la location';
-  const defaultExtensionDate = addDaysToApiDate(rental.endDate, 1);
-
-  const defaultTerminationDate = rental.endDate ?? '';
-  const normalizedTerminationDate = requestedEndDate || defaultTerminationDate;
-  const normalizedReturnDate = requestedReturnDate || normalizedTerminationDate;
-  const terminationMaxDate = normalizedTerminationDate || rental.endDate || undefined;
-  const normalizedExtensionDate = requestedEndDate || defaultExtensionDate;
 
   return (
     <Dialog open onClose={submitting ? () => undefined : onClose} className="relative z-50">
@@ -150,13 +271,13 @@ const RentalActionDialog = ({
             <div className="space-y-2">
               <DialogTitle className="text-2xl font-semibold text-brand-950">{title}</DialogTitle>
               <DialogDescription className="text-sm text-stone-600">
-                {rental.productName}
+                {activeRental.productName}
               </DialogDescription>
             </div>
 
             <div className="mt-6 grid gap-4">
               <p className="text-sm text-stone-700">
-                Période actuelle: {formatDateInputForDisplay(rental.startDate)} au {formatDateInputForDisplay(rental.endDate)}
+                Période actuelle: {formatDateInputForDisplay(activeRental.startDate)} au {formatDateInputForDisplay(activeRental.endDate)}
               </p>
 
               {state.type === 'terminate' ? (
@@ -167,10 +288,14 @@ const RentalActionDialog = ({
                       type="date"
                       className="rounded-2xl border border-brand-200 px-4 py-3 text-sm"
                       value={normalizedTerminationDate}
-                      min={rental.startDate ?? undefined}
-                      max={rental.endDate ?? undefined}
+                      min={minimumTerminationDate || undefined}
+                      max={activeRental.endDate ?? undefined}
                       onChange={(event) => {
-                        const value = event.target.value;
+                        const value = clampApiDate(
+                          event.target.value,
+                          minimumTerminationDate || undefined,
+                          activeRental.endDate || undefined,
+                        );
                         setRequestedEndDate(value);
                         if (requestedReturnDate && requestedReturnDate > value) {
                           setRequestedReturnDate(value);
@@ -195,9 +320,16 @@ const RentalActionDialog = ({
                       type="date"
                       className="rounded-2xl border border-brand-200 px-4 py-3 text-sm"
                       value={normalizedReturnDate}
-                      min={rental.startDate ?? undefined}
+                      min={minimumReturnDate || undefined}
                       max={terminationMaxDate}
-                      onChange={(event) => setRequestedReturnDate(event.target.value)}
+                      onChange={(event) =>
+                        setRequestedReturnDate(
+                          clampApiDate(
+                            event.target.value,
+                            minimumReturnDate || undefined,
+                            terminationMaxDate,
+                          ),
+                        )}
                     />
                   </label>
                 </>
@@ -209,8 +341,11 @@ const RentalActionDialog = ({
                       type="date"
                       className="rounded-2xl border border-brand-200 px-4 py-3 text-sm"
                       value={normalizedExtensionDate}
-                      min={defaultExtensionDate || undefined}
-                      onChange={(event) => setRequestedEndDate(event.target.value)}
+                      min={minimumExtensionDate || undefined}
+                      onChange={(event) =>
+                        setRequestedEndDate(
+                          clampApiDate(event.target.value, minimumExtensionDate || undefined),
+                        )}
                     />
                   </label>
                   <p className="text-sm text-stone-600">
@@ -235,10 +370,10 @@ const RentalActionDialog = ({
                 disabled={submitting}
                 onClick={() => {
                   if (state.type === 'terminate') {
-                    onConfirmTermination(rental, normalizedTerminationDate, returnMode, normalizedReturnDate);
+                    onConfirmTermination(activeRental, normalizedTerminationDate, returnMode, normalizedReturnDate);
                     return;
                   }
-                  onConfirmExtension(rental, normalizedExtensionDate);
+                  onConfirmExtension(activeRental, normalizedExtensionDate);
                 }}
               >
                 {submitting ? 'Envoi...' : state.type === 'extend' ? 'Continuer vers le paiement' : 'Valider'}
@@ -292,6 +427,20 @@ export const MyRentalsPage = () => {
     },
   });
 
+  const cancelExtensionPaymentMutation = useMutation({
+    mutationFn: (stripeSessionId: string) => cancelCheckoutSession(stripeSessionId),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['rentals', 'me'] });
+      toast.show('La tentative de paiement a été annulée. Vous pouvez relancer une prolongation.', { variant: 'success' });
+    },
+    onError: (reason) => {
+      toast.show(getHttpErrorMessage(reason, "Impossible d'annuler ce paiement en attente."), { variant: 'error' });
+    },
+    onSettled: () => {
+      setLoadingAction(null);
+    },
+  });
+
   const terminationMutation = useMutation({
     mutationFn: ({
       orderItemId,
@@ -342,6 +491,12 @@ export const MyRentalsPage = () => {
       return;
     }
 
+    const minimumExtensionDate = getMinimumExtensionDate(rental.endDate);
+    if (minimumExtensionDate && requestedEndDate < minimumExtensionDate) {
+      toast.show(`Choisissez une date au moins égale au ${formatDateInputForDisplay(minimumExtensionDate)}.`, { variant: 'error' });
+      return;
+    }
+
     setLoadingAction(`extend:${rental.orderItemId}`);
     requestMutation.mutate({
       orderItemId: rental.orderItemId,
@@ -360,6 +515,20 @@ export const MyRentalsPage = () => {
       return;
     }
 
+    const minimumTerminationDate = getLatestApiDate(todayApiDate(), rental.startDate);
+    if (minimumTerminationDate && requestedEndDate < minimumTerminationDate) {
+      toast.show(`Choisissez une date de fin au moins égale au ${formatDateInputForDisplay(minimumTerminationDate)}.`, { variant: 'error' });
+      return;
+    }
+    if (returnRequestedDate < minimumTerminationDate) {
+      toast.show(`Choisissez une date de restitution au moins égale au ${formatDateInputForDisplay(minimumTerminationDate)}.`, { variant: 'error' });
+      return;
+    }
+    if (returnRequestedDate > requestedEndDate) {
+      toast.show('La date de restitution ne peut pas dépasser la date de fin choisie.', { variant: 'error' });
+      return;
+    }
+
     setLoadingAction(`terminate:${rental.orderItemId}`);
     terminationMutation.mutate({
       orderItemId: rental.orderItemId,
@@ -367,6 +536,27 @@ export const MyRentalsPage = () => {
       returnMode,
       returnRequestedDate,
     });
+  };
+
+  const resumeExtensionPayment = (rental: RentalItemDto) => {
+    if (!rental.extension.checkoutUrl) {
+      toast.show("Impossible de retrouver le lien de paiement de cette prolongation.", { variant: 'error' });
+      return;
+    }
+
+    setLoadingAction(`resume:${rental.orderItemId}`);
+    redirectToTrustedUrl(rental.extension.checkoutUrl);
+    window.setTimeout(() => setLoadingAction((current) => current === `resume:${rental.orderItemId}` ? null : current), 250);
+  };
+
+  const cancelExtensionPayment = (rental: RentalItemDto) => {
+    if (!rental.extension.checkoutSessionId) {
+      toast.show("Impossible de retrouver la session de paiement à annuler.", { variant: 'error' });
+      return;
+    }
+
+    setLoadingAction(`cancel-payment:${rental.orderItemId}`);
+    cancelExtensionPaymentMutation.mutate(rental.extension.checkoutSessionId);
   };
 
   return (
@@ -443,6 +633,8 @@ export const MyRentalsPage = () => {
                       key={`${activeFilter}-${rental.orderItemId}`}
                       rental={rental}
                       onOpenDialog={setDialogState}
+                      onResumeExtensionPayment={resumeExtensionPayment}
+                      onCancelExtensionPayment={cancelExtensionPayment}
                       loadingAction={loadingAction}
                     />
                   ))

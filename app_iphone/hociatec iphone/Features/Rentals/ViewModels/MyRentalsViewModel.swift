@@ -137,6 +137,39 @@ final class MyRentalsViewModel: ObservableObject {
         }
     }
 
+    func resumePendingExtensionPayment(for rental: RentalItem) {
+        guard let rawURL = rental.extensionState.checkoutUrl, let url = URL(string: rawURL) else {
+            error = "Impossible de retrouver le lien de paiement de cette prolongation."
+            return
+        }
+
+        checkoutURL = url
+    }
+
+    func cancelPendingExtensionPayment(for rental: RentalItem) async {
+        guard let stripeSessionId = rental.extensionState.checkoutSessionId, !stripeSessionId.isEmpty else {
+            error = "Impossible de retrouver la session de paiement a annuler."
+            return
+        }
+
+        let actionKey = "cancel-payment:\(rental.orderItemId)"
+        submittingActionKey = actionKey
+        error = nil
+        successMessage = nil
+
+        do {
+            _ = try await service.cancelPendingExtensionCheckout(stripeSessionId: stripeSessionId)
+            await load(force: true)
+            successMessage = "La tentative de paiement a ete annulee. Vous pouvez relancer une prolongation."
+        } catch {
+            self.error = error.localizedDescription
+        }
+
+        if submittingActionKey == actionKey {
+            submittingActionKey = nil
+        }
+    }
+
     private func apply(_ updated: RentalItem) {
         if let index = upcoming.firstIndex(where: { $0.id == updated.id }) {
             upcoming[index] = updated

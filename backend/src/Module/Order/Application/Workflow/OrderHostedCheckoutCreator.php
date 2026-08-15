@@ -48,7 +48,7 @@ final readonly class OrderHostedCheckoutCreator
             'order_id' => (string) $orderId,
             'user_id' => (string) ($user->getId() ?? 0),
         ];
-        [$successUrl, $cancelUrl] = $this->checkoutReturnUrls($orderId, $clientPlatform);
+        [$successUrl, $cancelUrl] = $this->checkoutReturnUrls($order, $clientPlatform);
         $payload = [
             'mode' => 'payment',
             'success_url' => $successUrl,
@@ -130,8 +130,9 @@ final readonly class OrderHostedCheckoutCreator
     /**
      * @return array{0: string, 1: string}
      */
-    private function checkoutReturnUrls(int $orderId, ?string $clientPlatform): array
+    private function checkoutReturnUrls(Order $order, ?string $clientPlatform): array
     {
+        $orderId = (int) $order->getId();
         if ('ios' === $clientPlatform) {
             $frontendUrl = rtrim($this->frontendUrl, '/');
 
@@ -142,10 +143,31 @@ final readonly class OrderHostedCheckoutCreator
         }
 
         $frontendUrl = rtrim($this->frontendUrl, '/');
+        if ($this->isRentalExtensionOrder($order)) {
+            return [
+                $frontendUrl.'/locations/me?payment=success&session_id={CHECKOUT_SESSION_ID}',
+                $frontendUrl.'/locations/me?payment=cancelled',
+            ];
+        }
 
         return [
             $frontendUrl.'/checkout/success?session_id={CHECKOUT_SESSION_ID}',
             $frontendUrl.'/orders/'.$orderId.'?payment=cancelled',
         ];
+    }
+
+    private function isRentalExtensionOrder(Order $order): bool
+    {
+        if ($order->getItems()->isEmpty()) {
+            return false;
+        }
+
+        foreach ($order->getItems() as $item) {
+            if (null === $item->getRentalOriginOrderItemId()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

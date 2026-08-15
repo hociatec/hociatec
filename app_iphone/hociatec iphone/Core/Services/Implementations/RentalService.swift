@@ -27,4 +27,8 @@ struct RentalService: RentalServing {
             returnRequestedDate: returnRequestedDate
         )
     }
+
+    func cancelPendingExtensionCheckout(stripeSessionId: String) async throws -> CheckoutSessionStatusData {
+        try await api.cancelPendingExtensionCheckout(stripeSessionId: stripeSessionId)
+    }
 }

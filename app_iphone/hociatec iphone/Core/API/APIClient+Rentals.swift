@@ -64,4 +64,8 @@ extension APIClient {
         )
         return data.rental
     }
+
+    func cancelPendingExtensionCheckout(stripeSessionId: String) async throws -> CheckoutSessionStatusData {
+        try await cancelCheckoutSession(stripeSessionId: stripeSessionId)
+    }
 }
