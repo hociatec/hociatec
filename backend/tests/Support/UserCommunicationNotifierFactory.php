@@ -58,7 +58,7 @@ final class UserCommunicationNotifierFactory
 
     private static function emailSender(object $mailer): EmailSender
     {
-        return new readonly class($mailer) implements EmailSender {
+        return new class($mailer) implements EmailSender {
             public function __construct(private object $mailer)
             {
             }
@@ -72,7 +72,7 @@ final class UserCommunicationNotifierFactory
 
     private static function messageDispatcher(object $bus): AsyncMessageDispatcher
     {
-        return new readonly class($bus) implements AsyncMessageDispatcher {
+        return new class($bus) implements AsyncMessageDispatcher {
             public function __construct(private object $bus)
             {
             }

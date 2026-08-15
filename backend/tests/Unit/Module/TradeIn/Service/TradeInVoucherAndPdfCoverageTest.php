@@ -162,7 +162,7 @@ SH);
 
     private function voucherRepository(): VoucherRepositoryPort
     {
-        return new readonly class implements VoucherRepositoryPort {
+        return new class implements VoucherRepositoryPort {
             public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?Voucher
             {
                 return null;
@@ -206,7 +206,7 @@ SH);
 
     private function voucherNotificationService(?EmailSender $mailer = null): VoucherNotificationEmailService
     {
-        $templates = new readonly class implements EmailTemplateRepositoryPort {
+        $templates = new class implements EmailTemplateRepositoryPort {
             public function find(mixed $id, LockMode|int|null $lockMode = null, ?int $lockVersion = null): ?EmailTemplate
             {
                 return null;
@@ -242,7 +242,7 @@ SH);
                 return null;
             }
         };
-        $notifications = new readonly class implements AccountNotificationEventRepositoryPort {
+        $notifications = new class implements AccountNotificationEventRepositoryPort {
             public function findRecentForUser(User $user, int $limit = 30, int $offset = 0): array
             {
                 return [];
