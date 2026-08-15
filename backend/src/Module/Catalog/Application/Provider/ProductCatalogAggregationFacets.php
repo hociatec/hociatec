@@ -209,6 +209,10 @@ final class ProductCatalogAggregationFacets
         $allowed = [];
         $position = 0;
 
+        if (null === $selectedCategorySlug) {
+            return [];
+        }
+
         if (null !== $selectedCategorySlug && isset($categoryAttributeDefinitions[$selectedCategorySlug])) {
             foreach ($categoryAttributeDefinitions[$selectedCategorySlug] as $definition) {
                 $code = trim((string) ($definition['code'] ?? ''));
@@ -226,24 +230,6 @@ final class ProductCatalogAggregationFacets
             }
 
             return $allowed;
-        }
-
-        foreach ($categoryAttributeDefinitions as $definitions) {
-            foreach ($definitions as $definition) {
-                $code = trim((string) ($definition['code'] ?? ''));
-                $label = trim((string) ($definition['label'] ?? ''));
-                $isGlobalFilter = (bool) ($definition['isGlobalFilter'] ?? false);
-
-                if (!$isGlobalFilter || '' === $code || '' === $label || isset($allowed[$code])) {
-                    continue;
-                }
-
-                $allowed[$code] = [
-                    'code' => $code,
-                    'label' => $label,
-                    'position' => $position++,
-                ];
-            }
         }
 
         return $allowed;
