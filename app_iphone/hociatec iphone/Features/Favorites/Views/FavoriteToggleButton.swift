@@ -31,6 +31,16 @@ struct FavoriteToggleButton: View {
         }
         .buttonStyle(.borderless)
         .disabled(!account.isLoggedIn || isLoading)
+        .overlay {
+            if !account.isLoggedIn {
+                Circle()
+                    .fill(Color.clear)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Circle())
+                    .onTapGesture {}
+                    .accessibilityHidden(true)
+            }
+        }
         .accessibilityLabel(isFavorite ? "Retirer des favoris" : "Ajouter aux favoris")
         .accessibilityHint(account.isLoggedIn ? "Met à jour ce favori" : "Connectez-vous pour ajouter ce produit aux favoris")
         .accessibilityAddTraits(isFavorite ? .isSelected : [])

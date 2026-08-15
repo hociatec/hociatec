@@ -42,10 +42,10 @@ struct ProductCatalogCard: View {
             ProductCatalogActions(
                 product: product,
                 cart: cart,
-                onFavoriteRemoved: onFavoriteRemoved,
                 addToCart: {
                     Task { await addCurrentProductToCart() }
-                }
+                },
+                onFavoriteRemoved: onFavoriteRemoved
             )
         }
         .padding(.vertical, 6)
