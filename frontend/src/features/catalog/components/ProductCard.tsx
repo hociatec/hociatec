@@ -10,7 +10,6 @@ import type { CatalogProduct } from '../api';
 import {
   getCatalogProductConfiguration,
   getCatalogProductDisplayName,
-  getCatalogVariantSummaries,
 } from '../utils/productDisplay';
 import { resolveDisplayPriceCents } from '../utils/productPageDisplay';
 
@@ -24,7 +23,6 @@ export const ProductCard = ({ product, actionSlot }: ProductCardProps) => {
   const productLink = `/catalogue/produits/${product.slug}?mode=${product.sellingType}`;
   const productDisplayName = getCatalogProductDisplayName(product);
   const compactSpecs = getCatalogProductConfiguration(product);
-  const variantSummaries = getCatalogVariantSummaries(product);
   const sellingContext = `${product.category.name} (${product.sellingTypeLabel})`;
   const productPrice = resolveDisplayPriceCents(product);
 
@@ -70,16 +68,6 @@ export const ProductCard = ({ product, actionSlot }: ProductCardProps) => {
             </p>
           )}
         </div>
-        {(product.variantsCount ?? 1) > 1 && (
-          <div className="catalog-product-card__variant-summary">
-            {variantSummaries.map((attribute) => (
-              <p key={attribute.code} className="catalog-product-card__variant-line">
-                <span className="catalog-product-card__fact-label">{attribute.label}:</span>{' '}
-                {attribute.values.join(', ')}
-              </p>
-            ))}
-          </div>
-        )}
         {product.shortDescription && (
           <p className="catalog-product-card__excerpt">{product.shortDescription}</p>
         )}
