@@ -57,11 +57,9 @@ export const buildProductVariantOptions = (variants: CatalogProduct[]) =>
       const primaryAttribute = normalizedAttributes[0];
       const storage =
         normalizedAttributes.find((attribute) => attribute.code === 'storage')?.value.trim() ||
-        variant.storageCapacity?.trim() ||
         null;
       const color =
         normalizedAttributes.find((attribute) => attribute.code === 'color')?.value.trim() ||
-        variant.color?.trim() ||
         null;
       const title = primaryAttribute?.value.trim() || variant.name;
       const detailAttributes = normalizedAttributes

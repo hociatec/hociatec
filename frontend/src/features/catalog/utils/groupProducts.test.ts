@@ -13,8 +13,7 @@ const makeProduct = (overrides: Partial<CatalogProduct>): CatalogProduct =>
     description: '',
     priceCents: 129900,
     sellingType: 'sale',
-    color: null,
-    storageCapacity: null,
+    attributes: [],
     stock: 1,
     isPublished: true,
     isFeaturedHome: false,
@@ -30,8 +29,22 @@ const makeProduct = (overrides: Partial<CatalogProduct>): CatalogProduct =>
 describe('groupCatalogProducts', () => {
   it('groups variants, keeps the lead variant and aggregates stock/attributes', () => {
     const grouped = groupCatalogProducts([
-      makeProduct({ id: 2, sku: 'LP-2', variantGroup: 'laptop-pro', variantPosition: 2, color: 'Bleu', stock: 4 }),
-      makeProduct({ id: 1, sku: 'LP-1', variantGroup: 'laptop-pro', variantPosition: 1, color: 'Noir', stock: 2 }),
+      makeProduct({
+        id: 2,
+        sku: 'LP-2',
+        variantGroup: 'laptop-pro',
+        variantPosition: 2,
+        stock: 4,
+        attributes: [{ code: 'color', label: 'Couleur', value: 'Bleu' }],
+      }),
+      makeProduct({
+        id: 1,
+        sku: 'LP-1',
+        variantGroup: 'laptop-pro',
+        variantPosition: 1,
+        stock: 2,
+        attributes: [{ code: 'color', label: 'Couleur', value: 'Noir' }],
+      }),
     ]);
 
     expect(grouped).toHaveLength(1);
@@ -39,7 +52,7 @@ describe('groupCatalogProducts', () => {
       id: 1,
       variantsCount: 2,
       totalStock: 6,
-      variantColors: ['Bleu', 'Noir'],
+      variantAttributes: [{ code: 'color', label: 'Couleur', values: ['Bleu', 'Noir'] }],
     });
   });
 });
@@ -48,10 +61,20 @@ describe('groupMatchesFilters', () => {
   it('keeps a whole group when at least one variant matches the predicate', () => {
     const grouped = groupMatchesFilters(
       [
-        makeProduct({ id: 1, sku: 'LP-1', variantGroup: 'laptop-pro', color: 'Noir' }),
-        makeProduct({ id: 2, sku: 'LP-2', variantGroup: 'laptop-pro', color: 'Bleu' }),
+        makeProduct({
+          id: 1,
+          sku: 'LP-1',
+          variantGroup: 'laptop-pro',
+          attributes: [{ code: 'color', label: 'Couleur', value: 'Noir' }],
+        }),
+        makeProduct({
+          id: 2,
+          sku: 'LP-2',
+          variantGroup: 'laptop-pro',
+          attributes: [{ code: 'color', label: 'Couleur', value: 'Bleu' }],
+        }),
       ],
-      (product) => product.color === 'Bleu',
+      (product) => product.attributes?.some((attribute) => attribute.code === 'color' && attribute.value === 'Bleu') ?? false,
     );
 
     expect(grouped).toHaveLength(1);

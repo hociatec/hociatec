@@ -22,7 +22,6 @@ const nonEmpty = (value?: string | null) => {
 };
 
 export const getCatalogProductConfiguration = (product: CatalogProduct) => {
-  const variantCount = product.variantsCount ?? 1;
   const dynamicValues = (product.attributes ?? [])
     .map((attribute) => nonEmpty(attribute.value))
     .filter((value): value is string => Boolean(value));
@@ -31,14 +30,7 @@ export const getCatalogProductConfiguration = (product: CatalogProduct) => {
     return Array.from(new Set(dynamicValues)).join(' • ');
   }
 
-  const fallbackValues = [
-    nonEmpty(product.brand),
-    nonEmpty(product.memoryRam),
-    variantCount > 1 ? null : nonEmpty(product.storageCapacity),
-    variantCount > 1 ? null : nonEmpty(product.color),
-  ].filter((value): value is string => Boolean(value));
-
-  return fallbackValues.length > 0 ? fallbackValues.join(' • ') : null;
+  return nonEmpty(product.brand);
 };
 
 export const getCatalogVariantSummaries = (product: CatalogProduct) => {
@@ -72,27 +64,5 @@ export const getCatalogVariantSummaries = (product: CatalogProduct) => {
     return dynamicSummaries;
   }
 
-  return [
-    {
-      code: 'ram',
-      label: 'RAM',
-      values: (product.variantMemoryRams ?? [])
-        .map((value) => nonEmpty(value))
-        .filter((value): value is string => Boolean(value)),
-    },
-    {
-      code: 'storage',
-      label: 'Stockages',
-      values: (product.variantStorages ?? [])
-        .map((value) => nonEmpty(value))
-        .filter((value): value is string => Boolean(value)),
-    },
-    {
-      code: 'color',
-      label: 'Coloris',
-      values: (product.variantColors ?? [])
-        .map((value) => nonEmpty(value))
-        .filter((value): value is string => Boolean(value)),
-    },
-  ].filter((attribute) => attribute.values.length > 0);
+  return [];
 };

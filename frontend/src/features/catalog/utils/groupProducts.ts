@@ -19,17 +19,30 @@ const compareVariantLead = (left: CatalogProduct, right: CatalogProduct) => {
   return left.id - right.id;
 };
 
-const collectVariantValues = (
-  products: CatalogProduct[],
-  selector: (product: CatalogProduct) => string | null | undefined,
-) =>
-  Array.from(
-    new Set(
-      products
-        .map((product) => selector(product)?.trim())
-        .filter((value): value is string => Boolean(value)),
-    ),
-  ).sort((left, right) => left.localeCompare(right, 'fr'));
+const collectVariantAttributes = (products: CatalogProduct[]) => {
+  const byCode = new Map<string, { code: string; label: string; values: string[] }>();
+
+  products.forEach((product) => {
+    (product.attributes ?? []).forEach((attribute) => {
+      const code = attribute.code.trim();
+      const label = attribute.label.trim();
+      const value = attribute.value.trim();
+
+      if (!code || !label || !value) {
+        return;
+      }
+
+      const current = byCode.get(code) ?? { code, label, values: [] };
+      if (!current.values.includes(value)) {
+        current.values.push(value);
+        current.values.sort((left, right) => left.localeCompare(right, 'fr'));
+      }
+      byCode.set(code, current);
+    });
+  });
+
+  return Array.from(byCode.values()).sort((left, right) => left.label.localeCompare(right.label, 'fr'));
+};
 
 const computeTotalStock = (products: CatalogProduct[]) =>
   products.reduce((total, product) => total + product.stock, 0);
@@ -53,8 +66,7 @@ export const groupCatalogProducts = (products: CatalogProduct[]): CatalogProduct
       ...lead,
       variantsCount: sorted.length,
       totalStock: computeTotalStock(sorted),
-      variantColors: collectVariantValues(sorted, (product) => product.color),
-      variantStorages: collectVariantValues(sorted, (product) => product.storageCapacity),
+      variantAttributes: collectVariantAttributes(sorted),
     };
   });
 };
@@ -82,8 +94,7 @@ export const groupMatchesFilters = (
         ...lead,
         variantsCount: sorted.length,
         totalStock: computeTotalStock(sorted),
-        variantColors: collectVariantValues(sorted, (product) => product.color),
-        variantStorages: collectVariantValues(sorted, (product) => product.storageCapacity),
+        variantAttributes: collectVariantAttributes(sorted),
       };
     });
 };
