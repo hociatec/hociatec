@@ -232,26 +232,6 @@ private struct RentalRow: View {
     }
 }
 
-private struct RentalExtensionOption: Identifiable, Hashable {
-    let totalMonths: Int
-    let additionalMonths: Int
-    let endDate: Date
-
-    var id: Int { totalMonths }
-
-    var durationLabel: String {
-        "+\(additionalMonths) mois"
-    }
-
-    var totalLabel: String {
-        "\(totalMonths) mois au total"
-    }
-
-    var dateLabel: String {
-        DateFormatters.frDay.string(from: endDate)
-    }
-}
-
 private struct RentalActionSheetState: Identifiable {
     enum Kind {
         case extend
@@ -276,9 +256,8 @@ private struct RentalRequestSheet: View {
     let onCancel: () -> Void
     let onSubmit: (String) -> Void
 
-    private let extensionOptions: [RentalExtensionOption]
     @State private var requestedEndDate: Date
-    @State private var selectedExtensionMonths: Int?
+    private let minimumExtensionDate: Date
 
     init(
         rental: RentalItem,
@@ -288,13 +267,12 @@ private struct RentalRequestSheet: View {
         self.rental = rental
         self.onCancel = onCancel
         self.onSubmit = onSubmit
-        let fallback = DatePresentation.parseAPIDay(rental.endDate)
+        let baseDate = DatePresentation.parseAPIDay(rental.endDate)
             ?? DatePresentation.parseAPIDay(rental.startDate)
             ?? Date()
-        let generatedOptions = Self.buildExtensionOptions(for: rental)
-        self.extensionOptions = generatedOptions
-        _selectedExtensionMonths = State(initialValue: generatedOptions.first?.totalMonths)
-        _requestedEndDate = State(initialValue: generatedOptions.first?.endDate ?? fallback)
+        let minimumDate = Calendar(identifier: .gregorian).date(byAdding: .day, value: 1, to: baseDate) ?? baseDate
+        self.minimumExtensionDate = minimumDate
+        _requestedEndDate = State(initialValue: minimumDate)
     }
 
     var body: some View {
@@ -305,45 +283,17 @@ private struct RentalRequestSheet: View {
                     LabeledContent("Période actuelle") {
                         Text("\(DatePresentation.formatAPIDay(rental.startDate)) - \(DatePresentation.formatAPIDay(rental.endDate))")
                     }
-                    if extensionOptions.isEmpty {
-                        Text("Impossible de calculer une échéance valide pour cette location.")
-                            .foregroundStyle(.secondary)
-                    } else {
-                        LabeledContent("Nouvelle échéance", value: DateFormatters.frDay.string(from: requestedEndDate))
-                        Text("Choisissez une échéance mensuelle valide. La prolongation sera ensuite envoyée au paiement.")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-
-                        ForEach(extensionOptions) { option in
-                            Button {
-                                selectedExtensionMonths = option.totalMonths
-                                requestedEndDate = option.endDate
-                            } label: {
-                                HStack(alignment: .center, spacing: 12) {
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(option.durationLabel)
-                                            .font(.headline)
-                                        Text("Jusqu’au \(option.dateLabel)")
-                                            .font(.subheadline)
-                                            .foregroundStyle(.secondary)
-                                    }
-                                    Spacer()
-                                    Text(option.totalLabel)
-                                        .font(.footnote.weight(.semibold))
-                                        .foregroundStyle(.secondary)
-                                    Image(systemName: selectedExtensionMonths == option.totalMonths ? "largecircle.fill.circle" : "circle")
-                                        .foregroundStyle(
-                                            selectedExtensionMonths == option.totalMonths
-                                                ? Color.accentColor
-                                                : Color.secondary
-                                        )
-                                }
-                                .padding(.vertical, 6)
-                                .contentShape(Rectangle())
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
+                    LabeledContent("Nouvelle échéance", value: DateFormatters.frDay.string(from: requestedEndDate))
+                    LocalizedDatePicker(
+                        date: $requestedEndDate,
+                        displayedComponents: [.date],
+                        minimumDate: minimumExtensionDate,
+                        style: .inline
+                    )
+                    .frame(maxWidth: .infinity, minHeight: 320)
+                    Text("Choisissez la date exacte de nouvelle échéance. Le paiement sera calculé automatiquement selon la durée nécessaire.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
                 submitSection
             }
@@ -362,34 +312,11 @@ private struct RentalRequestSheet: View {
         Section {
             ProductAddToCartButton(
                 isLoading: false,
-                isDisabled: extensionOptions.isEmpty,
+                isDisabled: false,
                 label: "Continuer vers le paiement",
                 action: {
                     onSubmit(DatePresentation.encodeAPIDay(requestedEndDate))
                 }
-            )
-        }
-    }
-
-    private static func buildExtensionOptions(for rental: RentalItem, limit: Int = 6) -> [RentalExtensionOption] {
-        guard let startDate = DatePresentation.parseAPIDay(rental.startDate) else {
-            return []
-        }
-
-        let currentMonths = max(1, rental.rentalMonths ?? 1)
-        let calendar = Calendar(identifier: .gregorian)
-
-        return (1...limit).compactMap { offset in
-            let totalMonths = currentMonths + offset
-            guard let monthAnchor = calendar.date(byAdding: .month, value: totalMonths, to: startDate),
-                  let endDate = calendar.date(byAdding: .day, value: -1, to: monthAnchor) else {
-                return nil
-            }
-
-            return RentalExtensionOption(
-                totalMonths: totalMonths,
-                additionalMonths: offset,
-                endDate: endDate
             )
         }
     }

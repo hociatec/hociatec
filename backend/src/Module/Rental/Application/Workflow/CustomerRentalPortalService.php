@@ -77,12 +77,12 @@ final readonly class CustomerRentalPortalService
         }
 
         if ('extend' === $action) {
-            $alignedMonths = RentalPeriodCalculator::findAlignedMonthsForEndDate($currentStartDate, $requestedDate);
-            if (null === $alignedMonths) {
-                throw new \InvalidArgumentException('Pour une prolongation automatique, choisissez une date correspondant à une échéance de location valide.');
+            $coveredMonths = RentalPeriodCalculator::findMinimumMonthsCoveringEndDate($currentStartDate, $requestedDate);
+            if (null === $coveredMonths) {
+                throw new \InvalidArgumentException('La nouvelle échéance demandée est invalide.');
             }
 
-            return $this->preparePaidExtension($user, $item, $alignedMonths, $requestedDate, $clientPlatform, $today);
+            return $this->preparePaidExtension($user, $item, $coveredMonths, $requestedDate, $clientPlatform, $today);
         }
 
         if ('end_early' === $action) {
@@ -228,9 +228,9 @@ final readonly class CustomerRentalPortalService
     }
 
     /** @return array{rental:array<string,mixed>,checkout:array<string,mixed>} */
-    private function preparePaidExtension(User $user, OrderItem $item, int $alignedMonths, \DateTimeImmutable $requestedDate, ?string $clientPlatform, \DateTimeImmutable $today): array
+    private function preparePaidExtension(User $user, OrderItem $item, int $coveredMonths, \DateTimeImmutable $requestedDate, ?string $clientPlatform, \DateTimeImmutable $today): array
     {
-        $additionalMonths = $alignedMonths - max(1, (int) ($item->getRentalMonths() ?? 1));
+        $additionalMonths = $coveredMonths - max(1, (int) ($item->getRentalMonths() ?? 1));
         if ($additionalMonths < 1) {
             throw new \InvalidArgumentException('Cette prolongation ne crée aucun mois supplémentaire à facturer.');
         }

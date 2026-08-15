@@ -18,12 +18,6 @@ type RentalDialogState =
   | { type: 'extend'; rental: RentalItemDto }
   | { type: 'terminate'; rental: RentalItemDto };
 
-type RentalExtensionOption = {
-  totalMonths: number;
-  additionalMonths: number;
-  endDate: string;
-};
-
 const formatReturnMode = (mode: string | null | undefined) =>
   mode === 'pickup_home' ? 'Récupération à domicile' : mode === 'dropoff_store' ? 'Dépôt en boutique' : 'Non défini';
 
@@ -33,35 +27,15 @@ const parseApiDate = (value: string | null | undefined) => {
   return Number.isNaN(date.getTime()) ? null : date;
 };
 
-const computeAlignedRentalEndDate = (startDate: string, totalMonths: number) => {
-  const start = parseApiDate(startDate);
-  if (!start) {
-    return startDate;
+const addDaysToApiDate = (value: string | null | undefined, days: number) => {
+  const date = parseApiDate(value);
+  if (!date) {
+    return '';
   }
 
-  start.setMonth(start.getMonth() + Math.max(1, totalMonths));
-  start.setDate(start.getDate() - 1);
+  date.setDate(date.getDate() + days);
 
-  return formatApiDateForDateInput(start);
-};
-
-const buildExtensionOptions = (rental: RentalItemDto, limit = 6): RentalExtensionOption[] => {
-  if (!rental.startDate) {
-    return [];
-  }
-
-  const currentMonths = Math.max(1, rental.rentalMonths ?? 1);
-
-  return Array.from({ length: limit }, (_, index) => {
-    const additionalMonths = index + 1;
-    const totalMonths = currentMonths + additionalMonths;
-
-    return {
-      totalMonths,
-      additionalMonths,
-      endDate: computeAlignedRentalEndDate(rental.startDate ?? '', totalMonths),
-    };
-  });
+  return formatApiDateForDateInput(date);
 };
 
 const RentalCard = ({
@@ -158,13 +132,14 @@ const RentalActionDialog = ({
   }
 
   const rental = state.rental;
-  const extensionOptions = state.type === 'extend' ? buildExtensionOptions(rental) : [];
   const title = state.type === 'extend' ? 'Prolonger la location' : 'Terminer la location';
+  const defaultExtensionDate = addDaysToApiDate(rental.endDate, 1);
 
   const defaultTerminationDate = rental.endDate ?? '';
   const normalizedTerminationDate = requestedEndDate || defaultTerminationDate;
   const normalizedReturnDate = requestedReturnDate || normalizedTerminationDate;
   const terminationMaxDate = normalizedTerminationDate || rental.endDate || undefined;
+  const normalizedExtensionDate = requestedEndDate || defaultExtensionDate;
 
   return (
     <Dialog open onClose={submitting ? () => undefined : onClose} className="relative z-50">
@@ -227,32 +202,21 @@ const RentalActionDialog = ({
                   </label>
                 </>
               ) : (
-                <div className="grid gap-3">
+                <>
+                  <label className="grid gap-2 text-sm font-medium text-brand-950">
+                    Nouvelle échéance
+                    <input
+                      type="date"
+                      className="rounded-2xl border border-brand-200 px-4 py-3 text-sm"
+                      value={normalizedExtensionDate}
+                      min={defaultExtensionDate || undefined}
+                      onChange={(event) => setRequestedEndDate(event.target.value)}
+                    />
+                  </label>
                   <p className="text-sm text-stone-600">
-                    Choisissez une échéance valide. La prolongation sera ensuite envoyée au paiement.
+                    Choisissez la date exacte de nouvelle échéance. Le paiement sera calculé automatiquement selon la durée nécessaire.
                   </p>
-                  {extensionOptions.map((option) => {
-                    const isSelected = requestedEndDate === option.endDate || (!requestedEndDate && option === extensionOptions[0]);
-
-                    return (
-                      <button
-                        key={option.endDate}
-                        type="button"
-                        className={[
-                          'flex items-center justify-between rounded-2xl border px-4 py-3 text-left transition',
-                          isSelected ? 'border-brand-900 bg-brand-50' : 'border-brand-100 bg-white',
-                        ].join(' ')}
-                        onClick={() => setRequestedEndDate(option.endDate)}
-                      >
-                        <span>
-                          <span className="block text-sm font-semibold text-brand-950">+{option.additionalMonths} mois</span>
-                          <span className="block text-sm text-stone-600">Jusqu’au {formatDateInputForDisplay(option.endDate)}</span>
-                        </span>
-                        <span className="text-sm font-semibold text-brand-900">{option.totalMonths} mois au total</span>
-                      </button>
-                    );
-                  })}
-                </div>
+                </>
               )}
             </div>
 
@@ -274,7 +238,7 @@ const RentalActionDialog = ({
                     onConfirmTermination(rental, normalizedTerminationDate, returnMode, normalizedReturnDate);
                     return;
                   }
-                  onConfirmExtension(rental, requestedEndDate || extensionOptions[0]?.endDate || '');
+                  onConfirmExtension(rental, normalizedExtensionDate);
                 }}
               >
                 {submitting ? 'Envoi...' : state.type === 'extend' ? 'Continuer vers le paiement' : 'Valider'}

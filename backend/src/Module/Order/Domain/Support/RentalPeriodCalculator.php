@@ -65,4 +65,25 @@ class RentalPeriodCalculator
 
         return null;
     }
+
+    public static function findMinimumMonthsCoveringEndDate(
+        ?\DateTimeImmutable $startDate,
+        ?\DateTimeImmutable $endDate,
+        int $maxMonths = 120,
+    ): ?int {
+        $normalizedStartDate = self::normalizeDate($startDate);
+        $normalizedEndDate = self::normalizeDate($endDate);
+        if (null === $normalizedStartDate || null === $normalizedEndDate || $maxMonths < 1 || $normalizedEndDate < $normalizedStartDate) {
+            return null;
+        }
+
+        for ($months = 1; $months <= $maxMonths; ++$months) {
+            $coveredEndDate = self::calculateEndDate($normalizedStartDate, $months);
+            if (null !== $coveredEndDate && $coveredEndDate >= $normalizedEndDate) {
+                return $months;
+            }
+        }
+
+        return null;
+    }
 }
