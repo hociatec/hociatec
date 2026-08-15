@@ -14,6 +14,8 @@ use App\Module\Catalog\Domain\Entity\LegacyProductAttribute;
 
 final readonly class ProductCatalogSearchProvider
 {
+    private const CACHE_SCHEMA_VERSION = 2;
+
     public function __construct(
         private ProductQueryService $products,
         private CatalogCacheVersion $cacheVersion,
@@ -30,6 +32,7 @@ final readonly class ProductCatalogSearchProvider
     public function search(ProductCatalogQuery $criteria): array
     {
         $cacheKey = 'catalog_'.hash('xxh128', (string) json_encode([
+            'schema' => self::CACHE_SCHEMA_VERSION,
             'version' => $this->cacheVersion->current(),
             'page' => $criteria->page,
             'perPage' => $criteria->perPage,
