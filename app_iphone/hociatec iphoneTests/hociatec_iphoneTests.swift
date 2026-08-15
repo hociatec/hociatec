@@ -762,11 +762,13 @@ private final class MockAccountRepository: AccountRepository {
     var addressesError: Error?
     var createAddressError: Error?
 
-    func login(email: String, password: String) async throws {
+    func login(email: String, password: String, rememberSession: Bool) async throws {
         onLogin?()
     }
 
     func logout() async {}
+
+    func revokeAllSessions() async throws {}
 
     func fetchProfile() async throws -> UserProfile {
         profileToReturn
