@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Module\Training\Application\DTO;
 
+use App\Shared\Domain\DateTime\DateTimeParser;
 use Symfony\Component\Validator\Constraints as Assert;
 
 final readonly class TrainingSessionInput
@@ -70,13 +71,19 @@ final readonly class TrainingSessionInput
     /** @param array<string,mixed> $payload */
     public static function fromArray(array $payload): self
     {
-        try {
-            $startsAt = new \DateTimeImmutable(is_string($payload['startsAt'] ?? null) ? $payload['startsAt'] : 'now');
-            $endsAt = new \DateTimeImmutable(is_string($payload['endsAt'] ?? null) ? $payload['endsAt'] : $startsAt->modify('+1 day')->format(\DateTimeInterface::ATOM));
-            $dailyStart = new \DateTimeImmutable(is_string($payload['dailyStartTime'] ?? null) ? $payload['dailyStartTime'] : '08:00');
-            $dailyEnd = new \DateTimeImmutable(is_string($payload['dailyEndTime'] ?? null) ? $payload['dailyEndTime'] : '20:00');
-        } catch (\DateMalformedStringException $exception) {
-            throw new \InvalidArgumentException('Dates de session invalides.', previous: $exception);
+        $startsAt = DateTimeParser::fromString(is_string($payload['startsAt'] ?? null) ? $payload['startsAt'] : 'now');
+        $fallbackEndsAt = $startsAt?->modify('+1 day')?->format(\DateTimeInterface::ATOM);
+        $endsAt = DateTimeParser::fromString(is_string($payload['endsAt'] ?? null) ? $payload['endsAt'] : $fallbackEndsAt);
+        $dailyStart = DateTimeParser::fromString(is_string($payload['dailyStartTime'] ?? null) ? $payload['dailyStartTime'] : '08:00');
+        $dailyEnd = DateTimeParser::fromString(is_string($payload['dailyEndTime'] ?? null) ? $payload['dailyEndTime'] : '20:00');
+
+        if (
+            !$startsAt instanceof \DateTimeImmutable
+            || !$endsAt instanceof \DateTimeImmutable
+            || !$dailyStart instanceof \DateTimeImmutable
+            || !$dailyEnd instanceof \DateTimeImmutable
+        ) {
+            throw new \InvalidArgumentException('Dates de session invalides.');
         }
 
         return new self([

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Module\Admin\Application\Backup\State;
 
+use App\Shared\Domain\DateTime\DateTimeParser;
+
 final readonly class BackupStateStore
 {
     private const MAX_HISTORY = 80;
@@ -117,11 +119,8 @@ final readonly class BackupStateStore
         if (!is_string($value) || '' === trim($value)) {
             return null;
         }
-        try {
-            return new \DateTimeImmutable($value);
-        } catch (\DateMalformedStringException) {
-            return null;
-        }
+
+        return DateTimeParser::fromString($value);
     }
 
     private function integer(mixed $value, int $min, int $max, string $field): int

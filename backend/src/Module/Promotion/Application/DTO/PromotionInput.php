@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Promotion\Application\DTO;
 
 use App\Module\Promotion\Domain\Entity\Promotion;
+use App\Shared\Domain\DateTime\DateTimeParser;
 use Symfony\Component\Validator\Constraints as Assert;
 
 final readonly class PromotionInput
@@ -99,10 +100,6 @@ final readonly class PromotionInput
             return null;
         }
 
-        try {
-            return new \DateTimeImmutable($value);
-        } catch (\DateMalformedStringException) {
-            return null;
-        }
+        return DateTimeParser::fromString($value);
     }
 }

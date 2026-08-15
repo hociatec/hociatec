@@ -39,4 +39,38 @@ final readonly class DateTimeParser
 
         return $date;
     }
+
+    public static function fromString(mixed $value): ?\DateTimeImmutable
+    {
+        if (!\is_string($value)) {
+            return null;
+        }
+
+        $normalized = trim($value);
+        if ('' === $normalized) {
+            return null;
+        }
+
+        $date = \date_create_immutable($normalized);
+        if (!$date instanceof \DateTimeImmutable) {
+            return null;
+        }
+
+        $errors = \DateTimeImmutable::getLastErrors();
+        if (false !== $errors && ($errors['warning_count'] > 0 || $errors['error_count'] > 0)) {
+            return null;
+        }
+
+        return $date;
+    }
+
+    public static function fromStringOrThrow(mixed $value, string $message): \DateTimeImmutable
+    {
+        $date = self::fromString($value);
+        if (!$date instanceof \DateTimeImmutable) {
+            throw new \InvalidArgumentException($message);
+        }
+
+        return $date;
+    }
 }

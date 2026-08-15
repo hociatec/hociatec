@@ -7,6 +7,7 @@ namespace App\Module\Admin\UI\TradeIn\Controller;
 use App\Module\Admin\Application\TradeIn\DTO\TradeInOfferInput;
 use App\Module\TradeIn\Application\Port\TradeInRequestRepositoryPort;
 use App\Module\TradeIn\Application\Workflow\TradeInRequestWorkflow;
+use App\Shared\Domain\DateTime\DateTimeParser;
 use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Validation\DtoValidator;
@@ -35,9 +36,8 @@ final class SetTradeInOfferController extends AbstractController
         $this->validator->validate($input);
         $expires = null;
         if (null !== $input->offerExpiresAt && '' !== $input->offerExpiresAt) {
-            try {
-                $expires = new \DateTimeImmutable($input->offerExpiresAt);
-            } catch (\DateMalformedStringException) {
+            $expires = DateTimeParser::fromString($input->offerExpiresAt);
+            if (!$expires instanceof \DateTimeImmutable) {
                 return ApiResponse::error('Date d’expiration invalide.');
             }
         }

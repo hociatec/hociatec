@@ -13,6 +13,7 @@ use App\Module\Training\Domain\Entity\TrainingSession;
 use App\Module\User\Domain\Entity\User;
 use App\Shared\Application\TransactionManager;
 use App\Shared\Application\UnitOfWork;
+use App\Shared\Domain\DateTime\DateTimeParser;
 
 final readonly class TrainingEnrollmentCheckoutService
 {
@@ -98,11 +99,12 @@ final readonly class TrainingEnrollmentCheckoutService
             throw new \InvalidArgumentException('Choisissez une date et une heure de début.');
         }
 
-        try {
-            return new \DateTimeImmutable($value);
-        } catch (\DateMalformedStringException $exception) {
-            throw new \InvalidArgumentException('Créneau invalide.', previous: $exception);
+        $date = DateTimeParser::fromString($value);
+        if ($date instanceof \DateTimeImmutable) {
+            return $date;
         }
+
+        throw new \InvalidArgumentException('Créneau invalide.');
     }
 
     private function assertCapacity(TrainingSession $session, \DateTimeImmutable $startsAt, \DateTimeImmutable $endsAt): void

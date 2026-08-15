@@ -11,6 +11,7 @@ use App\Module\Appointment\Application\Port\PrestationRepositoryPort;
 use App\Module\Appointment\Application\Projection\AppointmentFormatter;
 use App\Module\Appointment\Application\Workflow\AppointmentService;
 use App\Module\User\Domain\Entity\User;
+use App\Shared\Domain\DateTime\DateTimeParser;
 use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\InvalidJsonPayloadException;
@@ -55,9 +56,8 @@ class CreateAppointmentController extends AbstractController
             return ApiResponse::error('Prestation introuvable.', Response::HTTP_NOT_FOUND);
         }
 
-        try {
-            $startAt = new \DateTimeImmutable($input->startAt);
-        } catch (\DateMalformedStringException) {
+        $startAt = DateTimeParser::fromString($input->startAt);
+        if (!$startAt instanceof \DateTimeImmutable) {
             return ApiResponse::error('La date de debut est invalide.', Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 

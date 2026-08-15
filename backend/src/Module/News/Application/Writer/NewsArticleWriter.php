@@ -11,6 +11,7 @@ use App\Module\News\Domain\Exception\NewsOperationException;
 use App\Module\User\Application\Port\UserRepositoryPort;
 use App\Shared\Application\Messaging\AsyncMessageDispatcher;
 use App\Shared\Application\UnitOfWork;
+use App\Shared\Domain\DateTime\DateTimeParser;
 use Psr\Clock\ClockInterface;
 
 final readonly class NewsArticleWriter
@@ -109,11 +110,12 @@ final readonly class NewsArticleWriter
             return $this->clock->now();
         }
 
-        try {
-            return new \DateTimeImmutable($input->publishedAt);
-        } catch (\DateMalformedStringException $exception) {
-            throw new \InvalidArgumentException('Date de publication invalide.', 0, $exception);
+        $publishedAt = DateTimeParser::fromString($input->publishedAt);
+        if ($publishedAt instanceof \DateTimeImmutable) {
+            return $publishedAt;
         }
+
+        throw new \InvalidArgumentException('Date de publication invalide.');
     }
 
     private function dispatchPublishedEmails(NewsArticle $article): void

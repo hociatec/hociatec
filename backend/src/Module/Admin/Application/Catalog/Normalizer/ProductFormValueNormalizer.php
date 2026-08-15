@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Module\Admin\Application\Catalog\Normalizer;
 
 use App\Shared\Application\Exception\PublicInvalidArgumentException;
+use App\Shared\Domain\DateTime\DateTimeParser;
 use App\Shared\Domain\ValueObject\DecimalNumber;
 
 final class ProductFormValueNormalizer
@@ -67,10 +68,11 @@ final class ProductFormValueNormalizer
             return null;
         }
 
-        try {
-            return new \DateTimeImmutable($value);
-        } catch (\DateMalformedStringException $exception) {
-            throw new PublicInvalidArgumentException('Date de remise invalide.', 400, 'BAD_REQUEST', previous: $exception);
+        $date = DateTimeParser::fromString($value);
+        if ($date instanceof \DateTimeImmutable) {
+            return $date;
         }
+
+        throw new PublicInvalidArgumentException('Date de remise invalide.', 400, 'BAD_REQUEST');
     }
 }

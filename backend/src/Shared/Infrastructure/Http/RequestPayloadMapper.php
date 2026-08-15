@@ -6,6 +6,7 @@ namespace App\Shared\Infrastructure\Http;
 
 use App\Shared\Application\Exception\PublicInvalidArgumentException;
 use App\Shared\Domain\ValueObject\DecimalNumber;
+use App\Shared\Infrastructure\DateTime\DateTimeParser;
 
 final class RequestPayloadMapper
 {
@@ -65,11 +66,7 @@ final class RequestPayloadMapper
             return null;
         }
 
-        try {
-            return new \DateTimeImmutable($value);
-        } catch (\DateMalformedStringException) {
-            return null;
-        }
+        return DateTimeParser::fromString($value);
     }
 
     public static function normalizedCode(mixed $value): string

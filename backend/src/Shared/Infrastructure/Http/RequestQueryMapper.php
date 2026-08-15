@@ -102,11 +102,7 @@ final class RequestQueryMapper
             return $fromIso;
         }
 
-        try {
-            return new \DateTimeImmutable($value);
-        } catch (\DateMalformedStringException) {
-            return null;
-        }
+        return DateTimeParser::fromString($value);
     }
 
     /**

@@ -15,4 +15,14 @@ final readonly class DateTimeParser
     {
         return \App\Shared\Domain\DateTime\DateTimeParser::fromFormatOrThrow($format, $value, $message);
     }
+
+    public static function fromString(mixed $value): ?\DateTimeImmutable
+    {
+        return \App\Shared\Domain\DateTime\DateTimeParser::fromString($value);
+    }
+
+    public static function fromStringOrThrow(mixed $value, string $message): \DateTimeImmutable
+    {
+        return \App\Shared\Domain\DateTime\DateTimeParser::fromStringOrThrow($value, $message);
+    }
 }

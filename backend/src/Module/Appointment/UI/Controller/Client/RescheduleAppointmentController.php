@@ -7,6 +7,7 @@ namespace App\Module\Appointment\UI\Controller\Client;
 use App\Module\Appointment\Application\DTO\RescheduleAppointmentInput;
 use App\Module\Appointment\Application\Exception\InvalidAppointmentSlotException;
 use App\Module\Appointment\Application\Workflow\CustomerAppointmentPortalService;
+use App\Shared\Domain\DateTime\DateTimeParser;
 use App\Shared\Infrastructure\Http\ApiProblemResponse;
 use App\Shared\Infrastructure\Http\ApiResponse;
 use App\Shared\Infrastructure\Http\AuthenticatedDomainUserTrait;
@@ -42,9 +43,8 @@ final class RescheduleAppointmentController extends AbstractController
         $input = RescheduleAppointmentInput::fromArray($payload);
         $this->dtoValidator->validate($input);
 
-        try {
-            $startAt = new \DateTimeImmutable($input->startAt);
-        } catch (\DateMalformedStringException) {
+        $startAt = DateTimeParser::fromString($input->startAt);
+        if (!$startAt instanceof \DateTimeImmutable) {
             return ApiResponse::error('Date de report invalide.', Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
