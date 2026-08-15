@@ -27,9 +27,13 @@ final class Version20260815200000 extends AbstractMigration
         );
 
         $this->addSql(
-            'UPDATE catalog_products SET selling_type = :sellingType, price_cents = :priceCents WHERE slug = :slug',
+            'UPDATE catalog_products
+                SET available_for_sale = 0,
+                    available_for_rental = 1,
+                    sale_price_cents = NULL,
+                    rental_price_cents = :priceCents
+              WHERE slug = :slug',
             [
-                'sellingType' => 'rental',
                 'priceCents' => self::RENTAL_PRICE_CENTS,
                 'slug' => self::PRODUCT_SLUG,
             ],
@@ -44,9 +48,13 @@ final class Version20260815200000 extends AbstractMigration
         );
 
         $this->addSql(
-            'UPDATE catalog_products SET selling_type = :sellingType, price_cents = :priceCents WHERE slug = :slug',
+            'UPDATE catalog_products
+                SET available_for_sale = 1,
+                    available_for_rental = 0,
+                    sale_price_cents = :priceCents,
+                    rental_price_cents = NULL
+              WHERE slug = :slug',
             [
-                'sellingType' => 'sale',
                 'priceCents' => self::SALE_PRICE_CENTS,
                 'slug' => self::PRODUCT_SLUG,
             ],
