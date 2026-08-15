@@ -342,7 +342,11 @@ private struct RentalRequestSheet: View {
                                             .font(.footnote.weight(.semibold))
                                             .foregroundStyle(.secondary)
                                         Image(systemName: selectedExtensionMonths == option.totalMonths ? "largecircle.fill.circle" : "circle")
-                                            .foregroundStyle(selectedExtensionMonths == option.totalMonths ? .accent : .secondary)
+                                            .foregroundStyle(
+                                                selectedExtensionMonths == option.totalMonths
+                                                    ? Color.accentColor
+                                                    : Color.secondary
+                                            )
                                     }
                                     .padding(.vertical, 6)
                                     .contentShape(Rectangle())
