@@ -7,7 +7,7 @@ extension AccountViewModel {
             .receive(on: RunLoop.main)
             .sink { [weak self] token in
                 guard let self else { return }
-                isLoggedIn = token != nil
+                hasAuthenticatedSession = token != nil
                 if token == nil {
                     applyLoggedOutState()
                 }
@@ -44,6 +44,7 @@ extension AccountViewModel {
     }
 
     func applyLoggedOutState() {
+        hasAuthenticatedSession = false
         isLoggedIn = false
         profile = nil
         error = nil

@@ -86,8 +86,8 @@ struct LoginView: View {
         .navigationTitle("Connexion")
         .navigationBarTitleDisplayMode(.inline)
         .scrollDismissesKeyboard(.interactively)
-        .onChangeCompat(account.isLoggedIn) { isLoggedIn in
-            guard isLoggedIn else { return }
+        .onChangeCompat(account.hasAuthenticatedSession) { hasAuthenticatedSession in
+            guard hasAuthenticatedSession else { return }
             dismiss()
         }
         .feedbackDialog(error: $account.error)

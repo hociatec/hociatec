@@ -9,6 +9,8 @@ struct AccountScreen: View {
         Group {
             if account.isLoggedIn {
                 ClientDashboardView(services: container.services)
+            } else if account.hasAuthenticatedSession {
+                AccountSessionHydrationView()
             } else {
                 Form {
                     Section {
@@ -59,5 +61,21 @@ struct AccountScreen: View {
                 await account.refreshProfile()
             }
         }
+    }
+}
+
+private struct AccountSessionHydrationView: View {
+    var body: some View {
+        VStack(spacing: 16) {
+            ProgressView()
+                .controlSize(.large)
+            Text("Chargement de votre espace")
+                .font(.headline)
+            Text("Vos informations se préparent en arrière-plan.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        .padding(24)
     }
 }

@@ -29,6 +29,7 @@ final class AccountViewModel: ObservableObject {
     @Published var gender: String = "autre"
     @Published var roles: [String] = []
     @Published var addresses: [UserAddress] = []
+    @Published var hasAuthenticatedSession: Bool
     @Published var isLoggedIn: Bool
     @Published var rememberSession: Bool
     @Published var isRevokingAllSessions = false
@@ -46,7 +47,8 @@ final class AccountViewModel: ObservableObject {
         self.useCases = useCases
         self.session = session
         self.feedbackCenter = feedbackCenter
-        self.isLoggedIn = session.jwtToken != nil
+        self.hasAuthenticatedSession = session.jwtToken != nil
+        self.isLoggedIn = session.profile != nil
         self.rememberSession = session.rememberSession
         self.profile = session.profile
         self.email = session.profile?.email ?? session.loginEmail ?? ""
@@ -69,7 +71,7 @@ final class AccountViewModel: ObservableObject {
     }
 
     var canAttemptSessionRecovery: Bool {
-        isLoggedIn || rememberSession || session.profile != nil
+        session.jwtToken != nil || rememberSession || session.profile != nil
     }
 
     func loadAuthenticatedProfile(requestID: Int) async throws {
