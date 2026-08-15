@@ -41,8 +41,8 @@ extension ProductDetailView {
             })
         let currentCartQuantity = (selectedCartItem ?? fallbackItem)?.quantity ?? 0
         if currentCartQuantity >= stockLimit {
-            alertState.presentStock(
-                message: "Stock insuffisant pour \(viewModel.product.name). Quantité max: \(stockLimit)."
+            feedbackDialog = .error(
+                "Stock insuffisant pour \(viewModel.product.name). Quantité max: \(stockLimit)."
             )
             return
         }
@@ -59,16 +59,31 @@ extension ProductDetailView {
                 product: viewModel.product,
                 quantity: 1,
                 rentalMonths: viewModel.product.sellingType == .rental ? rentalMonthsIfNeeded : nil,
-                rentalStartDate: viewModel.product.sellingType == .rental ? rentalStartDateIfNeeded : nil
+                rentalStartDate: viewModel.product.sellingType == .rental ? rentalStartDateIfNeeded : nil,
+                presentsFeedback: false
             )
-            alertState.presentAddConfirmation(productName: viewModel.product.name)
+            if let error = cart.error, !error.isEmpty {
+                feedbackDialog = .error(error)
+                UINotificationFeedbackGenerator().notificationOccurred(.error)
+                return
+            }
+            feedbackDialog = .success(
+                "\(viewModel.product.name) a été ajouté au panier.",
+                primaryButton: .cancel("Continuer") {
+                    dismiss()
+                },
+                secondaryButton: .standard("Voir le panier") {
+                    selectedTab = 2
+                    dismiss()
+                }
+            )
         }
         UINotificationFeedbackGenerator().notificationOccurred(.success)
     }
 
     func addCurrentProductToCart() async {
         if stockLimit <= 0 {
-            alertState.presentStock(message: "Stock insuffisant pour \(viewModel.product.name).")
+            feedbackDialog = .error("Stock insuffisant pour \(viewModel.product.name).")
             return
         }
 
@@ -79,9 +94,29 @@ extension ProductDetailView {
         await cart.add(
             product: viewModel.product,
             rentalMonths: viewModel.product.sellingType == .rental ? rentalMonthsIfNeeded : nil,
-            rentalStartDate: viewModel.product.sellingType == .rental ? rentalStartDateIfNeeded : nil
+            rentalStartDate: viewModel.product.sellingType == .rental ? rentalStartDateIfNeeded : nil,
+            presentsFeedback: false
         )
-        alertState.presentAddConfirmation(productName: viewModel.product.name)
+
+        if let error = cart.error, !error.isEmpty {
+            feedbackDialog = .error(error)
+            UINotificationFeedbackGenerator().notificationOccurred(.error)
+            return
+        }
+
+        let successMessage = viewModel.product.sellingType == .rental
+            ? "\(viewModel.product.name) a été ajouté au panier en location."
+            : "\(viewModel.product.name) a été ajouté au panier."
+        feedbackDialog = .success(
+            successMessage,
+            primaryButton: .cancel("Continuer") {
+                dismiss()
+            },
+            secondaryButton: .standard("Voir le panier") {
+                selectedTab = 2
+                dismiss()
+            }
+        )
         UINotificationFeedbackGenerator().notificationOccurred(.success)
     }
 }

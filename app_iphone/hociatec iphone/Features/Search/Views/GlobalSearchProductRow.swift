@@ -6,8 +6,11 @@ struct GlobalSearchProductRow: View {
     var showsTitle: Bool = true
     @EnvironmentObject private var container: AppContainer
     @EnvironmentObject private var cart: CartViewModel
-    @State private var alertState = ProductDetailAlertState()
-    @State private var showDetail = false
+    @EnvironmentObject private var navigation: AppNavigationState
+    @State private var feedbackDialog: FeedbackDialogState?
+    @State private var showRentalSheet = false
+    @State private var rentalMonths = 1
+    @State private var rentalStartDate = Calendar.current.startOfDay(for: Date())
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -41,42 +44,65 @@ struct GlobalSearchProductRow: View {
                     Task { await addCurrentProductToCart() }
                 },
                 configureRental: {
-                    showDetail = true
+                    showRentalSheet = true
                 }
             )
         }
-        .navigationDestination(isPresented: $showDetail) {
-            ProductDetailView(
-                viewModel: container.makeProductDetailViewModel(product: product),
-                imageURL: container.services.assets.assetURL(for: product.imageUrl),
-                cart: cart,
-                selectedTab: .constant(0)
+        .sheet(isPresented: $showRentalSheet) {
+            RentalConfigurationSheet(
+                rentalMonths: $rentalMonths,
+                rentalStartDate: $rentalStartDate,
+                onCancel: { showRentalSheet = false },
+                onConfirm: {
+                    showRentalSheet = false
+                    Task { await addConfiguredRentalToCart() }
+                }
             )
-            .environmentObject(container)
         }
         .accessibilityElement(children: .contain)
-        .alert("Ajout au panier", isPresented: $alertState.showAddAlert) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text("\(alertState.addedProductName) a été ajouté au panier.")
-        }
-        .alert("Ajout impossible", isPresented: $alertState.showStockAlert) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text(alertState.stockAlertMessage)
-        }
+        .feedbackDialog($feedbackDialog)
     }
 
     private func addCurrentProductToCart() async {
-        await cart.add(product: product)
+        await cart.add(product: product, presentsFeedback: false)
 
         if let error = cart.error, !error.isEmpty {
-            alertState.presentStock(message: error)
+            feedbackDialog = .error(error)
             UINotificationFeedbackGenerator().notificationOccurred(.error)
             return
         }
 
-        alertState.presentAddConfirmation(productName: product.name)
+        feedbackDialog = .success(
+            "\(product.name) a été ajouté au panier.",
+            primaryButton: .cancel("Continuer"),
+            secondaryButton: .standard("Voir le panier") {
+                navigation.showTab(2)
+            }
+        )
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+    }
+
+    private func addConfiguredRentalToCart() async {
+        await cart.add(
+            product: product,
+            rentalMonths: rentalMonths,
+            rentalStartDate: DatePresentation.encodeAPIDay(rentalStartDate),
+            presentsFeedback: false
+        )
+
+        if let error = cart.error, !error.isEmpty {
+            feedbackDialog = .error(error)
+            UINotificationFeedbackGenerator().notificationOccurred(.error)
+            return
+        }
+
+        feedbackDialog = .success(
+            "\(product.name) a été ajouté au panier en location.",
+            primaryButton: .cancel("Continuer"),
+            secondaryButton: .standard("Voir le panier") {
+                navigation.showTab(2)
+            }
+        )
         UINotificationFeedbackGenerator().notificationOccurred(.success)
     }
 }

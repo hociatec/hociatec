@@ -29,9 +29,16 @@ struct ProductsListView: View {
     }
 
     var body: some View {
-        List {
-            ProductsListToolbarSection(
-                viewModel: viewModel,
+        VStack(spacing: 0) {
+            ProductCatalogToolbar(
+                selectedCategory: viewModel.selectedCategory,
+                selectedBrand: viewModel.selectedBrand,
+                selectedAttributeFilters: viewModel.selectedAttributeFilters,
+                minPrice: viewModel.minPrice,
+                maxPrice: viewModel.maxPrice,
+                inStockOnly: viewModel.inStockOnly,
+                availableAttributeFacets: viewModel.availableFacets.attributes,
+                sort: viewModel.sort,
                 summaryText: summaryText,
                 onOpenFilters: { showFilterSheet = true },
                 onOpenSort: { showSortSheet = true },
@@ -56,13 +63,23 @@ struct ProductsListView: View {
                     Task { await viewModel.load(force: true) }
                 }
             )
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
+            .padding(.bottom, 10)
+            .background(.background)
+            .overlay(alignment: .bottom) {
+                Divider()
+            }
 
-            ProductsListContentSection(
-                viewModel: viewModel,
-                selectedTab: $selectedTab,
-                useGrid: useGrid
-            )
+            List {
+                ProductsListContentSection(
+                    viewModel: viewModel,
+                    selectedTab: $selectedTab,
+                    useGrid: useGrid
+                )
+            }
         }
+        .listStyle(.plain)
         .sheet(isPresented: $showSortSheet) {
             ProductSortSheet(
                 selectedSort: viewModel.sort,
@@ -105,6 +122,7 @@ struct ProductsListView: View {
             )
         }
         .navigationTitle(navigationTitle)
+        .navigationBarTitleDisplayMode(.inline)
         .searchable(text: $viewModel.search, placement: .navigationBarDrawer(displayMode: .always), prompt: "Rechercher")
         .onSubmit(of: .search) {
             viewModel.applySearch()

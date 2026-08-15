@@ -20,7 +20,8 @@ extension CartViewModel {
         product: Product,
         quantity: Int = 1,
         rentalMonths: Int? = nil,
-        rentalStartDate: String? = nil
+        rentalStartDate: String? = nil,
+        presentsFeedback: Bool = true
     ) async {
         isLoading = true
         error = nil
@@ -33,14 +34,18 @@ extension CartViewModel {
                 rentalMonths: rentalMonths,
                 rentalStartDate: rentalStartDate
             )
-            if product.sellingType == .rental, let rentalMonths {
+            if presentsFeedback, product.sellingType == .rental, let rentalMonths {
                 let dateLabel = DatePresentation.formatAPIDay(rentalStartDate)
                 presentSuccess("\(product.name) loué pour \(rentalMonths) mois à partir du \(dateLabel).")
-            } else {
+            } else if presentsFeedback {
                 presentSuccess("\(product.name) ajouté au panier.")
             }
         } catch let err {
-            presentError(err.localizedDescription)
+            if presentsFeedback {
+                presentError(err.localizedDescription)
+            } else {
+                error = err.localizedDescription
+            }
         }
         isLoading = false
     }

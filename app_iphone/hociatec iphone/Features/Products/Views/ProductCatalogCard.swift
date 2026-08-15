@@ -10,8 +10,10 @@ struct ProductCatalogCard: View {
     var onFavoriteRemoved: (() -> Void)? = nil
 
     @EnvironmentObject private var container: AppContainer
-    @State private var alertState = ProductDetailAlertState()
-    @State private var showDetail = false
+    @State private var feedbackDialog: FeedbackDialogState?
+    @State private var showRentalSheet = false
+    @State private var rentalMonths = 1
+    @State private var rentalStartDate = Calendar.current.startOfDay(for: Date())
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -47,46 +49,66 @@ struct ProductCatalogCard: View {
                     Task { await addCurrentProductToCart() }
                 },
                 configureRental: {
-                    showDetail = true
+                    showRentalSheet = true
                 },
                 onFavoriteRemoved: onFavoriteRemoved
             )
         }
-        .navigationDestination(isPresented: $showDetail) {
-            ProductCatalogDetailDestination(
-                product: product,
-                imageURL: imageURL,
-                cart: cart,
-                selectedTab: $selectedTab
+        .sheet(isPresented: $showRentalSheet) {
+            RentalConfigurationSheet(
+                rentalMonths: $rentalMonths,
+                rentalStartDate: $rentalStartDate,
+                onCancel: { showRentalSheet = false },
+                onConfirm: {
+                    showRentalSheet = false
+                    Task { await addConfiguredRentalToCart() }
+                }
             )
-            .environmentObject(container)
         }
         .padding(.vertical, 6)
-        .alert("Ajout au panier", isPresented: $alertState.showAddAlert) {
-            Button("Continuer", role: .cancel) {}
-            Button("Voir le panier") {
-                selectedTab = 2
-            }
-        } message: {
-            Text("\(alertState.addedProductName) a été ajouté au panier.")
-        }
-        .alert("Stock insuffisant", isPresented: $alertState.showStockAlert) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text(alertState.stockAlertMessage)
-        }
+        .feedbackDialog($feedbackDialog)
     }
 
     private func addCurrentProductToCart() async {
-        await cart.add(product: product)
+        await cart.add(product: product, presentsFeedback: false)
 
         if let error = cart.error, !error.isEmpty {
-            alertState.presentStock(message: error)
+            feedbackDialog = .error(error)
             UINotificationFeedbackGenerator().notificationOccurred(.error)
             return
         }
 
-        alertState.presentAddConfirmation(productName: product.name)
+        feedbackDialog = .success(
+            "\(product.name) a été ajouté au panier.",
+            primaryButton: .cancel("Continuer"),
+            secondaryButton: .standard("Voir le panier") {
+                selectedTab = 2
+            }
+        )
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+    }
+
+    private func addConfiguredRentalToCart() async {
+        await cart.add(
+            product: product,
+            rentalMonths: rentalMonths,
+            rentalStartDate: DatePresentation.encodeAPIDay(rentalStartDate),
+            presentsFeedback: false
+        )
+
+        if let error = cart.error, !error.isEmpty {
+            feedbackDialog = .error(error)
+            UINotificationFeedbackGenerator().notificationOccurred(.error)
+            return
+        }
+
+        feedbackDialog = .success(
+            "\(product.name) a été ajouté au panier en location.",
+            primaryButton: .cancel("Continuer"),
+            secondaryButton: .standard("Voir le panier") {
+                selectedTab = 2
+            }
+        )
         UINotificationFeedbackGenerator().notificationOccurred(.success)
     }
 }

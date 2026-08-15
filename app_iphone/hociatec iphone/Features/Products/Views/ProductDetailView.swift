@@ -5,7 +5,7 @@ struct ProductDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject var viewModel: ProductDetailViewModel
     @Binding var selectedTab: Int
-    @State var alertState = ProductDetailAlertState()
+    @State private var feedbackDialog: FeedbackDialogState?
 
     let initialImageURL: URL?
     @ObservedObject var cart: CartViewModel
@@ -83,7 +83,6 @@ struct ProductDetailView: View {
                 await viewModel.loadReviews(page: 1)
             }
         }
-        .productDetailAlerts(alertState: $alertState, dismiss: dismiss, selectedTab: $selectedTab)
         .productDetailFavoriteToolbar(viewModel: viewModel)
         .sheet(isPresented: $viewModel.isShowingRentalSheet) {
             RentalConfigurationSheet(
@@ -93,6 +92,7 @@ struct ProductDetailView: View {
                 onConfirm: viewModel.closeRentalSheet
             )
         }
+        .feedbackDialog($feedbackDialog)
         .feedbackDialog(
             error: Binding(
                 get: { viewModel.detailError ?? viewModel.reviewsError },
