@@ -15,6 +15,8 @@ parameters:
     env(OUTBOX_ALERT_WEBHOOK_URL): ''
     env(CLAMSCAN_BINARY): 'clamscan'
     env(MAILER_TIMEOUT_SECONDS): '10'
+    env(GEOIP_DATABASE_PATH): ''
+    env(GEOIP_LOCALES): 'fr,en'
 
 services:
     # default configuration for services in *this* file
@@ -47,6 +49,21 @@ services:
     App\Module\Auth\Infrastructure\Http\AuthCookieService:
         arguments:
             $environment: '%kernel.environment%'
+
+    App\Module\Auth\Infrastructure\Http\GeoIpAccessSessionLocationResolver:
+        arguments:
+            $databasePath: '%env(GEOIP_DATABASE_PATH)%'
+            $locales: '%env(GEOIP_LOCALES)%'
+
+    App\Module\Auth\Infrastructure\Http\ChainAccessSessionLocationResolver:
+        arguments:
+            $resolvers:
+                - '@App\Module\Auth\Infrastructure\Http\HeaderAccessSessionLocationResolver'
+                - '@App\Module\Auth\Infrastructure\Http\GeoIpAccessSessionLocationResolver'
+
+    App\Module\Auth\Infrastructure\Http\RefreshTokenRequestContextResolver:
+        arguments:
+            $locationResolver: '@App\Module\Auth\Infrastructure\Http\ChainAccessSessionLocationResolver'
 
     App\Shared\Infrastructure\Http\AuthCookieResponseWriter:
         alias: App\Module\Auth\Infrastructure\Http\AuthCookieService

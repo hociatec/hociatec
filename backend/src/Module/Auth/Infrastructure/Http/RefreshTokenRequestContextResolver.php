@@ -10,9 +10,20 @@ use Symfony\Component\HttpFoundation\Request;
 
 final readonly class RefreshTokenRequestContextResolver
 {
+    private AccessSessionLocationResolver $locationResolver;
+
+    public function __construct(?AccessSessionLocationResolver $locationResolver = null)
+    {
+        $this->locationResolver = $locationResolver ?? new ChainAccessSessionLocationResolver([
+            new HeaderAccessSessionLocationResolver(),
+            new GeoIpAccessSessionLocationResolver(),
+        ]);
+    }
+
     public function resolve(Request $request): RefreshTokenContext
     {
         $userAgent = $this->trimOrNull($request->headers->get('User-Agent'));
+        $clientIp = $this->trimOrNull($request->getClientIp());
 
         $platform = $this->trimOrNull($request->headers->get('X-Hociatec-Client-Platform')) ?? $this->detectPlatform($userAgent);
         $client = $this->trimOrNull($request->headers->get('X-Hociatec-Client-App')) ?? $this->detectClient($userAgent);
@@ -22,9 +33,9 @@ final readonly class RefreshTokenRequestContextResolver
             $device,
             $platform,
             $client,
-            $this->resolveLocation($request),
+            $this->locationResolver->resolve($request, $clientIp),
             $userAgent,
-            $this->trimOrNull($request->getClientIp()),
+            $clientIp,
         );
     }
 
@@ -62,8 +73,8 @@ final readonly class RefreshTokenRequestContextResolver
             str_contains($ua, 'edg/') => 'Microsoft Edge',
             str_contains($ua, 'opr/'), str_contains($ua, 'opera') => 'Opera',
             str_contains($ua, 'firefox/') => 'Firefox',
-            str_contains($ua, 'chrome/') && !str_contains($ua, 'edg/') => 'Chrome',
-            str_contains($ua, 'safari/') && !str_contains($ua, 'chrome/') => 'Safari',
+            str_contains($ua, 'chrome/') => 'Chrome',
+            str_contains($ua, 'safari/') => 'Safari',
             default => null,
         };
     }
@@ -86,26 +97,6 @@ final readonly class RefreshTokenRequestContextResolver
             str_contains($ua, 'linux') => 'PC Linux',
             default => null,
         };
-    }
-
-    private function resolveLocation(Request $request): ?string
-    {
-        $city = $this->trimOrNull(
-            $request->headers->get('CF-IPCity')
-            ?? $request->headers->get('X-Vercel-IP-City')
-            ?? $request->headers->get('X-Appengine-City')
-        );
-        $region = $this->trimOrNull(
-            $request->headers->get('CF-Region')
-            ?? $request->headers->get('X-Vercel-IP-Country-Region')
-            ?? $request->headers->get('X-Appengine-Region')
-        );
-
-        if (null !== $city && null !== $region) {
-            return $city.', '.$region;
-        }
-
-        return $city ?? $region;
     }
 
     private function trimOrNull(?string $value): ?string
