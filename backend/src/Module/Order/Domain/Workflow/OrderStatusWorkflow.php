@@ -11,7 +11,7 @@ final readonly class OrderStatusWorkflow
     /**
      * @var array<string, array<string, string>>
      */
-    private const array TRANSITIONS = [
+    private const TRANSITIONS = [
         Order::STATUS_PENDING => [
             Order::STATUS_CONFIRMED => 'confirm',
             Order::STATUS_CANCELLED => 'cancel',
