@@ -12,7 +12,7 @@ final class ProductSearchRequestMapper
 {
     private const SORTS = [
         'relevance', 'price_asc', 'price_desc', 'release_year_desc', 'release_year_asc',
-        'name_desc', 'stock_desc', 'stock_asc', 'created_desc',
+        'name_asc', 'name_desc', 'stock_desc', 'stock_asc', 'created_desc',
     ];
 
     public function map(Request $request): ProductSearchCriteria

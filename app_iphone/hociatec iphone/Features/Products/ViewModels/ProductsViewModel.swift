@@ -11,8 +11,11 @@ final class ProductsViewModel: ObservableObject {
     @Published var selectedSellingType: SellingType? = nil
     @Published var selectedBrand: String? = nil
     @Published var selectedAttributeFilters: [String: String] = [:]
+    @Published var minPrice: Double? = nil
+    @Published var maxPrice: Double? = nil
+    @Published var inStockOnly = false
     @Published var availableFacets: ProductSearchFacets = .empty
-    @Published var sort: ProductSortOption = .relevance
+    @Published var sort: ProductSortOption = .releaseYearDesc
     @Published var search = ""
     @Published var page = 1
     @Published var totalPages = 1
@@ -47,11 +50,15 @@ final class ProductsViewModel: ObservableObject {
                 sellingType: selectedSellingType,
                 brand: selectedBrand,
                 attributeFilters: selectedAttributeFilters,
+                minPrice: minPrice,
+                maxPrice: maxPrice,
+                inStock: inStockOnly ? true : nil,
+                sort: effectiveSort,
                 page: page,
                 perPage: Self.pageSize
             )
             guard requestID == loadRequestID else { return }
-            products = applySorting(on: result.items)
+            products = result.items
             totalResults = result.meta.total
             totalPages = max(1, result.meta.totalPages)
             availableFacets = result.facets ?? .empty
@@ -89,25 +96,15 @@ final class ProductsViewModel: ObservableObject {
         }
     }
 
-    func applySorting(on items: [Product]) -> [Product] {
-        switch sort {
-        case .relevance:
-            return items
-        case .priceLowHigh:
-            return items.sorted { $0.effectivePriceCents < $1.effectivePriceCents }
-        case .priceHighLow:
-            return items.sorted { $0.effectivePriceCents > $1.effectivePriceCents }
-        case .newest:
-            return items.sorted { ($0.createdAt ?? .distantPast) > ($1.createdAt ?? .distantPast) }
-        }
-    }
-
     func updateSort(_ newSort: ProductSortOption) {
         sort = newSort
-        products = applySorting(on: products)
+        page = 1
     }
 
     func applySearch() {
+        if !search.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, sort == .releaseYearDesc {
+            sort = .relevance
+        }
         page = 1
     }
 
@@ -117,6 +114,15 @@ final class ProductsViewModel: ObservableObject {
 
     func clearAttributeFilter(code: String) {
         selectedAttributeFilters.removeValue(forKey: code)
+    }
+
+    func clearPriceRange() {
+        minPrice = nil
+        maxPrice = nil
+    }
+
+    func clearInStockFilter() {
+        inStockOnly = false
     }
 
     func previousPage() {
@@ -132,9 +138,22 @@ final class ProductsViewModel: ObservableObject {
 
 enum ProductSortOption: String, CaseIterable, Identifiable {
     case relevance
-    case priceLowHigh
-    case priceHighLow
-    case newest
+    case priceAsc = "price_asc"
+    case priceDesc = "price_desc"
+    case releaseYearDesc = "release_year_desc"
+    case releaseYearAsc = "release_year_asc"
+    case nameAsc = "name_asc"
+    case stockDesc = "stock_desc"
+    case stockAsc = "stock_asc"
+    case nameDesc = "name_desc"
+    case createdDesc = "created_desc"
 
     var id: String { rawValue }
+}
+
+private extension ProductsViewModel {
+    var effectiveSort: ProductSortOption {
+        let hasSearch = !search.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        return hasSearch && sort == .releaseYearDesc ? .relevance : sort
+    }
 }

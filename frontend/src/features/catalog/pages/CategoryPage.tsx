@@ -1,3 +1,4 @@
+import { startTransition } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 
 import { CategoryProductGrid } from '../components/CategoryProductGrid';
@@ -16,7 +17,7 @@ import { omitUndefinedProperties } from '@/shared/lib/object';
 import { parseNullableNonNegativeInteger, parseNullablePositiveInteger } from '@/shared/lib/parsers';
 import {
   ALL_CATALOG_FILTER,
-  formatCatalogResultsSummary,
+  formatGroupedCatalogResultsSummary,
   normalizeCatalogFilter,
   normalizeCatalogSort,
 } from '@/features/catalog/lib/catalogSearch';
@@ -69,7 +70,12 @@ export const CategoryPage = () => {
     perPage,
     sort,
   });
-  const resultsSummary = formatCatalogResultsSummary(meta.total, search, 'solution');
+  const resultsSummary = formatGroupedCatalogResultsSummary(
+    meta.total,
+    meta.variantTotal,
+    search,
+    'solution',
+  );
 
   const canonicalUrl = slug ? `${SITE_URL}/catalogue/${slug}` : undefined;
   const collectionSchema = data
@@ -106,7 +112,9 @@ export const CategoryPage = () => {
     if (value === null || value === '' || value === ALL_CATALOG_FILTER) next.delete(key);
     else next.set(key, value);
     if (key !== 'page') next.delete('page');
-    setSearchParams(next, { replace: true });
+    startTransition(() => {
+      setSearchParams(next, { replace: true });
+    });
   };
 
   const updatePriceRange = (nextRange: { min: number | null; max: number | null }) => {
@@ -116,14 +124,18 @@ export const CategoryPage = () => {
     if (nextRange.max === null) next.delete('maxPrice');
     else next.set('maxPrice', String(nextRange.max));
     next.delete('page');
-    setSearchParams(next, { replace: true });
+    startTransition(() => {
+      setSearchParams(next, { replace: true });
+    });
   };
 
   const resetFilters = () => {
-    setSearchParams(
-      new URLSearchParams(search.trim() ? { q: search.trim(), sort: 'relevance' } : {}),
-      { replace: true },
-    );
+    startTransition(() => {
+      setSearchParams(
+        new URLSearchParams(search.trim() ? { q: search.trim(), sort: 'relevance' } : {}),
+        { replace: true },
+      );
+    });
   };
 
   return (

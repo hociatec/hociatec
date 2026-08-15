@@ -182,19 +182,19 @@ export const parseCatalogProduct = (value: unknown): CatalogProduct => {
     variantsCount: optionalNumber(product.variantsCount) ?? undefined,
     totalStock: optionalNumber(product.totalStock) ?? undefined,
     variantColors:
-      product.variantColors === undefined
+      product.variantColors === undefined || product.variantColors === null
         ? undefined
         : requireArray(product.variantColors).map((item) => requireString(item)),
     variantStorages:
-      product.variantStorages === undefined
+      product.variantStorages === undefined || product.variantStorages === null
         ? undefined
         : requireArray(product.variantStorages).map((item) => requireString(item)),
     variantMemoryRams:
-      product.variantMemoryRams === undefined
+      product.variantMemoryRams === undefined || product.variantMemoryRams === null
         ? undefined
         : requireArray(product.variantMemoryRams).map((item) => requireString(item)),
     variantAttributes:
-      product.variantAttributes === undefined
+      product.variantAttributes === undefined || product.variantAttributes === null
         ? undefined
         : requireArray(product.variantAttributes).map(parseProductAttributeSummary),
     minVariantPriceCents: optionalNumber(product.minVariantPriceCents) ?? undefined,

@@ -11,14 +11,32 @@ struct ProductSortSheet: View {
                 ProductSortOptionRow(title: "Pertinence", isSelected: selectedSort == .relevance) {
                     onSelect(.relevance)
                 }
-                ProductSortOptionRow(title: "Prix croissant", isSelected: selectedSort == .priceLowHigh) {
-                    onSelect(.priceLowHigh)
+                ProductSortOptionRow(title: "Du plus récent au moins récent", isSelected: selectedSort == .releaseYearDesc) {
+                    onSelect(.releaseYearDesc)
                 }
-                ProductSortOptionRow(title: "Prix décroissant", isSelected: selectedSort == .priceHighLow) {
-                    onSelect(.priceHighLow)
+                ProductSortOptionRow(title: "Du moins récent au plus récent", isSelected: selectedSort == .releaseYearAsc) {
+                    onSelect(.releaseYearAsc)
                 }
-                ProductSortOptionRow(title: "Nouveautés", isSelected: selectedSort == .newest) {
-                    onSelect(.newest)
+                ProductSortOptionRow(title: "Du moins cher au plus cher", isSelected: selectedSort == .priceAsc) {
+                    onSelect(.priceAsc)
+                }
+                ProductSortOptionRow(title: "Du plus cher au moins cher", isSelected: selectedSort == .priceDesc) {
+                    onSelect(.priceDesc)
+                }
+                ProductSortOptionRow(title: "Stock le plus élevé", isSelected: selectedSort == .stockDesc) {
+                    onSelect(.stockDesc)
+                }
+                ProductSortOptionRow(title: "Stock le moins élevé", isSelected: selectedSort == .stockAsc) {
+                    onSelect(.stockAsc)
+                }
+                ProductSortOptionRow(title: "De A à Z", isSelected: selectedSort == .nameAsc) {
+                    onSelect(.nameAsc)
+                }
+                ProductSortOptionRow(title: "De Z à A", isSelected: selectedSort == .nameDesc) {
+                    onSelect(.nameDesc)
+                }
+                ProductSortOptionRow(title: "Derniers ajoutés", isSelected: selectedSort == .createdDesc) {
+                    onSelect(.createdDesc)
                 }
             }
             .navigationTitle("Trier")

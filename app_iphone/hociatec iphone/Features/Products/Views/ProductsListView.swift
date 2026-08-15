@@ -50,6 +50,14 @@ struct ProductsListView: View {
                 onClearAttributeFilter: { code in
                     viewModel.clearAttributeFilter(code: code)
                     Task { await viewModel.load(force: true) }
+                },
+                onClearPriceRange: {
+                    viewModel.clearPriceRange()
+                    Task { await viewModel.load(force: true) }
+                },
+                onClearInStock: {
+                    viewModel.clearInStockFilter()
+                    Task { await viewModel.load(force: true) }
                 }
             )
 
@@ -64,6 +72,7 @@ struct ProductsListView: View {
                 selectedSort: viewModel.sort,
                 onSelect: { sort in
                     viewModel.updateSort(sort)
+                    Task { await viewModel.load(force: true) }
                     showSortSheet = false
                 },
                 onClose: { showSortSheet = false }
@@ -77,10 +86,16 @@ struct ProductsListView: View {
                 selectedSellingType: $filterDraft.selectedSellingType,
                 selectedBrand: $filterDraft.selectedBrand,
                 selectedAttributeFilters: $filterDraft.selectedAttributeFilters,
+                minPrice: $filterDraft.minPrice,
+                maxPrice: $filterDraft.maxPrice,
+                inStockOnly: $filterDraft.inStockOnly,
                 currentCategoryID: viewModel.selectedCategory?.id,
                 currentSellingType: viewModel.selectedSellingType,
                 currentBrand: viewModel.selectedBrand,
                 currentAttributeFilters: viewModel.selectedAttributeFilters,
+                currentMinPrice: viewModel.minPrice,
+                currentMaxPrice: viewModel.maxPrice,
+                currentInStockOnly: viewModel.inStockOnly,
                 didInitDraftFilters: $filterDraft.didInit,
                 onClose: { showFilterSheet = false },
                 onApply: {
@@ -88,6 +103,9 @@ struct ProductsListView: View {
                     viewModel.selectedSellingType = filterDraft.selectedSellingType
                     viewModel.selectedBrand = filterDraft.selectedBrand
                     viewModel.selectedAttributeFilters = filterDraft.selectedAttributeFilters
+                    viewModel.minPrice = parseCatalogPriceInput(filterDraft.minPrice)
+                    viewModel.maxPrice = parseCatalogPriceInput(filterDraft.maxPrice)
+                    viewModel.inStockOnly = filterDraft.inStockOnly
                     Task { await viewModel.load(force: true) }
                     showFilterSheet = false
                 }

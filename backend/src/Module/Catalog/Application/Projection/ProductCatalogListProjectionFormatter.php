@@ -81,8 +81,8 @@ final class ProductCatalogListProjectionFormatter
             'isFeaturedHome' => (bool) $product['isFeaturedHome'],
             'imageUrl' => $gallery[0]['url'] ?? $media->resolveExternalImageUrl($product) ?? $media->resolveImageUrlFromName(null !== $product['imageName'] ? (string) $product['imageName'] : null),
             'imageAlt' => $imageAlt,
-            'createdAt' => $product['createdAt'] instanceof \DateTimeInterface ? $product['createdAt']->format(DATE_ATOM) : null,
-            'updatedAt' => $product['updatedAt'] instanceof \DateTimeInterface ? $product['updatedAt']->format(DATE_ATOM) : null,
+            'createdAt' => $this->normalizeDateValue($product['createdAt'] ?? null),
+            'updatedAt' => $this->normalizeDateValue($product['updatedAt'] ?? null),
             'category' => [
                 'id' => (int) $product['categoryId'],
                 'name' => (string) $product['categoryName'],
@@ -106,5 +106,20 @@ final class ProductCatalogListProjectionFormatter
         }
 
         return $data;
+    }
+
+    private function normalizeDateValue(mixed $value): ?string
+    {
+        if ($value instanceof \DateTimeInterface) {
+            return $value->format(DATE_ATOM);
+        }
+
+        if (is_string($value)) {
+            $normalized = trim($value);
+
+            return '' !== $normalized ? $normalized : null;
+        }
+
+        return null;
     }
 }

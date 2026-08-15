@@ -68,10 +68,10 @@ readonly class ProductCatalogQuery
         $this->onlyFeatured = $payload['onlyFeatured'];
         $this->sellingType = $payload['sellingType'];
         $this->brand = $payload['brand'];
-        $this->storageCapacity = $payload['storageCapacity'];
-        $this->memoryRam = $payload['memoryRam'];
-        $this->color = $payload['color'];
         $this->attributeFilters = is_array($payload['attributeFilters'] ?? null) ? $payload['attributeFilters'] : [];
+        $this->storageCapacity = is_string($payload['storageCapacity'] ?? null) ? $payload['storageCapacity'] : ($this->attributeFilters['storage'] ?? null);
+        $this->memoryRam = is_string($payload['memoryRam'] ?? null) ? $payload['memoryRam'] : ($this->attributeFilters['ram'] ?? null);
+        $this->color = is_string($payload['color'] ?? null) ? $payload['color'] : ($this->attributeFilters['color'] ?? null);
         $this->minPriceCents = $payload['minPriceCents'];
         $this->maxPriceCents = $payload['maxPriceCents'];
         $this->inStockOnly = $payload['inStockOnly'];

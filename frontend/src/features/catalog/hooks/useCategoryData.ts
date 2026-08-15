@@ -81,6 +81,7 @@ export const useCategoryData = ({
     queryKey: catalogQueryKeys.publicCategoryProducts(productsPayload),
     queryFn: ({ signal }) => searchPublicProducts({ ...productsPayload, signal }),
     enabled: Boolean(slug),
+    placeholderData: (previousData) => previousData,
   });
   const categoryError = categoryQuery.error
     ? getHttpErrorMessage(categoryQuery.error, "Cette catégorie n'est pas disponible pour le moment.")
@@ -97,7 +98,8 @@ export const useCategoryData = ({
     products: productsQuery.data?.items ?? [],
     meta: productsQuery.data?.meta ?? initialMeta,
     facets: productsQuery.data?.facets ?? emptyFacets,
-    loading: categoryQuery.isLoading || productsQuery.isLoading,
+    loading: categoryQuery.isLoading || (productsQuery.isLoading && !productsQuery.data),
+    refreshing: productsQuery.isFetching && !!productsQuery.data,
     error: categoryError ?? productsError,
     refresh: () =>
       Promise.all([categoryQuery.refetch(), productsQuery.refetch()]).then(() => undefined),

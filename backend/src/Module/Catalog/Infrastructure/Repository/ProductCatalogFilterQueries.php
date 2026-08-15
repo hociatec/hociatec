@@ -89,6 +89,7 @@ trait ProductCatalogFilterQueries
             'price_desc' => $qb->orderBy('CASE WHEN p.pricing.availableForRental = true THEN p.pricing.rentalPriceCents ELSE p.pricing.salePriceCents END', 'DESC')->addOrderBy('p.name', 'ASC'),
             'release_year_desc' => $qb->orderBy('p.characteristics.releaseYear', 'DESC')->addOrderBy('p.name', 'ASC'),
             'release_year_asc' => $qb->orderBy('p.characteristics.releaseYear', 'ASC')->addOrderBy('p.name', 'ASC'),
+            'name_asc' => $qb->orderBy('p.name', 'ASC'),
             'name_desc' => $qb->orderBy('p.name', 'DESC'),
             'stock_desc' => $qb->orderBy('p.inventory.stock', 'DESC')->addOrderBy('p.name', 'ASC'),
             'stock_asc' => $qb->orderBy('p.inventory.stock', 'ASC')->addOrderBy('p.name', 'ASC'),

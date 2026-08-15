@@ -7,6 +7,7 @@ namespace App\Module\Catalog\Application\Provider;
 use App\Module\Catalog\Application\Cache\CatalogCacheVersion;
 use App\Module\Catalog\Application\Cache\CatalogResultCache;
 use App\Module\Catalog\Application\Projection\ProductCatalogListProjectionFormatter;
+use App\Module\Catalog\Application\Query\ProductCatalogCriteria;
 use App\Module\Catalog\Application\Query\ProductCatalogQuery;
 use App\Module\Catalog\Application\Workflow\CategoryCatalogWorkflow;
 use App\Module\Catalog\Application\Workflow\ProductQueryService;
@@ -14,7 +15,7 @@ use App\Module\Catalog\Domain\Entity\LegacyProductAttribute;
 
 final readonly class ProductCatalogSearchProvider
 {
-    private const CACHE_SCHEMA_VERSION = 3;
+    private const CACHE_SCHEMA_VERSION = 6;
 
     public function __construct(
         private ProductQueryService $products,
@@ -41,17 +42,14 @@ final readonly class ProductCatalogSearchProvider
 
         $result = $this->cache->get($cacheKey, function () use ($criteria): array {
             $catalogCriteria = $criteria->criteria();
-            $sortedProjectedProducts = $this->filterByAttributes(
-                $this->products->listPublishedProjection($catalogCriteria->withoutPagination()),
-                $catalogCriteria->attributeFilters,
-            );
-            $projectedProducts = $this->filterByAttributes(
-                $this->products->listPublishedProjection($catalogCriteria->withoutSortAndPagination()),
-                $catalogCriteria->attributeFilters,
-            );
+            $sortedBaseProducts = $this->products->listPublishedProjection($this->withoutAttributeFilters($catalogCriteria, true));
+            $facetsBaseProducts = $this->products->listPublishedProjection($this->withoutAttributeFilters($catalogCriteria, false));
+            $sortedProjectedProducts = $this->filterByAttributes($sortedBaseProducts, $catalogCriteria->attributeFilters);
+            $projectedProducts = $this->filterByAttributes($facetsBaseProducts, $catalogCriteria->attributeFilters);
+            $groupedProducts = $this->models->aggregate($sortedProjectedProducts);
             $categoryAttributeDefinitions = $this->collectCategoryAttributeDefinitions($catalogCriteria->categorySlug);
-            $total = count($sortedProjectedProducts);
-            $items = array_slice($sortedProjectedProducts, $criteria->offset(), $criteria->perPage);
+            $total = count($groupedProducts);
+            $items = array_slice($groupedProducts, $criteria->offset(), $criteria->perPage);
 
             return [
                 'items' => array_map(
@@ -62,13 +60,15 @@ final readonly class ProductCatalogSearchProvider
                     'page' => $criteria->page,
                     'perPage' => $criteria->perPage,
                     'total' => $total,
+                    'variantTotal' => count($sortedProjectedProducts),
                     'totalPages' => max(1, (int) ceil($total / $criteria->perPage)),
                 ],
                 'facets' => $this->formatFacets(
-                    $this->models->collectRawFacets(
+                    $this->collectFacets(
+                        $catalogCriteria,
                         $projectedProducts,
+                        $facetsBaseProducts,
                         $categoryAttributeDefinitions,
-                        $catalogCriteria->categorySlug,
                     ),
                 ),
             ];
@@ -89,19 +89,10 @@ final readonly class ProductCatalogSearchProvider
             return $products;
         }
 
-        return array_values(array_filter($products, function (array $product) use ($attributeFilters): bool {
-            $attributes = $this->normalizeAttributes($product);
-
-            foreach ($attributeFilters as $code => $selectedValue) {
-                $actualValue = $attributes[$code] ?? null;
-
-                if (null === $actualValue || 0 !== strcasecmp($actualValue, $selectedValue)) {
-                    return false;
-                }
-            }
-
-            return true;
-        }));
+        return array_values(array_filter(
+            $products,
+            fn (array $product): bool => $this->productMatchesAttributeFilters($product, $attributeFilters),
+        ));
     }
 
     /**
@@ -145,6 +136,143 @@ final readonly class ProductCatalogSearchProvider
     }
 
     /**
+     * @param array<string, mixed>   $product
+     * @param array<string, string>  $attributeFilters
+     */
+    private function productMatchesAttributeFilters(array $product, array $attributeFilters): bool
+    {
+        $attributes = $this->normalizeAttributes($product);
+        $variantAttributes = $product['variantAttributes'] ?? null;
+
+        foreach ($attributeFilters as $code => $selectedValue) {
+            $actualValue = $attributes[$code] ?? null;
+
+            if (is_string($actualValue) && 0 === strcasecmp($actualValue, $selectedValue)) {
+                continue;
+            }
+
+            if ($this->variantAttributeContainsValue($variantAttributes, $code, $selectedValue)) {
+                continue;
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private function variantAttributeContainsValue(mixed $variantAttributes, string $code, string $selectedValue): bool
+    {
+        if (!is_array($variantAttributes)) {
+            return false;
+        }
+
+        foreach ($variantAttributes as $attributeGroup) {
+            if (!is_array($attributeGroup)) {
+                continue;
+            }
+
+            $groupCode = trim(mb_strtolower((string) ($attributeGroup['code'] ?? '')));
+            $values = $attributeGroup['values'] ?? null;
+
+            if ($groupCode !== trim(mb_strtolower($code)) || !is_array($values)) {
+                continue;
+            }
+
+            foreach ($values as $value) {
+                if (0 === strcasecmp(trim((string) $value), $selectedValue)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param list<array<string, mixed>> $products
+     * @param list<array<string, mixed>> $baseProducts
+     * @param array<string, list<array{code:string,label:string,isRequired:bool,isGlobalFilter:bool}>> $categoryAttributeDefinitions
+     *
+     * @return array<string, mixed>
+     */
+    private function collectFacets(
+        ProductCatalogCriteria $criteria,
+        array $products,
+        array $baseProducts,
+        array $categoryAttributeDefinitions,
+    ): array {
+        $groupedBaseProducts = $this->models->aggregate($baseProducts);
+        $groupedFacets = $this->models->collectFacets($products, $categoryAttributeDefinitions, $criteria->categorySlug);
+        $allFacets = $this->models->collectFacets($baseProducts, $categoryAttributeDefinitions, $criteria->categorySlug);
+        $facets = $groupedFacets;
+        $allAttributeFacets = $allFacets['attributes'] ?? [];
+
+        if (!is_array($allAttributeFacets) || [] === $allAttributeFacets) {
+            return $facets;
+        }
+
+        $relaxedAttributeFacets = [];
+
+        foreach ($allAttributeFacets as $attributeFacet) {
+            if (!is_array($attributeFacet) || !is_string($attributeFacet['code'] ?? null)) {
+                continue;
+            }
+
+            $code = trim($attributeFacet['code']);
+            if ('' === $code) {
+                continue;
+            }
+
+            $filters = $criteria->attributeFilters;
+            unset($filters[$code]);
+
+            $matchingProducts = $this->filterByAttributes($groupedBaseProducts, $filters);
+            $matchingFacets = $this->models->collectFacets(
+                $matchingProducts,
+                $categoryAttributeDefinitions,
+                $criteria->categorySlug,
+            )['attributes'] ?? [];
+
+            if (!is_array($matchingFacets)) {
+                continue;
+            }
+
+            foreach ($matchingFacets as $matchingFacet) {
+                if (is_array($matchingFacet) && ($matchingFacet['code'] ?? null) === $code) {
+                    $relaxedAttributeFacets[] = $matchingFacet;
+                    break;
+                }
+            }
+        }
+
+        $facets['attributes'] = $relaxedAttributeFacets;
+
+        return $facets;
+    }
+
+    private function withoutAttributeFilters(ProductCatalogCriteria $criteria, bool $keepSort): ProductCatalogCriteria
+    {
+        return new ProductCatalogCriteria([
+            'categorySlug' => $criteria->categorySlug,
+            'search' => $criteria->search,
+            'onlyFeatured' => $criteria->onlyFeatured,
+            'sellingType' => $criteria->sellingType,
+            'brand' => $criteria->brand,
+            'attributeFilters' => [],
+            'storageCapacity' => null,
+            'memoryRam' => null,
+            'color' => null,
+            'minPriceCents' => $criteria->minPriceCents,
+            'maxPriceCents' => $criteria->maxPriceCents,
+            'inStockOnly' => $criteria->inStockOnly,
+            'sort' => $keepSort ? $criteria->sort : null,
+            'limit' => null,
+            'offset' => null,
+        ]);
+    }
+
+    /**
      * @return array<string, list<array{code:string,label:string,isRequired:bool,isGlobalFilter:bool}>>
      */
     private function collectCategoryAttributeDefinitions(?string $selectedCategorySlug): array
@@ -183,36 +311,11 @@ final readonly class ProductCatalogSearchProvider
      */
     private function formatFacets(array $facets): array
     {
-        if ($this->categories instanceof CategoryCatalogWorkflow) {
-            return $facets;
-        }
-
-        $legacy = [
+        return [
             'brands' => $facets['brands'] ?? [],
             'categories' => $facets['categories'] ?? [],
-            'storageCapacities' => [],
-            'memoryRams' => [],
-            'colors' => [],
+            'attributes' => is_array($facets['attributes'] ?? null) ? $facets['attributes'] : [],
             'price' => $facets['price'] ?? ['min' => null, 'max' => null],
         ];
-
-        foreach (($facets['attributes'] ?? []) as $attributeFacet) {
-            if (!is_array($attributeFacet)) {
-                continue;
-            }
-
-            $code = trim((string) ($attributeFacet['code'] ?? ''));
-            $values = is_array($attributeFacet['values'] ?? null) ? $attributeFacet['values'] : [];
-
-            if (LegacyProductAttribute::STORAGE_CODE === $code) {
-                $legacy['storageCapacities'] = $values;
-            } elseif (LegacyProductAttribute::MEMORY_RAM_CODE === $code) {
-                $legacy['memoryRams'] = $values;
-            } elseif (LegacyProductAttribute::COLOR_CODE === $code) {
-                $legacy['colors'] = $values;
-            }
-        }
-
-        return $legacy;
     }
 }

@@ -42,38 +42,69 @@ export const CatalogFilters = ({
   onPriceChange,
   onReset,
 }: CatalogFiltersProps) => {
+  const allAttributeLabel = (label: string) => {
+    const normalized = label.trim().toLowerCase();
+
+    return matchAttributeFilterLabel(normalized);
+  };
+
+  const matchAttributeFilterLabel = (label: string) => {
+    return ({
+      couleur: 'Toutes les couleurs',
+      marque: 'Toutes les marques',
+      categorie: 'Toutes les catégories',
+      catégorie: 'Toutes les catégories',
+      stockage: 'Tous les stockages',
+    } as Record<string, string>)[label] ?? `Tous les ${label}s`;
+  };
+
+  const appendUnavailableSelectedOption = (
+    currentValue: string,
+    fallbackValue: string,
+    values: Array<{ value: string; label: string }>,
+  ) => {
+    if (currentValue === fallbackValue || values.some((item) => item.value === currentValue)) {
+      return values;
+    }
+
+    return [
+      ...values,
+      { value: currentValue, label: `${currentValue} (indisponible)` },
+    ];
+  };
   const options = useMemo(
     () => ({
-      category: [
+      category: appendUnavailableSelectedOption(category, ALL_CATALOG_FILTER, [
         { value: ALL_CATALOG_FILTER, label: 'Toutes les catégories' },
         ...facets.categories
           .map((item) => ({ value: item.extra ?? '', label: `${item.value} (${item.count})` }))
           .filter((item) => item.value),
-      ],
-      brand: [
+      ]),
+      brand: appendUnavailableSelectedOption(brand, ALL_CATALOG_FILTER, [
         { value: ALL_CATALOG_FILTER, label: 'Toutes les marques' },
         ...facets.brands.map((item) => ({
           value: item.value,
           label: `${item.value} (${item.count})`,
         })),
-      ],
+      ]),
     }),
-    [facets],
+    [brand, category, facets],
   );
   const sortOptions = [
     {
       value: query.trim() ? 'relevance' : 'release_year_desc',
-      label: query.trim() ? 'Pertinence' : 'Plus récents',
+      label: query.trim() ? 'Pertinence' : 'Du plus récent au moins récent',
     },
     ...(query.trim()
       ? [{ value: 'release_year_desc', label: 'Du plus récent au moins récent' }]
       : []),
     { value: 'release_year_asc', label: 'Du moins récent au plus récent' },
-    { value: 'price_asc', label: 'Prix croissant' },
-    { value: 'price_desc', label: 'Prix décroissant' },
+    { value: 'price_asc', label: 'Du moins cher au plus cher' },
+    { value: 'price_desc', label: 'Du plus cher au moins cher' },
     { value: 'stock_desc', label: 'Stock le plus élevé' },
-    { value: 'stock_asc', label: 'Stock le plus faible' },
-    { value: 'name_desc', label: 'Nom Z → A' },
+    { value: 'stock_asc', label: 'Stock le moins élevé' },
+    { value: 'name_asc', label: 'De A à Z' },
+    { value: 'name_desc', label: 'De Z à A' },
     { value: 'created_desc', label: 'Derniers ajoutés' },
   ];
   return (
@@ -114,13 +145,17 @@ export const CatalogFilters = ({
             key={attribute.code}
             value={attributeFilters[attribute.code] ?? ALL_CATALOG_FILTER}
             onChange={(value) => onParamChange(`attribute_${attribute.code}`, value)}
-            options={[
-              { value: ALL_CATALOG_FILTER, label: `Tous les ${attribute.label.toLowerCase()}` },
-              ...attribute.values.map((item) => ({
-                value: item.value,
-                label: `${item.value} (${item.count})`,
-              })),
-            ]}
+            options={appendUnavailableSelectedOption(
+              attributeFilters[attribute.code] ?? ALL_CATALOG_FILTER,
+              ALL_CATALOG_FILTER,
+              [
+                { value: ALL_CATALOG_FILTER, label: allAttributeLabel(attribute.label) },
+                ...attribute.values.map((item) => ({
+                  value: item.value,
+                  label: `${item.value} (${item.count})`,
+                })),
+              ],
+            )}
             ariaLabel={attribute.label}
           />
         ))}

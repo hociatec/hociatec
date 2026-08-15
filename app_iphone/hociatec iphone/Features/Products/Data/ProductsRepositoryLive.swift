@@ -10,6 +10,10 @@ struct ProductsRepositoryLive: ProductsRepository {
         sellingType: SellingType?,
         brand: String?,
         attributeFilters: [String : String],
+        minPrice: Double?,
+        maxPrice: Double?,
+        inStock: Bool?,
+        sort: ProductSortOption?,
         page: Int,
         perPage: Int
     ) async throws -> ProductListData {
@@ -19,13 +23,17 @@ struct ProductsRepositoryLive: ProductsRepository {
             sellingType: sellingType,
             brand: brand,
             attributeFilters: attributeFilters,
+            minPrice: minPrice,
+            maxPrice: maxPrice,
+            inStock: inStock,
+            sort: sort,
             page: page,
             perPage: perPage
         )
     }
 
-    func fetchProducts(search: String?, categorySlug: String?, sellingType: SellingType?, brand: String?, attributeFilters: [String : String]) async throws -> [Product] {
-        try await productsService.products(search: search, categorySlug: categorySlug, sellingType: sellingType, brand: brand, attributeFilters: attributeFilters)
+    func fetchProducts(search: String?, categorySlug: String?, sellingType: SellingType?, brand: String?, attributeFilters: [String : String], minPrice: Double?, maxPrice: Double?, inStock: Bool?, sort: ProductSortOption?) async throws -> [Product] {
+        try await productsService.products(search: search, categorySlug: categorySlug, sellingType: sellingType, brand: brand, attributeFilters: attributeFilters, minPrice: minPrice, maxPrice: maxPrice, inStock: inStock, sort: sort)
     }
 
     func fetchCategories() async throws -> [CategorySummary] {

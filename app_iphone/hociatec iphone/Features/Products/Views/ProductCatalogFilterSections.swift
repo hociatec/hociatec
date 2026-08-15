@@ -5,11 +5,16 @@ struct ProductCatalogActiveFiltersRow: View {
     let selectedSellingType: SellingType?
     let selectedBrand: String?
     let selectedAttributeFilters: [String: String]
+    let minPrice: Double?
+    let maxPrice: Double?
+    let inStockOnly: Bool
     let availableAttributeFacets: [CatalogAttributeFacet]
     let onClearCategory: () -> Void
     let onClearSellingType: () -> Void
     let onClearBrand: () -> Void
     let onClearAttributeFilter: (String) -> Void
+    let onClearPriceRange: () -> Void
+    let onClearInStock: () -> Void
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -38,6 +43,22 @@ struct ProductCatalogActiveFiltersRow: View {
                     )
                 }
 
+                if minPrice != nil || maxPrice != nil {
+                    ProductFilterChip(
+                        title: "Prix: \(priceRangeLabel(min: minPrice, max: maxPrice))",
+                        accessibilityLabel: "Retirer le filtre prix",
+                        onRemove: onClearPriceRange
+                    )
+                }
+
+                if inStockOnly {
+                    ProductFilterChip(
+                        title: "En stock",
+                        accessibilityLabel: "Retirer le filtre stock",
+                        onRemove: onClearInStock
+                    )
+                }
+
                 ForEach(availableAttributeFacets) { facet in
                     if let value = selectedAttributeFilters[facet.code], !value.isEmpty {
                         ProductFilterChip(
@@ -54,7 +75,30 @@ struct ProductCatalogActiveFiltersRow: View {
 
 struct ProductCatalogCategoryFilterSection: View {
     let categories: [CategorySummary]
+    let categoryFacets: [CatalogFacetCount]
     @Binding var selectedCategoryID: Int?
+
+    private var categoryOptions: [(id: Int?, label: String)] {
+        let bySlug = Dictionary(uniqueKeysWithValues: categories.map { ($0.slug, $0) })
+        var options: [(id: Int?, label: String)] = [(nil, "Tout")]
+
+        if !categoryFacets.isEmpty {
+            for facet in categoryFacets {
+                guard let slug = facet.extra, let category = bySlug[slug] else { continue }
+                options.append((category.id, "\(category.name) (\(facet.count))"))
+            }
+        } else {
+            options.append(contentsOf: categories.map { ($0.id, $0.name) })
+        }
+
+        if let selectedCategoryID,
+           !options.contains(where: { $0.id == selectedCategoryID }),
+           let selectedCategory = categories.first(where: { $0.id == selectedCategoryID }) {
+            options.append((selectedCategory.id, selectedCategory.name))
+        }
+
+        return options
+    }
 
     var body: some View {
         Section("Catégories") {
@@ -63,9 +107,9 @@ struct ProductCatalogCategoryFilterSection: View {
                     .foregroundStyle(.secondary)
             } else {
                 Picker("Catégorie", selection: $selectedCategoryID) {
-                    Text("Toutes").tag(Int?.none)
-                    ForEach(categories) { category in
-                        Text(category.name).tag(Optional(category.id))
+                    ForEach(Array(categoryOptions.enumerated()), id: \.offset) { entry in
+                        let option = entry.element
+                        Text(option.label).tag(option.id)
                     }
                 }
                 .pickerStyle(.inline)
@@ -80,7 +124,7 @@ struct ProductCatalogSellingTypeFilterSection: View {
     var body: some View {
         Section("Type") {
             Picker("Type", selection: $selectedSellingType) {
-                Text("Tous").tag(SellingType?.none)
+                Text("Tout").tag(SellingType?.none)
                 Text("Vente").tag(Optional(SellingType.sale))
                 Text("Location").tag(Optional(SellingType.rental))
             }
@@ -96,12 +140,43 @@ struct ProductCatalogBrandFilterSection: View {
     var body: some View {
         Section("Marques") {
             Picker("Marque", selection: $selectedBrand) {
-                Text("Toutes").tag(String?.none)
+                Text("Tout").tag(String?.none)
                 ForEach(brands) { brand in
                     Text("\(brand.value) (\(brand.count))").tag(Optional(brand.value))
                 }
             }
             .pickerStyle(.inline)
+        }
+    }
+}
+
+struct ProductCatalogPriceFilterSection: View {
+    @Binding var minPrice: String
+    @Binding var maxPrice: String
+    let availableRange: CatalogPriceRange
+
+    var body: some View {
+        Section("Prix") {
+            TextField("Prix min", text: $minPrice)
+                .keyboardType(.decimalPad)
+            TextField("Prix max", text: $maxPrice)
+                .keyboardType(.decimalPad)
+
+            if availableRange.min != nil || availableRange.max != nil {
+                Text("Plage disponible: \(ProductCatalogFilterPresentation.availablePriceLabel(for: availableRange))")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+}
+
+struct ProductCatalogStockFilterSection: View {
+    @Binding var inStockOnly: Bool
+
+    var body: some View {
+        Section("Disponibilité") {
+            Toggle("Uniquement en stock", isOn: $inStockOnly)
         }
     }
 }
@@ -113,7 +188,7 @@ struct ProductCatalogAttributeFilterSection: View {
     var body: some View {
         Section(facet.label) {
             Picker(facet.label, selection: $selectedValue) {
-                Text("Tous").tag(String?.none)
+                Text("Tout").tag(String?.none)
                 ForEach(facet.values) { value in
                     Text("\(value.value) (\(value.count))").tag(Optional(value.value))
                 }
@@ -128,6 +203,9 @@ struct ProductCatalogResetFiltersButton: View {
     @Binding var selectedSellingType: SellingType?
     @Binding var selectedBrand: String?
     @Binding var selectedAttributeFilters: [String: String]
+    @Binding var minPrice: String
+    @Binding var maxPrice: String
+    @Binding var inStockOnly: Bool
 
     var body: some View {
         Button("Réinitialiser") {
@@ -135,6 +213,9 @@ struct ProductCatalogResetFiltersButton: View {
             selectedSellingType = nil
             selectedBrand = nil
             selectedAttributeFilters = [:]
+            minPrice = ""
+            maxPrice = ""
+            inStockOnly = false
         }
     }
 }

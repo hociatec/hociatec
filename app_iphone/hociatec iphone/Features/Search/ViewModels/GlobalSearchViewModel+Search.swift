@@ -68,6 +68,10 @@ extension GlobalSearchViewModel {
             sellingType: nil,
             brand: nil,
             attributeFilters: [:],
+            minPrice: nil,
+            maxPrice: nil,
+            inStock: nil,
+            sort: nil,
             page: 1,
             perPage: 6
         )

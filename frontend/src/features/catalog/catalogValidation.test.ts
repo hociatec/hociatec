@@ -49,4 +49,19 @@ describe('parseCatalogProduct', () => {
       gallery: [{ position: 0, url: expect.stringContaining('/uploads/products/produit.jpg'), alt: 'Produit', isPrimary: true }],
     });
   });
+
+  it('accepts null variant summary fields returned by the API', () => {
+    expect(parseCatalogProduct(makeProduct({
+      variantColors: null,
+      variantStorages: null,
+      variantMemoryRams: null,
+      variantAttributes: null,
+    }))).toMatchObject({
+      id: 1,
+      variantColors: undefined,
+      variantStorages: undefined,
+      variantMemoryRams: undefined,
+      variantAttributes: undefined,
+    });
+  });
 });

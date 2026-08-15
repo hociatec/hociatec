@@ -51,9 +51,10 @@ final class CatalogRequestAndProductsControllerTest extends MiscSupportTestCase
                 && true === $criteria->onlyFeatured
                 && 'rental' === $criteria->sellingType
                 && 'apple' === $criteria->brand
-                && '256 Go' === $criteria->storageCapacity
-                && '8 Go' === $criteria->memoryRam
-                && 'Noir' === $criteria->color
+                && [] === $criteria->attributeFilters
+                && null === $criteria->storageCapacity
+                && null === $criteria->memoryRam
+                && null === $criteria->color
                 && 1050 === $criteria->minPriceCents
                 && 2000 === $criteria->maxPriceCents
                 && true === $criteria->inStockOnly
@@ -75,6 +76,11 @@ final class CatalogRequestAndProductsControllerTest extends MiscSupportTestCase
                 'variantGroup' => null,
                 'variantPosition' => 0,
                 'releaseYear' => null,
+                'attributes' => [
+                    ['code' => 'storage', 'label' => 'Stockage', 'value' => '256 Go'],
+                    ['code' => 'ram', 'label' => 'RAM', 'value' => '8 Go'],
+                    ['code' => 'color', 'label' => 'Couleur', 'value' => 'Noir'],
+                ],
                 'storageCapacity' => '256 Go',
                 'memoryRam' => '8 Go',
                 'color' => 'Noir',
@@ -142,9 +148,23 @@ final class CatalogRequestAndProductsControllerTest extends MiscSupportTestCase
         self::assertSame([
             'brands' => [['value' => 'Apple', 'count' => 1, 'extra' => null]],
             'categories' => [['value' => 'Phones', 'count' => 1, 'extra' => 'phones']],
-            'storageCapacities' => [['value' => '256 Go', 'count' => 1, 'extra' => null]],
-            'memoryRams' => [['value' => '8 Go', 'count' => 1, 'extra' => null]],
-            'colors' => [['value' => 'Noir', 'count' => 1, 'extra' => null]],
+            'attributes' => [
+                [
+                    'code' => 'color',
+                    'label' => 'Couleur',
+                    'values' => [['value' => 'Noir', 'count' => 1, 'extra' => null]],
+                ],
+                [
+                    'code' => 'ram',
+                    'label' => 'RAM',
+                    'values' => [['value' => '8 Go', 'count' => 1, 'extra' => null]],
+                ],
+                [
+                    'code' => 'storage',
+                    'label' => 'Stockage',
+                    'values' => [['value' => '256 Go', 'count' => 1, 'extra' => null]],
+                ],
+            ],
             'price' => ['min' => 199900, 'max' => 199900],
         ], $payload['data']['facets']);
 
@@ -185,5 +205,19 @@ final class CatalogRequestAndProductsControllerTest extends MiscSupportTestCase
         ]));
         self::assertNull($criteria->minPriceCents);
         self::assertNull($criteria->maxPriceCents);
+
+        $criteria = (new ProductSearchRequestMapper())->map(new Request([
+            'attribute_color' => 'Noir',
+            'attribute_storage' => '256 Go',
+            'attribute_ram' => '8 Go',
+        ]));
+        self::assertSame([
+            'color' => 'Noir',
+            'storage' => '256 Go',
+            'ram' => '8 Go',
+        ], $criteria->attributeFilters);
+        self::assertSame('256 Go', $criteria->storageCapacity);
+        self::assertSame('8 Go', $criteria->memoryRam);
+        self::assertSame('Noir', $criteria->color);
     }
 }

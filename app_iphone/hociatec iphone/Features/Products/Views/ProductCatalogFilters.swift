@@ -5,6 +5,9 @@ struct ProductCatalogToolbar: View {
     let selectedSellingType: SellingType?
     let selectedBrand: String?
     let selectedAttributeFilters: [String: String]
+    let minPrice: Double?
+    let maxPrice: Double?
+    let inStockOnly: Bool
     let availableAttributeFacets: [CatalogAttributeFacet]
     let sort: ProductSortOption
     let summaryText: String
@@ -14,12 +17,16 @@ struct ProductCatalogToolbar: View {
     let onClearSellingType: () -> Void
     let onClearBrand: () -> Void
     let onClearAttributeFilter: (String) -> Void
+    let onClearPriceRange: () -> Void
+    let onClearInStock: () -> Void
 
     private var filtersCount: Int {
         (selectedCategory == nil ? 0 : 1)
             + (selectedSellingType == nil ? 0 : 1)
             + (selectedBrand == nil ? 0 : 1)
             + selectedAttributeFilters.count
+            + ((minPrice == nil && maxPrice == nil) ? 0 : 1)
+            + (inStockOnly ? 1 : 0)
     }
 
     var body: some View {
@@ -34,7 +41,7 @@ struct ProductCatalogToolbar: View {
                 }
             }
 
-            if selectedCategory != nil || selectedSellingType != nil || selectedBrand != nil || !selectedAttributeFilters.isEmpty {
+            if selectedCategory != nil || selectedSellingType != nil || selectedBrand != nil || !selectedAttributeFilters.isEmpty || minPrice != nil || maxPrice != nil || inStockOnly {
                 Text(summaryText)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
@@ -44,11 +51,16 @@ struct ProductCatalogToolbar: View {
                     selectedSellingType: selectedSellingType,
                     selectedBrand: selectedBrand,
                     selectedAttributeFilters: selectedAttributeFilters,
+                    minPrice: minPrice,
+                    maxPrice: maxPrice,
+                    inStockOnly: inStockOnly,
                     availableAttributeFacets: availableAttributeFacets,
                     onClearCategory: onClearCategory,
                     onClearSellingType: onClearSellingType,
                     onClearBrand: onClearBrand,
-                    onClearAttributeFilter: onClearAttributeFilter
+                    onClearAttributeFilter: onClearAttributeFilter,
+                    onClearPriceRange: onClearPriceRange,
+                    onClearInStock: onClearInStock
                 )
             }
         }

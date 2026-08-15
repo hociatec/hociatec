@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { startTransition, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { searchPublicProducts } from '../api';
@@ -90,6 +90,7 @@ export const useCatalogSearch = ({
   const catalogQuery = useQuery<Awaited<ReturnType<typeof searchPublicProducts>>, Error>({
     queryKey: catalogQueryKeys.publicSearch(searchPayload),
     queryFn: ({ signal }) => searchPublicProducts({ ...searchPayload, signal }),
+    placeholderData: (previousData) => previousData,
   });
 
   const updateParam = useCallback(
@@ -98,7 +99,9 @@ export const useCatalogSearch = ({
       if (value === null || value === '' || value === ALL_CATALOG_FILTER) next.delete(key);
       else next.set(key, value);
       if (key !== 'page') next.delete('page');
-      setSearchParams(next, { replace: true });
+      startTransition(() => {
+        setSearchParams(next, { replace: true });
+      });
     },
     [searchParams, setSearchParams],
   );
@@ -111,7 +114,9 @@ export const useCatalogSearch = ({
       if (range.max === null) next.delete('maxPrice');
       else next.set('maxPrice', String(range.max));
       next.delete('page');
-      setSearchParams(next, { replace: true });
+      startTransition(() => {
+        setSearchParams(next, { replace: true });
+      });
     },
     [searchParams, setSearchParams],
   );
@@ -120,7 +125,9 @@ export const useCatalogSearch = ({
     const next = query.trim()
       ? new URLSearchParams({ q: query.trim(), sort: 'relevance' })
       : new URLSearchParams();
-    setSearchParams(next, { replace: true });
+    startTransition(() => {
+      setSearchParams(next, { replace: true });
+    });
   }, [query, setSearchParams]);
 
   return useMemo(
@@ -128,7 +135,8 @@ export const useCatalogSearch = ({
       products: catalogQuery.data?.items ?? [],
       meta: catalogQuery.data?.meta ?? emptyCatalogMeta,
       facets: catalogQuery.data?.facets ?? emptyCatalogFacets,
-      loading: catalogQuery.isLoading,
+      loading: catalogQuery.isLoading && !catalogQuery.data,
+      refreshing: catalogQuery.isFetching && !!catalogQuery.data,
       error: catalogQuery.error?.message ?? null,
       refresh: catalogQuery.refetch,
       query,
@@ -149,6 +157,7 @@ export const useCatalogSearch = ({
       category,
       catalogQuery.data,
       catalogQuery.error,
+      catalogQuery.isFetching,
       catalogQuery.refetch,
       catalogQuery.isLoading,
       inStock,

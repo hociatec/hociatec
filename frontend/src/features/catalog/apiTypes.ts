@@ -171,6 +171,7 @@ export type CatalogSort =
   | 'price_desc'
   | 'release_year_desc'
   | 'release_year_asc'
+  | 'name_asc'
   | 'name_desc'
   | 'stock_desc'
   | 'stock_asc'

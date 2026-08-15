@@ -7,10 +7,16 @@ struct ProductFiltersSheet: View {
     @Binding var selectedSellingType: SellingType?
     @Binding var selectedBrand: String?
     @Binding var selectedAttributeFilters: [String: String]
+    @Binding var minPrice: String
+    @Binding var maxPrice: String
+    @Binding var inStockOnly: Bool
     let currentCategoryID: Int?
     let currentSellingType: SellingType?
     let currentBrand: String?
     let currentAttributeFilters: [String: String]
+    let currentMinPrice: Double?
+    let currentMaxPrice: Double?
+    let currentInStockOnly: Bool
     @Binding var didInitDraftFilters: Bool
     let onClose: () -> Void
     let onApply: () -> Void
@@ -20,6 +26,9 @@ struct ProductFiltersSheet: View {
             || selectedSellingType != currentSellingType
             || selectedBrand != currentBrand
             || selectedAttributeFilters != currentAttributeFilters
+            || minPrice != ProductCatalogFilterPresentation.priceFieldValue(currentMinPrice)
+            || maxPrice != ProductCatalogFilterPresentation.priceFieldValue(currentMaxPrice)
+            || inStockOnly != currentInStockOnly
     }
 
     var body: some View {
@@ -27,10 +36,17 @@ struct ProductFiltersSheet: View {
             Form {
                 ProductCatalogCategoryFilterSection(
                     categories: categories,
+                    categoryFacets: facets.categories,
                     selectedCategoryID: $selectedCategoryID
                 )
                 ProductCatalogSellingTypeFilterSection(selectedSellingType: $selectedSellingType)
                 ProductCatalogBrandFilterSection(brands: facets.brands, selectedBrand: $selectedBrand)
+                ProductCatalogPriceFilterSection(
+                    minPrice: $minPrice,
+                    maxPrice: $maxPrice,
+                    availableRange: facets.price
+                )
+                ProductCatalogStockFilterSection(inStockOnly: $inStockOnly)
                 ForEach(facets.attributes) { facet in
                     ProductCatalogAttributeFilterSection(
                         facet: facet,
@@ -53,6 +69,9 @@ struct ProductFiltersSheet: View {
                 selectedSellingType = currentSellingType
                 selectedBrand = currentBrand
                 selectedAttributeFilters = currentAttributeFilters
+                minPrice = ProductCatalogFilterPresentation.priceFieldValue(currentMinPrice)
+                maxPrice = ProductCatalogFilterPresentation.priceFieldValue(currentMaxPrice)
+                inStockOnly = currentInStockOnly
                 didInitDraftFilters = true
             }
             .onDisappear {
@@ -69,7 +88,10 @@ struct ProductFiltersSheet: View {
                         selectedCategoryID: $selectedCategoryID,
                         selectedSellingType: $selectedSellingType,
                         selectedBrand: $selectedBrand,
-                        selectedAttributeFilters: $selectedAttributeFilters
+                        selectedAttributeFilters: $selectedAttributeFilters,
+                        minPrice: $minPrice,
+                        maxPrice: $maxPrice,
+                        inStockOnly: $inStockOnly
                     )
                 }
                 ToolbarItem(placement: .confirmationAction) {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { CatalogProduct } from '../api';
-import { getCatalogProductDisplayName } from './productDisplay';
+import { getCatalogProductConfiguration, getCatalogProductDisplayName } from './productDisplay';
 
 const makeProduct = (overrides: Partial<CatalogProduct>): CatalogProduct =>
   ({
@@ -47,5 +47,38 @@ describe('getCatalogProductDisplayName', () => {
         }),
       ),
     ).toBe('MacBook Air');
+  });
+});
+
+describe('getCatalogProductConfiguration', () => {
+  it('prefers grouped variant summaries so every available storage stays visible', () => {
+    expect(
+      getCatalogProductConfiguration(
+        makeProduct({
+          attributes: [
+            { code: 'color', label: 'Couleur', value: 'Noir' },
+            { code: 'storage', label: 'Stockage', value: '128 Go' },
+          ],
+          variantAttributes: [
+            { code: 'color', label: 'Couleur', values: ['Noir', 'Bleu'] },
+            { code: 'storage', label: 'Stockage', values: ['128 Go', '256 Go'] },
+            { code: 'ram', label: 'RAM', values: ['8 Go'] },
+          ],
+        }),
+      ),
+    ).toBe('Noir / Bleu • 128 Go / 256 Go • 8 Go');
+  });
+
+  it('falls back to concrete product attributes when no grouped variant summary exists', () => {
+    expect(
+      getCatalogProductConfiguration(
+        makeProduct({
+          attributes: [
+            { code: 'color', label: 'Couleur', value: 'Noir' },
+            { code: 'storage', label: 'Stockage', value: '256 Go' },
+          ],
+        }),
+      ),
+    ).toBe('Noir • 256 Go');
   });
 });

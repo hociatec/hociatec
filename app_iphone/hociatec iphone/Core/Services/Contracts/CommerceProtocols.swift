@@ -20,8 +20,8 @@ protocol CartServing {
 
 protocol ProductServing: AssetServing {
     func featuredProducts() async throws -> [Product]
-    func productList(search: String?, categorySlug: String?, sellingType: SellingType?, brand: String?, attributeFilters: [String: String], page: Int?, perPage: Int?) async throws -> ProductListData
-    func products(search: String?, categorySlug: String?, sellingType: SellingType?, brand: String?, attributeFilters: [String: String]) async throws -> [Product]
+    func productList(search: String?, categorySlug: String?, sellingType: SellingType?, brand: String?, attributeFilters: [String: String], minPrice: Double?, maxPrice: Double?, inStock: Bool?, sort: ProductSortOption?, page: Int?, perPage: Int?) async throws -> ProductListData
+    func products(search: String?, categorySlug: String?, sellingType: SellingType?, brand: String?, attributeFilters: [String: String], minPrice: Double?, maxPrice: Double?, inStock: Bool?, sort: ProductSortOption?) async throws -> [Product]
     func categories() async throws -> [CategorySummary]
     func product(slug: String, sellingType: SellingType?) async throws -> Product
     func productReviews(slug: String, page: Int, perPage: Int) async throws -> ReviewListData

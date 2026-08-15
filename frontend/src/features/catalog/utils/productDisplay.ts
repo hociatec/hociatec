@@ -22,6 +22,25 @@ const nonEmpty = (value?: string | null) => {
 };
 
 export const getCatalogProductConfiguration = (product: CatalogProduct) => {
+  const variantSummary = (product.variantAttributes ?? [])
+    .map((attribute) => {
+      const values = attribute.values
+        .map((value) => nonEmpty(value))
+        .filter((value): value is string => Boolean(value));
+
+      if (values.length === 0) {
+        return null;
+      }
+
+      return values.join(' / ');
+    })
+    .filter((value): value is string => Boolean(value))
+    .join(' • ');
+
+  if (variantSummary) {
+    return variantSummary;
+  }
+
   const dynamicValues = (product.attributes ?? [])
     .map((attribute) => nonEmpty(attribute.value))
     .filter((value): value is string => Boolean(value));

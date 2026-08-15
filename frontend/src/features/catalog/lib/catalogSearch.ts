@@ -11,6 +11,7 @@ export const catalogSorts: CatalogSort[] = [
   'price_desc',
   'release_year_desc',
   'release_year_asc',
+  'name_asc',
   'name_desc',
   'stock_desc',
   'stock_asc',
@@ -53,21 +54,15 @@ export const formatCatalogResultsSummary = (total: number, query: string, noun: 
 
 export const formatGroupedCatalogResultsSummary = (
   total: number,
-  variantTotal: number | undefined,
+  _variantTotal: number | undefined,
   query: string,
   noun: string,
 ) => {
-  const normalizedVariantTotal = variantTotal ?? total;
   const nounSuffix = total > 1 ? 's' : '';
-  const variantSuffix = normalizedVariantTotal > 1 ? 's' : '';
 
   if (query.trim()) {
-    return normalizedVariantTotal > total
-      ? `${total} ${noun}${nounSuffix} • ${normalizedVariantTotal} produits pour « ${query.trim()} »`
-      : `${total} ${noun}${nounSuffix} pour « ${query.trim()} »`;
+    return `${total} ${noun}${nounSuffix} pour « ${query.trim()} »`;
   }
 
-  return normalizedVariantTotal > total
-    ? `${total} ${noun}${nounSuffix} • ${normalizedVariantTotal} produits disponible${variantSuffix}`
-    : `${total} ${noun}${nounSuffix} disponible${nounSuffix}`;
+  return `${total} ${noun}${nounSuffix} disponible${nounSuffix}`;
 };

@@ -9,6 +9,8 @@ struct ProductsListToolbarSection: View {
     let onClearSellingType: () -> Void
     let onClearBrand: () -> Void
     let onClearAttributeFilter: (String) -> Void
+    let onClearPriceRange: () -> Void
+    let onClearInStock: () -> Void
 
     var body: some View {
         Section {
@@ -17,6 +19,9 @@ struct ProductsListToolbarSection: View {
                 selectedSellingType: viewModel.selectedSellingType,
                 selectedBrand: viewModel.selectedBrand,
                 selectedAttributeFilters: viewModel.selectedAttributeFilters,
+                minPrice: viewModel.minPrice,
+                maxPrice: viewModel.maxPrice,
+                inStockOnly: viewModel.inStockOnly,
                 availableAttributeFacets: viewModel.availableFacets.attributes,
                 sort: viewModel.sort,
                 summaryText: summaryText,
@@ -25,7 +30,9 @@ struct ProductsListToolbarSection: View {
                 onClearCategory: onClearCategory,
                 onClearSellingType: onClearSellingType,
                 onClearBrand: onClearBrand,
-                onClearAttributeFilter: onClearAttributeFilter
+                onClearAttributeFilter: onClearAttributeFilter,
+                onClearPriceRange: onClearPriceRange,
+                onClearInStock: onClearInStock
             )
         }
     }

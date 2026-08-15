@@ -7,7 +7,7 @@ import { SITE_URL } from '@/shared/config/seoConfig';
 import { CatalogFilters } from '../components/CatalogFilters';
 import { CatalogProductResults } from '../components/CatalogProductResults';
 import { useCatalogSearch } from '../hooks/useCatalogSearch';
-import { formatCatalogResultsSummary } from '../lib/catalogSearch';
+import { formatGroupedCatalogResultsSummary } from '../lib/catalogSearch';
 import './CatalogPages.css';
 
 export const CatalogSearchPage = () => {
@@ -35,7 +35,12 @@ export const CatalogSearchPage = () => {
             <h1>Trouvez le produit adapté à votre besoin</h1>
             <div className="catalog-detail-metadata">
               <span>
-                {formatCatalogResultsSummary(catalog.meta.total, catalog.query, 'résultat')}
+                {formatGroupedCatalogResultsSummary(
+                  catalog.meta.total,
+                  catalog.meta.variantTotal,
+                  catalog.query,
+                  'résultat',
+                )}
               </span>
             </div>
             <p className="catalog-detail-description">

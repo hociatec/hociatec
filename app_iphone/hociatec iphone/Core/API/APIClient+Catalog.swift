@@ -15,6 +15,10 @@ extension APIClient {
         sellingType: SellingType? = nil,
         brand: String? = nil,
         attributeFilters: [String: String] = [:],
+        minPrice: Double? = nil,
+        maxPrice: Double? = nil,
+        inStock: Bool? = nil,
+        sort: ProductSortOption? = nil,
         page: Int? = nil,
         perPage: Int? = nil
     ) async throws -> ProductListData {
@@ -34,6 +38,18 @@ extension APIClient {
         for (code, value) in attributeFilters.sorted(by: { $0.key < $1.key }) where !value.isEmpty {
             query.append(.init(name: "attribute_\(code)", value: value))
         }
+        if let minPrice {
+            query.append(.init(name: "minPrice", value: String(minPrice)))
+        }
+        if let maxPrice {
+            query.append(.init(name: "maxPrice", value: String(maxPrice)))
+        }
+        if let inStock, inStock {
+            query.append(.init(name: "inStock", value: "1"))
+        }
+        if let sort {
+            query.append(.init(name: "sort", value: sort.rawValue))
+        }
         if let page {
             query.append(.init(name: "page", value: String(page)))
         }
@@ -52,14 +68,22 @@ extension APIClient {
         categorySlug: String? = nil,
         sellingType: SellingType? = nil,
         brand: String? = nil,
-        attributeFilters: [String: String] = [:]
+        attributeFilters: [String: String] = [:],
+        minPrice: Double? = nil,
+        maxPrice: Double? = nil,
+        inStock: Bool? = nil,
+        sort: ProductSortOption? = nil
     ) async throws -> [Product] {
         try await productList(
             search: search,
             categorySlug: categorySlug,
             sellingType: sellingType,
             brand: brand,
-            attributeFilters: attributeFilters
+            attributeFilters: attributeFilters,
+            minPrice: minPrice,
+            maxPrice: maxPrice,
+            inStock: inStock,
+            sort: sort
         ).items
     }
 
