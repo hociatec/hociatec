@@ -125,7 +125,8 @@ struct hociatec_iphoneTests {
             .pending("first"),
             .success(ProductListData(
                 items: [newProduct],
-                meta: PaginationMeta(page: 1, perPage: 12, total: 1, totalPages: 1)
+                meta: PaginationMeta(page: 1, perPage: 12, total: 1, totalPages: 1),
+                facets: nil
             ))
         ])
 
@@ -152,8 +153,9 @@ struct hociatec_iphoneTests {
         await repository.resolvePendingContinuation(
             for: "first",
             with: .success(ProductListData(
-            items: [oldProduct],
-            meta: PaginationMeta(page: 1, perPage: 12, total: 1, totalPages: 1)
+                items: [oldProduct],
+                meta: PaginationMeta(page: 1, perPage: 12, total: 1, totalPages: 1),
+                facets: nil
         )))
         await firstLoad.value
 
@@ -889,7 +891,11 @@ private actor MockProductsRepository: ProductsRepository {
         perPage: Int
     ) async throws -> ProductListData {
         guard !listResponses.isEmpty else {
-            return ProductListData(items: [], meta: PaginationMeta(page: page, perPage: perPage, total: 0, totalPages: 1))
+            return ProductListData(
+                items: [],
+                meta: PaginationMeta(page: page, perPage: perPage, total: 0, totalPages: 1),
+                facets: nil
+            )
         }
 
         let response = listResponses.removeFirst()
@@ -1157,7 +1163,11 @@ private final class MockProductService: ProductServing {
         page: Int?,
         perPage: Int?
     ) async throws -> ProductListData {
-        ProductListData(items: [], meta: PaginationMeta(page: page ?? 1, perPage: perPage ?? 12, total: 0, totalPages: 1))
+        ProductListData(
+            items: [],
+            meta: PaginationMeta(page: page ?? 1, perPage: perPage ?? 12, total: 0, totalPages: 1),
+            facets: nil
+        )
     }
 
     func products(

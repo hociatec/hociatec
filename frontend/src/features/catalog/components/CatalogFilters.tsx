@@ -43,19 +43,7 @@ export const CatalogFilters = ({
   onReset,
 }: CatalogFiltersProps) => {
   const allAttributeLabel = (label: string) => {
-    const normalized = label.trim().toLowerCase();
-
-    return matchAttributeFilterLabel(normalized);
-  };
-
-  const matchAttributeFilterLabel = (label: string) => {
-    return ({
-      couleur: 'Toutes les couleurs',
-      marque: 'Toutes les marques',
-      categorie: 'Toutes les catégories',
-      catégorie: 'Toutes les catégories',
-      stockage: 'Tous les stockages',
-    } as Record<string, string>)[label] ?? `Tous les ${label}s`;
+    return label.trim();
   };
 
   const appendUnavailableSelectedOption = (
