@@ -220,7 +220,7 @@ struct hociatec_iphoneTests {
         let product = sampleProduct(id: 99, name: "Routeur", slug: "routeur", category: sampleCategory())
         let cart = Cart(
             token: "cart-token",
-            items: [CartItem(id: 1, product: product, quantity: 1, linePriceCents: 1000, rentalMonths: nil)],
+            items: [CartItem(id: 1, product: product, quantity: 1, linePriceCents: 1000, rentalMonths: nil, rentalStartDate: nil, rentalEndDate: nil)],
             totalQuantity: 1,
             totalPriceCents: 1000,
             updatedAt: nil
