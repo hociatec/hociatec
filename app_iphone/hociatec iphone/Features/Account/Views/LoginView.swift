@@ -17,7 +17,7 @@ struct LoginView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Connexion")
                         .font(.title2.bold())
-                    Text("Saisissez vos identifiants dans une interface plus stable pendant l'edition.")
+                    Text("Saisissez vos identifiants dans une interface plus stable pendant l’édition.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }

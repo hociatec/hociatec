@@ -48,11 +48,11 @@ final class HomeViewModel: ObservableObject {
         }
 
         let defaultMatches = [
-            "vente de materiel informatique",
-            "reparation d'ordinateurs",
+            "vente de matériel informatique",
+            "réparation d'ordinateurs",
             "maintenance informatique",
-            "creation de sites web",
-            "formation numerique",
+            "création de sites web",
+            "formation numérique",
             "informatique professionnelle"
         ]
 

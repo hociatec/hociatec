@@ -12,19 +12,21 @@ struct GlobalSearchNewsSection: View {
             } else {
                 ForEach(viewModel.news) { article in
                     VStack(alignment: .leading, spacing: 6) {
+                        Text(article.title)
+                            .fontWeight(.semibold)
+                            .multilineTextAlignment(.leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .accessibilityAddTraits(.isHeader)
+
+                        GlobalSearchNewsRow(article: article, showsTitle: false)
                         NavigationLink {
                             NewsDetailView(api: container.services.news, slug: article.slug)
                         } label: {
-                            Text(article.title)
-                                .fontWeight(.semibold)
-                                .multilineTextAlignment(.leading)
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                            Label("Lire l’actualité", systemImage: "arrow.right.circle")
+                                .font(.footnote.weight(.semibold))
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityAddTraits(.isHeader)
+                        .buttonStyle(.borderless)
                         .accessibilityHint("Ouvrir l’actualité")
-
-                        GlobalSearchNewsRow(article: article, showsTitle: false)
                     }
                     .padding(.vertical, 4)
                     .accessibilityElement(children: .contain)
@@ -37,6 +39,8 @@ struct GlobalSearchNewsSection: View {
                     initialSearch: viewModel.query
                 )
             }
+        } footer: {
+            GlobalSearchPaginationSection(viewModel: viewModel, filter: .news)
         }
     }
 }

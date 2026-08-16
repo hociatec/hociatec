@@ -31,6 +31,36 @@ extension GlobalSearchViewModel {
         selectedFilter == .all || selectedFilter == filter
     }
 
+    func currentPage(for filter: GlobalSearchFilter) -> Int {
+        switch filter {
+        case .all:
+            return 1
+        case .products:
+            return productPage
+        case .services:
+            return servicePage
+        case .trainings:
+            return trainingPage
+        case .news:
+            return newsPage
+        }
+    }
+
+    func totalPages(for filter: GlobalSearchFilter) -> Int {
+        switch filter {
+        case .all:
+            return 1
+        case .products:
+            return productTotalPages
+        case .services:
+            return serviceTotalPages
+        case .trainings:
+            return trainingTotalPages
+        case .news:
+            return newsTotalPages
+        }
+    }
+
     private func visibleTotal(for filter: GlobalSearchFilter, count: Int) -> Int {
         shouldLoad(filter) ? count : 0
     }

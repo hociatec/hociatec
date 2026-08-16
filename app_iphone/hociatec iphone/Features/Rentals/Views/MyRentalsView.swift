@@ -206,7 +206,7 @@ private struct RentalRow: View {
 
             if !isReturned {
                 HStack {
-                    Button(isSubmittingExtend ? "Preparation..." : "Prolonger", action: requestExtend)
+                    Button(isSubmittingExtend ? "Préparation..." : "Prolonger", action: requestExtend)
                         .buttonStyle(.bordered)
                         .disabled(isSubmittingExtend || isSubmittingTerminate || hasPendingRequest)
 
@@ -291,18 +291,17 @@ private struct RentalRequestSheet: View {
             Form {
                 Section("Demande de prolongation") {
                     Text(rental.productName)
+                        .font(.headline)
                     LabeledContent("Période actuelle") {
                         Text("\(DatePresentation.formatAPIDay(rental.startDate)) - \(DatePresentation.formatAPIDay(rental.endDate))")
                     }
                     LabeledContent("Nouvelle échéance", value: DateFormatters.frDay.string(from: requestedEndDate))
-                    LocalizedDatePicker(
+                    NumericDatePicker(
                         date: $requestedEndDate,
-                        displayedComponents: [.date],
-                        minimumDate: minimumExtensionDate,
-                        style: .inline
+                        minimumDate: minimumExtensionDate
                     )
-                    .frame(maxWidth: .infinity, minHeight: 320)
-                    Text("Choisissez la date exacte de nouvelle échéance. Le paiement sera calculé automatiquement selon la durée nécessaire.")
+                    .frame(maxWidth: .infinity, minHeight: 104)
+                    Text("Le montant de la prolongation sera recalculé automatiquement.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
@@ -310,6 +309,7 @@ private struct RentalRequestSheet: View {
             }
             .navigationTitle("Prolonger")
             .navigationBarTitleDisplayMode(.inline)
+            .scrollDismissesKeyboard(.interactively)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Annuler", action: onCancel)
@@ -371,18 +371,17 @@ private struct RentalTerminationSheet: View {
             Form {
                 Section("Fin de location") {
                     Text(rental.productName)
+                        .font(.headline)
                     LabeledContent("Date de fin", value: DateFormatters.frDay.string(from: requestedEndDate))
-                    LocalizedDatePicker(
+                    NumericDatePicker(
                         date: $requestedEndDate,
-                        displayedComponents: [.date],
                         minimumDate: minimumTerminationDate,
-                        maximumDate: DatePresentation.parseAPIDay(rental.endDate),
-                        style: .inline
+                        maximumDate: DatePresentation.parseAPIDay(rental.endDate)
                     )
-                    .frame(maxWidth: .infinity, minHeight: 320)
+                    .frame(maxWidth: .infinity, minHeight: 104)
                 }
 
-                Section("Retour du materiel") {
+                Section("Retour du matériel") {
                     Picker("Mode", selection: $mode) {
                         Text("Récupération à domicile").tag(MyRentalsViewModel.ReturnMode.pickupHome)
                         Text("Dépôt en boutique").tag(MyRentalsViewModel.ReturnMode.dropoffStore)
@@ -390,14 +389,15 @@ private struct RentalTerminationSheet: View {
                     .pickerStyle(.inline)
 
                     LabeledContent("Date souhaitée", value: DateFormatters.frDay.string(from: requestedDate))
-                    LocalizedDatePicker(
+                    NumericDatePicker(
                         date: $requestedDate,
-                        displayedComponents: [.date],
                         minimumDate: minimumTerminationDate,
-                        maximumDate: requestedEndDate,
-                        style: .inline
+                        maximumDate: requestedEndDate
                     )
-                    .frame(maxWidth: .infinity, minHeight: 320)
+                    .frame(maxWidth: .infinity, minHeight: 104)
+                    Text("La date de retour doit être comprise entre aujourd’hui et la fin choisie.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
                 Section {
                     ProductAddToCartButton(
@@ -416,6 +416,7 @@ private struct RentalTerminationSheet: View {
             }
             .navigationTitle("Terminer")
             .navigationBarTitleDisplayMode(.inline)
+            .scrollDismissesKeyboard(.interactively)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Annuler", action: onCancel)

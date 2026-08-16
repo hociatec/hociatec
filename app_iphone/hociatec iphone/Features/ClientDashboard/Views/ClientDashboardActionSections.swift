@@ -19,10 +19,15 @@ struct ClientDashboardActionsSection: View {
                 .padding(.vertical, 4)
             } else {
                 ForEach(actions) { action in
-                    NavigationLink {
-                        ClientDashboardActionDestinationView(action: action)
-                    } label: {
+                    VStack(alignment: .leading, spacing: 8) {
                         ClientDashboardActionRow(action: action)
+                        NavigationLink {
+                            ClientDashboardActionDestinationView(action: action)
+                        } label: {
+                            Label("Ouvrir l’action", systemImage: "arrow.right.circle")
+                                .font(.footnote.weight(.semibold))
+                        }
+                        .buttonStyle(.borderless)
                     }
                 }
             }

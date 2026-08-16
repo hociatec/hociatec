@@ -13,6 +13,13 @@ struct GlobalSearchProductsSection: View {
             } else {
                 ForEach(viewModel.products) { product in
                     VStack(alignment: .leading, spacing: 6) {
+                        Text(product.name)
+                            .fontWeight(.semibold)
+                            .multilineTextAlignment(.leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .accessibilityAddTraits(.isHeader)
+
+                        GlobalSearchProductRow(product: product, showsTitle: false)
                         NavigationLink {
                             ProductDetailView(
                                 viewModel: container.makeProductDetailViewModel(product: product),
@@ -22,16 +29,11 @@ struct GlobalSearchProductsSection: View {
                             )
                             .environmentObject(container)
                         } label: {
-                            Text(product.name)
-                                .fontWeight(.semibold)
-                                .multilineTextAlignment(.leading)
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                            Label("Voir le détail", systemImage: "arrow.right.circle")
+                                .font(.footnote.weight(.semibold))
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityAddTraits(.isHeader)
+                        .buttonStyle(.borderless)
                         .accessibilityHint("Afficher le détail du produit")
-
-                        GlobalSearchProductRow(product: product, showsTitle: false)
                     }
                     .padding(.vertical, 4)
                     .accessibilityElement(children: .contain)
@@ -47,6 +49,8 @@ struct GlobalSearchProductsSection: View {
                     initialSearch: viewModel.query
                 )
             }
+        } footer: {
+            GlobalSearchPaginationSection(viewModel: viewModel, filter: .products)
         }
     }
 }

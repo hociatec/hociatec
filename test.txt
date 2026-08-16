@@ -1,0 +1,261 @@
+Audit couverture metier backend
+Date d'audit: 2026-08-16
+
+Perimetre
+- Backend uniquement.
+- Base observee: modules dans `backend/src/Module` et tests dans `backend/tests/Unit`.
+- Verification executee avant cet audit: `composer app:test`, `composer app:architecture`, `composer app:phpstan` -> OK.
+
+Verdict global
+- Le backend est bien teste au sens regression technique et metier critique.
+- En revanche, il n'est pas teste de facon exhaustive "module par module, fonctionnalite par fonctionnalite" avec une specification metier pure pour chaque cas d'usage.
+- La couverture actuelle est heterogene:
+  - forte sur les modules critiques transactionnels ou sensibles,
+  - moyenne sur plusieurs modules fonctionnels,
+  - faible ou diffuse sur quelques modules, souvent couverts indirectement par des tests `Misc`, `Completion` ou `Batch`.
+
+Ce qu'on peut dire honnetement
+- Oui: il y a deja une bonne protection contre beaucoup de bugs reels.
+- Non: on ne peut pas affirmer que chaque fonctionnalite metier de chaque module a son jeu de tests dedie, lisible et complet.
+
+Lecture de la couverture
+- Couverture directe: tests ranges dans le dossier du module cible.
+- Couverture indirecte: tests `Misc/*`, `Completion*`, `Batch*`, ou couverture par un autre module admin/client.
+- Risque principal: quand la couverture est surtout indirecte, une regression locale reste possible sans test metier explicite.
+
+Etat par module
+
+1. Modules a couverture forte
+
+Admin
+- Bon niveau de couverture sur controllers, quote, paiement, backup, operations, beta, news, catalog admin.
+- Couvre beaucoup de scenarios d'erreur et de succes.
+- Limite: ce module orchestre surtout les autres modules. La vraie logique metier reste a verifier dans les modules proprietaires.
+
+Appointment
+- Couverture directe solide: entites, services, disponibilites, mapping, repositories, controllers admin/public/client.
+- Les regles de slots, horaires, annulation, replanification et configuration sont testees.
+- Niveau: bon.
+
+Audit
+- Couverture directe claire: entites, creation, repositories, templates, controllers admin/client.
+- Les flux principaux et plusieurs branches d'erreur sont presents.
+- Niveau: bon.
+
+Auth
+- Couverture directe solide: refresh tokens, concurrence, logout, reset password, verify, handlers, listeners, contexte de requete.
+- Bon niveau sur les cas sensibles de session et revocation.
+- Niveau: bon.
+
+Cart
+- Couverture directe metier correcte: item, session, resolver, voucher, formatter, service.
+- Les cas vente/location, quantites, durees et vouchers sont bien defendus.
+- Niveau: bon.
+
+Catalog
+- Couverture directe assez forte: entites, repositories, formatter, search provider, grouping, rules, write handler, variants, query service.
+- Couverture admin et publique aussi presente indirectement.
+- Limite: l'ergonomie des cas d'usage complets est dispersee entre tests directs et `Misc`.
+- Niveau: bon mais pas encore parfaitement specifie par fonctionnalite.
+
+Notification
+- Couverture directe riche: formatters, read state, preferences, computed providers, notifier, controllers.
+- Bon niveau sur sanitation, duplication, envoi email et fallback.
+- Niveau: bon.
+
+Order
+- Couverture directe forte: entites, repositories, numerotation, acces, formatter, inspection, remboursement, webhook Stripe, PDF, notifications.
+- Tres bon niveau sur securite et paiements.
+- Niveau: bon.
+
+Quote
+- Couverture directe forte: repository, service, calcul, formatting, workflow, email delivery, entities, get service controller.
+- Plus couverture admin indirecte abondante.
+- Limite: le module "Service" depend beaucoup de la logique quote/catalog et n'a pas de suite dediee distincte.
+- Niveau: bon.
+
+TradeIn
+- Couverture directe forte: DTO, entite, create controllers, user controllers, statut, estimateur, stockage prive, purge, workflow, voucher/PDF, integration.
+- Couvre des zones sensibles: documents prives, transitions, vouchers, offres.
+- Niveau: bon.
+
+Training
+- Couverture directe solide: entites, repositories, formatter, slot validator, enrollment checkout, controllers admin/public/client.
+- Niveau: bon.
+
+User
+- Couverture directe solide: entites, repositories, profile, adresses, export de donnees, anonymisation, registration, email, password, controllers admin/client.
+- Niveau: bon.
+
+Voucher
+- Couverture directe solide: entity, repository, engine, manager, formatter, notification email, liste client.
+- Les contraintes d'eligibilite et de dates sont bien traitees.
+- Niveau: bon.
+
+2. Modules a couverture moyenne
+
+BetaTest
+- Couvre profils, campagnes, bug reports, entites, integration, et les parcours admin.
+- La couverture est reelle, mais une partie est concentree sur les controllers et parcours globaux.
+- Niveau: correct.
+- A renforcer: regles metier fines des campagnes et du suivi de bug si elles evoluent souvent.
+
+Marketing
+- Couvre service, outbox handlers, worker email, audience provider, recipient context, integration, controllers admin.
+- Bon pour l'architecture de diffusion.
+- Limite: si les regles de segmentation ou de ciblage deviennent plus complexes, il faudra plus de tests purement metier.
+- Niveau: correct a bon.
+
+News
+- Couvre public, admin et ecriture d'article.
+- Couverture existante, mais peu dense en nombre de suites dediees.
+- Niveau: correct.
+- A renforcer si moderation, publication differée, commentaires, notifications ou synchronisations deviennent critiques.
+
+Promotion
+- Couvre entite, formatter, engine, manager, repository et un peu d'admin.
+- Bon pour le moteur principal.
+- Limite: la couverture fonctionnelle complete des parcours admin/public n'est pas tres explicite.
+- Niveau: correct.
+
+Rating
+- Peu de fichiers, mais ils semblent couvrir entites, creation review, resolver, controllers.
+- Niveau: correct mais compact.
+- Risque: faible lisibilite de couverture si le module grossit.
+
+Support
+- Couverture directe sur entite et service principal.
+- Les cas de creation, mise a jour, reponse et erreurs existent.
+- Limite: faible nombre de suites dediees pour un module potentiellement riche en statuts et historique.
+- Niveau: correct mais a renforcer.
+
+3. Modules a couverture faible ou diffuse
+
+Contact
+- Essentiellement `ContactModuleCompletionTest` + couverture indirecte.
+- Cela indique une presence de regression, pas une specification metier detaillee.
+- Niveau: faible a moyen.
+
+Favorite
+- Couverture visible sur repository + completion controllers.
+- Manque une vraie lecture fonctionnelle des invariants metiers si le module devient plus riche.
+- Niveau: faible a moyen.
+
+Loyalty
+- Tres peu de tests dedies: `LoyaltyModuleCompletionTest` + couverture indirecte.
+- Or le module contient un service metier, un subscriber et des controllers.
+- Niveau: faible.
+- Priorite de renforcement: haute si les points, paliers ou calculs de fidelite ont un impact business.
+
+Rental
+- Un seul test direct identifie: `RentalPeriodCalculatorTest`.
+- Pourtant le module contient plusieurs workflows: portail client, termination, extension checkout, reconciliation paiement.
+- Niveau: faible.
+- C'est un angle mort important.
+
+System
+- Un seul fichier dedie: `SystemControllersTest`.
+- Couvre la surface HTTP utile, mais pas de suites plus fines sur les providers.
+- Niveau: faible a moyen.
+- Acceptable si le module reste simple, insuffisant s'il porte plus de logique d'exploitation.
+
+Comment
+- Aucun test direct dedie trouve.
+- Le module ne contient qu'une entite `ProductComment`, probablement couverte indirectement via `Rating`.
+- Niveau: faible.
+- Acceptable seulement si le module reste minimal et sans logique propre.
+
+Service
+- Aucun dossier de test dedie au module `Service`.
+- Pourtant le module contient `ServiceOffering`, son repository, son formatter, son port et son enum.
+- Une partie est probablement couverte via `Quote`, `Catalog` et certains tests admin.
+- Mais il n'y a pas de suite explicite prouvant la specification metier propre du module.
+- Niveau: faible.
+- C'est un vrai trou de lisibilite, meme si une partie du comportement est indirectement testee.
+
+Points structurels qui limitent l'assurance metier
+- Beaucoup de couverture passe par `backend/tests/Unit/Module/Misc`.
+- Les tests `Completion` et `Batch` sont utiles pour regression rapide, mais ils ne remplacent pas des suites dediees par cas d'usage.
+- Plusieurs modules sont bien couverts techniquement sans etre decrits comme une matrice metier explicite.
+- Il manque une convention uniforme du style:
+  - une suite par cas d'usage principal,
+  - une suite par regle metier critique,
+  - une suite par scenario d'erreur important,
+  - une suite par contrainte d'acces ou d'idempotence.
+
+Priorites de renforcement recommandees
+
+Priorite 1
+- Rental
+- Loyalty
+- Service
+
+Pourquoi
+- Ces modules ont de la logique metier reelle mais peu ou pas de tests dedies lisibles.
+
+Priorite 2
+- Contact
+- Favorite
+- System
+- Comment
+
+Pourquoi
+- Couverture faible ou indirecte; acceptable seulement si la logique reste tres simple.
+
+Priorite 3
+- Support
+- Rating
+- News
+- BetaTest
+- Promotion
+- Marketing
+
+Pourquoi
+- Ils ont deja une base correcte, mais gagneraient a etre remappes en veritables cas d'usage metier.
+
+Definition de "bon" a viser pour chaque module
+- Un fichier de tests par cas d'usage principal.
+- Cas nominal.
+- Cas d'erreur metier.
+- Cas de bord.
+- Regles d'autorisation si le module est sensible.
+- Cas de concurrence/idempotence si le module ecrit dans des flux critiques.
+
+Exemples de trous concrets a combler en premier
+
+Rental
+- creation ou extension de location
+- reconciliation paiement
+- terminaison client
+- refus de transitions invalides
+- impact sur snapshots, montants et statuts
+
+Loyalty
+- calcul de points
+- attribution/retrait
+- idempotence apres evenement commande
+- effets d'annulation/remboursement
+- bornes et seuils de fidelite
+
+Service
+- invariants de `ServiceOffering`
+- formatage/projection du service
+- repository et recherche
+- compatibilite avec quote/catalog
+- cas limites sur mode de facturation
+
+Conclusion
+- Le backend est deja robuste au sens technique et regression globale.
+- Il n'est pas encore teste de facon exhaustive et purement metier pour chaque module et chaque fonctionnalite.
+- Les modules les mieux armes aujourd'hui sont: `Appointment`, `Audit`, `Auth`, `Cart`, `Catalog`, `Notification`, `Order`, `Quote`, `TradeIn`, `Training`, `User`, `Voucher`.
+- Les angles morts les plus visibles sont: `Rental`, `Loyalty`, `Service`, puis `Comment`, `Contact`, `Favorite`, `System`.
+
+Recommendation pratique
+- La suite la plus utile n'est pas d'ajouter des tests partout au hasard.
+- Il faut commencer par ecrire une matrice de couverture metier pour:
+  - `Rental`
+  - `Loyalty`
+  - `Service`
+- Puis creer les tests dedies cas d'usage par cas d'usage.
+
+Si besoin, l'etape suivante logique est de produire un plan de tests backend module par module, avec les fichiers de test manquants a creer en priorite.

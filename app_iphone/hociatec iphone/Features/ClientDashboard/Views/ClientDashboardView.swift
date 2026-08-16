@@ -27,7 +27,7 @@ struct ClientDashboardView: View {
                         if newValue {
                             confirmationDialog = FeedbackDialogState(
                                 title: "Supprimer mon compte ?",
-                                message: "Cette action est irreversible.",
+                                message: "Cette action est irréversible.",
                                 primaryButton: .cancel("Annuler"),
                                 secondaryButton: .destructive("Supprimer mon compte") {
                                     Task { await account.deleteAccount() }

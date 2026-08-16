@@ -27,7 +27,7 @@ struct OrderDetailView: View {
                         onCancel: {
                             confirmationDialog = FeedbackDialogState(
                                 title: "Annuler cette commande ?",
-                                message: "Cette action est irreversible. La commande sera annulee si elle est encore en attente.",
+                                message: "Cette action est irréversible. La commande sera annulée si elle est encore en attente.",
                                 primaryButton: .cancel("Retour"),
                                 secondaryButton: .destructive("Confirmer l'annulation") {
                                     Task { await viewModel.cancel() }

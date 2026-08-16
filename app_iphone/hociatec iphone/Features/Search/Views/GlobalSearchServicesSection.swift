@@ -12,18 +12,20 @@ struct GlobalSearchServicesSection: View {
             } else {
                 ForEach(viewModel.services) { service in
                     VStack(alignment: .leading, spacing: 6) {
+                        Text(service.title)
+                            .fontWeight(.semibold)
+                            .multilineTextAlignment(.leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .accessibilityAddTraits(.isHeader)
+
+                        GlobalSearchServiceRow(service: service, showsTitle: false)
                         NavigationLink {
                             ServiceDetailView(api: container.services.serviceCatalog, serviceID: service.id)
                         } label: {
-                            Text(service.title)
-                                .fontWeight(.semibold)
-                                .multilineTextAlignment(.leading)
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                            Label("Voir le détail", systemImage: "arrow.right.circle")
+                                .font(.footnote.weight(.semibold))
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityAddTraits(.isHeader)
-
-                        GlobalSearchServiceRow(service: service, showsTitle: false)
+                        .buttonStyle(.borderless)
                     }
                     .padding(.vertical, 4)
                     .accessibilityElement(children: .contain)
@@ -36,6 +38,8 @@ struct GlobalSearchServicesSection: View {
                     initialSearch: viewModel.query
                 )
             }
+        } footer: {
+            GlobalSearchPaginationSection(viewModel: viewModel, filter: .services)
         }
     }
 }

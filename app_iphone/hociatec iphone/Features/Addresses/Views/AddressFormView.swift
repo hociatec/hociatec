@@ -55,7 +55,7 @@ struct AddressFormView: View {
                 AddressFormDeleteSection {
                     feedbackDialog = FeedbackDialogState(
                         title: "Supprimer cette adresse ?",
-                        message: "Cette action est irreversible.",
+                        message: "Cette action est irréversible.",
                         primaryButton: .cancel("Annuler"),
                         secondaryButton: .destructive("Supprimer") {
                             deleteAddress()

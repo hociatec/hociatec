@@ -126,8 +126,8 @@ final class MyRentalsViewModel: ObservableObject {
             )
             apply(updated)
             successMessage = updated.request.type == RentalRequestAction.endEarly.rawValue
-                ? "Votre fin de location et la restitution ont bien ete enregistrees."
-                : "\(returnMode == .pickupHome ? "Recuperation a domicile" : "Depot en boutique") planifie pour le \(DatePresentation.formatAPIDay(updated.returnPlan.requestedDate))."
+                ? "Votre fin de location et la restitution ont bien été enregistrées."
+                : "\(returnMode == .pickupHome ? "Récupération à domicile" : "Dépôt en boutique") planifiée pour le \(DatePresentation.formatAPIDay(updated.returnPlan.requestedDate))."
         } catch {
             self.error = error.localizedDescription
         }
@@ -148,7 +148,7 @@ final class MyRentalsViewModel: ObservableObject {
 
     func cancelPendingExtensionPayment(for rental: RentalItem) async {
         guard let stripeSessionId = rental.extensionState.checkoutSessionId, !stripeSessionId.isEmpty else {
-            error = "Impossible de retrouver la session de paiement a annuler."
+            error = "Impossible de retrouver la session de paiement à annuler."
             return
         }
 
@@ -161,11 +161,11 @@ final class MyRentalsViewModel: ObservableObject {
         do {
             _ = try await service.cancelPendingExtensionCheckout(stripeSessionId: stripeSessionId)
             await load(force: true)
-            successMessage = "La tentative de paiement a ete annulee. Vous pouvez relancer une prolongation."
+            successMessage = "La tentative de paiement a été annulée. Vous pouvez relancer une prolongation."
         } catch {
             await load(force: true)
             if rentalState(for: rental.orderItemId)?.request.status != "pending_payment" {
-                successMessage = "La tentative de paiement a ete annulee. Vous pouvez relancer une prolongation."
+                successMessage = "La tentative de paiement a été annulée. Vous pouvez relancer une prolongation."
             } else {
                 self.error = error.localizedDescription
             }

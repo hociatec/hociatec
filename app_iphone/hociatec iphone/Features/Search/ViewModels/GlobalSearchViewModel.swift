@@ -3,6 +3,8 @@ import Combine
 
 @MainActor
 final class GlobalSearchViewModel: ObservableObject {
+    let resultsPerPage = 6
+
     @Published var query = ""
     @Published var draftQuery = ""
     @Published var selectedFilter: GlobalSearchFilter = .all
@@ -15,6 +17,14 @@ final class GlobalSearchViewModel: ObservableObject {
     @Published var serviceTotal = 0
     @Published var trainingTotal = 0
     @Published var newsTotal = 0
+    @Published var productPage = 1
+    @Published var servicePage = 1
+    @Published var trainingPage = 1
+    @Published var newsPage = 1
+    @Published var productTotalPages = 1
+    @Published var serviceTotalPages = 1
+    @Published var trainingTotalPages = 1
+    @Published var newsTotalPages = 1
     @Published var isLoading = false
     @Published var error: String?
 

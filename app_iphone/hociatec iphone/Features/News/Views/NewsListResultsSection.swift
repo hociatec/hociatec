@@ -52,22 +52,24 @@ private struct NewsListRow: View {
             HStack(alignment: .top, spacing: 12) {
                 FavoriteToggleButton(category: .news, targetId: article.id)
 
-                NavigationLink {
-                    NewsDetailView(api: service, slug: article.slug)
-                } label: {
-                    Text(article.title)
-                        .fontWeight(.semibold)
-                        .multilineTextAlignment(.leading)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .buttonStyle(.plain)
-                .accessibilityAddTraits(.isHeader)
-                .accessibilityHint("Ouvrir l’actualité")
+                Text(article.title)
+                    .fontWeight(.semibold)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityAddTraits(.isHeader)
             }
 
             Text(article.excerpt)
                 .lineLimit(3)
                 .foregroundStyle(.secondary)
+            NavigationLink {
+                NewsDetailView(api: service, slug: article.slug)
+            } label: {
+                Label("Lire l’actualité", systemImage: "arrow.right.circle")
+                    .font(.footnote.weight(.semibold))
+            }
+            .buttonStyle(.borderless)
+            .accessibilityHint("Ouvrir l’actualité")
         }
         .padding(.vertical, 4)
         .accessibilityElement(children: .contain)

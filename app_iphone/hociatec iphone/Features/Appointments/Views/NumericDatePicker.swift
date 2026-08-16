@@ -6,9 +6,16 @@ struct NumericDatePicker: View {
     var maximumDate: Date? = nil
     var calendar: Calendar = Calendar(identifier: .gregorian)
 
-    @State private var day: Int = 1
-    @State private var month: Int = 1
-    @State private var year: Int = Calendar(identifier: .gregorian).component(.year, from: Date())
+    @FocusState private var focusedField: Field?
+    @State private var dayText = ""
+    @State private var monthText = ""
+    @State private var yearText = ""
+
+    private enum Field {
+        case day
+        case month
+        case year
+    }
 
     private var presentation: NumericDatePickerPresentation {
         NumericDatePickerPresentation(
@@ -16,65 +23,107 @@ struct NumericDatePicker: View {
             minimumDate: minimumDate,
             maximumDate: maximumDate,
             calendar: calendar,
-            year: year,
-            month: month
+            year: parsedYear ?? calendar.component(.year, from: date),
+            month: parsedMonth ?? calendar.component(.month, from: date)
         )
     }
 
     var body: some View {
-        HStack(spacing: 8) {
-            Picker("Jour", selection: $day) {
-                ForEach(presentation.dayValues, id: \.self) { value in
-                    Text(String(format: "%02d", value)).tag(value)
-                }
-            }
-            .pickerStyle(.wheel)
-
-            Text("/")
-                .foregroundStyle(.secondary)
-
-            Picker("Mois", selection: $month) {
-                ForEach(presentation.monthValues, id: \.self) { value in
-                    Text(String(format: "%02d", value)).tag(value)
-                }
-            }
-            .pickerStyle(.wheel)
-
-            Text("/")
-                .foregroundStyle(.secondary)
-
-            Picker("Année", selection: $year) {
-                ForEach(presentation.yearValues, id: \.self) { value in
-                    Text(String(format: "%04d", value)).tag(value)
-                }
-            }
-            .pickerStyle(.wheel)
+        ViewThatFits(in: .horizontal) {
+            horizontalLayout
+            verticalLayout
         }
         .frame(maxWidth: .infinity)
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Valider") {
+                    commitInput()
+                    focusedField = nil
+                }
+            }
+        }
         .onAppear {
             clampDateToBounds()
             syncFromDate()
-            clampComponents()
-            syncToDate()
         }
         .onChangeCompat(date) { _ in
             clampDateToBounds()
             syncFromDate()
-            clampComponents()
         }
-        .onChangeCompat(year) { _ in
-            clampComponents()
-            syncToDate()
+        .onChangeCompat(dayText) { newValue in
+            update(field: .day, with: newValue)
         }
-        .onChangeCompat(month) { _ in
-            clampComponents()
-            syncToDate()
+        .onChangeCompat(monthText) { newValue in
+            update(field: .month, with: newValue)
         }
-        .onChangeCompat(day) { _ in
-            clampComponents()
-            syncToDate()
+        .onChangeCompat(yearText) { newValue in
+            update(field: .year, with: newValue)
+        }
+        .onChangeCompat(focusedField) { newValue in
+            if newValue == nil {
+                commitInput()
+            }
         }
     }
+
+    private var horizontalLayout: some View {
+        HStack(spacing: 8) {
+            dateField(title: "Jour", text: $dayText, placeholder: "JJ", field: .day)
+            separator
+            dateField(title: "Mois", text: $monthText, placeholder: "MM", field: .month)
+            separator
+            dateField(title: "Année", text: $yearText, placeholder: "AAAA", field: .year)
+        }
+    }
+
+    private var verticalLayout: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 8) {
+                dateField(title: "Jour", text: $dayText, placeholder: "JJ", field: .day)
+                dateField(title: "Mois", text: $monthText, placeholder: "MM", field: .month)
+            }
+            dateField(title: "Année", text: $yearText, placeholder: "AAAA", field: .year)
+        }
+    }
+
+    private var separator: some View {
+        Text("/")
+            .font(.headline)
+            .foregroundStyle(.tertiary)
+            .padding(.top, 20)
+    }
+
+    @ViewBuilder
+    private func dateField(title: String, text: Binding<String>, placeholder: String, field: Field) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+
+            TextField(placeholder, text: text)
+                .keyboardType(.numberPad)
+                .textInputAutocapitalization(.never)
+                .multilineTextAlignment(.center)
+                .font(.body.monospacedDigit())
+                .padding(.vertical, 12)
+                .padding(.horizontal, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color(.secondarySystemBackground))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(focusedField == field ? Color.teal : Color(.separator), lineWidth: 1)
+                )
+                .focused($focusedField, equals: field)
+        }
+        .frame(maxWidth: field == .year ? 104 : 78)
+    }
+
+    private var parsedDay: Int? { Int(dayText) }
+    private var parsedMonth: Int? { Int(monthText) }
+    private var parsedYear: Int? { Int(yearText) }
 
     private func clampDateToBounds() {
         if date < minimumDate {
@@ -84,36 +133,103 @@ struct NumericDatePicker: View {
         }
     }
 
-    private func clampComponents() {
-        let clamped = presentation.clampedComponents(year: year, month: month, day: day)
-        year = clamped.year ?? year
-        month = clamped.month ?? month
-        day = clamped.day ?? day
-    }
-
     private func syncFromDate() {
-        day = calendar.component(.day, from: date)
-        month = calendar.component(.month, from: date)
-        year = calendar.component(.year, from: date)
+        dayText = String(format: "%02d", calendar.component(.day, from: date))
+        monthText = String(format: "%02d", calendar.component(.month, from: date))
+        yearText = String(format: "%04d", calendar.component(.year, from: date))
     }
 
-    private func syncToDate() {
-        guard let newDate = presentation.date(year: year, month: month, day: day) else { return }
+    private func update(field: Field, with value: String) {
+        let sanitized = sanitize(value, for: field)
+        if sanitized != value {
+            setText(sanitized, for: field)
+            return
+        }
 
+        autoAdvance(after: field)
+        applyIfPossible()
+    }
+
+    private func sanitize(_ value: String, for field: Field) -> String {
+        let digits = value.filter(\.isNumber)
+        let maxLength: Int
+        switch field {
+        case .day, .month:
+            maxLength = 2
+        case .year:
+            maxLength = 4
+        }
+        return String(digits.prefix(maxLength))
+    }
+
+    private func setText(_ value: String, for field: Field) {
+        switch field {
+        case .day:
+            dayText = value
+        case .month:
+            monthText = value
+        case .year:
+            yearText = value
+        }
+    }
+
+    private func autoAdvance(after field: Field) {
+        switch field {
+        case .day where dayText.count == 2:
+            focusedField = .month
+        case .month where monthText.count == 2:
+            focusedField = .year
+        default:
+            break
+        }
+    }
+
+    private func applyIfPossible() {
+        guard dayText.count == 2, monthText.count == 2, yearText.count == 4 else { return }
+        guard let day = parsedDay, let month = parsedMonth, let year = parsedYear else { return }
+
+        let clamped = presentation.clampedComponents(year: year, month: month, day: day)
+        guard let newDate = presentation.date(
+            year: clamped.year ?? year,
+            month: clamped.month ?? month,
+            day: clamped.day ?? day
+        ) else { return }
+
+        setDate(newDate)
+    }
+
+    private func commitInput() {
+        guard let day = parsedDay, let month = parsedMonth, let year = parsedYear else {
+            syncFromDate()
+            return
+        }
+
+        let clamped = presentation.clampedComponents(year: year, month: month, day: day)
+        guard let newDate = presentation.date(
+            year: clamped.year ?? year,
+            month: clamped.month ?? month,
+            day: clamped.day ?? day
+        ) else {
+            syncFromDate()
+            return
+        }
+
+        setDate(newDate)
+    }
+
+    private func setDate(_ newDate: Date) {
+        let boundedDate: Date
         if let maximumDate, newDate > maximumDate {
-            date = maximumDate
-            syncFromDate()
-            return
+            boundedDate = maximumDate
+        } else if newDate < minimumDate {
+            boundedDate = minimumDate
+        } else {
+            boundedDate = newDate
         }
 
-        if newDate < minimumDate {
-            date = minimumDate
-            syncFromDate()
-            return
+        if boundedDate != date {
+            date = boundedDate
         }
-
-        if newDate != date {
-            date = newDate
-        }
+        syncFromDate()
     }
 }

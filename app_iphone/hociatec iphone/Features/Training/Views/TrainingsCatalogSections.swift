@@ -35,10 +35,15 @@ struct TrainingsCatalogResultsSection: View {
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(viewModel.trainings) { training in
-                    NavigationLink {
-                        TrainingDetailView(api: service, slug: training.slug)
-                    } label: {
+                    VStack(alignment: .leading, spacing: 8) {
                         TrainingCatalogRow(training: training)
+                        NavigationLink {
+                            TrainingDetailView(api: service, slug: training.slug)
+                        } label: {
+                            Label("Voir la formation", systemImage: "arrow.right.circle")
+                                .font(.footnote.weight(.semibold))
+                        }
+                        .buttonStyle(.borderless)
                     }
                 }
 

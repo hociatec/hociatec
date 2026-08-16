@@ -27,10 +27,15 @@ struct MySupportRequestsView: View {
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(viewModel.items) { item in
-                        NavigationLink {
-                            SupportRequestDetailView(viewModel: viewModel, requestId: item.id)
-                        } label: {
+                        VStack(alignment: .leading, spacing: 8) {
                             SupportRequestRow(item: item)
+                            NavigationLink {
+                                SupportRequestDetailView(viewModel: viewModel, requestId: item.id)
+                            } label: {
+                                Label("Voir le dossier", systemImage: "arrow.right.circle")
+                                    .font(.footnote.weight(.semibold))
+                            }
+                            .buttonStyle(.borderless)
                         }
                     }
 

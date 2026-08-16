@@ -29,7 +29,7 @@ struct GlobalSearchView: View {
         .navigationTitle("Recherche")
         .onChangeCompat(viewModel.selectedFilter) { _ in
             guard !viewModel.query.isEmpty else { return }
-            Task { await viewModel.search() }
+            Task { await viewModel.submit() }
         }
         .onChangeCompat(viewModel.selectedSort) { _ in
             guard !viewModel.query.isEmpty else { return }

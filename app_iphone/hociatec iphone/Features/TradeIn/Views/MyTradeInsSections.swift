@@ -48,7 +48,7 @@ private struct TradeInRow: View {
                     .foregroundStyle(.secondary)
             }
             if let voucherCode = item.voucherCode, !voucherCode.isEmpty {
-                Text("Avoir client: \(voucherCode)")
+                Text("Avoir client : \(voucherCode)")
                     .font(.footnote)
             }
             if item.status == "offer_sent" {
@@ -82,7 +82,7 @@ private struct TradeInRow: View {
             components.append(PriceFormatter.format(cents: offerCents))
         }
         if let voucherCode = item.voucherCode, !voucherCode.isEmpty {
-            components.append("Avoir client \(voucherCode)")
+            components.append("Avoir client : \(voucherCode)")
         }
         return components.joined(separator: ", ")
     }

@@ -74,13 +74,8 @@ struct FavoritesScreen: View {
         case .service:
             if let service = favorite.service {
                 VStack(alignment: .leading, spacing: 8) {
-                    NavigationLink {
-                        ServiceDetailView(api: container.services.serviceCatalog, serviceID: service.id)
-                    } label: {
-                        Text(service.title)
-                            .font(.headline)
-                    }
-                    .buttonStyle(.plain)
+                    Text(service.title)
+                        .font(.headline)
 
                     if let description = service.description, !description.isEmpty {
                         Text(description)
@@ -90,19 +85,21 @@ struct FavoritesScreen: View {
                     Text("Ajouté le \(favorite.addedAt.formatted(date: .abbreviated, time: .omitted))")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
+                    NavigationLink {
+                        ServiceDetailView(api: container.services.serviceCatalog, serviceID: service.id)
+                    } label: {
+                        Label("Voir le détail", systemImage: "arrow.right.circle")
+                            .font(.footnote.weight(.semibold))
+                    }
+                    .buttonStyle(.borderless)
                 }
                 .padding(.vertical, 4)
             }
         case .news:
             if let article = favorite.article {
                 VStack(alignment: .leading, spacing: 8) {
-                    NavigationLink {
-                        NewsDetailView(api: container.services.news, slug: article.slug)
-                    } label: {
-                        Text(article.title)
-                            .font(.headline)
-                    }
-                    .buttonStyle(.plain)
+                    Text(article.title)
+                        .font(.headline)
 
                     Text(article.excerpt)
                         .foregroundStyle(.secondary)
@@ -110,6 +107,13 @@ struct FavoritesScreen: View {
                     Text("Ajouté le \(favorite.addedAt.formatted(date: .abbreviated, time: .omitted))")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
+                    NavigationLink {
+                        NewsDetailView(api: container.services.news, slug: article.slug)
+                    } label: {
+                        Label("Lire l’actualité", systemImage: "arrow.right.circle")
+                            .font(.footnote.weight(.semibold))
+                    }
+                    .buttonStyle(.borderless)
                 }
                 .padding(.vertical, 4)
             }

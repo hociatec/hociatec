@@ -17,6 +17,19 @@ struct ProductCatalogCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
+            Text(product.name)
+                .font(isCompact ? .subheadline.weight(.semibold) : .headline)
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityAddTraits(.isHeader)
+
+            ProductCatalogCardContent(
+                product: product,
+                imageURL: imageURL,
+                isCompact: isCompact,
+                showsTitle: false
+            )
+
             NavigationLink {
                 ProductCatalogDetailDestination(
                     product: product,
@@ -26,21 +39,11 @@ struct ProductCatalogCard: View {
                 )
                 .environmentObject(container)
             } label: {
-                Text(product.name)
-                    .font(isCompact ? .subheadline.weight(.semibold) : .headline)
-                    .multilineTextAlignment(.leading)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                Label("Voir le détail", systemImage: "arrow.right.circle")
+                    .font(.footnote.weight(.semibold))
             }
-            .buttonStyle(.plain)
-            .accessibilityHint("Afficher le détail du produit")
-            .accessibilityAddTraits(.isHeader)
-
-            ProductCatalogCardContent(
-                product: product,
-                imageURL: imageURL,
-                isCompact: isCompact,
-                showsTitle: false
-            )
+            .buttonStyle(.borderless)
+            .accessibilityHint("Ouvre la fiche produit")
 
             ProductCatalogActions(
                 product: product,

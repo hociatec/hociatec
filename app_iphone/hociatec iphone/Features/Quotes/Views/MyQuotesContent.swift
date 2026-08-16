@@ -14,10 +14,15 @@ struct MyQuotesContent: View {
             } else {
                 Section {
                     ForEach(viewModel.quotes) { quote in
-                        NavigationLink {
-                            QuoteDetailView(viewModel: viewModel, quote: quote)
-                        } label: {
+                        VStack(alignment: .leading, spacing: 8) {
                             QuoteRow(quote: quote)
+                            NavigationLink {
+                                QuoteDetailView(viewModel: viewModel, quote: quote)
+                            } label: {
+                                Label("Voir le devis", systemImage: "arrow.right.circle")
+                                    .font(.footnote.weight(.semibold))
+                            }
+                            .buttonStyle(.borderless)
                         }
                         .swipeActions {
                             Button(role: .destructive) {

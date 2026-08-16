@@ -31,17 +31,11 @@ struct HomeNewsSection: View {
                         .accessibilityHidden(true)
 
                         HStack(alignment: .top, spacing: 12) {
-                            NavigationLink {
-                                NewsDetailView(api: container.services.news, slug: article.slug)
-                            } label: {
-                                Text(article.title)
-                                    .fontWeight(.semibold)
-                                    .multilineTextAlignment(.leading)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityAddTraits(.isHeader)
-                            .accessibilityHint("Ouvrir l’actualité")
+                            Text(article.title)
+                                .fontWeight(.semibold)
+                                .multilineTextAlignment(.leading)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .accessibilityAddTraits(.isHeader)
 
                             FavoriteToggleButton(category: .news, targetId: article.id)
                         }
@@ -49,6 +43,14 @@ struct HomeNewsSection: View {
                         Text(article.excerpt)
                             .lineLimit(3)
                             .foregroundStyle(.secondary)
+                        NavigationLink {
+                            NewsDetailView(api: container.services.news, slug: article.slug)
+                        } label: {
+                            Label("Lire l’actualité", systemImage: "arrow.right.circle")
+                                .font(.footnote.weight(.semibold))
+                        }
+                        .buttonStyle(.borderless)
+                        .accessibilityHint("Ouvrir l’actualité")
                     }
                     .padding(.vertical, 4)
                     .accessibilityElement(children: .contain)

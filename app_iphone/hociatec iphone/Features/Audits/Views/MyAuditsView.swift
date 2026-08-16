@@ -33,10 +33,15 @@ private struct AuditListSection: View {
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(viewModel.items) { audit in
-                    NavigationLink {
-                        AuditDetailView(viewModel: viewModel, auditId: audit.id)
-                    } label: {
+                    VStack(alignment: .leading, spacing: 8) {
                         AuditListRow(audit: audit)
+                        NavigationLink {
+                            AuditDetailView(viewModel: viewModel, auditId: audit.id)
+                        } label: {
+                            Label("Voir l’audit", systemImage: "arrow.right.circle")
+                                .font(.footnote.weight(.semibold))
+                        }
+                        .buttonStyle(.borderless)
                     }
                 }
 

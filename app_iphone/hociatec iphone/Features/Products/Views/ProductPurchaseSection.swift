@@ -24,6 +24,7 @@ struct ProductAddToCartButton: View {
             .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .disabled(isLoading || isDisabled)
+        .buttonStyle(.borderless)
         .accessibilityLabel(label)
         .accessibilityAddTraits(.isButton)
     }
@@ -77,18 +78,19 @@ struct RentalConfigurationSheet: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Date de début")
                             .font(.headline)
-                        LocalizedDatePicker(
+                        NumericDatePicker(
                             date: $rentalStartDate,
-                            displayedComponents: [.date],
-                            minimumDate: Calendar.current.startOfDay(for: Date()),
-                            style: .inline
+                            minimumDate: Calendar.current.startOfDay(for: Date())
                         )
-                        .frame(maxWidth: .infinity, minHeight: 320)
+                        .frame(maxWidth: .infinity, minHeight: 104)
                     }
                     Stepper(value: $rentalMonths, in: 1...36) {
                         Text("Durée: \(rentalMonths) mois")
                     }
                     LabeledContent("Date de fin estimée", value: endDateLabel)
+                    Text("Saisissez directement la date de début, puis ajustez la durée.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
                 Section {
                     ProductAddToCartButton(
@@ -98,7 +100,7 @@ struct RentalConfigurationSheet: View {
                         action: {
                             confirmationDialog = FeedbackDialogState(
                                 title: "Ajouter cette location au panier ?",
-                                message: "Debut le \(DateFormatters.frDay.string(from: rentalStartDate)), pour \(rentalMonths) mois, jusqu'au \(endDateLabel).",
+                                message: "Début le \(DateFormatters.frDay.string(from: rentalStartDate)), pour \(rentalMonths) mois, jusqu’au \(endDateLabel).",
                                 primaryButton: .cancel("Annuler"),
                                 secondaryButton: .standard("Ajouter la location") {
                                     onConfirm()
@@ -110,6 +112,7 @@ struct RentalConfigurationSheet: View {
             }
             .navigationTitle("Configurer la location")
             .navigationBarTitleDisplayMode(.inline)
+            .scrollDismissesKeyboard(.interactively)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Annuler", action: onCancel)

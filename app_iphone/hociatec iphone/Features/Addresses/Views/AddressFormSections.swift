@@ -69,7 +69,7 @@ struct AddressFormFieldsSection: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Informations de facturation professionnelle")
                         .font(.subheadline.weight(.semibold))
-                    Text("Optionnel. A renseigner si la facture doit comporter des mentions societe.")
+                    Text("Optionnel. À renseigner si la facture doit comporter des mentions société.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }

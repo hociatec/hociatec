@@ -20,7 +20,7 @@ struct AppointmentDetailScreen: View {
             ) {
                 confirmationDialog = FeedbackDialogState(
                     title: "Annuler ce rendez-vous ?",
-                    message: "Cette action est irreversible. Le rendez-vous sera marque comme annule.",
+                    message: "Cette action est irréversible. Le rendez-vous sera marqué comme annulé.",
                     primaryButton: .cancel("Retour"),
                     secondaryButton: .destructive("Confirmer l'annulation") {
                         guard !isCancelling else { return }

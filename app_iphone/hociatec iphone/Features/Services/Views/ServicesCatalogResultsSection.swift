@@ -35,16 +35,11 @@ private struct ServiceCatalogRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .top, spacing: 12) {
-                NavigationLink {
-                    ServiceDetailView(api: serviceCatalog, serviceID: service.id)
-                } label: {
-                    Text(service.title)
-                        .fontWeight(.semibold)
-                        .multilineTextAlignment(.leading)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .buttonStyle(.plain)
-                .accessibilityAddTraits(.isHeader)
+                Text(service.title)
+                    .fontWeight(.semibold)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityAddTraits(.isHeader)
 
                 FavoriteToggleButton(category: .service, targetId: service.id)
             }
@@ -63,6 +58,13 @@ private struct ServiceCatalogRow: View {
             Text("Durée : \(service.durationLabel ?? "Sur étude")")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
+            NavigationLink {
+                ServiceDetailView(api: serviceCatalog, serviceID: service.id)
+            } label: {
+                Label("Voir le détail", systemImage: "arrow.right.circle")
+                    .font(.footnote.weight(.semibold))
+            }
+            .buttonStyle(.borderless)
         }
         .padding(.vertical, 4)
         .accessibilityElement(children: .contain)

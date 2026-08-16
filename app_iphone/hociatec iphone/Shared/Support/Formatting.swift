@@ -52,7 +52,9 @@ enum DateFormatters {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        // API day values are calendar dates without time; keep the user's local day
+        // when encoding/decoding to avoid off-by-one shifts on iPhone time zones.
+        formatter.timeZone = .autoupdatingCurrent
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter
     }()

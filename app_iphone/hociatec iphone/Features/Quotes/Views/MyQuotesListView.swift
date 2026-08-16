@@ -41,7 +41,7 @@ struct MyQuotesListView: View {
             }
             confirmationDialog = FeedbackDialogState(
                 title: "Supprimer ce devis ?",
-                message: "Etes-vous sur de vouloir supprimer le devis \(q.number ?? "#\(q.id)") ? Cette action est irreversible.",
+                message: "Êtes-vous sûr de vouloir supprimer le devis \(q.number ?? "#\(q.id)") ? Cette action est irréversible.",
                 primaryButton: .cancel("Annuler") {
                     quoteToDelete = nil
                 },

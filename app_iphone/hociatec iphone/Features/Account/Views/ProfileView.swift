@@ -61,8 +61,8 @@ struct ProfileView: View {
             Section("Sécurité") {
                 Button(role: .destructive) {
                     confirmationDialog = FeedbackDialogState(
-                        title: "Revoquer tous les acces",
-                        message: "Toutes vos sessions en cours seront fermees sur le site web et sur iPhone.",
+                        title: "Révoquer tous les accès",
+                        message: "Toutes vos sessions en cours seront fermées sur le site web et sur iPhone.",
                         primaryButton: .cancel("Annuler"),
                         secondaryButton: .destructive("Confirmer") {
                             Task { await account.revokeAllSessions() }
